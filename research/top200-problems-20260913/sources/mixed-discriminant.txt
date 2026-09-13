@@ -1,0 +1,1359 @@
+On the Complexity of Constrained Determinantal
+Point Processes
+L. Elisa Celis1 , Amit Deshpande2 , Tarun Kathuria3 ,
+Damian Straszak4 , and Nisheeth K. Vishnoi5
+
+1    École Polytechnique Fédérale de Lausanne (EPFL), Lausanne, Switzerland
+2    Microsoft Research, Bangalore, India
+3    Microsoft Research, Bangalore, India
+4    École Polytechnique Fédérale de Lausanne (EPFL), Lausanne, Switzerland
+5    École Polytechnique Fédérale de Lausanne (EPFL), Lausanne, Switzerland
+
+
+
+
+      Abstract
+Determinantal Point Processes (DPPs) are probabilistic models that arise in quantum physics
+and random matrix theory and have recently found numerous applications in theoretical com-
+puter science and machine learning. DPPs define probability distributions over subsets of a
+given ground set, they exhibit interesting properties such as negative correlation, and, unlike
+other models of negative correlation such as Markov random fields, have efficient algorithms
+for sampling. When applied to kernel methods in machine learning, DPPs favor subsets of the
+given data with more diverse features. However, many real-world applications require efficient
+algorithms to sample from DPPs with additional constraints on the sampled subset, e.g., parti-
+tion or matroid constraints that are important from the viewpoint of ensuring priors, resource
+or fairness constraints on the sampled subset. Whether one can efficiently sample from DPPs in
+such constrained settings is an important problem that was first raised in a survey of DPPs for
+machine learning by Kulesza and Taskar and studied in some recent works.
+    The main contribution of this paper is the first resolution of the complexity of sampling from
+DPPs with constraints. On the one hand, we give exact efficient algorithms for sampling from
+constrained DPPs when the description of the constraints is in unary; this includes special cases
+of practical importance such as a small number of partition, knapsack or budget constraints. On
+the other hand, we prove that when the constraints are specified in binary, this problem is #P-
+hard via a reduction from the problem of computing mixed discriminants; implying that it may
+be unlikely that there is an FPRAS. Technically, our algorithmic result benefits from viewing the
+constrained sampling problem via the lens of polynomials and we obtain our complexity results
+by providing an equivalence between computing mixed discriminants and sampling from partition
+constrained DPPs. As a consequence, we obtain a few corollaries of independent interest: 1) An
+algorithm to count, sample (and, hence, optimize) over the base polytope of regular matroids
+when there are additional (succinct) budget constraints and, 2) An algorithm to evaluate and
+compute mixed characteristic polynomials, that played a central role in the resolution of the
+Kadison-Singer problem, for certain special cases.
+
+1998 ACM Subject Classification F.2.1 Numerical Algorithms and Problems, G.2.1 Counting
+Problems
+
+Keywords and phrases determinantal point processes, constraints, matroids, sampling and count-
+ing, polynomials, mixed discriminant
+
+Digital Object Identifier 10.4230/LIPIcs.APPROX/RANDOM.2017.36
+            © L. Elisa Celis, Amit Deshpande, Tarun Kathuria, Damian Straszak, and Nisheeth K. Vishnoi;
+            licensed under Creative Commons License CC-BY
+Approximation, Randomization, and Combinatorial Optimization. Algorithms and Techniques (APPROX/RAN-
+DOM 2017).
+Editors: Klaus Jansen, José D. P. Rolim, David Williamson, and Santosh S. Vempala; Article No. 36; pp. 36:1–36:22
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+36:2   On the Complexity of Constrained Determinantal Point Processes
+
+
+           1    Introduction
+       Algorithms for sampling from a discrete set of objects are sought after in various disciplines
+       of computer science, optimization, mathematics and physics due to their far reaching
+       applications. For instance, sampling from the Gibbs distribution was one of the original
+       optimization methods (see, e.g., [17]) and sampling from dependent distributions is often used
+       in the design of approximation algorithms (see, e.g., [5, 8, 19]). In machine learning, algorithms
+       for sampling from discrete probability distributions are desired in various summarization,
+       inference and learning tasks [33, 28, 24]. A particular class of probability distributions that
+       has received much attention are the Determinantal Point Processes (DPP). In the discrete
+                                                                                  def
+       setting, a DPP is a distribution over subsets of a finite data set [m] = {1, 2, . . . , m}. Here, a
+       data point i is associated to a feature vector vi ∈ Rd , and an m × m positive semidefinite
+       (PSD) kernel L gives the dot product of the feature vectors of any two data points as a
+       measure of their pairwise similarity. Determinants, then, provide a natural measure of the
+       diversity of a subset of data points, often backed by a physical intuition based on volume
+       or entropy. A DPP is thus defined with respect to the kernel L such that for all S ⊆ [m]
+       we have P(S) ∝ det(LS,S ), where LS,S is the principal minor of L corresponding to rows
+       and columns from S.1 The quantity det(LS,S ) can be interpreted as the squared volume
+       of the |S|-dimensional parallelepiped spanned by the vectors {vi : i ∈ S} and, intuitively,
+       the larger the volume, the more diverse the set of vectors. Hence such distributions tend
+       to prefer most diverse or informative subsets of data points. Mathematically, the fact that
+       the probabilities are derived from determinants allows one to deduce elegant and non-trivial
+       properties of such distributions, such as negative correlation and concentration of measure.
+       Efficient polynomial time algorithms for sampling from DPPs (see [20, 10]) is what sets them
+       apart from the other probabilistic models of negative correlation such as Markov random
+       fields. As a consequence, sampling from DPPs has been successfully applied to a number of
+       problems, such as document summarization, sensor placement and recommendation systems
+       [26, 23, 37, 36, 35].
+           Given the wide applicability of DPPs, a natural question is whether they can be generalized
+       to incorporate priors, budget or fairness constraints, or other natural combinatorial constraints.
+       In other words, given an m × m kernel L and a family C ⊆ 2[m] that represents constraints
+       on the subsets, can we efficiently sample from the DPP distribution supported only on C;
+       that is, P(S) ∝ det(LS,S ) for S ∈ C, and P(S) = 0 otherwise. Here are two important special
+       cases.
+           Fairness (or Partition) constraints: Consider the setting where [m] is a collection of data
+           points and each point is associated with a sensitive attribute such as gender. Then C is
+           the family of attribute-unbiased subsets of [m] – e.g., those subsets that contain an equal
+           number of male and female points. Thus, the corresponding C-constrained DPP outputs
+           a diverse set of points while maintaining fairness with respect to the sensitive attribute;
+           see [7] for this and other applications of constrained DPPs to eliminating algorithmic
+           bias.
+           Budget constraints: In data subset selection or active learning, when there is a cost ci ∈ Z
+           associated with each data point, it is natural to ask for a diverse training sample S from
+                                                       P
+           a corresponding DPP such that its cost i∈S ci is bounded from above by C ∈ Z. See
+           also [34] for a related optimization variant.
+
+
+       1
+           We treat DPPs via L-ensembles, while commonly they are defined using kernel matrices, for practical
+           purposes these two definitions are equivalent.
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                                36:3
+
+
+In their survey, [24] posed the open question of efficiently sampling from DPPs with additional
+combinatorial constraints on the support of the distribution. Sampling from constrained DPPs
+is algorithmically non-trivial, as many natural heuristics fail. The probability mass on the
+constrained family of subsets can be arbitrarily small, hence, ruling out a rejection sampling
+approach. For partition constraints, a natural heuristic is to sample from independent
+smaller-sized DPPs, each defined over a different part. However, such a product distribution
+would select two (potentially very similar) items from two different parts independently,
+whereas in a constrained DPP distribution they must be negatively correlated. Unlike DPPs
+and the special case of cardinality-constrained k-DPPs (in which C is the family of all subsets
+of size k – see Section 1.2), it is not clear that there is a clean expression for the partition
+function or the marginals of a constrained DPP. Another approach to approximately sample
+from constrained DPPs is via Markov Chain Monte Carlo (MCMC) methods as in the recent
+work of [25]. This approach can be shown to be efficient when the underlying Markov chain is
+connected and the DPP kernel is close to a diagonal matrix (or nearly-log-linear; see Theorem
+4 of [25]). However, the above conditions do not hold for sampling partition-constrained
+subsets – even with constant number of parts – from most DPP kernels. Thus, while the
+problem of sampling from constrained DPPs has attracted attention, its complexity has
+remained open.
+
+    The main contribution of our paper is the first resolution of the problem of sampling from
+constrained DPPs. Our results give a dichotomy for the complexity of this problem: On the
+one hand, we give exact algorithms which are polynomial time when the description of C (in
+terms of the costs and budgets) is in unary; this includes special cases of practical importance
+such as the fairness, partition or budget constraints mentioned above. On the other hand,
+we prove that in general this problem is #P-hard when the constraints of C are specified in
+binary. Our algorithmic results go beyond the MCMC methods and include special cases of
+practical importance such as (constantly-many) partition or fairness constraints (studied,
+e.g., by [7]) and a more general class of budget constraints and linear families defined in the
+following section.
+
+    Our algorithmic results benefit from viewing the probabilities arising in constrained
+DPPs as coefficients of certain multivariate polynomials. This viewpoint also allows us to
+extend our result on constrained DPPs to derive important consequences of independent
+interest. For instance, using the intimate connection between linear matroids and DPPs, we
+arrive at efficient algorithms to sample a basis of regular matroids when there are additional
+budget constraints – significantly extending results of [12, 6] for spanning trees. To prove
+the hardness result, we present an equivalence between the problem of computing the mixed
+discriminant of a tuple of PSD matrices and that of sampling from partition-constrained
+DPPs. Mixed discriminants (see Section 4.1 for a definition) generalize the permanent, arise
+in the proof of the Kadison-Singer problem ([27], see [18] for a survey on this topic) and are
+closely related to mixed volumes (see, e.g., [4]). However, unlike the result for permanent [21]
+and volume computation [11], there is evidence that the mixed discriminant problem may
+be much harder and may not admit an FPRAS; see [15]. Thus, in light of our equivalence
+between mixed discriminants and partition DPPs, it may be unlikely that we can even
+approximately sample from partition DPPs (with an arbitrary number of parts) efficiently.
+Further, this connection implies that important special cases of the mixed discriminant
+problem, for instance computing the higher order coefficients of the mixed-characteristic
+polynomial or evaluating the mixed characteristic polynomial of low rank matrices at a given
+point, can be solved efficiently, which may be of independent interest.
+
+
+
+                                                                                                   APPROX/RANDOM’17
+36:4   On the Complexity of Constrained Determinantal Point Processes
+
+
+       1.1    Our Framework and Results
+       The starting point of our work is the observation that if we let µ be the measure on subsets
+                                                               def
+       of [m] corresponding to the kernel matrix L (i.e., µ(S) = det(LS,S )), then given L, there is
+       an efficient algorithm to evaluate the polynomial
+                 def
+                       X
+          gµ (x) =             µ(S)xS
+                       S⊆[m]
+
+
+       where xS denotes i∈S xi for any setting of its variables. Indeed, consider the Cholesky
+                           Q
+
+       decomposition of the kernel L = V V > . Then, the polynomial x 7→ det(V > XV + I) (where
+       X denotes the diagonal matrix with x on the diagonal) is equal to gµ (x) (see Fact 8) and
+       hence can be efficiently evaluated using Gaussian elimination for any input x. We say that
+       such a µ has an efficient evaluation oracle and, as it turns out, this is the only property
+       we need from DPPs and our results generalize to any measure µ for which we have such an
+       evaluation oracle. Before we explain our results, we formally introduce the sampling problem
+       in this general framework.
+
+       I Definition 1 (Sampling). Let µ : 2[m] → R≥0 be a function assigning non-negative real
+       values to subsets of [m] and let C ⊆ 2[m] be any family of subsets of [m]. We denote the
+       (sampling) problem of selecting a set S ∈ C with probability pS = P µ(S)µ(T ) by Sample[µ, C].
+                                                                           T ∈C
+
+
+       Building up on the equivalence between sampling and counting [22], we show that if one
+       is given oracle access to the generating polynomial gµ and if µ is a nonnegative measure,
+       the problem Sample[µ, C] is essentially equivalent to the following counting problem; see
+       Theorem 21 in Appendix B.
+
+       I Definition 2 (Counting). Let µ : 2[m] → R≥0 be a function assigning non-negative real
+       values to subsets of [m] and let C ⊆ 2[m] be any family of subsets of [m]. We denote the
+                                                 P
+       (counting) problem of computing the sum S∈C µ(S) by Count[µ, C].
+
+       In particular, a polynomial time algorithm for Count[µ, C] can be translated into a polynomial
+       time algorithm for Sample[µ, C]. Interestingly, this relation holds no matter what C is; in
+       particular, no specific assumptions on how the access to C is provided are required.
+           Towards developing counting algorithms in our framework, we focus on a class of families
+       C ⊆ 2[m] , which we call Budget Constrained Families, where a cost vector c ∈ Zm and a
+       budget value C ∈ Z are given, and the family consists of all sets S ⊆ [m] of total cost
+            def P
+       c(S) = i∈S ci at most C. We call the counting and sampling problems for this special case
+       BCount[µ, c, C] and BSample[µ, c, C] respectively.
+           Our key result is that the BCount problem (and hence also BSample) is efficiently
+       solvable whenever the costs are not too large in magnitude.
+
+       I Theorem 3 (Counting under Budget Constraints). There is an algorithm, which given a
+       function µ : 2[m] → R (via oracle access to gµ ), a cost vector c ∈ Zm and a cost value C ∈ Z
+       solves the BCount[µ, c, C] problem in polynomial time with respect to m and kck1 .
+
+       The proof of Theorem 3 (see Section 2) benefits from an interplay between probability
+       measures and polynomials. It reduces the counting problem to computing the coefficients of
+       a certain univariate polynomial which, in turn, can be evaluated efficiently given access to
+       the generating polynomial for µ. We can then employ interpolation in order to recover the
+       required coefficients.
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                                36:5
+
+
+    It is not hard to see that Theorem 3 also implies the same result for families with a single
+equality constraint (c(S) = C) or for any constraint of the form c(S) ∈ K, where K ⊆ Z is
+given as input together with c ∈ Zm and C ∈ Z. Furthermore, our framework can be easily
+extended to the case of multiple (constant number of) such constraints.
+    As mentioned earlier, what makes DPPs attractive is that their generating polynomial,
+arising from a determinant, is efficiently computable. Using this fact, Theorem 3 and the
+equivalence between sampling and counting, we can deduce the following result.
+
+I Corollary 4. There is an algorithm, which given a PSD matrix L ∈ Rm×m , a cost vector
+c ∈ Zm and a cost value C ∈ Z samples a set S of cost c(S) ≤ C with probability proportional
+to det(LS,S ). The running time of the algorithm is polynomial with respect to m and kck1 .
+
+From the above one can derive efficient sampling algorithms for several classes of constraint
+families C which have succinct descriptions. Indeed, we establish counting and sampling
+algorithms for a general class of linear families of the form
+
+   C = {S ⊆ [m] : c1 (S) ∈ K1 , c2 (S) ∈ K2 , . . . , cp (S) ∈ Kp }                         (1)
+
+where c1 , c2 , . . . , cp ∈ Zm and K1 , . . . , Kp ⊆ Z. We prove the following
+
+I Corollary 5. There is an algorithm, which given a PSD matrix L ∈ Rm×m and a description
+of a linear family C as in (1), samples a set S ∈ C with probability proportional
+                                                                               to det(LS,S ).
+                                                             Qp
+The running time of the algorithm is polynomial in m and j=1 kcj k1 + 1 .
+
+One particular class of families for which the above yields polynomial time sampling algorithms
+are partition families (families of bases of partition matroids) over constantly many parts
+(see Corollary 10). An important open problem that remains is to come up with even faster
+algorithms.
+    Another application of Theorem 3, which we present in Section 6, is to combinatorial
+sampling and counting problems. More precisely, we note that the indicator measure of bases
+of regular matroids has an efficiently computable generating polynomial; hence, we can solve
+their corresponding budgeted versions of counting and sampling problems.
+    One may ask if the dependence on kck1 in Theorem 3 can be improved. We prove that
+the answer to this question is no in a very strong sense. To state our hardness result, we
+introduce ECount – a natural variant of the BCount problem – in which the sum is
+over subsets of cost equal to a given value C instead of at most C (such a problem is no
+harder than BCount). We provide an approximation preserving reduction showing that
+ECount[µ, c, C] is at least as hard as computing mixed discriminants of tuples of positive
+semidefinite (PSD) matrices when c and C are given in binary, and can be exponentially
+large in magnitude. Recall that for a tuple of m × m PSD matrices A1 , . . . , Am , their mixed
+                                                   Qm                             Pm
+discriminant is the coefficient of the monomial i=1 xi in the polynomial det( i=1 xi Ai ).
+
+I Theorem 6 (Hardness of Counting under Budget Constraints). BCount[µ, c, C] is #P−hard.
+Moreover, when µ is a determinantal function, ECount[µ, c, C] is at least as hard to
+approximate as mixed discriminants of tuples of PSD matrices.
+
+To prove this result we show an equivalence between the counting problem corresponding to
+partition-constrained DPPs (with a large, super-constant number of parts) and computing
+mixed discriminants. Unlike permanents [21], no efficient approximation scheme is known for
+estimating mixed discriminants and there is some evidence [15] that there may be none. To
+further understand to what extent gµ is the cause of computational hardness, in Appendix A
+(see Theorem 20) we provide another hardness result; it considers a µ that is a 0/1 indicator
+function for spanning trees in a graph (with efficiently computable gµ ). We prove that
+
+
+                                                                                                   APPROX/RANDOM’17
+36:6   On the Complexity of Constrained Determinantal Point Processes
+
+
+       ECount[µ, c, C] is at least as hard to approximate as the number of perfect matchings in
+       general (non-bipartite) graphs, which is another problem for which existence of an FPRAS is
+       open.
+          Finally, this connection between partition-DPPs and mixed discriminants, along with our
+       results to efficiently solve the counting problem for partition-DPPs with constantly many
+       parts, gives us other applications of independent interest. 1) The ability to compute the
+       top few coefficients of the mixed characteristic polynomial that arises in the proof of the
+       Kadison-Singer problem; see Theorem 15. 2) The ability to compute in polynomial time, the
+       mixed characteristic polynomial exactly, when the linear matrix subspace spanned by the
+       input matrices has constant dimension; see Theorem 17 and Corollary 18.
+
+       1.2      Other Related Work
+       For sampling from k-DPPs there are exact polynomial time algorithms (see [20, 10, 24]).
+       There is also recent work on faster approximate MCMC algorithms for sampling from various
+       unconstrained discrete point processes (see [31, 1] and the references therein), and algorithms
+       that are efficient for constrained DPPs under certain restrictions on the kernel and constraints
+       (see [25] and the references therein). To the best of our knowledge, our result is the first
+       efficient sampling algorithm that works for all kernels and for any constraint set with small
+       description complexity. Recently, approximate algorithms for the counting and sampling
+       were presented in [32]. On the practical side, diverse subset selection and DPPs arise in a
+       variety of contexts such as structured prediction [30], recommender systems [14] and active
+       learning [34], where the study of DPPs with additional constraints is of importance.
+
+        2       Counting with Budget Constraints
+       Proof of Theorem 3. Let us first consider the case in which the cost vector c is nonnegative,
+       i.e., c ∈ Nm . We introduce a new variable z and consider the polynomial
+                  def
+          h(z) = gµ (z c1 , z c2 , . . . , z cm ).
+                                     P               Q
+       Since gµ (x1 , . . . , xm ) = S⊆[m] µ(S) i∈S xi , we have
+                    X              Y               X              X             X
+          h(z) =              µ(S)      z ci =       µ(S)z c(S) =        zd               µ(S).
+                        S⊆[m]        i∈S          S⊆[m]       0≤d≤kck1        S: c(S)=d
+
+       Hence, the coefficient of z d in h(z) is equal to the sum of µ(S) over all sets S such that
+       c(S) = d. In particular, the output is the sum of coefficients over d ≤ C.
+           It remains to show how to compute the coefficients of h. Note that we do not have direct
+       access to gµ . However, we can evaluate gµ (x) at any input x ∈ Rm , which in turn allows us
+       to compute h(z) for any input z ∈ R. Since h(z) is a polynomial of degree at most kck1 , in
+       order to recover the coefficients of h, it suffices to evaluate it at kck1 + 1 inputs and perform
+       interpolation. When using FFT, the total running time becomes:
+            (kck1 + 1) · Tµ + O(kck
+                              e
+                                   1 ),
+
+       where Tµ is the running time of the evaluation oracle for gµ .
+           In order to deal with the case in which c has negative entries, consider a modified version
+       of h:
+                  def
+            h(z) = z kck1 gµ (z c1 , z c2 , . . . , z cm ).
+       Clearly, h(z) is a polynomial of degree at most 2 · kck1 whose coefficients encode the desired
+       output.                                                                                     J
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                                 36:7
+
+
+I Remark. Note that the bit complexity of the output of the proposed algorithm is polynomial
+in the input size since it is a result of solving a linear system with all the coefficients being
+polynomially bounded.
+We also state a simple consequence of the above proof that is often convenient to work with.
+
+I Corollary 7. There is an algorithm that, given a vector c ∈ Zm , a value C ∈ Z and oracle
+access to gµ computes the sum S: c(S)=C µ(S) in time polynomial with respect to m and
+                               P
+
+kck1 .
+
+In the above, note the equality c(S) = C instead of c(S) ≤ C as in BCount.
+
+ 3      Determinantal Point Processes
+A Determinantal Point Process (DPP) is a probability distribution µ over subsets of [m]
+defined with respect to a symmetric positive semidefinite matrix L ∈ Rm×m by µ(S) ∝
+det(LS,S ); i.e.,
+
+          def     det(LS,S )
+     µ(S) = P                     .
+                T ⊆[m] det(LT,T )
+
+We will often use a different matrix to represent the measure µ; let V ∈ Rm×n be a matrix,
+such that L = V V > (the Cholesky decomposition of L). Then, det(LS,S ) = det(VS VS> ).
+     An important open problem related to DPPs is the sampling problem under additional
+combinatorial constraints imposed on the ground set [m]. We prove that these problems
+are polynomial time solvable for succinct budget constraints, as in Theorem 3. We start
+by establishing the fact that generating polynomials for determinantal distributions are
+efficiently computable.
+
+I Fact 8. Let L ∈ Rm×m be a PSD matrix with L = V V > for some V ∈ Rm×n . If
+                                    def
+µ : 2[m] → R≥0 is defined as µ(S) = det(LS,S ) then det(V > XV + I) = S⊆[m] xS µ(S),
+                                                                               P
+
+where X is the diagonal matrix of indeterminates X = Diag (x1 , . . . , xm ) and I is the n × n
+identity matrix.
+
+Proof. We start by applying the Sylvester’s determinant identity
+                            √     √
+                                         >     
+   det(V > XV + I) = det      XV       XV     +I .
+
+It is well known that for a symmetric matrix A ∈ Rm×n the coefficient of tk in the polynomial
+                        P                                                √       √     >
+det(A + tI) is equal to |S|=n−k det(AS,S ). Applying this result to A =      XV        XV ,
+we get
+
+     det(AS,S ) = xS det(VS VS> ) = xS det(LS,S ),
+
+which concludes the proof by simply taking t = 1.                                              J
+
+Now we are ready to deduce Corollary 4.
+
+Proof of Corollary 4. A polynomial time counting algorithm follows directly from Theorem 3
+and Fact 8. To deduce sampling we apply the result on equivalence between sampling and
+counting Theorem 21. In fact when applied to an exact counting algorithm we obtain an
+exact sampling procedure.                                                               J
+
+
+
+                                                                                                    APPROX/RANDOM’17
+36:8   On the Complexity of Constrained Determinantal Point Processes
+
+
+       We move to the general result on sampling for linear families – Corollary 5. One can deduce
+       it directly from Theorem 3, but this leads to a significantly suboptimal algorithm. Instead
+       we take a different path and reprove Theorem 3 in a slightly higher generality.
+
+       Proof of Corollary 5. We will show how to solve the counting problem – sampling will then
+       follow from Theorem 21. Also, for simplicity we assume that all the entries in the cost vectors
+       are nonnegative, this can be extended to the general setting as in the proof of Theorem 3.
+           Let g be the generating polynomial of the determinantal function µ(S) = det(LS,S ),
+       which is efficiently computable by Fact 8. For notational clarity we will use superscripts
+       to index constraints. For every constraint “c(j) (S) ∈ Ki ” (j = 1, 2, . . . , p) introduce a new
+       formal variable yj . For every index i ∈ [m] define the monomial:
+                  p          (j)
+                         c
+                  Y
+           si =         yj i .
+                  j=1
+
+       The above encodes the cost of element i with respect to all cost vectors c(j) for j = 1, 2, . . . , p.
+       Consider the polynomial h(y1 , . . . , yp ) = g(s1 , s2 , . . . , sm ). It is not hard to see that the
+                                            Qp          d
+       coefficient of a given monomial j=1 yj j in h is simply the sum of µ(S) over all sets S
+       satisfying c(1) (S) = d1 , c(2) (S) = d2 , . . . , c(p) (S) = dp . Hence the solution to our counting
+       problem is simply the sum of certain coefficients of h. It remains to show how to recover all
+       the coefficients efficiently.
+           Note that we can efficiently evaluate the polynomial h at every input (y1 , . . . , yp ) ∈ Rp .
+       One can then apply interpolation to recover all coefficients of h. The running time is
+       polynomial in the total number of monomials in h (this is the number of variables of a linear
+       system which canbe used to find the coefficients), which can be bounded from above by
+       Qp
+         j=1    c(j) 1 + 1 .                                                                               J
+
+       We derive now one interesting application of Corollary 5 – sampling from partition constrained
+       DPPs. Let us first define partition families formally.
+       I Definition 9. Let [m] = P1 ∪ P2 ∪ · · · ∪ Pp be a partition of [m] into disjoint, nonempty
+       sets and let b1 , b2 , . . . , bp be integers such that 0 ≤ bi ≤ |Pi |. A family of sets of the form
+           C = {S ⊆ [m] : |S ∩ Pj | = bj , for every j = 1, 2, . . . , p}
+       is called a partition family.
+       We prove the following consequence of Corollary 5, which asserts that polynomial time
+       counting and sampling is possible for DPPs under partition constraints for constant p.
+       I Corollary 10. Given a DPP defined by L ∈ Rm×m and a partition family C with a constant
+       number of parts, there exists a polynomial time sampling algorithm for the distribution
+                   def          det(LS,S )
+           µC (S) = P                            for S ∈ C.
+                               T ∈C det(LT,T )
+       Proof. In light of Corollary 5 it suffices to show that every partition family has a succinct
+       representation as a linear family. We show that it is indeed the case. Consider a partition
+       family C induced by the partition P1 ∪ P2 ∪ . . . ∪ Pp = [m] and numbers b1 , b2 , . . . , bp . Define
+       the following cost vectors: cj = 1Pj , for j = 1, 2, . . . , p, i.e., the indicator vectors of the sets
+       P1 , P2 , . . . , Pp . Moreover define Kj to be {bj } for every j = 1, 2, . . . , p. It is then easy to see
+       that “cj (S) ∈ Kj ” is implementing the constraint |Pj ∩ S| = bj . In other words the family
+       C is equal to the linear family defined by cost vectors c1 , c2 , . . . , cp and sets K1 , K2 , . . . , Kp .
+                                                                           Qp
+       It remains to observe that kcj k1 = |Pj | ≤ m and hence j=1 (kcj k + 1) = O(mp ). Since
+       p = O(1) the algorithm from Corollary 5 runs in polynomial time.                                         J
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                                   36:9
+
+
+ 4       Hardness Result
+
+In this section we study hardness of BCount[µ, c, C]. Theorem 3 implies that BCount is
+polynomial time solvable whenever we measure the complexity with respect to the unary
+encoding length of the cost vector c. Here we prove that if c is given in binary, the problem
+becomes #P−hard. Moreover, existence of an efficient approximation scheme for a closely
+related problem (instead of counting all objects of cost at most C, count objects of cost
+exactly C) would imply existence of such schemes for counting perfect matchings in non-
+bipartite graphs (see Appendix A) and for computing mixed discriminants. In both cases,
+these are notorious open questions and the latter is believed to be unlikely.
+
+
+4.1      Mixed Discriminants
+We relate the BCount problem to the well studied problem of computing mixed discriminants
+of PSD matrices and prove Theorem 6. Recall the definition:
+
+I Definition 11. Let A1 , A2 , . . . , Am ∈ Rd×d be symmetric matrices of dimension d. The
+mixed discriminant of a tuple (A1 , A2 , . . . , Ad ) is defined as
+
+                            def       ∂d
+     D(A1 , A2 , . . . , Ad ) =                 det(z1 A1 + z2 A2 + · · · + zd Ad ).
+                                  ∂z1 . . . ∂zd
+
+Computing mixed discriminants of PSD matrices is known to be #P-hard, since they can
+encode the permanent. However, as opposed to the permanent, there is no FPRAS known
+for computing mixed discriminants, and the best polynomial time approximation algorithms
+by [4, 16] have an exponentially large approximation ratio.
+    The main technical component in our proof of Theorem 6 is the following lemma.
+
+I Lemma 12. There is a polynomial time reduction, which given a tuple (A1 , . . . , An ) of
+PSD n × n matrices outputs a PSD matrix L ∈ Rm×m , a cost vector c ∈ Zm and a cost value
+C ∈ Z such that
+                                   X
+   n! · D(A1 , A2 , . . . , An ) =     µ(S),
+                                     S⊆[m], c(S)=C
+
+
+where µ(S) = det(LS,S ), for S ⊆ [m]. Moreover, kck1 ≤ 2O(n log n) .
+
+Before proving Lemma 12 let us first state several important properties of mixed discriminants,
+which we will rely on; for proofs of these facts we refer the reader to [3].
+
+I Fact 13 (Properties of Mixed Discriminants). Let A, B, A1 , A2 , . . . , An be symmetric n × n
+matrices.
+1. D is symmetric, i.e.,
+
+         D(A1 , A2 , . . . , An ) = D(Aσ(1) , Aσ(2) , . . . , Aσ(n) ), for any permutation σ ∈ Sn .
+
+2. D is linear with respect to every coordinate, i.e.,
+
+         D(αA + βB, A2 , . . . , An ) = αD(A, A2 , . . . , An ) + βD(B, A2 , . . . , An ).
+             Pn
+3. If A =               >
+                i=1 vi vi ∈ R
+                              n×n
+                                  then we have: det(A) = n! D(v1 v1> , . . . , vn vn> ).
+
+
+
+
+                                                                                                      APPROX/RANDOM’17
+36:10   On the Complexity of Constrained Determinantal Point Processes
+
+
+        Proof of Lemma 12. Consider a tuple (A1 , A2 , . . . , An ) of PSD matrices. The first step is
+        to decompose them into rank-one summands:
+                    r
+                    X
+                                >
+             Ai =         vi,j vi,j ,
+                    j=1
+
+        where vi,j ∈ Rn for 1 ≤ i, j ≤ n (some vi,j ’s can be zero if rank(Ai ) < n). This step can be
+        performed using the Cholesky decomposition.
+           Let M = {(i, j) : 1 ≤ i, j ≤ n} and for every i = 1, 2, . . . , n define Pi = {i} × [n]. We take
+        m = |M | = n2 and define a family C of n−subsets of M to be
+             C = {S ⊆ [m] : |S ∩ Pi | = 1 for every i = 1, 2, . . . , n}.
+        Let V denote an m × n matrix with rows indexed by M , for which the eth row is ve as above
+        (e ∈ M , i.e., e = (i, j) for some i, j ∈ [n]). We also set L = V V > , hence L is an m × m
+        symmetric, PSD matrix. Finally, let µ(S) = det(LS,S ). Note that for sets S of cardinality n
+        we have
+                                                                             !
+                                                                    X
+                                          >            >                   >
+            µ(S) = det(LS,S ) = det(VS VS ) = det(VS VS ) = det        ve ve .
+                                                                                            e∈S
+
+        In the calculation below we rely on properties of mixed discriminants listed in Fact 13 and
+        on the fact that |S| = n for S ∈ C.
+                                                                                      
+                                          Xn             n
+                                                         X                 n
+                                                                           X
+                                                   >             >                 > 
+            D(A1 , A2 , . . . , An ) = D    v1,j v1,j ,   v2,j v2,j ,...,   vn,j vn,j
+                                                  j=1                j=1                   j=1
+                                                   X
+                                                                           >             >                     >
+                                        =                         D(v1,j1 v1,j1
+                                                                                , v2,j2 v2,j2
+                                                                                              , . . . , vn,jn vn,jn
+                                                                                                                    )
+                                            1≤j1 ,j2 ,...,jn ≤n
+                                                        X
+                                        =                                D(ve1 ve>1 , ve2 ve>2 , . . . , ven ve>n )
+                                            e1 ∈P1 ,e2 ∈P2 ,...,en ∈Pn
+                                                   X              1                                                 1 X
+                                        =                            det(ve1 ve>1 + ve2 ve>2 + . . . + ven ve>n ) =     µ(S).
+                                                                  n!                                                n!
+                                            {e1 ,e2 ,...,en }∈C                                                         S∈C
+
+        It remains to show that the partition family C can be represented as C = {S ⊆ M : c(S) = C}
+        for some cost vector c ∈ ZM and C ∈ Z, such that kck1 = 2O(n log n) . Indeed, by a reasoning
+        as in Corollary 10 we can represent C as a linear family with n constraints of the form
+        c(i) (S) = 1 for i = 1, 2, . . . , n and c(i) ∈ {0, 1}n×n . It is not hard to see that these can be
+        combined into one constraint c(S) = C with kck1 = (n2 )n+O(1) = 2O(n log n) . Now, it remains
+        to observe that all the steps of the reduction are efficient (since the cost vector is represented
+        in binary here).                                                                                 J
+                                                                                        P
+        Proof of Theorem 6. In light of Lemma 12, the problem of computing S⊆[m],c(S)=C µ(S)
+        for determinantal functions µ is at least as hard as computing mixed discriminants. The
+        BCount problem is very similar, with the only difference that it is computing the sum over
+        all sets of cost c(S) at most C. However, clearly by solving the BCount problem for C and
+                                    P
+        C − 1 one can compute S⊆[m],c(S)=C µ(S) by just subtracting the obtained results.                J
+
+
+         5      Mixed Discriminants and Mixed Characteristic Polynomials
+        Mixed Characteristic Polynomials played a crucial role in the proof of the Kadison-Singer
+        conjecture. Making this proof algorithmic is an outstanding open question that naturally leads
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                                                      36:11
+
+
+to the problem of computing the maximum root of these mixed characteristic polynomials. In
+this section, we show how Corollary 10 implies a polynomial time algorithm for higher-order
+coefficients of such polynomials. We start by defining mixed characteristic polynomials. We
+use the following simplified notation for partial derivatives: ∂xi f (x) is an abbreviation for
+ ∂
+∂xi f (x).
+
+I Definition 14. Let A1 , A2 , . . . , Am ∈ Rd×d be symmetric matrices of dimension d. The
+mixed characteristic polynomial of A1 , A2 , . . . , Am is defined as
+                              m                      m       
+                          def
+                              Y                      X
+   µ[A1 , . . . , Am ](x) =     (1 − ∂zi ) det xI +     zi Ai         .
+                                  i=1                            i=1       z1 =···=zm =0
+
+Note in particular that while mixed discriminants are defined for a tuple whose length
+matches the dimension d of the matrices, for the case of mixed characteristic polynomials
+the number m can be arbitrary. In fact, when m = d, the constant term in the mixed
+characteristic polynomial is (up to sign) equal to the mixed discriminant of the input tuple.
+    However, one may wonder whether all of the coefficients in these polynomials are hard
+to compute. The following result shows that higher-degree coefficients are computable
+in polynomial time. Roughly, the proof relies on the observation that the higher-degree
+coefficients in the mixed characteristic polynomial are sums of mixed discriminants that
+only have constantly many distinct matrices. As we demonstrate, computing such mixed
+discriminants reduces to counting for DPPs under partition constraints with a constant
+number of parts, which allows us to apply Corollary 10. The formal statement of the theorem
+follows 2 .
+I Theorem 15. Given a set of m symmetric, PSD matrices A1 , . . . , Am ∈ Rd×d , one can
+compute the coefficient of xd−k in µ[A1 , . . . , Am ](x), in poly(mk ) time.
+An important component in the proof of Theorem 15 is a reduction from counting for
+partition constrained DPPs to mixed discriminants. In fact we use it as a subroutine for
+computing higher-order coefficients of the mixed characteristic polynomial. In Section 4 we
+provided a reduction in the opposite direction, thus establishing an equivalence between
+mixed discriminants and counting for partition constrained DPPs.
+I Lemma 16. Given a set of m vectors v1 , . . . , vm ∈ Rr and a partition of [m] = P1 ∪ · · · ∪ Pp
+into disjoint, non-empty sets, consider a partition family C = {S ⊆ [m] : |S ∩ Pj | =
+                                            Pp
+bj for every j = 1, 2, . . . , p} such that j=1 bj = r. Let (A1 , . . . , Ar ) be an r-tuple of PSD
+                                                     b1 times          b2 times                  bp times
+                                                    z }| { z }| {                               z }| {
+r × r matrices such that (A1 , A2 , . . . , Ar ) = (B1 , . . . , B1 , B2 , . . . , B2 , . . . , Bp , . . . , Bp ) where
+          ve ve> for every partition Pi , the following equality holds:
+       P
+Bi =
+        e∈Pi
+     p
+     Y                                         X
+           bi ! · D(A1 , A2 , . . . , Ar ) =         det(VS VS> ),
+     i=1                                       S∈C
+
+where V ∈ Rm×r denotes the matrix formed by arranging the vectors v1 , . . . , vm row-wise.
+Proof. Consider the quantities Bi and (A1 , A2 , . . . , Ar ) as defined in the theorem. By
+applying linearity multiple times to all coordinates of D(A1 , A2 , . . . , Ar ) we find that:
+                                X
+   D(A1 , A2 , . . . , Ar ) = α   D(ve1 ve>1 , ve2 ve>2 , . . . , ver ve>r ),
+                                     S∈B
+
+
+
+2
+    Independent of our work which first appeared in [9], a recent preprint [2] devise a different algorithm to
+    obtain a similar result
+
+
+
+                                                                                                                          APPROX/RANDOM’17
+36:12   On the Complexity of Constrained Determinantal Point Processes
+
+                                                                                         Qp
+        where S is {e1 , e2 , . . . , er } in the summation above and α is i=1 bi !. This is because
+        D(ve1 ve>1 , ve2 ve>2 , . . . , ver ve>r ) = 0 whenever e1 , e2 , . . . , er are not pairwise distinct. We use
+        Fact 13 again to obtain that
+                                                           1
+            D(ve1 ve>1 , ve2 ve>2 , . . . , ver ve>r ) =      det(ve1 ve>1 + ve2 ve>2 + . . . + ver ve>r ) = det(VS VS> ).
+                                                           r!
+        This concludes the proof. Furthermore, it is evident that the r-tuple (A1 , A2 , . . . , Ar ) is
+        efficiently computable given the partition family C and matrix V .                            J
+
+        Proof of Theorem 15. First note that without loss of generality we can assume that d ≤ m,
+        as otherwise – if d > m we can add (d − m) zero-matrices which does not change the result
+        but places us in the d ≤ m case. The starting point of our proof is an observation made in
+        [27] which provides us with another expression for the mixed characteristic polynomial in
+        terms of mixed discriminants:
+                                            d
+                                            X                    X
+            µ[A1 , . . . , Am ](x) =              xd−k (−1)k             D((Ai )i∈S )                                        (2)
+                                            k=0                S∈([m]
+                                                                   k )
+
+
+                                                       1
+        where we denote D(A1 , . . . , Ak ) = (d−k)!       D(A1 , . . . , Ak , I, . . . , I) with the identity matrix I
+        repeated d − k times. Therefore, our task reduces to computing O(mk ) mixed discriminants
+        of the form D(A1 , . . . , Ak , I, . . . , I). Below we show that such a quantity is computable in
+        poly(dk ) time which concludes the proof.
+            Consider the Cholesky decomposition of Ai for i = 1, 2, . . . , k + 1 (we set Ak+1 = I for
+        convenience)
+                     d
+                     X
+            Ai =            ui,j u>
+                                  i,j .
+                     j=1
+
+        Let M = {(i, j) : 1 ≤ i ≤ k + 1, 1 ≤ j ≤ d} be the ground set of a partition family of size
+           def
+        m = (k + 1)d. Define an m × d matrix U by placing ui,j ’s as rows of U .
+           Further, consider a partition M = P1 ∪ · · · ∪ Pk+1 with Pi = {i} × [d] for all i = 1, . . . , k + 1
+        and let b1 = . . . = bk = 1 and bk+1 = d − k. This gives rise to a partition family
+
+            C = {T ∈ M : |T ∩ Pi | = bi for all i = 1, . . . , k + 1}.
+
+        We claim that
+            k+1
+            Y            X
+                  bi !          det(UT UT> ) = D(A1 , . . . , Ak , I . . . , I).                                             (3)
+            i=1          T ∈C
+
+        This follows from Lemma 16 by considering this partition family C and matrix U as defined
+        here. Equation (3) combined with the counting result for DPPs under partition constraints
+        (Corollary 10) conclude the proof.                                                     J
+
+        The second observation is more general in its nature and tries to answer the question
+        whether computing mixed characteristic polynomials is strictly harder than computing mixed
+        discriminants. In fact, as noted above, the coefficients of mixed characteristic polynomials are
+        expressed as sums of (an exponential number of) mixed discriminants. We show that these
+        exponential sums can be computed by evaluating a single mixed discriminant of matrices of
+        size at most d + n. Moreover, our reduction is approximation-preserving, hence demonstrating
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                                   36:13
+
+
+that approximating mixed discriminants are computationally equally hard as approximating
+the coefficients of the mixed characteristic polynomials. We remark that our reduction can
+be thought of as a generalization of a result for approximating the number of k-matchings in
+a bipartite graph ([13]).
+
+I Theorem 17. Given a tuple of m symmetric, positive semi-definite matrices A1 , . . . , Am ∈
+Rd×d with d ≤ m and k ∈ {1, . . . , d}, there exist a tuple of m + d − k symmetric, positive
+semi-definite matrices B1 , . . . , Bm+d−k ∈ R(m+d−k)×(m+d−k) such that the coefficient of xd−k
+in the mixed characteristic polynomial µ[A1 , . . . , Am ](x),
+     X                               1
+             D((Ai )i∈S ) =                    D(B1 , . . . , Bm+d−k )
+                              (m − k)!(d − k)!
+   S∈([m]
+       k )
+
+
+
+Proof. We first show how to construct the m + d − k matrices B1 , . . . , Bm+d−k from
+A1 , . . . , Am . The matrices B1 , . . . , Bm+d−k that we consider are 2-by-2 block diagonal
+matrices that we construct by taking appropriate direct sums. Recall that the direct sum of
+two matrices A and B of size d1 × d1 and d2 × d2 is a matrix of size (d1 + d2 ) × (d1 + d2 )
+defined as
+                              
+                  A    0d1 ×d2
+    G=
+               0d2 ×d1   B
+
+where 0m×n is an m-times-n matrix consisting of all zeros. We define the first m matrices to
+be direct sums of the Ai matrices with the identity matrix of order m − k, i.e., Im−k and the
+remaining d − k matrices to all be equal to the direct sum of the identity matrix of order d,
+i.e., Id with the square zero matrix of order m − k, i.e., 0m−k . Formally,
+          (
+           Ai ⊕ Im−k       for i ∈ {1, . . . , k},
+   Bi =
+             Id ⊕ 0m−k     otherwise
+
+We now proceed to prove the claim of the theorem from the definition of the mixed discriminant
+in Definition 14. For any subset S ⊆ [m], denote ∂ S = i∈S ∂zi .
+                                                        Q
+
+
+       D(B1 , . . . , Bm+d−k )
+   = ∂z1 . . . ∂zm+d−k det(z1 B1 + . . . + zm+d−k Bm+d−k )
+                            m            d−k
+                                                                 
+                              P            P
+                                 zi Ai +     zm+i Id 0d×(m−k) 
+   = ∂z1 . . . ∂zm+d−k det   i=1         i=1                    
+                                                     m
+                                                      P          
+                                     0(m−k)×d            zi Im−k
+                                                                   i=1
+                                                            m                d−k
+                                                                                             !
+                                                            X                X
+                                              m−k
+   = ∂z1 . . . ∂zm+d−k (z1 + . . . + zm )           det           z i Ai +         zm+i Id
+                                                            i=1              i=1
+                                            "                                         !#
+          X       S                   m−k
+                                            S c d−k
+                                                 Y             m
+                                                               X          d−k
+                                                                          X
+   =              ∂ (z1 + . . . + zm )       ∂       ∂zm+i det   z i Ai +     zm+i Id
+         S⊆[m]                                            i=1                  i=1               i=1
+       |S|=m−k
+                                   d−k
+          X                    c   Y                  X
+   =             (m − k)!∂ S             ∂zm+i det(         zi Ai + (zm+1 + . . . zm+d−k )Id )
+         S⊆[m]                     i=1              i∈S c
+       |S|=m−k
+
+
+
+
+                                                                                                       APPROX/RANDOM’17
+36:14   On the Complexity of Constrained Determinantal Point Processes
+
+
+                                                d−k times
+                          X                    z }| {
+             = (m − k)!           D((Ai )i∈S , I, . . . , I )
+                          S⊆[m]
+                          |S|=k
+                                     X
+             = (m − k)!(d − k)!             D((Ai )i∈S )
+                                    S⊆[m]
+                                    |S|=k
+
+        The fourth to last equality follows simply from chain rule. Since we have an equality in the
+        expression, the reduction is clearly approximation preserving and we are done.            J
+
+        The above theorem in particular allows us to compute in polynomial time, the mixed
+        characteristic polynomial exactly, when the linear matrix subspace spanned by the input
+        matrices has constant dimension. This follows by combining Theorem 17 with Theorem 5.1
+        in [15].
+
+        I Corollary 18. Suppose A1 , A2 , . . . , Am ∈ Rd×d span a linear space of dimension k, then
+        there exists a deterministic algorithm to compute µ[A1 , . . . , Am ](x) in poly(mk ) time.
+
+        Proof. In the proof of Theorem 17, the mixed discriminants computed are not of A1 , . . . , Am
+        but rather are of modified matrices. However, it is easy to see that for all tuples on which
+        mixed discriminant is called, the dimension of the linear space spanned by them is at most
+        k + 1. It is proved in [15] that such mixed discriminants can be computed in O(m2k+2 )
+        time.                                                                                        J
+
+         6      Budget-Constrained Sampling and Counting for Regular Matroids
+        Consider the following problem: given an undirected graph G with weights c ∈ Rm on its
+        edges, sample a uniformly random spanning tree of cost at most C in G. This generalizes
+        the problem of sampling uniformly random spanning trees [29] and sampling a random
+        spanning tree of minimum cost [12]. Below we study the generalized version of this problem
+        by considering regular matroids, indeed spanning trees arise as bases of the graphic matroid,
+        which is known to be regular. We prove that the counting and sampling problem in this
+        setting can be solved efficiently whenever c is polynomially bounded.
+
+        I Theorem 19 (Counting and Sampling Bases of Matroids). Let M be a regular matroid on
+        a ground set [m] with a set of bases B. There exists a counting algorithm which, given a
+        cost vector c ∈ Zm and a value C ∈ Z, outputs the cardinality of the set {S ∈ B : c(S) ≤ C}
+        and a sampling algorithm which, given a cost vector c ∈ Zm and a value C ∈ Z, outputs
+        a random element in the set {S ∈ B : c(S) ≤ C}. The running time of both algorithms is
+        polynomial in m and kck1 .
+
+        Proof of Theorem 19. Let M ⊆ 2[m] be a regular matroid and B ⊆ 2[m] be its set of bases.
+        We prove that the generating polynomial S∈B xS is efficiently computable. We use the
+                                                   P
+
+        characterization of regular matroids as those which can be linearly represented by a totally
+        unimodular matrix. In other words, there exists a totally unimodular matrix A ∈ Zm×d such
+        that if we denote by Ae ∈ Zd the eth row of A it holds that:
+
+             S ∈ M ⇔ {Ae : e ∈ S} is linearly independent.                                        (4)
+
+        Let r ≤ d be the rank of the matroid M, i.e., the cardinality of any set in B. We claim
+        that without loss of generality one can assume that d = r. Indeed, we prove that there is
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                                36:15
+
+
+a submatrix A0 ∈ Zm×r of A, such that (4) still holds with A replaced by A0 . To this end
+suppose that d > r. It is easy to see that the rank of A is r, otherwise, by (4) there would
+be a set S of cardinality at least r + 1 with S ∈ M. Hence there is a column in A which is
+a linear combination of the remaining columns, we can freely remove this column from A,
+while (4) will be still true. By doing so, we finally obtain a matrix A0 with exactly r rows,
+which satisfies (4).
+    By the fact that A has r columns we have:
+
+     S ∈ B ⇔ AS is nonsingular,                                                              (5)
+
+where by AS we mean the |S| × r submatrix of A corresponding to rows from S. In particular,
+for a set S ⊆ [m] of cardinality r we have:
+
+     S ∈ B ⇔ det(AS ) 6= 0 ⇔ det(A>
+                                  S AS ) = 1,                                                (6)
+
+where the last equivalence follows from A being totally unimodular. Let us now consider the
+polynomial
+                                  m
+                                              !
+                                  X
+   g(x1 , x2 , . . . , xm ) = det   x e Ae A>
+                                            e   .
+                                          e=1
+
+By the Cauchy-Binet theorem we obtain:
+                                                                  !
+                                  X             X
+     g(x1 , x2 , . . . , xm ) =           det         x e Ae A>
+                                                              e       = xS det(A>
+                                                                                S AS ).
+                                  |S|=r         e∈S
+
+
+In other words, g is equal to gµ – the generating polynomial of the function µ : 2[m] → R
+given by
+           (
+             1 if S ∈ B
+    µ(S) =
+             0 otherwise.
+
+Therefore, since gµ is efficiently computable, by Theorem 3 the BCount[µ, c, C] is efficiently
+solvable. This fact, together with Theorem 21 imply that sampling also can be made
+efficient.                                                                                  J
+
+       References
+ 1     N. Anari, S. O. Gharan, and A. Rezaei. Monte Carlo Markov Chain Algorithms for Sampling
+       Strongly Rayleigh Distributions and Determinantal Point Processes. In COLT, pages 103–
+       115, 2016.
+ 2     N. Anari, S. O. Gharan, A. Saberi, and N. Srivastava. Approximating the largest root and
+       applications to interlacing families. CoRR, abs/1704.03892, 2017. URL: http://arxiv.
+       org/abs/1704.03892.
+ 3     R. B. Bapat. Mixed discriminants of positive semidefinite matrices. Lin. Algebra & Applic-
+       ations, 126, 1989.
+ 4     A. Barvinok. Computing mixed discriminants, mixed volumes, and permanents. Discrete
+       & Computational Geometry, 18, 1997.
+ 5     D. Bertsimas and S. Vempala. Solving convex programs by random walks. J. ACM, July
+       2004.
+ 6     A. Z. Broder and E. W. Mayr. Counting minimum weight spanning trees. J. of Algorithms,
+       24(1), 1997.
+
+
+
+
+                                                                                                    APPROX/RANDOM’17
+36:16   On the Complexity of Constrained Determinantal Point Processes
+
+
+         7   L. E. Celis, A. Deshpande, T. Kathuria, and N. K. Vishnoi. How to be fair and diverse?
+             Fairness, Accountability, and Transparency in Machine Learning, 2016.
+         8   C. Chekuri, J. Vondrak, and R. Zenklusen. Dependent randomized rounding via exchange
+             properties of combinatorial structures. In FOCS, 2010.
+         9   A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi. Combinatorial Determinantal
+             Point Processes. ArXiv e-prints, 2016. arXiv:1608.00554.
+        10   A. Deshpande and L. Rademacher. Efficient Volume Sampling for Row/Column Subset
+             Selection. In FOCS, Oct 2010.
+        11   M. E. Dyer, A. M. Frieze, and R. Kannan. A random polynomial time algorithm for ap-
+             proximating the volume of convex bodies. J. ACM, 38(1):1–17, 1991.
+        12   D. Eppstein. Representing all minimum spanning trees with applications to counting and
+             generation. UC Irvine, 1995.
+        13   S. Friedland and D. Levy. A polynomial-time approximation algorithm for the number of
+             k-matchings in bipartite graphs. ArXiv, 2006. arXiv:0607135.
+        14   M. Gartrell, U. Paquet, and N. Koenigstein. Bayesian low-rank determinantal point pro-
+             cesses. In Proceedings of the 10th ACM Conference on Recommender Systems, Boston, MA,
+             USA, September 15-19, 2016, pages 349–356, 2016.
+        15   L. Gurvits. On the complexity of mixed discriminants and related problems. In MFCS,
+             2005.
+        16   L. Gurvits and A. Samorodnitsky. A deterministic algorithm for approximating the mixed
+             discriminant and mixed volume, and a combinatorial corollary. Discrete & Computational
+             Geometry, 27(4), 2002.
+        17   B. Hajek. Cooling schedules for optimal annealing. Mathematics of operations research,
+             13(2), 1988.
+        18   N. Harvey. An introduction to the Kadison-Singer problem and the paving conjecture,
+             2013.
+        19   N. Harvey and N. Olver. Pipage rounding, pessimistic estimators and matrix concentration.
+             In SODA’14, pages 926–945, 2014.
+        20   J. B. Hough, M. Krishnapur, Y. Peres, and B. Virág. Determinantal Processes and Inde-
+             pendence. ArXiv Mathematics e-prints, March 2005. arXiv:math/0503110.
+        21   M. Jerrum, A. Sinclair, and E. Vigoda. A Polynomial-time Approximation Algorithm for
+             the Permanent of a Matrix with Nonnegative Entries. J. ACM, 51(4), July 2004.
+        22   M. R. Jerrum, L. G. Valiant, and V. V. Vazirani. Random generation of combinatorial
+             structures from a uniform distribution. Theoretical Computer Science, 43:169–188, 1986.
+        23   A. Krause, A. Singh, and C. Guestrin. Near-Optimal Sensor Placements in Gaussian
+             Processes: Theory, Efficient Algorithms and Empirical Studies. J. Mach. Learn. Res., 9,
+             June 2008.
+        24   A. Kulesza and B. Taskar. Determinantal point processes for machine learning. ArXiv,
+             July 2012. arXiv:1207.6083.
+        25   C. Li, S. Jegelka, and S. Sra. Markov chain sampling in discrete probabilistic models with
+             constraints. In NIPS, 2016.
+        26   H. Lin and J. Bilmes. A Class of Submodular Functions for Document Summarization.
+             In Annual Meeting of the Association for Computational Linguistics: Human Language
+             Technologies, HLT’11, 2011.
+        27   A. W. Marcus, D. A. Spielman, and N. Srivastava. Interlacing families. II: Mixed char-
+             acteristic polynomials and the Kadison-Singer problem. Ann. Math. (2), 182(1):327–350,
+             2015.
+        28   M. Mezard and A. Montanari. Information, physics, and computation. Oxford University
+             Press, 2009.
+        29   R. Pemantle. Uniform random spanning trees. arXiv preprint math/0404099, 2004.
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                               36:17
+
+
+30     A. Prasad, S. Jegelka, and D. Batra. Submodular meets structured: Finding diverse subsets
+       in exponentially-large structured item sets. In Advances in Neural Information Processing
+       Systems, December 8-13 2014, Montreal, Quebec, Canada, pages 2645–2653, 2014.
+31     P. Rebeschini and A. Karbasi. Fast mixing for discrete point processes. In Proceedings
+       of The 28th Conference on Learning Theory, COLT 2015, Paris, France, July 3-6, 2015,
+       pages 1480–1500, 2015.
+32     Damian Straszak and Nisheeth K. Vishnoi. Real stable polynomials and matroids: Optim-
+       ization and counting. In Proceedings of the 49th Annual ACM Symposium on Theory of
+       Computing. ACM, 2017.
+33     M. J. Wainwright, M. I. Jordan, et al. Graphical models, exponential families, and vari-
+       ational inference. Foundations and Trends® in Machine Learning, 1(1–2):1–305, 2008.
+34     K. Wei, R. K. Iyer, and J. A. Bilmes. Submodularity in data subset selection and active
+       learning. In Proceedings of the 32nd International Conference on Machine Learning, ICML
+       2015, Lille, France, 6-11 July 2015, pages 1954–1963, 2015.
+35     Y. Yue and T. Joachims. Predicting Diverse Subsets Using Structural SVMs. In ICML,
+       2008.
+36     C. X. Zhai, W. W. Cohen, and J. Lafferty. Beyond Independent Relevance: Methods and
+       Evaluation Metrics for Subtopic Retrieval. In SIGIR, 2003.
+37     T. Zhou, Z. Kuscsik, J. Liu, M. Medo, J. R. Wakeling, and Y. Zhang. Solving the apparent
+       diversity-accuracy dilemma of recommender systems. PNAS, 107(10), 2010.
+
+
+ A       Hardness for Spanning Trees
+We show that BCount is at least as hard as counting perfect matchings in a non-bipartite
+graph. The proof relies on a combinatorial reduction from counting perfect matchings in a
+graph to counting budget constrained spanning trees.
+I Theorem 20. There is a polynomial time reduction which given a graph G = (V, E) with
+n vertices and m edges outputs a graph G0 with n vertices and O(m + n2 ) edges, a cost vector
+c ∈ Nm with kck1 ≤ 2O(m log m) and a value C ∈ N, such that:
+     P M (G) = α · STC (G0 )
+where P M (G) denotes the number of perfect matchings in G, STC (G0 ) denotes the number
+                                                  2
+of spanning trees of total cost C in G0 and α = n2 (2n)−n/2 .
+Proof. Let G = (V, E) be an undirected graph, let n = |V | and m = |E|. We construct a
+new graph G0 and a cost vector c, such that counting perfect matchings in G is equivalent to
+counting spanning trees of specified cost C in G0 .
+    The graph G0 = (V, E 0 ) is obtained by adding a complete graph to G, i.e., n2 edges, one
+                                                                                  
+
+between every pair of vertices. We call the set of new edges F , hence E 0 = E ∪ F . Note that
+E 0 is a multiset. To all edges e ∈ F we assign cost ce = 0, while for the original edges the
+costs are positive and defined below.
+    Let b = m0 + 1, where m0 = |E 0 | is the number of edges in G0 . We define the cost of an
+edge e = ij ∈ E to be:
+     ce = bi + bj .
+Note that from the choice of b and c it follows that given a cost c(S) of some set S ⊆ E, we
+can exactly compute how many times a given vertex appears as an endpoint of an edge in S.
+Indeed, if we have:
+              n
+              X
+     c(S) =         δ i bi
+              i=1
+
+
+
+                                                                                                   APPROX/RANDOM’17
+36:18   On the Complexity of Constrained Determinantal Point Processes
+
+
+        such that 0 ≤ δi ≤ b − 1 (the b−ary representation of c(S)), then the degree of vertex i in S
+        is δi . This follows from the fact that b is chosen to avoid carry overs when computing c(S)
+                                                                                         def Pn
+        in the b−ary numerical system. Therefore, it is now a natural choice to define C = i=1 bi .
+                                                                                   2
+        We claim that every perfect matching in G corresponds to exactly α = n2 (2n)−n/2 different
+        spanning trees of cost C in G0 .
+            To prove this claim, fix any spanning tree S of cost c(S) = C. Note first that we have
+                                                                                         def
+        c(S ∩ E) = c(S) because all of the edges e ∈
+                                                   / E have cost 0. Moreover, the set M = S ∩ E is
+        a perfect matching in G, because c(M ) = C implies that the degree of every vertex in M
+        is one. It remains to show that every perfect matching M in G corresponds to exactly α
+        spanning trees of cost C in G.
+             Fix any perfect matching M0 in G. We need to calculate how many ways are there to
+        add n2 − 1 edges from E 0 to obtain a spanning tree of G0 . By contracting the matching M0
+        to n2 vertices and considering edges in E 0 only, we obtain a complete graph on n2 vertices
+        with 4 parallel edges going between every pair of vertices. The answer is the number of
+        spanning ntrees of the obtained graph. Cayley’s formula easily implies that this number is
+          n         −2
+        4 2 −1 n2 2    which equals α−1 .                                                        J
+
+
+         B     Equivalence Between Counting and Sampling
+        In this section we state and prove a theorem that implies that the Count[µ, C] and
+        Sample[µ, C] problems are essentially equivalent. We prove that, for a given type of con-
+        straints C, a polynomial time algorithm for counting can be transformed into a polynomial
+        time algorithm for sampling and vice versa. This section follows the convention that
+        µ : 2[m] → R≥0 is any function that assigns nonnegative values to subsets of [m] and C ⊆ 2[m]
+        is any family of subsets of [m].
+
+        I Theorem 21 (Equivalence Between Approximate Counting and Approximate Sampling).
+        Consider any function µ : 2[m] → R≥0 and a family C of subsets of [m]. Let µC : C → [0, 1]
+        be a distribution over S ∈ C such that µC (S) ∝ µ(S). We assume evaluation oracle access to
+        the generating polynomial gµ of µ, and define the following two problems:
+            Approximate C-sampling: given a precision parameter ε > 0, provide a sample S from a
+            distribution ρ : C → [0, 1] such that kµC − ρk1 < ε.
+            Approximate C-counting: given a precision parameter ε > 0, output a number X ∈ R
+            such that X(1 + ε)−1 ≤ S∈C µ(S) ≤ X(1 + ε).
+                                      P
+
+        The time complexities of the above problems differ by at most a multiplicative factor of
+        poly(m, ε−1 ).
+
+        I Remark. Note that the above theorem establishes equivalence between approximate variants
+        of Count[µ, C] and Sample[µ, C]. This is convenient for applications, because the exact
+        counting variants of these problems are often #P−hard. Still, for some of them, efficient
+        approximation schemes are likely to exist. Further, we mention that the implication from
+        exact counting to exact sampling holds, hence the sampling algorithms that we obtain in
+        this paper are exact.
+        Theorem 21 follows from a self-reducibility property [22] of the counting problem. Before we
+        present the proof of Theorem 21, we introduce some terminology and state assumptions for
+        the remaining part of this section. The function µ : 2[m] → R≥0 is given as an evaluation
+        oracle for gµ (x) = S⊆[m] µ(S)xS . In particular, we measure complexity with respect to the
+                           P
+
+        number of calls to such an oracle. An algorithm which, for a fixed family C ⊆ 2[m] and every
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                               36:19
+
+                                          P
+function µ, given access to gµ computes S∈C µ(S) is called a C-counting oracle. Similarly,
+we define a C-sampling oracle to be an algorithm which, given access to gµ , provides samples
+from the distribution
+          def    µ(S)
+   µC (S) = P                  for S ∈ C.
+                T ∈C µ(T )
+
+
+B.1    Counting Implies Sampling
+We now show how counting implies sampling. It proceeds by inductively conditioning
+on certain elements not being in the sample. For this idea to work one has to implement
+conditioning using the C−sampling oracle and access to the generating polynomial only. Below
+we state the implication from counting to sampling in the exact variant. The approximate
+variant also holds, with an analogous proof.
+I Lemma 22 (Counting Implies Sampling). Let C denote a family of subsets of [m]. Suppose
+access to a C-counting oracle is given. Then, there exists a C-sampling oracle which, for any
+function µ : 2[m] → R≥0 , makes poly(m) calls to the counting oracle and to gµ and outputs
+a sample from the distribution µC .
+Proof. Let S be the random variable corresponding to the sample our algorithm outputs;
+our goal is to have S ∼ µC . The sampling algorithm proceeds as follows: It sequentially
+considers each element e ∈ [m] and tries to decide (at random) whether to include e ∈ S or
+not. To do so, it first computes the probability P(e ∈ S) conditioned on all decisions thus far.
+It then flips a biased coin with this probability, and includes e in S according to its outcome.
+More formally, the sampling algorithm can be described as follows:
+1. Input: V ∈ Rm×r , a number k ≤ r.
+2. Initialize: Y = ∅, N = ∅.
+3. For e = 1, 2, . . . , m :
+    a. Compute the probability p = P(e ∈ S : Y ⊆ S, N ∩ S = ∅) under the distribution
+       S ∼ µC .
+    b. Toss a biased coin with success probability p. In case of success add e to the set Y ,
+       otherwise add e to N .
+4. Output: S = Y.
+It is clear that the above algorithm correctly samples from µC . It remains to show that
+P(e ∈ S : Y ⊆ S, N ∩ S = ∅) can be computed efficiently. This follows from Lemma 23
+below.                                                                                J
+
+I Lemma 23. Let Y and N be disjoint subsets of [m] and consider any e ∈ [m]. Suppose S
+is distributed according to µC . If we are given access to a C-counting oracle and to gµ , then
+P(e ∈ S : Y ⊆ S, N ∩ S = ∅) can be computed in poly(m) time.
+Proof. Assume e ∈ [m]\(Y ∪N ); otherwise the probability is clearly 0 or 1. Let Y 0 = Y ∪{e},
+then
+                                 P
+                                   S∈C,Y 0 ⊆S,N ∩S=∅ µ(S)
+   P(e ∈ S : Y ⊆ S, N ∩ S = ∅) = P                        .
+                                   S∈C,Y ⊆S,N ∩S=∅ µ(S)
+
+We now show how to compute such sums: Introduce a new variable y, and for every e ∈ [m]
+define:
+            
+            yxe for e ∈ Y,
+            
+            
+        def
+    we = 0       for e ∈ N,
+            
+            
+            x   otherwise.
+             e
+
+
+
+
+                                                                                                   APPROX/RANDOM’17
+36:20   On the Complexity of Constrained Determinantal Point Processes
+
+
+        We interpret the expression gµ (w1 , w2 , . . . , wm ) as a generating polynomial for a certain
+        function µ0 (y) : 2[m] → R; i.e.,
+                     def
+                                                       X
+             gµ0 (x) = gµ (w1 , w2 , . . . , wm ) =            y |S∩Y | xS µ(S).
+                                                      S∩N =∅
+
+        Define a polynomial
+                def
+                      X
+           h(y) =           y |S∩Y | µ(S).
+                      S∈C,S∩N =∅
+
+        It follows that h(y) is a polynomial of degree at most |Y |. In fact, the sum we are interested
+        in is simply the coefficient of y |Y | in h(y). The last thing to note is that we can compute h(y)
+        exactly by evaluating it for |Y | + 1 different values of y and then performing interpolation.
+        Hence, we just need to query the C-counting oracle (|Y | + 1) times giving it µ0 as input (for
+        various choices of y).3                                                                         J
+
+
+        B.2        Sampling Implies Counting
+        We show the implication from sampling to counting in Theorem 21. Similarly as for the
+        opposite direction we assume for simplicity that the sampling algorithm is exact, i.e., we
+        prove the following lemma. The approximate variant holds with an analogous proof.
+
+        I Lemma 24 (Sampling Implies Counting). Let C denote a family of subsets of [m]. Suppose
+        we have access to a C-sampling oracle. Then, there exists a C-counting oracle which for any
+        input function µ : 2[m] → R (given as an evaluation oracle for gµ ) and for any precision
+        parameter ε > 0 makes poly(m, 1/ε) calls to the sampling oracle, and approximates the sum:
+           X
+               µ(S)
+             S∈C
+
+        within a multiplicative factor of (1 + ε). The algorithm has failure probability exponentially
+        small in m.
+
+        Let us first state the algorithm which we use to solve the counting problem. Later in a
+        sequence of lemmas we explain how to implement it in polynomial time and reason about its
+        correctness. In the description, S denotes a random variable distributed according to µC .
+                           def            def
+        1. Initialize U = [m], X = 1.
+        2. Repeat
+                                                                                    1
+           a. Estimate the probability P(S = U : S ⊆ U ), if it is larger than (1 − m ), terminate the
+              loop.
+           b. Find an element e ∈ U so that P(e ∈/ S : S ⊆ U ) ≥ m12 .
+                                    def                                          ε
+             c. Approximate pe = P(e ∈
+                                     / S : S ⊆ U ) up to a multiplicative factor m .
+                             def
+           d. Update X = X · ρe , where ρe is the estimate for pe .
+                                            def
+           e. Remove e from U , i.e., set U = U \ {e}.
+        3. Return X · µ(U ).
+
+        3
+            The provided argument does not generalize directly to the case when the counting oracle is only
+            approximate (because of the interpolation step). However, as we need to compute the top coefficient of a
+            polynomial h(y) only, we can alternatively do it by evaluating h(y) and dividing by y d (for d = deg(h))
+            at a very large input y ∈ R.
+L. E. Celis, A. Deshpande, T. Kathuria, D. Straszak, and N. K. Vishnoi                             36:21
+
+
+I Lemma 25. Given U ⊆ [m] and e ∈ U , assuming access to a C-sampling oracle, we can
+approximate the quantity
+
+   pe = P(e ∈
+            / S : S ⊆ U)
+
+where S is distributed according to µC , up to an additive error δ > 0 in time poly(m)
+                                                                                  δ2   . The
+probability of failure can be made m1c for any c > 0.
+
+Proof. We sample a set S ∈ C from the distribution P(S) ∝ µ(S) conditioned on S ⊆ U .
+This can be done using the sampling oracle, however instead of sampling with respect to µ
+one has to sample with respect to a modified function µ0 which is defined as µ0 (S) = µ(S)
+for S ⊆ U and µ0 (S) = 0 otherwise. Note that the generating polynomial for µ0 can be easily
+obtained from gµ by just plugging in zeros at positions outside of U . Given a sample S from
+µ0 we define
+        (
+           1     if e ∈
+                      / S,
+    X=
+           0     otherwise.
+
+Repeat the above independently N times, to obtain X1 , X2 , . . . , XN and finally compute the
+estimator:
+         X1 + X2 + · · · + XN
+   Z=                         .
+                 N
+By Chebyshev’s inequality, we have:
+
+                         1
+   P(|Z − pe | ≥ δ) ≤        .
+                        N δ2
+
+Thus, by taking N = poly(m)
+                          δ2
+                                                                1
+                             samples, with probability ≥ 1 − poly(m) we can obtain an
+additive error of at most δ.                                                        J
+
+I Lemma 26. If U ⊆ [m] is such that P(S = U : S ⊆ U ) ≤ (1 − m      1
+                                                                      ) then there exists an
+element e ∈ U such that P(e ∈
+                            / S : S ⊆ U ) ≥ m2 , where S is distributed according to µC .
+                                            1
+
+
+Proof. Let T be the random variable S conditioned on S ⊆ U . Denote qe = P(e ∈ S : S ⊆ U ),
+we obtain
+                           
+   X                      1           1                    1
+       qe = E(|T|) ≤ 1 −       |U | +   (|U | − 1) = |U | − .
+                          m           m                    m
+   e∈U
+
+The inequality in the above expression follows from the fact that the worst case upper bound
+would be achieved when the probability of |T| = |U | is exactly 1 − m
+                                                                    1
+                                                                      and with the remaining
+probability, |T| = |U | − 1. Hence e∈U (1 − qe ) ≥ m , which implies that (1 − qe ) ≥ m12 for
+                                                     1
+                                  P
+
+some e ∈ U .                                                                               J
+
+   We are now ready to prove Lemma 24.
+
+Proof of Lemma 24. We have to show that the algorithm given above can be implemented
+in polynomial time and it gives a correct answer.
+    Step 2(a) can be easily implemented by taking poly(m) samples conditioned on S ⊆ U
+(as in the proof of Lemma 25). This gives us an approximation of qU = P(S = U : S ⊆ U )
+
+
+
+                                                                                                 APPROX/RANDOM’17
+36:22   On the Complexity of Constrained Determinantal Point Processes
+
+
+        up to an additive error of at most m−2 with high probability. If the estimate is less than
+              1                                        1
+        (1 − 2m ) then with high probability qU ≤ (1 − m ) otherwise, with high probability we have
+                                            
+                      X                    4
+            µ(U ) ≤         µ(S) ≤ 1 +         µ(U )                                             (7)
+                                          m
+                      S∈C,S⊆U
+
+        and the algorithm terminates.
+            When performing step 2(b) we have a high probability guarantee for the assumption of
+        Lemma 26 to be satisfied. Hence, we can assume that (by using Lemma 26 and Lemma 25)
+                                                                              1
+        we can find an element e ∈ U with pe = P(e ∈        / S : S ⊆ U ) ≥ 2m   2 . Again using Lemma 25 we
+                                                                        ε
+        can perform step 2(c) and obtain a multiplicative (1 + m )-approximation ρe to pe .
+            Denote the set U at which the algorithm terminated by U 0 and the elements chosen at
+        various stages of the algorithm by e1 , e2 , ..., el with l = m − |U 0 |. The output of the algorithm
+        is:
+               def
+           X = ρe1 ρe2 · · · · · pel µ(U 0 ).
+
+        While the exact value of the sum is
+             def
+                                      X
+          Z = pe1 pe2 · · · · · pel ·     µ(S).
+                                      S∈C,S⊆U 0
+
+        Recall that for every i = 1, 2, . . . , l with high probability it holds that:
+                    ε −1  pe     ε
+               1+          ≤ i ≤ 1+    .
+                     m      ρ ei    m
+
+        This, together with (7) implies that with high probability:
+                                                   
+                 ε −l   X          ε l        4
+             1+         ≤    ≤ 1+          · 1+       ,
+                 m        Z          m           m
+
+        which finally gives (1 + 2ε)−1 ≤ XZ ≤ (1 + 2ε) with high probability, as claimed. Note that
+        the algorithm requires poly(m, 1ε ) samples from the oracle in total.                    J
+

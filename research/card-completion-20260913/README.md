@@ -17,7 +17,8 @@ Top 500 cards, then the remaining 431 cards.
 - [input-hashes.json](input-hashes.json) records the baseline of all canonical cards.
 - [reviews.jsonl](reviews.jsonl) records substantive editorial decisions, source
   passages checked and the limits of each status check. It contains no full-card
-  backups; completed content lives in `data/cards/`.
+  backups; completed active content lives in `data/cards/`, with subsequently
+  deactivated records preserved in `data/archive/cards/`.
 
 Completion means a source-grounded, self-contained mathematical statement,
 definitions, an answer criterion requiring a Lean proof, substantive context and
@@ -32,8 +33,9 @@ consolidation decisions are preserved. Previously unassessed cards require an
 individual importance assessment under the completed-card rules; their new
 scores have problem-specific reasons and may change membership of the ranked
 exports. The queue priorities remain the baseline priorities, so this does not
-silently shrink the review scope. At the first authorized source push, this pass
-has completed 46 of the 606 baseline cards; 560 remain in the review queue.
+silently shrink the review scope. At the current Wi-Fi publication checkpoint,
+this pass has completed 51 of the 606 baseline cards; 555 remain in the review
+queue.
 Independent concurrent card edits are not automatically credited as this pass’s
 completed reviews.
 

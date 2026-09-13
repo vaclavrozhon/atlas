@@ -15,6 +15,7 @@ The 13 September 2026 decision now preserves inactive cards in
 only; the archive is outside the research backlog unless explicitly requested.
 
 - [review-notes.md](review-notes.md): preserved model distinctions and dated source checks.
+- [top200-problems-20260913/](top200-problems-20260913/README.md): two major problem candidates for each of the 200 selected researchers, 400 associations, 198 reused cards and eight new cards, with affinities, references, status distinctions and an admission audit.
 - [graph-candidates-20260913/](graph-candidates-20260913/IMPORT.md): fifteen approved graph and Chan targets, eleven new cards and four existing-card updates, with category mapping and model distinctions.
 - [card-completion-20260913/](card-completion-20260913/README.md): ongoing individual completion of all 606 unfinished active cards, using local sources first and no push or deployment.
 - [pruning-50-and-merges-20260912/](pruning-50-and-merges-20260912/README.md): applied 50 removals and three duplicate consolidations from the 100-card proposal; the other 47 candidates were retained unchanged.

@@ -1,0 +1,3417 @@
+                                             New Lower and Upper Bounds for the Grothendieck
+                                                                Constant
+
+                                                        Rahul Saha∗                       Alan Li∗                        Anton Xue
+                                                 rahul.saha@utexas.edu            alanli@cs.utexas.edu              anton.xue@utexas.edu
+
+                                                    Swarat Chaudhuri                  Adam Klivans                   Pravesh K. Kothari
+                                                  swarat@cs.utexas.edu           klivans@cs.utexas.edu           kothari@cs.princeton.edu
+
+                                                                                       Raghu Meka
+                                                                                   raghum@cs.ucla.edu
+arXiv:2608.11158v2 [cs.CC] 12 Aug 2026
+
+
+
+
+                                                                                          Abstract
+                                                   We establish new bounds on the Grothendieck constant KG :
+                                                                              6π              π
+                                                                                 ≤ KG ≤          √ − 10−4 .
+                                                                              11        2 log(1 + 2)
+
+                                               Methodologically, our lower bound approach differs from previous works by establishing limitations
+                                               on the asymptotically optimal Krivine schemes, rather than giving explicit constructions of
+                                               gap instances. Our upper bound is obtained by proposing and analyzing the first asymptotic
+                                               construction of rounding schemes, whereas previous works only consider low-dimensional schemes.
+                                               Together, these bounds determine the previously unknown tenths digit of KG to be 7. The
+                                               bounds were discovered by a long-running collaborative effort of humans and a long-horizon
+                                               AI research system that we engineered. A detailed account of the AI-assisted research process
+                                               appears in a companion paper [LSX+ 26b].
+
+
+
+
+                                         ∗
+                                             Equal contribution.
+
+
+                                                                                               1
+Contents
+1 Introduction                                                                                     3
+
+2 Technical Overview                                                                               4
+  2.1 The upper bound . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      4
+  2.2 The lower bound . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      5
+
+
+I    The Upper Bound                                                                               8
+3 Rounding Schemes                                                                                 8
+  3.1 Classical Krivine rounding schemes . . . . . . . . . . . . . . . . . . . . . . . . . .       8
+  3.2 Preliminaries . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    9
+  3.3 Limiting Krivine rounding schemes . . . . . . . . . . . . . . . . . . . . . . . . . .        9
+
+4 The Cubic–Quintic Scheme                                                                        16
+
+5 The Correlation Coefficients                                                                    17
+
+6 Proof of Cubic-Quintic Scheme                                                                   18
+
+
+II    The Lower Bound                                                                             22
+7 Proof Overview                                                                                  22
+
+8 Preliminaries on Gaussian Hermite Expansions                                                    23
+
+9 Proof of the Affine Coefficient Inequality                                                     24
+  9.1 The agreement–disagreement substitution . . . . . . . . . . . . . . . . . . . . . . 24
+  9.2 Reduction to one Gaussian coordinate . . . . . . . . . . . . . . . . . . . . . . . . 25
+  9.3 The agreement terms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+  9.4 The disagreement term . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+  9.5 The final inequality . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+
+10 The Affine Coefficient Inequality Bounds the Inverse Majorant                                  33
+
+11 The Inverse Majorant Bound is Optimal                                                          34
+
+A Krivine Preprocessing and Mixed Rounding                                                        38
+
+B General Coefficient Formulas                                                                    42
+
+C Certification Details                                                                        44
+  C.1 The coefficient head . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+  C.2 A boundary representation of D3 H . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+  C.3 The nine smooth kernels . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+  C.4 Interval-arithmetic implementation . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+
+
+
+
+                                                 2
+D Certification of the Fiber Inequality                                                        48
+  D.1 Reduction to two certified regimes . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+  D.2 Certificate (C1): the high-budget inequality . . . . . . . . . . . . . . . . . . . . . 50
+  D.3 Certificate (C2): the dual envelope on the medium band c ∈ [cM , 12] . . . . . . . 51
+  D.4 Certificate (C3): the high-c tail c ≥ 12 . . . . . . . . . . . . . . . . . . . . . . . . 52
+  D.5 Summary of certified results and reproducibility . . . . . . . . . . . . . . . . . . . 56
+
+
+1       Introduction
+The Grothendieck inequality [Gro53, LP68] states that there exists a universal constant K < ∞
+such that for every m, n ∈ N and every matrix A = (aij ) ∈ Rm×n ,
+                   m X
+                     n                                    m X
+                                                            n                                            m X
+                                                                                                           n
+       max                                     sup                                           max                                 (1)
+                   X                                      X                                              X
+                             aij εi δj ≤                             aij ⟨ui , vj ⟩ ≤ K                            aij εi δj .
+    εi ,δj ∈{±1}                           ui ,vj ∈S m+n−1 i=1 j=1                        εi ,δj ∈{±1}
+                   i=1 j=1                                                                               i=1 j=1
+
+Here S m+n−1 denotes the unit sphere in Rm+n . The Grothendieck constant KG is the infimum
+of K for which this inequality holds.
+    The inequality is equivalent to the statement that the integrality gap of the canonical semidef-
+inite relaxation for maximizing the bilinear form x⊤ Ay over x ∈ {−1, 1}m and y ∈ {−1, 1}n
+is bounded by an absolute constant. This connection leads to efficient algorithms for ap-
+proximating combinatorial problems, such as matrix cut norms [AN06]. Beyond this algo-
+rithmic role, Grothendieck’s inequality is central in the geometry of Banach spaces, operator
+spaces, harmonic analysis, and quantum information; see, for example, the surveys and mono-
+graphs [KN11, Pis11, DFS08].
+    However, the exact value of KG is still unknown. On the lower bound, existing strategies aim
+to construct matrices for which the vector optimum is large relative to the sign optimum. While
+Grothendieck’s original work implies that KG ≥ π/2 [Gro53], this was substantially improved by
+Davie [Dav84] and Reeds [Ree91], who independently used a high-dimensional Gaussian-operator
+construction to prove
+                                      KG ≥ KDR = 1.6769 . . .
+The Davie–Reeds inequality was the best-known result for more than four decades, until two
+recent works by Heilman [Hei26a] and Jones and Malavolta [JM26] independently showed that
+KG ≥ KDR + 10−26 and KG ≥ KDR + 10−12 , respectively.
+   On the upper bound, Krivine’s seminal result [Kri77a] proved that
+                                          π
+                             KG ≤            √ = 1.7822 . . .                           (2)
+                                    2 log(1 + 2)
+The proof is constructive: it gives a rounding scheme that maps input vectors ui , vj to signs
+εi , δj ∈ {±1} after an infinite-dimensional preprocessing step and a random hyperplane rounding
+step. Krivine also conjectured that this bound was tight, and this stood for over three decades
+until it was disproven by Braverman, Makarychev, Makarychev, and Naor in 2011; specifically,
+they “mixed” the hyperplane rounding scheme with a non-hyperplane one to establish the strict
+inequality KG < 2 log(1+π √
+                             2)
+                                [BMMN11]. Interestingly, however, Naor and Regev subsequently
+showed that mixed Krivine schemes (Section 3.1) are in fact optimal: in the limit of dimension,
+there exists such a scheme that yields arbitrarily good approximations of KG [NR14]. This
+thus opened a strategy for attacking the strict inequality’s unspecified numerical gap, and was
+leveraged in recent works by Heilman [Hei26b] and Li et al. [LSX+ 26a] to independently arrive
+at explicit numerical improvements on the order of 10−5 .
+
+                                                               3
+This work. In this paper, we make the following contribution:
+    1. Upper bound. We introduce limiting Krivine schemes, an analytic framework for con-
+       structing and studying asymptotic families of increasingly high-dimensional rounding
+       schemes. Using this framework, we construct a new “cubic–quintic” scheme that yields
+                                         π
+                            KG ≤            √ − 3.47 × 10−4 = 1.7818 . . . .
+                                   2 log(1 + 2)
+
+       This differs from previous works, which only considered one- or two-dimensional round-
+       ing schemes, and in particular positively answers a question posed by Braverman et
+       al. [BMMN11] about whether increasing dimension can lead to improved bounds on KG .
+    2. Lower bound. We find a new approach to proving lower bounds on KG and show:
+                                                        6π
+                                            KG ≥           = 1.7135 . . . .
+                                                        11
+       Together with our upper bound, this determines the tenths digit of KG to be 7. Notably,
+       our approach is to show a fundamental limitation of Krivine schemes and then apply a
+       result from Naor and Regev [NR14].
+    3. AI methodology. We further detail our use of AI in mathematics research in a companion
+       paper [LSX+ 26b]. Because mathematics research is a long-horizon task that comprises
+       complex goals, persistent memory, and delayed rewards, it is often unclear how to effectively
+       use AI. Our work thus provides an extensive case study on how to develop and interact
+       with emerging AI systems. Critically, this system is also highly collaborative with human
+       interaction, which allows it to effectively explore promising proof strategies.
+
+
+2      Technical Overview
+Here, we provide the background and exposition of the main ideas in our work.
+
+
+2.1      The upper bound
+Classical Krivine rounding schemes. A classical Krivine scheme consists of odd sign
+functions f, g : Rk → {−1, 1}. Its normalized correlation function is Hf,g (t) := π2 E[f (X)g(Y )],
+where X, Y are standard Gaussian vectors with coordinatewise correlation t. Suppose H −1 (z) =
+  n≥1 an z , and let its majorant series be M (s) :=  n≥1 |an |s . Krivine’s tensor preprocessing
+P         n                                          P          n
+
+(Appendix A) gives M (γ) ≤ 1 =⇒ KG ≤ 2γ . The upper-bound problem is therefore to construct
+                                            π
+
+a correlation function whose inverse has a large admissible γ so that M (γ) = 1.
+
+Limiting Krivine rounding schemes. In ordinary Krivine schemes, we need individual
+Gaussian coordinates Xi , Yi to have coordinate-wise correlation t. We enlarge the search space
+by allowing Xi , Yi to have coordinate-wise correlation
+
+                                ρi (t) =                             |ci,d | ≤ 1.
+                                           X                    X
+                                                   ci,d td ,
+                                            d≥1                  d
+                                           d odd
+
+This gives us more degrees of freedom in designing H whose associated M has larger γ satisfying
+M (γ) = 1.
+
+                                                          4
+Approximation of limiting schemes using classical schemes. While we may design
+the correlations between variables to admit any ρ of the above structure, it is not immediately
+clear how the rounding algorithm works. Here, we show that any limiting scheme can in fact
+be approximated arbitrarily well by classical Krivine schemes, whose rounding algorithm is
+established. Therefore, it suffices to find a limiting scheme whose inverse majorant M admits a
+high γ with M (γ) = 1.
+     More precisely, we construct a sequence S1 , S2 , . . . of classical Krivine schemes of increasing
+dimension k, whose correlation functions HS1 , HS2 , . . . converge to the correlation function
+HS of a limiting scheme S. The main idea is to use the central limit theorem to collapse the
+increasing number of Gaussian random variables in the classical schemes Sk = (fk , gk ), where
+fk , gk : Rk → {±1}.
+
+The cubic–quintic scheme. A limiting Krivine scheme that attains the paper’s stated
+upper bound on KG is defined as follows. For suitable parameters s3 , s5 , ϑ > 0, set
+                                                 t − s23 t3 + s25 t5
+                                       ρ(t) :=                       ,
+                                                   1 + s23 + s25
+and use the partitions
+
+                 f (w, x) = sgn(w + ϑ He3 (x)) ,         g(w, x) = sgn(w − ϑ He3 (x)) .
+
+We set the first coordinate w to have correlation ρ(t), and set the second coordinate x to have
+correlation t.
+
+Deriving the upper bound. In order to prove the upper bound (which we denote as
+   U B ), one needs to show that the inverse majorant M (γ) ≤ 1 holds, for γ =
+                                                                                  U B . Doing this
+                                                                                 π
+KG                                                                             2KG
+is non-trivial, and requires both an analytic step and a computational step.
+     For the analytic step, write H(t) = b1 t + m≥3 bm tm , and let ∆H := m≥3 |bm | denote its
+                                               P                            P
+
+total nonlinear coefficient mass. We prove that it is sufficient to show
+
+                                             γ + ∆H < b1 .
+
+Thus, rather than computing the inverse series H −1 , it is enough to certify a lower bound on the
+linear coefficient b1 and an upper bound on ∆H . We then compute the first terms of {bn } using
+a formula involving the Hermite coefficients of f and g, which are one-dimensional Gaussian
+integrals. Finally, we bound the tail of ∆H through a single boundary-norm estimate for D3 H,
+where D = t dt d
+                 . Rigorous interval arithmetic verifies the resulting finite collection of inequalities,
+yielding the claimed upper bound on KG .
+
+
+2.2     The lower bound
+Mixed Krivine schemes are optimal. Naor and Regev [NR14] proved that mixed Krivine
+schemes are asymptotically optimal. We use a quantitative consequence of their construction:
+there exist limiting mixed correlation functions Hk with admissible inverse-majorant parameters
+γk satisfying
+                                                   π
+                                          γk −→       .
+                                                  2KG
+Consequently, any universal upper bound on the admissible parameter of a Krivine correlation
+function gives a lower bound on KG .
+
+                                                     5
+The affine coefficient inequality. To obtain this upper bound, we ask which Taylor
+coefficients can actually arise from a Krivine correlation function. For odd sign functions
+f, g : Rd → {−1, 1}, write
+                                   Hf,g (t) = b1 t + b3 t3 + · · · .
+   Surprisingly, we show that there is the clean constraint on the first two coefficients:
+                                                         11
+                                            b3 ≥ 2b1 −      .                                      (3)
+                                                         6
+Its affine form is important, since it is preserved under mixtures and coefficientwise limits.
+    Pushing the affine inequality to the inverse series H −1 yields bounds on the inverse coefficients
+a1 and a3 , which in turn gives γ ≤ 1112 . This results in the desired KG ≥ 11 .
+                                                                             6π
+
+
+
+Hermite expansion. The approach to proving this is by looking at Hermite expansions
+of f, g. For a square-integrable function F on Gaussian space, let Pi F denote its orthogonal
+projection onto the Hermite polynomials of total degree i. If Hf,g (t) = b1 t + b3 t3 + · · · is the
+normalized correlation function of f and g, then the basic orthogonality properties of Hermite
+polynomials give b1 = π2 ⟨P1 f, P1 g⟩ and b3 = π2 ⟨P3 f, P3 g⟩. Our affine coefficient inequality is
+                                                         11
+                                            b3 ≥ 2b1 −      .
+                                                         6
+Since ν := E|Z| =       2/π, this is equivalent to
+                    p
+
+                                                                   11 2
+                                  2⟨P1 f, P1 g⟩ − ⟨P3 f, P3 g⟩ ≤      ν .
+                                                                    6
+
+Agreement and disagreement. In order to prove the inequality, we make a key substitution.
+The substitution is to write h := (f + g)/2 and k := (f − g)/2. The function h can be thought
+of as the agreement part, where f and g agree, while k is the corresponding disagreement part.
+Moreover, h, k ∈ {−1, 0, 1} and h2 + k 2 = 1.
+    Substituting f = h + k and g = h − k into the preceding inequality, and discarding a
+nonpositive term, it suffices to prove
+                                                                     11 2
+                                 2∥P1 h∥2 − ∥P3 h∥2 + ∥P3 k∥2 ≤        ν .                         (4)
+                                                                     6
+The first two terms depend only on the agreement function h, while the final term measures the
+degree-three contribution of the disagreement function k. We bound these two parts separately.
+
+Agreement terms. Rotate coordinates so that P1 h lies in a single Gaussian direction S,
+and write x := ∥P1 h∥/ν ∈ [0, 1]. The positive agreement term is then 2∥P1 h∥2 = 2ν 2 x2 .
+   To control the helpful negative term −∥P3 h∥2 , average h over all coordinates transverse to
+S. Namely, writing the Gaussian input as (S, T ), set A(s) := ET [h(s, T )]. Then |A| ≤ 1 and
+E[A(S)S] = νx. A one-dimensional rearrangement inequality shows that this prescribed linear
+moment forces a cubic Hermite moment:
+                                                     ν2
+                                         ∥P3 h∥2 ≥      ∆+ (x)2
+                                                     6
+for an explicit function ∆. Thus, a large linear agreement term necessarily creates a compensating
+cubic agreement term.
+
+                                                     6
+Disagreement term. For each fixed transverse vector t, consider the one-dimensional slice
+ut (s) := k(s, t). Since k ∈ {−1, 0, 1}, each ut is a ternary function on the Gaussian line. The
+degree-three Hermite decomposition implies
+                                                         3
+                                                                           2
+                     ∥P3 k∥2 ≤ ET V (uT ),    V (u) :=         E[u(Z)ψj (Z)] .
+                                                         X
+
+                                                         j=0
+
+We control these first four Hermite moments through the weighted support β(u) := E[|Z|u(Z)2 ].
+The key one-dimensional estimate is
+
+                                    V (u) ≤ 3νβ(u) − β(u)2 .                                 (5)
+
+Conceptually, this says that a ternary function cannot have both a support concentrated cheaply
+near the origin and a large projection onto all Hermite degrees at most three. The inequality
+admits an exact finite-dimensional dual reduction. After introducing a support price c, the
+optimizing ternary function has the threshold form u(z) = sgn(p(z))1{|p(z)|≥c|z|} , where p is a
+unit cubic Hermite polynomial. The resulting one-dimensional Gaussian integral inequalities
+are verified using outward-rounded interval arithmetic. Finally, h2 + k 2 = 1 relates the average
+weighted support of the slices uT to the agreement parameter x. Combining this relation with (5)
+gives an explicit upper bound on ∥P3 k∥2 in terms of x. Together with the agreement estimate,
+this reduces (4) to an elementary scalar inequality on x ∈ [0, 1], proving (3).
+
+
+
+
+                                               7
+Part I
+The Upper Bound
+3      Rounding Schemes
+In this section, we will define a new class of rounding schemes. But first, we recall classical
+Krivine schemes [Kri77b].
+
+
+3.1      Classical Krivine rounding schemes
+A Krivine rounding scheme is a pair of partitions of Rd , f, g : Rd → {−1, 1}, such that f, g are
+odd functions. We will work with f, g that satisfy some additional properties. To describe these,
+we first introduce some basic setup [BMMN11].
+Definition 3.1 (Gaussian correlation function). Let f, g : Rk → {−1, 1} be odd measurable
+functions. Let X, Y be standard jointly Gaussian vectors in Rk satisfying
+
+                          E[Xi Xj ] = E[Yi Yj ] = δij ,        E[Xi Yj ] = δij t.
+
+The arcsine-normalized correlation function associated to (f, g) is
+                                        π
+                          Hf,g (t) :=     E [f (X) g (Y )] ,       −1 < t < 1.
+                                        2
+   We will use the following basic properties of the Gaussian correlation function and its inverse
+ −1
+Hf,g in our analysis (see [BMMN11]).
+
+Lemma 3.2. Let f, g : Rk → {−1, 1} be odd measurable functions. Then Hf,g is odd and extends
+holomorphically to the strip
+                                S := {z ∈ C : | Re z| < 1}.
+                     ′ (0) ̸= 0, then H
+In particular, if Hf,g                 f,g has a unique local inverse branch at the origin, i.e.,
+there are open neighborhoods U, V ⊂ C of 0 such that Hf,g : U → V is biholomorphic. We write
+  −1                                                     −1
+Hf,g  : V → U for this local inverse, chosen so that Hf,g   (0) = 0. This inverse is unique when
+restricted to this branch, and is an odd function.
+Lemma 3.3 (Local Inverse Expansion). Let f, g : Rk → {−1, 1} be odd and measurable functions
+      ′ (0) ̸= 0. Let H −1 be the unique local inverse branch of H
+with Hf,g              f,g                                        f,g at the origin. Then,
+       −1
+    • Hf,g is odd.
+       −1                                                −1
+    • Hf,g                                                   (ζ) =                       n.
+                                                                            P
+           has a Taylor-series expansion at the origin: Hf,g                  n≥1 an ζ
+Further, if γ > 0 is such that   n≥1 |an |γ
+                                              n ≤ 1, then the Grothendieck constant
+                                 P
+
+                                                        π
+                                               KG ≤        .
+                                                        2γ
+    With the above notation, we define the inverse majorant series for the rounding scheme
+(f, g) as
+                                    Mf,g (s) :=
+                                                X
+                                                  |an |sn .
+                                                     n≥1
+
+     We are now ready to define Krivine schemes.
+
+                                                    8
+Definition 3.4 (γ-admissible Krivine Rounding Scheme). For f, g : Rk → {−1, 1} odd and
+                             ′ (0) ̸= 0, and γ > 0, we say (f, g) is a γ-admissible Krivine
+measurable functions with Hf,g
+rounding scheme if the conditions of Lemma 3.3 hold.
+  We note that Krivine [Kri77a] used a γ-admissible Krivine rounding scheme to show that
+     π
+KG ≤ 2γ .
+
+
+3.2     Preliminaries
+We first state Vitali’s theorem, which lets us convert pointwise convergence to uniform convergence.
+See [Sch93] for a reference.
+Fact (Vitali’s convergence theorem). Let h1 , h2 , . . . be holomorphic functions on a connected
+open set Ω. Suppose that:
+  1. the sequence (hN )N ≥1 is locally bounded on Ω; and
+  2. hN (z) converges for every z in some subset of Ω having an accumulation point in Ω.
+Then (hN )N ≥1 converges locally uniformly on Ω to a holomorphic function.
+
+
+3.3     Limiting Krivine rounding schemes
+In this section, we extend classical Krivine schemes by allowing them to have arbitrary correlations
+among variables (up to some criteria). We will show that we can state asymptotic statements
+about classical Krivine schemes using this extended class of schemes, that we call limiting Krivine
+schemes. This gives us analytic machinery for searching and analyzing limits of high dimensional
+schemes that were previously inaccessible via standard techniques. It is first instructive for us to
+start with a motivating example.
+
+Motivating example. Consider the two-dimensional classical Krivine rounding scheme
+                  f (X1 , X2 ) = sgn(X1 + λX2 ),       g(Y1 , Y2 ) = sgn(Y1 + λY2 ),
+
+where X1 , X2 , Y1 , Y2 are standard Gaussians, X1 is independent of X2 , Y1 is independent of Y2 ,
+and
+                                   corr(X1 , Y1 ) = corr(X2 , Y2 ) = t.
+In a classical Krivine scheme, every pair of corresponding coordinates has correlation t. Suppose
+instead that we would like the first pair to have correlation t, but the second pair to have
+correlation t3 . To obtain this from a classical high-dimensional scheme, define
+                               N                                 N
+                           1 X                               1 X
+                     UN = √       He3 (X2,j ),         VN = √       He3 (Y2,j ),
+                            N j=1                             N j=1
+
+where the pairs (X2,j , Y2,j ) are independent standard Gaussian pairs with correlation t. The
+Hermite identity gives
+                               E[UN VN ] = E[He3 (X2,1 )He3 (Y2,1 )] = t3 .
+Moreover, by the central limit theorem, (UN , VN ) converges in distribution to a standard Gaussian
+pair (U, V ) with correlation t3 . Thus, the classical rounding schemes
+
+                        FN = sgn(X1 + λUN ),           GN = sgn(Y1 + λVN )
+
+                                                   9
+converge to the fixed-dimensional Gaussian rounding scheme
+
+                     f (X1 , U ) = sgn(X1 + λU ),            g(Y1 , V ) = sgn(Y1 + λV ),
+
+in which the two coordinate pairs have correlations t and t3 , respectively.
+   To use this construction, we need to carefully justify the following analytic steps:
+  1. Pointwise convergence of the correlation functions must be strengthened to locally uniform
+     convergence;
+  2. An inverse-majorant γ-admissibility proved for the limiting scheme must remain valid for
+     all sufficiently large finite-dimensional approximations.
+    We now generalize this construction and prove both properties. First, we define the notion of
+allowable correlation maps.
+
+Definition 3.5 (Allowable correlation map). A function ρ : (−1, 1) → R is an allowable
+correlation map if it admits an expansion
+
+                                 ρ(t) =                               |cd | ≤ 1.
+                                          X                   X
+                                                  cd td ,
+                                           d≥1                 d≥1
+                                          d odd               d odd
+
+   We can now state the definition of limiting Krivine schemes.
+
+Definition 3.6 (Limiting Krivine Schemes). A k-dimensional limiting Krivine scheme is a tuple
+S = (f, g, ρ), where f, g : Rk → {−1, 1} are odd measurable functions where the discontinuity
+sets have Gaussian measure zero, and ρ = (ρ1 , . . . , ρk ) is a tuple of allowable correlation maps.
+    The arcsine-normalized correlation function of this scheme is given by
+                                                       π
+                                      Hf,g,ρ (t) =       E[f (X)g(Y )].
+                                                       2
+where X, Y ∈ Rk are jointly Gaussian such that
+
+                          E[Xi Xj ] = E[Yi Yj ] = δij ,        E[Xi Yj ] = δij ρi (t).
+
+Remark. This is a generalization of the usual high dimensional Krivine schemes with ρi (t) = t
+for all i.
+    At this stage, Hf,g,ρ is defined only on (−1, 1); in particular, we do not assume that it extends
+holomorphically to the strip associated with classical Krivine schemes.
+    The motivation for this definition is that every limiting Krivine scheme can be approximated
+arbitrarily well by ordinary finite-dimensional Krivine schemes, as we will show below. This
+allows us to use the usual projection scheme to round the vectors, and get the inverse-majorant
+machinery for free. We make this precise in the following theorem.
+
+Theorem 3.7 (Finite-dimensional approximation of limiting schemes). Let S = (f, g, ρ1 , . . . , ρk )
+be a limiting Krivine scheme. Then there exists a sequence of ordinary finite-dimensional Krivine
+schemes S1 , S2 , . . . , of increasing dimension, whose correlation functions HS1 , HS2 , . . . converge
+to the correlation function HS of S, uniformly on every compact subset of (−1, 1).
+
+   We dedicate the rest of the section to proving this theorem. First, we prove an equivalence
+condition on allowability of a function.
+
+
+                                                        10
+Lemma 3.8 (Allowable function criteria). A map ρ is allowable if and only if there are odd
+functions p, q : R3 → R, such that ∥p∥2 = ∥q∥2 = 1 and
+
+                                                  ρ(t) = E[p(U )q(V )],
+
+where U, V ∈ Rm are standard Gaussian vectors with E[Ui Vj ] = tδij .
+
+Proof. Suppose first that p and q are odd and have L2 -norm one. Write their Hermite expansions
+by degree as
+                                  p=              q=
+                                       X                X
+                                           pd ,            qd .
+                                                  d≥1                         d≥1
+                                                 d odd                       d odd
+Here pd and qd are the degree-d Hermite components.
+   Different Hermite degrees are orthogonal, while degree d contributes a factor td . Hence
+
+                                          E[p(U )q(V )] =
+                                                                    X
+                                                                        ⟨pd , qd ⟩td .
+                                                                    d≥1
+                                                                   d odd
+
+Set cd = ⟨pd , qd ⟩. Then
+                                                                             !1/2                     !1/2
+                                                                                                             = 1.
+                   X              X                            X                       X
+                        |cd | ≤        ∥pd ∥2 ∥qd ∥2 ≤             ∥pd ∥22                  ∥qd ∥22
+                    d             d                            d                        d
+
+Thus the resulting correlation map is allowable.
+   Conversely, suppose that
+
+                                  ρ(t) =                            s :=             |cd | ≤ 1.
+                                               X                             X
+                                                     cd td ,
+                                             d odd                           d odd
+
+For x = (x1 , x2 , x3 ) ∈ R3 , define
+                                                 X q                            √
+                                      p(x) =             |cd | Hed (x1 ) +           1 − s x2
+                                               d odd
+
+and                                                        q                          √
+                             q(x) =              sgn(cd ) |cd | Hed (x1 ) +               1 − s x3 .
+                                          X
+
+                                         d odd
+Both functions are odd. Orthogonality gives ∥p∥2 = ∥q∥2 = 1.
+   Let U, V ∈ R3 be standard Gaussian vectors with E[Ui Vj ] = tδij . The terms involving U2
+and V3 have zero cross-correlation. Therefore
+
+                                         E[p(U )q(V )] =               cd td = ρ(t).
+                                                                   X
+
+                                                               d odd
+
+
+
+
+    We are now ready to prove our theorem, which follows as a direct corollary of the stronger
+statement we prove below.
+Theorem 3.9 (Finite-dimensional approximation of limiting schemes). Let (f, g, ρ1 , . . . , ρk ) be
+a limiting Krivine scheme. Then its correlation function extends holomorphically to the unit disk
+and is the locally uniform limit there of the correlation functions of ordinary finite-dimensional
+Krivine schemes.
+
+                                                               11
+Proof. By the above lemma, for each i ∈ {1, . . . , k}, there exist odd measurable functions
+pi , qi : R3 → R with ∥p∥2 = ∥q∥2 = 1 such that, whenever U, V ∈ R3 are joint standard Gaussian
+vectors with E[Ua Vb ] = tδab , we have
+
+                                        E[pi (U )qi (V )] = ρi (t).
+
+We combine these functions into vector-valued maps. Write u ∈ R3k in k blocks as
+
+                                u = u(1) , . . . , u(k) ,         u(i) ∈ R3 ,
+                                                          
+
+
+and define
+                                  P (u) = p1 (u(1) ), . . . , pk (u(k) ) ,
+                                                                          
+
+
+                                  Q(u) = q1 (u(1) ), . . . , qk (u(k) ) .
+                                                                          
+
+                                                                N
+For each positive integer N , define functions on R3k                by
+
+                                                                   N
+                                                               1 X
+                                                                                !
+                              FN (u1 , . . . , uN ) = f       √       P (ur )
+                                                                N r=1
+
+and
+                                                                   N
+                                                               1 X
+                                                                              !
+                             GN (v1 , . . . , vN ) = g        √       Q(vr ) .
+                                                                N r=1
+Since P , Q, f , and g are odd, the functions FN and GN are odd. They therefore define an
+ordinary finite-dimensional Krivine scheme.
+   Let HN denote the correlation function of this scheme. Fix t ∈ (−1, 1), and let
+
+                                        (U1 , V1 ), . . . , (UN , VN )
+
+be independent pairs of standard Gaussian vectors in R3k satisfying
+
+                                         E[(Ur )a (Vr )b ] = tδab .
+
+Define
+                                  N                                     N
+                              1 X                                   1 X
+                        AN = √       P (Ur ),                 BN = √       Q(Vr ).
+                               N r=1                                 N r=1
+By the definition of the correlation function,
+                                                π 
+                                   HN (t) =       E f (AN )g(BN ) .
+                                                                 
+                                                2
+Claim. As N → ∞, we have
+                                                         d
+                                         (AN , BN ) −
+                                                    → (X, Y ),
+where (X, Y ) is jointly Gaussian and satisfies
+
+                        E[Xi Xj ] = E[Yi Yj ] = δij ,           E[Xi Yj ] = δij ρi (t).
+
+
+
+
+                                                     12
+Proof of the claim. The random vectors
+
+                                              P (Ur ), Q(Vr ) ∈ R2k
+                                                            
+
+
+are independent, identically distributed, and centered. Because the k Gaussian blocks are
+independent, their covariance matrix is
+                                          !
+                         Ik  D(t)
+                                                   D(t) = diag ρ1 (t), . . . , ρk (t) .
+                                                                                     
+                                  ,
+                        D(t) Ik
+
+                                                                               d
+By the multivariate central limit theorem, we have (AN , BN ) −−−−→ (X, Y ), where (X, Y ) is
+                                                                             N →∞
+jointly Gaussian satisfying E[Xi Xj ] = E[Yi Yj ] = δij and E[Xi Yj ] = δij ρi (t), as desired. □
+    Returning to the proof of the theorem, since the function (x, y) 7−→ f (x)g(y) is bounded and
+has discontinuity set with measure 0, it follows that
+
+                               E f (XN )g(YN ) −→ E f (X(t))g(Y (t)) .
+                                                                            
+
+
+Consequently,
+                                               HN (t) −→ H(t)
+for every t ∈ (−1, 1), where
+                                           π 
+                                        H(t) =E f (X(t))g(Y (t))
+                                                                 
+                                           2
+is the correlation function of the limiting scheme.
+    It remains to convert this pointwise convergence to locally uniform convergence on the unit
+disk. For each N , the Hermite expansions of FN and GN give a holomorphic extension of HN to
+
+                                           D = {z ∈ C : |z| < 1}.
+
+More explicitly, if
+                        FN =             N (α) Heα ,        GN =          N (α) Heα ,
+                                    X                              X
+                                        F
+                                        d                               G
+                                                                        d
+                                    α                               α
+then
+                                                 π Xd              |α|
+                                    HN (z) =         FN (α)G
+                                                           d N (α)z .
+                                                 2 α
+For z in the unit disk, the Cauchy–Schwarz inequality gives
+                                        πXd                   |α|
+                      |HN (z)| ≤            FN (α)G
+                                                  d N (α) |z|
+                                        2 α
+                                                     1/2    !                      !1/2
+                                      π X d
+                                           |FN (α)|           N (α)|
+                                                         X
+                                                   2                2
+                                    ≤                      |G
+                                                            d
+                                      2 α                α
+                                      π               π
+                                    ≤ ∥FN ∥2 ∥GN ∥2 = .
+                                      2               2
+Here the second inequality uses |z| < 1, and the third follows from the orthonormality of the
+Hermite polynomials. Thus, the family (HN )N ≥1 is locally bounded on D. Since it converges
+pointwise on the interval (−1, 1), which has an accumulation point in D. Vitali’s theorem implies
+that (HN ) converges locally uniformly on D to a holomorphic function. On (−1, 1), this function
+agrees with H. It is therefore the holomorphic extension of the correlation function of the
+limiting scheme.
+
+                                                       13
+   We now show the following.
+Theorem 3.10 (Upper bound from a limiting Krivine scheme). Let S = (f, g, ρ1 , . . . , ρk ) be a
+limiting Krivine scheme. Let H be its correlation function. Suppose that H ′ (0) ̸= 0, so that H
+has a local holomorphic inverse at the origin. Write
+                                                   ∞
+                                     H −1 (z) =
+                                                   X
+                                                         a2j+1 z 2j+1 ,
+                                                   j=0
+
+and define its majorant by
+                                               ∞
+                                     M (r) =
+                                               X
+                                                     |a2j+1 |r2j+1 .
+                                               j=0
+
+If there exists γ > 0, within the radius of convergence of H −1 , such that M (γ) = 1, then KG ≤ 2γ
+                                                                                                 π
+                                                                                                    .
+   The only remaining thing left to show that an inverse-majorant bound for the limiting
+correlation function passes to its finite-dimensional approximations. We first prove this analytic
+stability statement.
+Lemma 3.11 (Finite inverse-majorant transfer). Let FN , F be holomorphic on D, suppose that
+FN → F locally uniformly on D, and assume that FN (0) = F (0) = 0. Suppose that G is a
+holomorphic inverse branch of F on a neighborhood of D(0, R0 ), takes values in D, and satisfies
+F (G(ζ)) = ζ, with |ζ| ≤ R0 . Write G(ζ) = n≥1 An ζ n . If 0 < γ < R0 and n≥1 |An |γ n < 1,
+                                                P                              P
+
+then, for all sufficiently large N , the function FN has a holomorphic inverse branch
+                                  GN (ζ) = FN−1 (ζ) =
+                                                            X
+                                                                  An,N ζ n
+                                                            n≥1
+
+                                                                  n < 1. Moreover, A
+                                               n≥1 |An,N |γ                             n,N → An for every
+                                               P
+defined on a neighborhood of D(0, γ), and
+fixed n.
+
+Proof. The proof has three steps. First, Rouché’s theorem shows that the inverse branch of
+F persists for FN . Second, the resulting inverse branches converge to G, which controls every
+fixed coefficient. Finally, a Cauchy estimate on a slightly larger disk controls the remaining tail
+uniformly in N .
+    Choose radii γ < ρ < r < R < R0 and set Ω = G(D(0, R)). Because G is an inverse
+branch of F , it is injective and has nonzero derivative on a neighborhood of D(0, R). Hence
+∂Ω = G(∂D(0, R)). For w ∈ ∂Ω, we therefore have |F (w)| = R. Thus, for every |ζ| ≤ r,
+                                 |F (w) − ζ| ≥ R − r,             w ∈ ∂Ω.
+The contour ∂Ω is a compact subset of D. Since FN → F locally uniformly, for all sufficiently
+large N ,
+                                                     R−r
+                              sup |FN (w) − F (w)| <     .
+                             w∈∂Ω                     2
+Fix such an N . For every |ζ| ≤ r, Rouché’s theorem implies that FN (w) − ζ and F (w) − ζ have
+the same number of zeros in Ω, counted with multiplicity. The equation F (w) = ζ has exactly
+one solution in Ω, namely w = G(ζ). Therefore FN (w) = ζ also has exactly one solution in Ω.
+   These solutions define a holomorphic function GN on D(0, r). One may write it using the
+argument principle as
+                                      1        wFN′ (w)
+                                           Z
+                          GN (ζ) =                       dw,                 |ζ| < r.
+                                     2πi   ∂Ω FN (w) − ζ
+
+
+                                                   14
+This is the unique solution of FN (w) = ζ in Ω. In particular, GN (0) = 0 and FN (GN (ζ)) = ζ.
+Thus GN is the inverse branch of FN at the origin.
+   The same argument-principle formula holds for G. The denominators above are uniformly
+bounded away from zero on ∂Ω × D(0, r), and local uniform convergence of FN implies uniform
+convergence of FN′ to F ′ on ∂Ω. It follows that GN −→ G uniformly on D(0, r). By Cauchy’s
+coefficient formula, An,N −→ An for every fixed n.
+   It remains to control all coefficients at once. Let B = supw∈Ω |w|. Since GN (D(0, r)) ⊆ Ω,
+Cauchy’s estimate on the circle |ζ| = ρ gives |An,N | ≤ Bρ−n ,   n ≥ 1, for all sufficiently large
+N.                                                                         n
+   Set δ = 1 − n≥1 |An |γ n > 0. Choose M large enough that B n>M γρ             < 3δ . Since the
+                 P                                                 P
+
+first M coefficients converge, for all sufficiently large N ,            n≤M |An,N |γ
+                                                                                        n ≤P
+                                                                                               n≤M |An |γ
+                                                                                                            n + δ.
+                                                                      P
+                                                                                                                3
+Combining the head and tail bounds gives
+                                                                               n
+                                                    δ                          γ
+                                            |An |γ + + B
+                          X                   X           X
+                                      n                     n
+                             |An,N |γ ≤
+                         n≥1            n≤M
+                                                    3    n>M
+                                                                               ρ
+                                                                 2δ
+                                                    |An |γ n +      < 1.
+                                              X
+                                          <
+                                              n≥1
+                                                                 3
+
+This proves the claim.
+   We will now prove Theorem 3.10.
+Proof. We first move from γ to an arbitrary smaller radius γ ′ < γ, where the majorant inequality
+is strict. We then transfer this strict certificate to a finite-dimensional approximation and finally
+let γ ′ approach γ.
+     Let HN be the correlation functions of the ordinary finite-dimensional Krivine schemes
+supplied by the finite-dimensional approximation theorem. Thus HN −→ H locally uniformly
+on D. Since all of the schemes are odd, HN (0) = H(0) = 0.
+    The equality M (γ) = 1 need not remain true under a small perturbation, so we first work
+at a slightly smaller radius. Fix any 0 < γ ′ < γ. Because a1 = H ′1(0) ̸= 0, the majorant is
+strictly increasing on the positive real axis. Hence M (γ ′ ) < M (γ) = 1. Choose R0 such that
+γ ′ < R0 < γ. Then M (R0 ) < 1. If G = H −1 denotes the inverse power series, then for |z| ≤ R0 ,
+|G(z)| ≤ M (|z|) ≤ M (R0 ) < 1. Thus G is holomorphic on a neighborhood of D(0, R0 ) and
+takes values in D. Moreover, the identity H(G(z)) = z holds near the origin. Both sides are
+holomorphic on D(0, R0 ), so the identity theorem gives
+                                    H(G(z)) = z,                 |z| < R0 .
+Therefore G is an inverse branch of H on this disk.
+   We may now apply Lemma 3.11 at the radius γ ′ . For all sufficiently large N , the inverse
+branch of HN has an expansion
+                                      −1
+                                         (z) =
+                                               X
+                                    HN             an,N z n
+                                                        n≥1
+satisfying
+                                                |an,N |(γ ′ )n < 1.
+                                          X
+
+                                          n≥1
+The classical Krivine criterion applied to this finite-dimensional scheme therefore yields KG ≤ 2γπ ′ .
+This holds for every γ ′ < γ. Letting γ ′ increase to γ gives
+                                                       π
+                                              KG ≤       ,
+                                                      2γ
+
+                                                       15
+as claimed.
+
+
+4     The Cubic–Quintic Scheme
+The previous section lets us work directly with fixed-dimensional limiting Krivine schemes. We
+now define the two-dimensional scheme used for our upper bound. Its first coordinate combines
+the correlation powers t, t3 , t5 , while its second coordinate keeps correlation t. In the next two
+sections, we compute its correlation function and certify its inverse majorant.
+    We first describe the general form of the construction. Let D ⊆ {3, 5, 7, . . .} be finite, choose
+weights (sd )d∈D , and set
+
+                                σd = (−1)(d−1)/2 ,            VD = 1 +
+                                                                                X
+                                                                                    s2d .
+                                                                            d∈D
+
+A degree-d Hermite direction contributes the correlation td . After combining these directions
+into one normalized Gaussian coordinate, the resulting correlation map is
+
+                                                   t+                2 d
+                                                         P
+                                                             d∈D σd sd t
+                                        ρD (t) =                            .                      (6)
+                                                             VD
+The map ρD is allowable, since the absolute values of its coefficients sum to one. Thus, for any
+η ∈ R, the partitions
+                           η                                               η
+                                                                                            
+                  sgn w + √    He3 (x)                 and        sgn w − √    He3 (x)
+                            VD                                              VD
+
+together with the correlation maps ρD (t) and t define a two-dimensional limiting Krivine scheme.
+   For the scheme used in our proof, we take D = {3, 5}. The cubic direction is anti-aligned
+between the two sides, while the quintic direction is aligned. We use the parameters
+
+                  η = 0.136419125,            s3 = 0.34101124,                  s5 = 0.05276111.   (7)
+
+Set
+                                                                      η
+                                     V = 1 + s23 + s25 ,          ϑ= √ ,
+                                                                       V
+and define
+                                                   t − s23 t3 + s25 t5
+                                          ρ(t) =                       .                           (8)
+                                                            V
+Definition 4.1 (Cubic–quintic limiting scheme). Define f, g : R2 → {−1, 1} by
+
+                 f (w, x) = sgn w + ϑ He3 (x) ,               g(w, x) = sgn w − ϑ He3 (x) .        (9)
+                                                                                              
+
+
+Our construction is the limiting Krivine scheme
+
+                          S = (f, g, ρ1 , ρ2 ),        ρ1 (t) = ρ(t),            ρ2 (t) = t.
+
+We write H for its correlation function.
+
+
+
+
+                                                        16
+   The map ρ is allowable because the absolute values of its coefficients sum to (1+s23 +s25 )/V = 1.
+The partitions are odd and satisfy g(w, x) = f (w, −x). Their threshold boundaries also have
+Gaussian measure zero, so the approximation theorem from the previous section applies.
+   More explicitly, let (W, X) and (W ′ , X ′ ) be standard Gaussian vectors. Assume that the two
+coordinate pairs are independent and that corr(W, W ′ ) = ρ(t) and corr(X, X ′ ) = t. Then
+                                          π             ′   ′ 
+                                 H(t) =     E f (W, X)g(W , X ) .                               (10)
+                                          2
+    The signs and weights in ρ are chosen to make the cubic and quintic coefficients of H nearly
+vanish. This in turn suppresses the first two nonlinear coefficients of H −1 . Section 5 makes this
+relation explicit.
+
+Theorem 4.2 (Cubic–quintic upper bound). Let M be the inverse majorant of H. At γ =
+0.881545409, we have M (γ) < 1. Consequently,
+                      π                               π
+               KG ≤      ≤ 1.7818666069360661 <          √ − 3.4737 · 10−4 .
+                      2γ                        2 log(1 + 2)
+
+5     The Correlation Coefficients
+The previous section defined our two-dimensional limiting scheme, whose two correlation maps
+are ρ(t) and t. We now compute its correlation function
+
+                                        H(t) =
+                                                      X
+                                                            bm tm .
+                                                      m≥1
+
+The key observation is that g(w, x) = f (w, −x). Thus, the Hermite coefficients of f determine
+the entire series H.
+   We use standard facts about Hermite polynomials. See [AAR99] for a reference.
+   Let µ be the standard Gaussian measure on R, so that
+                                               1   2
+                                     dµ(x) := √ e−x /2 dx.
+                                               2π
+Let Hen denote the n-th orthonormal probabilist’s Hermite polynomial. Then {Hen }n≥0 is an
+orthonormal basis for L2 (µ).
+   Let W, X be independent standard Gaussians. For a, b ≥ 0, write
+
+                               Aa,b = E[f (W, X) Hea (W ) Heb (X)] .                            (11)
+
+Then, in L2 of the standard Gaussian measure on R2 ,
+
+                                f (w, x) =           Aa,b Hea (w) Heb (x).
+                                             X
+
+                                             a,b≥0
+
+Since f (−w, −x) = −f (w, x), we have Aa,b = 0 whenever a + b is even. For a power series P , we
+write [tm ]P (t) for the coefficient of tm .
+
+Theorem 5.1 (Coefficient formula). For every t ∈ (−1, 1),
+                                             π X 2
+                                  H(t) =            A ρ(t)a (−t)b .                             (12)
+                                             2 a,b≥0 a,b
+
+                                                     17
+Consequently, for every m ≥ 1,
+                                          π X
+                                  bm =            (−1)b A2a,b [tm−b ]ρ(t)a .                   (13)
+                                          2 a,b≥0
+                                            a+b≤m
+
+In particular, bm = 0 whenever m is even.
+
+Proof. Let (W, X) and (W ′ , X ′ ) be the Gaussian inputs used to define the correlation function
+of the scheme. Thus, W and W ′ have correlation ρ(t), while X and X ′ have correlation t; the
+two coordinate pairs are independent.
+    Since g(w, x) = f (w, −x), the Hermite expansion of g is
+
+                                g(w, x) =           (−1)b Aa,b Hea (w) Heb (x).
+                                             X
+
+                                            a,b≥0
+
+When the two expansions are substituted into the definition of H, orthogonality leaves only
+matching Hermite degrees. The Hermite covariance identity then contributes ρ(t)a in the
+first coordinate and tb in the second. This gives (12). The series is absolutely convergent for
+t ∈ (−1, 1), since f ∈ L2 and |ρ(t)| ≤ |t| < 1.
+    Extracting the coefficient of tm gives (13). Finally, ρ is odd and Aa,b vanishes unless a + b is
+odd. Hence every nonzero summand in (12) is odd in t, so only odd coefficients occur.
+
+Computing the Hermite coefficients. The coefficients in (11) reduce to one-dimensional
+Gaussian integrals. Let Z be a standard Gaussian and, for a ≥ 0, set
+
+                                    qa (u) = E[sgn(Z + u) Hea (Z)] .                           (14)
+
+Conditioning on X gives
+                                    Aa,b = E[Heb (X)qa (ϑ He3 (X))] .                          (15)
+The threshold coefficients have the closed form
+                               u                        2φ(u)
+                                     
+                  q0 (u) = erf √ ,              qa (u) = √ Hea−1 (−u)             (a ≥ 1),     (16)
+                                2                          a
+                            2
+where φ(u) = (2π)−1/2 e−u /2 . This standard identity follows by one integration by parts; we
+include the proof in Appendix B.
+    Theorem 5.1 therefore reduces each bm to finite coefficient extraction from powers of ρ and
+one-dimensional Gaussian integrals. This is the formula used to compute the coefficient head
+in the next section. A more general formula for schemes built from an arbitrary finite set of
+Hermite degrees is recorded in Appendix B; it is not needed for the main argument.
+
+
+6     Proof of Cubic-Quintic Scheme
+Write the correlation function of the cubic–quintic limiting scheme as
+
+                                       H(t) = b1 t +                                           (17)
+                                                             X
+                                                                  bm tm ,
+                                                          m≥3
+                                                          m odd
+
+
+
+
+                                                        18
+and let
+                                           ∆H :=                                               (18)
+                                                       X
+                                                              |bm |
+                                                      m≥3
+                                                      m odd
+be the total mass of its nonlinear coefficients. Let
+
+                                    G(z) = H −1 (z) =
+                                                              X
+                                                                      an z n
+                                                              n≥1
+
+denote the local holomorphic inverse of H at the origin, and define its majorant by
+
+                                          M(r) :=                                              (19)
+                                                      X
+                                                            |an |rn .
+                                                      n≥1
+
+The local inverse exists because H ′ (0) = b1 > 0, by the holomorphic inverse function theorem.
+   For the linear map t 7→ b1 t, the condition M(γ) < 1 is simply γ < b1 . The next proposition
+shows that the nonlinear part costs at most ∆H of this margin.
+
+Proposition 6.1 (Inverse certificate from near-linearity). Assume b1 > 0 and ∆H < ∞. If
+
+                                              γ + ∆H < b1 ,                                    (20)
+
+then there exists R > γ such that the local inverse G extends holomorphically to RD, maps RD
+into D, and satisfies
+                                               γ + ∆H
+                                     M(γ) ≤            < 1.                               (21)
+                                                  b1
+Proof. Set
+                         E(t) :=                      Emaj (u) :=
+                                   X                                      X
+                                         bm tm ,                               |bm |um .
+                                   m≥3                                   m≥3
+
+There is a unique formal power series
+
+                                            V (z) =
+                                                      X
+                                                            vn z n
+                                                      n≥1
+
+satisfying
+                                    b1 V (z) = z + Emaj (V (z)).                               (22)
+Indeed, comparison of the coefficient of z gives v1 = b−1    1 . For n ≥ 2, the coefficient of z in
+                                                                                                n
+
+Emaj (V ) depends only on v1 , . . . , vn−1 , so (22) determines vn recursively. The same recursion
+shows that vn ≥ 0 for every n.
+   Comparing coefficients in
+                                         b1 G(z) = z − E(G(z))
+and in (22), induction on n gives
+
+                                         |an | ≤ vn        (n ≥ 1).                            (23)
+
+Indeed, at degree n, every nonlinear composition involves only previously determined coefficients,
+and replacing each bm by |bm | removes all possible cancellation.
+   Choose R > γ so close to γ that
+                                                   R + ∆H
+                                           q :=           < 1.
+                                                     b1
+
+                                                      19
+Starting from V0 (z) = 0, define
+
+                                                  z + Emaj (Vk (z))
+                                    Vk+1 (z) :=                     .                         (24)
+                                                        b1
+The series Vk have nonnegative coefficients and increase coefficientwise, meaning that each Taylor
+coefficient is nondecreasing in k. Moreover, if Vk (R) ≤ q, then Vk (R) < 1 and
+
+                                                  R + Emaj (1)
+                                    Vk+1 (R) ≤                 = q.
+                                                      b1
+Thus Vk (R) ≤ q for every k. Their coefficientwise limit satisfies (22), and hence equals V by
+uniqueness. The monotone convergence theorem now gives
+
+                                     V (R) =         vn Rn ≤ q < 1.
+                                               X
+
+                                               n≥1
+
+Together with (23), this implies
+
+                                            |an |Rn ≤ V (R) < 1.
+                                      X
+
+                                      n≥1
+
+Consequently, the Taylor series of G converges on RD and takes values in D. Since the identity
+H(G(z)) = z holds near the origin, it holds throughout RD by the identity theorem. Finally,
+
+                                               γ + Emaj (V (γ))   γ + ∆H
+                           M(γ) ≤ V (γ) =                       ≤        ,
+                                                     b1              b1
+because 0 ≤ V (γ) ≤ V (R) < 1.
+
+   It remains to certify ∆H . We compute the coefficients through a finite degree N and bound
+the remaining tail indirectly. The point is that the Euler operator
+                                                          d
+                                               D := t
+                                                          dt
+multiplies the coefficient of tm by m, so D3 strongly amplifies high-degree coefficients. The
+L2 (T) norm below is the root-mean-square size of the resulting function around the unit circle
+T := {z ∈ C : |z| = 1}.
+
+Lemma 6.2 (Third-order coefficient-tail bound). Suppose that D3 H has radial boundary values
+in L2 (T), with
+                                           1 2π 3
+                                             Z
+                        ∥D3 H∥2L2 (T) :=         |D H(eiθ )|2 dθ.
+                                          2π 0
+Then, for every odd N ,
+                                                              1/2
+                                                                          ∥D3 H∥L2 (T)
+                                                           m−6                               (25)
+                    X                            X
+                           |bm | ≤ ∥D3 H∥L2 (T) 
+                                                               
+                                                                      ≤     √          .
+                                                                              10N 5
+                                                              
+                   m>N                            m>N
+                   m odd                          m odd
+
+
+
+
+                                                     20
+Proof. Since D3 (tm ) = m3 tm , Parseval’s identity gives
+
+                                       ∥D3 H∥2L2 (T) =                                                        (26)
+                                                             X
+                                                                    m6 |bm |2 .
+                                                           m≥1
+                                                           m odd
+
+The Cauchy–Schwarz inequality therefore gives
+                                                                             1/2
+
+                        |bm | =           m−3 m3 |bm | ≤                m−6 
+                  X                X                           X
+                                                                                     ∥D3 H∥L2 (T) .
+                                                                             
+                                                                            
+                m>N               m>N                           m>N
+                m odd             m odd                         m odd
+
+Finally, since x 7→ x−6 is decreasing and consecutive odd integers are separated by two, the
+monotone integral estimate gives
+                                                   1                         1
+                                                       Z ∞
+                                           m−6 ≤             x−6 dx =
+                                    X
+                                                                                 .
+                                   m>N
+                                                   2   N                   10N 5
+                                   m odd
+
+
+
+
+Proposition 6.3 (Certified numerical input). For the cubic–quintic correlation function, interval
+arithmetic certifies
+
+   b1 ≥ 0.881573822049,                      |bm | ≤ 1.1328860 · 10−5 ,              ∥D3 H∥L2 (T) < 14.443.   (27)
+                                     X
+
+                                   3≤m≤251
+                                    m odd
+
+Proof. See Appendix C.
+
+   Lemma 6.2 and Proposition 6.3 give
+                                                           14.443
+                    ∆H ≤ 1.1328860 · 10−5 + √                          < 1.5904724 · 10−5 .                   (28)
+                                                           10 · 2515
+Theorem 6.4 (Cubic–quintic upper bound). For
+
+                                              γ = 0.881545409,
+
+the cubic–quintic limiting scheme satisfies M(γ) < 1. Consequently,
+                                             π
+                                    KG ≤        ≤ 1.7818666069360661.                                         (29)
+                                             2γ
+Proof. By (28),
+
+     γ + ∆H < 0.881545409 + 1.5904724 · 10−5 = 0.881561313724 < 0.881573822049 ≤ b1
+
+Proposition 6.1 therefore gives M(γ) < 1, together with the analytic room required by the
+finite-dimensional transfer theorem. That theorem passes the strict certificate to all sufficiently
+large ordinary finite-dimensional approximations. The classical Krivine preprocessing theorem
+then gives (29).
+
+Reproducibility. The scripts, certificates, and Arb outputs are available at https://github.
+com/trishullab/grothendieck-bounds.
+
+                                                        21
+Part II
+The Lower Bound
+7     Proof Overview
+Theorem 7.1. The Grothendieck constant satisfies
+                                               6π
+                                       KG ≥       = 1.7136 . . . .
+                                               11
+   A sketch of the proof is as follows. First, recall the inverse-series step in Krivine’s rounding
+argument. If
+                                    H −1 (z) =
+                                               X
+                                                   a2j+1 z 2j+1 ,
+                                                  j≥0
+
+define the absolute-coefficient majorant MH (s) :=               j≥0 |a2j+1 |s
+                                                                                 2j+1 .   The standard tensor
+                                                             P
+
+preprocessing gives the implication
+                                                                     π
+                                  MH (γ) ≤ 1       =⇒       KG ≤        .                                (30)
+                                                                     2γ
+
+We refer to (30) as the inverse-majorant bound.
+   The conceptual starting point is the theorem of Naor and Regev that Krivine schemes are
+optimal [NR14]. By reworking the construction in their proof, we show that the inverse-majorant
+bound is itself asymptotically optimal after allowing mixtures and increasing dimension: there
+are limiting mixed correlation functions with admissible parameters converging to π/(2KG ).
+This transfer is established in Section 11.
+   It therefore remains to prove a universal upper bound on such admissible parameters. For
+arbitrary odd measurable sign functions f, g : Rd → {±1}, write
+
+                                 Hf,g (t) = b1 t + b3 t3 + b5 t5 + · · · .
+
+The technical core of the argument is the affine coefficient inequality
+                                                          11
+                                            b3 ≥ 2b1 −       .
+                                                          6
+Section 8 sets up the Gaussian–Hermite formulation, and Section 9 proves this inequality by
+decomposing f and g into their agreement and disagreement parts and reducing the required
+estimates to one-dimensional inequalities. Its linearity in (b1 , b3 ) is essential, because it makes
+the inequality stable under mixtures and coefficientwise limits.
+    Section 10 then shows that the affine coefficient inequality controls the inverse-majorant
+bound: every admissible value must satisfy γ ≤ 11/12. Applying this barrier to the asymptotically
+optimal sequence constructed in Section 11 gives
+                                               π   11
+                                                  ≤ ,
+                                              2KG  12
+which is exactly Theorem 7.1.
+
+
+
+
+                                                   22
+8       Preliminaries on Gaussian Hermite Expansions
+Let
+                                                 X ∼ N (0, Id )
+be a standard Gaussian vector in Rd . We define the inner product as the Gaussian expectation:
+
+                                          ⟨F, G⟩ = E[F (X)G(X)].
+
+We use the orthonormal 1D Hermites
+                                                                  s2 − 1                  s3 − 3s
+               He0 = 1,      He1 (s) = s,          He2 (s) =       √ ,        He3 (s) =     √ .
+                                                                     2                        6
+      In d dimensions the Hermite basis is indexed by multi-indices. If
+
+                              α = (α1 , . . . , αd ),      |α| = α1 + · · · + αd ,
+
+then
+                                                         d
+                                          Heα (X) =            Heαi (Xi ).
+                                                         Y
+
+                                                         i=1
+Any square integrable function has a Hermite expansion, written as
+
+                                 F = P0 F + P1 F + P2 F + P3 F + . . . ,
+
+where Pi F is the orthogonal projection of F onto the span of all Heα with total degree |α| = i.
+   In particular, the degree-one Hermites span
+
+                                         H1 = span{X1 , . . . , Xd }.
+
+Here,
+                             P1 F = ⟨cF , X⟩,            cF = E[F (X)X] ∈ Rd .
+Its norm is
+                                              ∥P1 F ∥2 = ∥cF ∥2ℓ2 .
+    Similarly, P3 F is the projection onto the full total degree-three Hermite span. We will not
+list all basis elements. The important point is that it includes pure cubic directions such as
+He3 (Xi ) and mixed directions such as He2 (Xi )He1 (Xj ) and He1 (Xi )He1 (Xj )He1 (Xℓ ).
+    For signs f, g : Rd → {±1}, if
+                                                        π           ′
+                                         Hf,g (t) =       E[f (X)g(Xt )]
+                                                        2
+with (X, Xt′ ) a pair of correlated standard Gaussian vectors, then Mehler’s identity gives
+                                                   π X
+                                     Hf,g (t) =         ⟨Pm f, Pm g⟩tm .
+                                                   2 m≥0
+
+Here
+                                   π                                 π
+                    b1 = [t]Hf,g =   ⟨P1 f, P1 g⟩,   b3 = [t3 ]Hf,g = ⟨P3 f, P3 g⟩.
+                                   2                                 2
+      For the rest of the paper, we will use the shorthand
+                                             2
+                                         r
+                                  ν :=         = E |Z|,           Z ∼ N (0, 1).
+                                             π
+
+                                                         23
+    We want to prove
+                                                    11
+                                           b3 ≥ 2b1 −  .                                    (31)
+                                                     6
+    For example, the hyperplane partitions lie on this line. For f = g = sgn(X1 ),
+
+                                                                  ν2
+                                   ∥P1 f ∥ = ν,     ∥P3 f ∥2 =       .
+                                                                  6
+Thus
+                                                           1
+                                                           
+                                         (b1 , b3 ) = 1,     ,
+                                                           6
+and this point lies exactly on the line since 1/6 = 2 − 11/6.
+   Instead of proving the strip directly, it suffices to prove
+                                                                                  11 2
+                   B1 (f, g) := ∥P1 f ∥∥P1 g∥ + ⟨P1 f, P1 g⟩ − ⟨P3 f, P3 g⟩ ≤       ν .     (32)
+                                                                                  6
+Indeed, by Cauchy–Schwarz,
+                                     ∥P1 f ∥∥P1 g∥ ≥ ⟨P1 f, P1 g⟩.
+So (32) implies
+                                                                  11 2
+                                 2⟨P1 f, P1 g⟩ − ⟨P3 f, P3 g⟩ ≤      ν .
+                                                                   6
+Multiplying by π/2 and using ν 2 = 2/π gives (31).
+
+
+9       Proof of the Affine Coefficient Inequality
+9.1     The agreement–disagreement substitution
+We define a change of variables based on where f and g agree or disagree. Set the functions h, k
+to be
+                                       f +g           f −g
+                                  h=        ,    k=         .
+                                         2              2
+Then
+                                   f = h + k,     g = h − k.
+Since f, g are signs,
+                         h, k ∈ {−1, 0, 1},       hk = 0,         h2 + k 2 = 1.
+Think of h as the agreement part and k as the disagreement part between f and g. This change
+of variables considerably simplifies the proof.
+    Let
+                                      u = P1 h,   v = P1 k.
+Then
+                                  P1 f = u + v,         P1 g = u − v.
+Hence
+                                     ⟨P1 f, P1 g⟩ = ∥u∥2 − ∥v∥2 .
+Also
+                         ∥P1 f ∥∥P1 g∥ = ∥u + v∥∥u − v∥ ≤ ∥u∥2 + ∥v∥2 ,
+
+
+                                                  24
+using ab ≤ (a2 + b2 )/2 after expanding ∥u ± v∥2 .
+   For degree three,
+                             P3 f = P3 h + P3 k,   P3 g = P3 h − P3 k,
+so
+                                  ⟨P3 f, P3 g⟩ = ∥P3 h∥2 − ∥P3 k∥2 .
+Putting these together,
+
+                  B1 (f, g) ≤ ∥u∥2 + ∥v∥2 + ∥u∥2 − ∥v∥2 − ∥P3 h∥2 − ∥P3 k∥2
+                                                                                   
+
+                           = 2∥P1 h∥2 − ∥P3 h∥2 + ∥P3 k∥2 .
+
+     So it is enough to prove
+
+                                                                             11 2
+                          D1 (h, k) := 2∥P1 h∥2 − ∥P3 h∥2 + ∥P3 k∥2 ≤           ν                (33)
+                                                                              6
+
+   In order to prove this, we have to handle each of the three expressions ∥P1 h∥2 , ∥P3 h∥2 ,
+∥P3 k∥2 carefully. In particular, we need to prove upper bounds on ∥P1 h∥2 , ∥P3 k∥2 and a lower
+bound on ∥P3 h∥2 .
+Remark. Note that in the inequality before (33) the term ∥v∥2 = ∥P1 k∥2 conveniently cancels.
+This is a result of the choice of the strip b3 ≥ 2b1 − 11/6. Stronger lower bounds can be proved
+with the same method, but this is more complicated because one also has to bound ∥P1 k∥2 .
+
+
+9.2      Reduction to one Gaussian coordinate
+The linear part of h has the form
+                                           P1 h(X) = ⟨ch , X⟩.
+The coefficient vector is ch ∈ Rd , and
+
+                                            ∥P1 h∥ = ∥ch ∥ℓ2 .
+
+If ch =
+      ̸ 0, rotate coordinates so the first coordinate points in the ch direction. After this rotation,
+and after renaming the coordinates, we write
+
+                          X = (S, T ),       S ∼ N (0, 1),       T ∼ N (0, Id−1 ),
+
+with S independent of T , and
+                                         P1 h(S, T ) = ∥P1 h∥ S.
+If P1 h = 0, choose any direction as S.
+    Define
+                                                 ∥P1 h∥
+                                          x :=          ∈ [0, 1].
+                                                   ν
+The bound x ≤ 1 follows from
+
+                             ∥P1 h∥ = sup E[h(X)⟨e, X⟩] ≤ E |Z| = ν.
+                                         ∥e∥=1
+
+After rotation,
+                                         ⟨h, S⟩ = ∥P1 h∥ = νx.
+
+                                                    25
+9.3     The agreement terms
+The agreement part of D1 is 2∥P1 h∥2 − ∥P3 h∥2 . The helpful negative term is
+
+                                              −∥P3 h∥2 .
+
+To use it, we only need a lower bound on ∥P3 h∥2 .
+   In any dimension,
+                                   ∥P3 h∥2 ≥ ⟨h, He3 (S)⟩2 ,
+because He3 (S) is one orthonormal degree-three Hermite direction. The trick we will use is to
+condition on the transverse variables, so define
+
+                                          A(s) := E[h(s, T )].
+                                                   T
+
+This is the average value of h along the slice S = s. Since h ∈ [−1, 1],
+
+                                              |A(s)| ≤ 1.
+
+Also, for every function φ depending only on S, it is a straightforward conditioning to show that
+
+                                 E[h(S, T )φ(S)] = E[A(S)φ(S)].
+
+In particular,
+                                     E[A(S)S] = ⟨h, S⟩ = νx
+and
+                                 ⟨h, He3 (S)⟩ = E[A(S)He3 (S)].
+   This is the same trick as in the two-dimensional note. The problem is now a variational
+problem in the one variable function A, even though we are working in d dimensions. To bound
+the agreement part, it is sufficient to relax A, and answer the following question:
+      “Among all A : R → [−1, 1] with E[A(S)S] = νx, how small can the cubic coefficient
+      be?”
+   The answer is the rearrangement lemma.
+   Define                                        √
+                              W (S) := S 3 − 3S = 6 He3 (S).
+Also define
+                                              1+x
+                 ∆(x) := x + 2(1 + x) log         ,         ∆+ (x) := max{∆(x), 0}.
+                                               2
+Lemma 9.1 (One-dimensional rearrangement). Let S ∼ N (0, 1) and x ∈ [0, 1]. Then
+
+                               sup        E[A(S)(S − 3S)] = −ν∆(x).
+                                                  3
+                               |A|≤1
+                            E[A(S)S]=νx
+
+Proof. Fix r ≥ 0 by
+                                               2        1+x
+                                           e−r /2 =         ,
+                                                         2
+and put
+                                              µ = r2 − 3.
+
+                                                   26
+Let W = S 3 − 3S. Then
+
+                             W − µS = S 3 − 3S − (r2 − 3)S = S(S 2 − r2 ).
+
+     For any feasible A,
+
+                                  E[AW ] = E[A(W − µS)] + µ E[AS]
+                                         = E[A(W − µS)] + µνx
+                                          ≤ E |W − µS| + µνx,
+
+using |A| ≤ 1.
+   Equality is attained by
+
+                             A∗ (S) = sgn(W − µS) = sgn(S) sgn(S 2 − r2 ),
+
+provided A∗ has the right first moment. It does, because
+
+                                      A∗ (S)S = |S| sgn(S 2 − r2 ),
+
+so
+
+                                  E[A∗ (S)S] = 2 E[|S|1|S|>r ] − E |S|
+                                                          2
+                                                = 2νe−r /2 − ν
+                                                = νx.
+
+Thus A∗ is feasible and attains the dual upper bound.
+   It remains to compute its value. Since
+
+                                    sgn(S)(S 3 − 3S) = |S|3 − 3|S|,
+
+we get
+
+                           E[A∗ W ] = E[(|S| − 3|S|) sgn(S − r )]
+                                            3             2   2
+
+                                   = 2 E[(|S|3 − 3|S|)1|S|>r ] − E[|S|3 − 3|S|].
+
+The Gaussian tail moments are
+                                         2
+                                      −r /2                                     −r /2  2
+                   E[|S|1|S|>r ] = νe                E[|S| 1|S|>r ] = ν(r + 2)e
+                                                          3              2
+                                            ,                                         .
+
+Also
+                                      E |S| = ν,          E |S| = 2ν.
+                                                               3
+
+Therefore
+                                                        −r /2  2
+                                  E[A∗ W ] = 2ν(r − 1)e       +ν
+                                                 2
+                                                                           
+                                             = ν 1 + (1 + x)(r2 − 1)
+                                                                  
+                                             = ν (1 + x)r2 − x .
+
+Since r2 = −2 log((1 + x)/2),
+                                                      1+x
+                                                                      
+                       E[A∗ W ] = −ν x + 2(1 + x) log                      = −ν∆(x).
+                                                       2
+This proves the lemma.
+
+                                                     27
+Corollary 9.2 (Diagonal bound). For the general-dimensional ternary h above,
+
+                                                             ν2
+                                          ∥P3 h∥2 ≥             ∆+ (x)2 .
+                                                             6
+Consequently
+                                                           1
+                                                                                    
+                             2∥P1 h∥2 − ∥P3 h∥2 ≤ ν 2 2x2 − ∆+ (x)2 .
+                                                           6
+
+9.4     The disagreement term
+Now we have to bound the disagreement term ∥P3 k∥2 . For each fixed vector t, restrict k to the
+one-dimensional line obtained by varying S while holding T = t. We call this restriction the
+fiber of k over t, and write
+                                      ut (s) := k(s, t).
+Since k ∈ {−1, 0, 1}, every fiber ut is a one-dimensional ternary function. For j = 0, 1, 2, 3, define
+
+                                      Kj (t) := E[k(S, t)Hej (S)].
+                                                     S
+
+Thus Kj is the jth Hermite coefficient of the S-fiber, as a function of the transverse variable t.
+In two dimensions, the four degree-three basis elements were
+
+                  He3 (S),      He2 (S)He1 (T ),                  He1 (S)He2 (T ),         He3 (T ).
+
+In general dimensions, this becomes the orthogonal decomposition
+                                                3
+                                 H3 (S, T ) =            Hj (S) ⊗ H3−j (T ).
+                                                M
+
+                                                j=0
+
+This just says that a total degree-three Hermite can spend j degrees in S and 3 − j degrees in T .
+   Therefore
+                                             3
+                                    P3 k =         Hej (S) ΠT3−j Kj (T ),
+                                             X
+
+                                             j=0
+
+where ΠT3−j is the orthogonal projection in the T variable onto transverse Hermite degree 3 − j.
+Hence
+                                                         3
+                                      ∥P3 k∥2 =                                                        (34)
+                                                         X
+                                                              ∥ΠT3−j Kj ∥2 .
+                                                         j=0
+
+Since the ΠT3−j are orthogonal projections onto closed subspaces, they decrease norm, so we get
+the simpler upper bound
+                                    3                        3                          2
+                                        ∥Kj ∥2 = E                    E[k(S, T )Hej (S)]
+                                    X                        X
+                        ∥P3 k∥2 ≤                                                             .
+                                                         T            S
+                                    j=0                      j=0
+
+For a one dimensional ternary function u, define
+                                               3
+                                    V (u) :=         (E[u(Z)Hej (Z)])2 .
+                                               X
+
+                                               j=0
+
+
+
+                                                             28
+Then the previous inequality becomes
+
+                                             ∥P3 k∥2 ≤ E V (uT ).                             (35)
+                                                         T
+
+   For a ternary function u : R → {−1, 0, 1}, define its weighted support budget
+                                            β(u) := E[|Z|u(Z)2 ].
+Since u2 = 1u̸=0 ,
+                                            β(u) = E[|Z|1u(Z)̸=0 ].
+So β(u) is the |Z|-weighted Gaussian size of the support of the fiber.
+Theorem 9.3 (Fiber inequality). For every ternary u : R → {−1, 0, 1},
+                                           V (u) ≤ 3νβ(u) − β(u)2 .                           (36)
+
+Proof sketch . This is proved in Appendix D, which reduces (36) to a finite computational
+check. Here, we briefly sketch out the proof. The inequality is genuinely finite-dimensional: V (u)
+depends only on the four moments E[uHej ], 0 ≤ j ≤ 3. By the dual formula for the Euclidean
+norm,
+                     q                                                   3
+                         V (u) = sup E[u(Z)pa (Z)],           pa (Z) =         aj Hej (Z).
+                                                                         X
+                                 ∥a∥2 =1                                 j=0
+
+For fixed pa and a fixed support price τ ≥ 0, pointwise maximization over the three values of u
+gives
+                           max v pa (z) − τ |z| v 2 = |pa (z)| − τ |z| + ,
+                                                                     
+                            v∈{−1,0,1}
+
+with maximizer the threshold rule
+                                    u(z) = sgn(pa (z))1{|pa (z)|≥τ |z|} ;
+threshold functions are thus the exact optimizers of the priced problem, not merely plausible
+candidates. The infinite-dimensional search over u therefore collapses to the four-parameter
+family (a, τ ), whose active sets are cut out by one-dimensional polynomial inequalities;     the
+content of  (36) is the inequality 3νβ      2 ≥ β 2 along this family, where m =              and
+                                                                                   R
+                                       − m                                            |p
+                                                                                     E a | dγ
+β = E |z| dγ over the active set E. The constant fiber u ≡ 1 (that is, pa = He0 , τ = 0) realizes
+    R
+
+ρ := (3νβ − m2 )/β 2 = 3 − π/2 ≈ 1.4292, and numerical scans over the family find no smaller
+value. This suggests that (36) — which asserts only ρ ≥ 1 — holds with about 0.43 of true
+headroom, though we do not prove this sharper assertion.
+   Appendix D turns this into a proof: it reduces (36) to two certified regimes (a direction-free
+high-budget bound and a Fenchel-dual low-budget bound), each consisting of finitely many
+one-dimensional inequalities that are verified in outward-rounded interval arithmetic.
+
+Reproducibility. The scripts, certificates, and Arb outputs for this are available at https:
+//github.com/trishullab/grothendieck-bounds.
+
+   Apply (36) to each fiber uT . From (35),
+                                                    h                  i
+                                   ∥P3 k∥2 ≤ E 3νβ(uT ) − β(uT )2 .
+                                                T
+
+We now prove the following bound. Note that this step is dimension-free.
+
+                                                        29
+Theorem 9.4 (Fiber Residual Bound #1). We have the fiber bound
+                                                                    
+                               ∥P3 k∥2 ≤ ν 2 3(1 − x) − (1 − x)2 .                          (37)
+
+Proof. We do this by relating the average budget to x. Since
+
+                                            νx = E[hS]
+
+and
+                                            hS ≤ |S|h2 ,
+we get
+
+                                        νx ≤ E[|S|h2 ]
+                                           = E[|S|(1 − k 2 )]
+                                           = ν − E[|S|k 2 ].
+
+Therefore
+                                       E[|S|k ] ≤ ν(1 − x).
+                                             2
+
+
+But
+                              E[|S|k ] = E E[|S|k(S, T ) ] = E β(uT ).
+                                    2                   2
+                                         T S                     T
+Let
+                                           b := E β(uT ).
+                                                   T
+Then
+                                           b ≤ ν(1 − x).
+      The function
+                                          ϕ(t) = 3νt − t2
+is concave, so Jensen gives
+
+                               E ϕ(β(uT )) ≤ ϕ(E β(uT )) = 3νb − b .
+                                                                         2
+                               T                   T
+
+On [0, ν], ϕ is increasing. Hence, using b ≤ ν(1 − x), we obtain (37).
+
+   This is our first fiber residual bound. But this bound is not best for small x. We also use a
+second cruder bound.
+
+Theorem 9.5 (Fiber Residual Bound #2).
+
+                                   ∥P3 k∥2 ≤ 2Φ( −2 log x) − 1.                             (38)
+                                                       p
+
+
+Proof. Let
+                                        ρ(s) := E[k(s, T )2 ].
+                                                   T
+Then 0 ≤ ρ ≤ 1 and
+                                          ∥k∥22 = E ρ(S).
+Also
+                              E[|S|ρ(S)] = E[|S|k(S, T ) ] ≤ ν(1 − x).
+                                                        2
+
+
+
+                                                   30
+Since P3 is an orthogonal projection,
+                                   ∥P3 k∥2 ≤ ∥k∥22 = E ρ(S).
+    Given a budget on E[|S|ρ(S)], the way to maximize E ρ(S) is to spend the budget where |S|
+is smallest. Thus the extremal support is centered around zero.
+    Let
+                                       rx := −2 log x
+                                             p
+
+for x ∈ (0, 1], with the convention r0 = ∞. Then
+                                                   −r /2        2
+                           E[|S|1|S|≤rx ] = ν(1 − e x ) = ν(1 − x).
+Therefore the bathtub principle gives
+                          ∥P3 k∥2 ≤ P(|S| ≤ rx ) = 2Φ( −2 log x) − 1,
+                                                                    p
+
+
+which proves (38).
+   Combining the two fiber residual bounds, define
+                                                               1 
+                                                                                       
+                 R(x) := min 3(1 − x) − (1 − x)2 ,                 2Φ( −2 log x) − 1 .       (39)
+                                                                      p
+                                                               ν 2
+
+Then
+                                        ∥P3 k∥2 ≤ ν 2 R(x).
+
+9.5      The final inequality
+From the diagonal bound and the residual bound,
+                                                       1
+                                                                           
+                           D1 (h, k) ≤ ν   2
+                                                   2x − ∆+ (x)2 + R(x) .
+                                                     2
+                                                       6
+So it remains to prove the scalar inequality
+                                    1                 11
+                     E1 (x) := 2x2 − ∆+ (x)2 + R(x) ≤                     (0 ≤ x ≤ 1).       (40)
+                                    6                 6
+   Let                                  √                                 √
+                                  1 − 1/ 3                          1 + 1/ 3
+                            r− :=          ,                  r+ :=          .
+                                      2                                 2
+These are the roots of
+                                            1
+                                           x2 − x +
+                                              = 0.
+                                            6
+   Now we do some simple casework based on the range in which x lies. Everything is simple
+algebra.
+
+Low range: 0 ≤ x ≤ r−
+Use the crude bound R(x) ≤ 1/ν 2 = π/2 and drop the negative term:
+                                             π          π
+                              E1 (x) ≤ 2x2 + ≤ 2r−  2
+                                                      + .
+                                             2          2
+Now
+                                    π    2    1    π    11
+                             2r− 2
+                                   + = −√ + < .
+                                    2    3     3   2     6
+
+                                                         31
+Middle range: r− ≤ x ≤ r+
+Use the fiber branch of R and again drop the negative term:
+
+                                 E1 (x) ≤ 2x2 + 3(1 − x) − (1 − x)2
+                                       = x2 − x + 2.
+
+Since x ∈ [r− , r+ ],
+                                                      1
+                                          x2 − x +      ≤ 0.
+                                                      6
+Therefore
+                                                         11
+                                         x2 − x + 2 ≤       .
+                                                         6
+
+High range: r+ ≤ x ≤ 1
+Use the fiber branch again. We need the cubic correction. It suffices to show
+
+                                      ∆(x)2 ≥ 6x2 − 6x + 1.                     (41)
+
+Indeed, then
+                                                            1
+                        E1 (x) ≤ 2x2 + 3(1 − x) − (1 − x)2 − (6x2 − 6x + 1)
+                                                            6
+                                 11
+                               = .
+                                  6
+   To prove (41), first note that
+                                                                  1+x
+                                                                         
+                        ∆(x) − (3x − 2) = 2 (1 − x) + (1 + x) log     .
+                                                                   2
+Writing t = (1 + x)/2, the bracket becomes
+
+                                       2 (1 − t) + t log t ≥ 0
+                                                          
+
+
+for 0 < t ≤ 1. Hence
+                                          ∆(x) ≥ 3x − 2.
+For x ≥ r+ , both sides needed below are nonnegative, and
+
+                            (3x − 2)2 − (6x2 − 6x + 1) = 3(1 − x)2 ≥ 0.
+
+Thus
+                                ∆(x)2 ≥ (3x − 2)2 ≥ 6x2 − 6x + 1.
+This proves the high range.
+   Combining the three ranges proves (40).
+   We have thus shown
+                                                      11
+                                         D1 (h, k) ≤ ν 2 .
+                                                       6
+As explained earlier, this implies the affine coefficient inequality
+                                                        11
+                                          b3 ≥ 2b1 −       .
+                                                        6
+Since this is affine, it is preserved under mixtures.
+
+                                                 32
+10 The Affine Coefficient Inequality Bounds the In-
+verse Majorant
+Definition 10.1 (Admissible majorant value). Let H be odd and analytic near the origin, with
+H ′ (0) > 0. Let H −1 denote the local inverse branch satisfying H −1 (0) = 0, and write
+
+                                      H −1 (z) =
+                                                        X
+                                                              a2j+1 z 2j+1 .
+                                                        j≥0
+
+A number γ > 0 is admissible for H if this series converges absolutely at γ and
+
+                                                 |a2j+1 |γ 2j+1 ≤ 1.
+                                           X
+
+                                           j≥0
+
+    We now turn the affine coefficient inequality proved in Section 9 into a universal barrier for
+the inverse-majorant parameter. The coefficients b1 and b3 depend linearly on the correlation
+function, so the strip is preserved under mixtures and coefficientwise limits. Section 11 will apply
+this barrier to the limiting mixed functions supplied by the Naor–Regev construction.
+
+Proposition 10.2 (The majorant barrier). Let
+
+                                    H(t) = b1 t + b3 t3 + b5 t5 + · · ·
+
+be odd and analytic near the origin. Suppose that
+                                                                                11
+                                    0 < b1 ≤ 1,               b3 ≥ 2b1 −           .
+                                                                                6
+Then every admissible value for H satisfies
+                                                              11
+                                                    γ≤           .
+                                                              12
+Proof. Write
+                                     H −1 (z) = a1 z + a3 z 3 + · · · .
+Comparing the coefficients of z and z 3 in H(H −1 (z)) = z gives
+                                                 1                   b3
+                                       a1 =         ,          a3 = − 4 .
+                                                 b1                  b1
+
+      If b1 ≤ 11/12, admissibility gives
+                                                                     γ
+                                              1 ≥ |a1 |γ =              ,
+                                                                     b1
+so γ ≤ 11/12.
+    Suppose now that b1 > 11/12. The strip gives
+                                                       11
+                                                                    
+                                           b3 ≥ 2 b1 −                   > 0.
+                                                       12
+Let
+                                      MH (s) :=
+                                                        X
+                                                              |a2j+1 |s2j+1 ,
+                                                        j≥0
+
+
+                                                         33
+allowing the value +∞. Using only the first two terms,
+
+                                  11            11    2(b1 − 12
+                                                             11
+                                                                )            11
+                                                                               3
+                         MH                ≥        +
+                                  12           12b1        4
+                                                          b1                 12
+                                                                                      
+                                                    (b1 − 12
+                                                          11
+                                                             ) 2( 11
+                                                                  12 ) − b1
+                                                                      3   3
+                                           =1+                                             > 1.
+                                                                   b41
+
+The last inequality uses b1 ≤ 1 and 2(11/12)3 > 1. If some γ ≥ 11/12 were admissible,
+monotonicity of MH would give
+                                                   11
+                                                       
+                                       MH                   ≤ MH (γ) ≤ 1,
+                                                   12
+a contradiction.
+
+
+11      The Inverse Majorant Bound is Optimal
+The key global input is obtained by reworking the construction in the proof of Naor and Regev’s
+optimality theorem. We first record the notion of mixing needed to state it.
+
+Definition 11.1 (Mixed rounding scheme). Fix d ∈ N. A d-dimensional mixed rounding scheme
+is a probability distribution µ on pairs of measurable sign functions
+
+                                               f, g : Rd → {±1}.
+
+One pair (f, g) is sampled from µ and then used for every vector in the rounding procedure. Its
+averaged correlation function is
+
+                                           Hµ (t) :=         E    Hf,g (t).
+                                                        (f,g)∼µ
+
+A limiting mixed correlation function is a coefficientwise limit of averaged correlation functions
+of mixed rounding schemes, possibly in increasing dimensions.
+
+    The admissible values from Definition 10.1 are the parameters appearing in the inverse-
+majorant bound (30). For an actual mixed scheme, the standard tensor preprocessing argument
+turns an admissible value γ into the upper bound KG ≤ π/(2γ). The next lemma shows that,
+after allowing mixtures and increasing dimension, these bounds can approach KG itself.
+
+Lemma 11.2 (Optimality of the inverse-majorant bound). There exist odd analytic limiting
+mixed correlation functions Hk and admissible values γk such that
+                                        π                                      π
+                              γk ≤                      and        γk −→          .
+                                       2KG                                    2KG
+Equivalently, the resulting upper bounds satisfy
+                                                    π
+                                                       −→ KG .
+                                                   2γk
+Thus, after allowing mixtures and increasing dimension, the inverse-majorant bound is asymptot-
+ically optimal.
+
+                                                            34
+Proof. We use the construction in the proof of Theorem 1.1 of [NR14]. We do not use their
+theorem statement directly.
+    For each k, their equation (4) gives a probability measure νk on pairs of sign assignments on
+S k−1 whose averaged kernel is
+                                               1
+                                                 ⟨x, y⟩.
+                                              KG
+After radial extension, their equations (5) and (6) give an odd analytic normalized correlation
+function
+                                                   π
+                                        Hk (t) =       fk (t),
+                                                 2KG
+where fk is the function defined in their equation (6). By partitioning the sphere into finitely
+many small Borel sets and extending the sampled signs as step functions, one obtains ordinary
+mixed rounding schemes whose averaged kernels converge uniformly to the kernel above. Hence
+Hk is a limiting mixed correlation function in the sense of Definition 11.1.
+    Naor and Regev write
+                                     fk−1 (z) =    bn (k)z 2n+1 .
+                                                X
+
+                                                 n≥0
+
+Immediately before their Lemma 2.1, they choose a number ck ≤ 1 such that
+
+                                             |bn (k)|c2n+1 ≤ 1,
+                                       X
+                                                      k
+                                       n≥0
+
+and Lemma 2.1 proves that ck → 1. Define
+                                                     πck
+                                             γk :=       .
+                                                     2KG
+Since
+                                                   2KG
+                                                             
+                                     Hk−1 (z) = fk−1   z ,
+                                                     π
+the absolute inverse majorant of Hk at γk is exactly
+
+                                             |bn (k)|c2n+1 ≤ 1.
+                                       X
+                                                      k
+                                       n≥0
+
+Thus γk is admissible. Since ck ≤ 1 and ck → 1,
+                                      π                             π
+                              γk ≤              and        γk −→       .
+                                     2KG                           2KG
+The equivalent statement about the resulting upper bounds follows by taking reciprocals.
+
+Proof of Theorem 7.1. Let Hk and γk be supplied by Lemma 11.2. Sections 8 and 9 establish the
+affine coefficient inequality for every pair of odd sign functions in every dimension. It therefore
+holds for every mixed scheme, because b1 and b3 average linearly. Passing to the coefficientwise
+limit shows that
+                                                             11
+                                       b3 (Hk ) ≥ 2b1 (Hk ) − .
+                                                             6
+This is the point at which preservation under mixing is used.
+    We also have 0 < b1 (Hk ) ≤ 1. Positivity follows because γk is admissible. For the upper
+bound, every sign function f satisfies
+
+                           ∥P1 f ∥ = sup |E[f (X)⟨X, u⟩]| ≤ E |S| = ν,
+                                     ∥u∥=1
+
+
+                                                  35
+so |b1 (f, g)| ≤ (π/2)ν 2 = 1. This bound is also preserved under mixtures and coefficientwise
+limits.
+    Proposition 10.2 now gives
+                                                  11
+                                            γk ≤ .
+                                                  12
+Letting k → ∞ and using Lemma 11.2,
+                                           π   11
+                                              ≤ .
+                                          2KG  12
+Rearranging proves the result.
+
+Statement on AI use. The research reported in this paper made extensive use of large
+language models: GPT-5.5-Pro and GPT-5.6-Sol (OpenAI) served as the reasoning models, and
+Claude Opus and Claude Fable 5 (Anthropic) as the coding agents, operating within the AI
+research system described in the companion paper [LSX+ 26b]. AI assistance was also used in
+preparing parts of this manuscript. Every result stated as a theorem has been independently
+verified by the authors, and the authors take full responsibility for the contents of this paper.
+
+
+References
+[AAR99]     George E. Andrews, Richard Askey, and Ranjan Roy, Special functions, Encyclopedia
+            of Mathematics and its Applications, Cambridge University Press, 1999.
+[AN06]      Noga Alon and Assaf Naor, Approximating the cut-norm via grothendieck’s inequality,
+            SIAM Journal on Computing 35 (2006), no. 4, 787–803.
+[BMMN11] Mark Braverman, Konstantin Makarychev, Yury Makarychev, and Assaf Naor, The
+         grothendieck constant is strictly smaller than krivine’s bound, Proceedings of the
+         2011 IEEE 52nd Annual Symposium on Foundations of Computer Science (2011),
+         453–462.
+[Dav84]     A. M. Davie, A lower bound for KG , Unpublished manuscript, 1984.
+[DFS08]     Joe Diestel, Johan H. Fourie, and Jaap Swart, The metric theory of tensor prod-
+            ucts, American Mathematical Society, Providence, RI, 2008, Grothendieck’s résumé
+            revisited.
+[Gro53]     Alexandre Grothendieck, Résumé de la théorie métrique des produits tensoriels
+            topologiques, Boletim da Sociedade de Matemática de São Paulo 8 (1953), 1–79.
+[Hei26a]    Steven Heilman, A lower bound for grothendieck’s constant, 2026.
+[Hei26b]            , An upper bound on grothendieck’s constant, 2026.
+[JM26]      Chris Jones and Giulio Malavolta, The grothendieck constant is strictly larger than
+            davie-reeds’ bound, 2026.
+[Joh17]     Fredrik Johansson, Arb: efficient arbitrary-precision midpoint-radius interval arith-
+            metic, IEEE Transactions on Computers 66 (2017), no. 8, 1281–1292.
+[KN11]      Subhash Khot and Assaf Naor, Grothendieck-type inequalities in combinatorial
+            optimization.
+[Kri77a]    Jean-Louis Krivine, Sur la constante de Grothendieck, Comptes Rendus de l’Académie
+            des Sciences de Paris, Série A-B 284 (1977), no. 8, A445–A446.
+
+                                               36
+[Kri77b]             , Sur la constante de Grothendieck, C. R. Acad. Sci. Paris Sér. A-B 284
+             (1977), no. 8, A445–A446.
+[LP68]       Joram Lindenstrauss and Aleksander Pełczyński, Absolutely summing operators in
+             Lp -spaces and their applications, Studia Mathematica 29 (1968), 275–326.
+[LSX+ 26a] Alan Li, Rahul Saha, Anton Xue, Swarat Chaudhuri, Adam Klivans, Pravesh K.
+           Kothari, and Raghu Meka, The grothendieck constant is less than 2 log(1+
+                                                                                 π √
+                                                                                     2)
+                                                                                        − 10−5 ,
+           2026.
+[LSX+ 26b]          , Long-horizon ai research for grothendieck constant: A case study in human–
+             ai mathematical collaboration, Preprint.
+[NR14]       Assaf Naor and Oded Regev, Krivine schemes are optimal, Proceedings of the
+             American Mathematical Society 142 (2014), no. 12, 4315–4320.
+[Pis11]      Gilles Pisier, Grothendieck’s theorem, past and present, 2011.
+[Ree91]      J. A. Reeds, A new lower bound on the real Grothendieck constant, Unpublished
+             manuscript, 1991.
+[Sch93]      Joel L Schiff, Normal families, Springer Science & Business Media, 1993.
+
+
+
+
+                                               37
+A       Krivine Preprocessing and Mixed Rounding
+This appendix records the preprocessing and projection arguments behind Krivine rounding
+schemes. The argument is the standard rounding construction [Kri77b, BMMN11].
+   For a real matrix A = (aij ) ∈ Rm×n , write
+
+                                                               m X
+                                                                 n
+                               SDP(A) :=           sup
+                                                               X
+                                                                       aij ⟨xi , yj ⟩
+                                             ∥xi ∥=∥yj ∥=1 i=1 j=1
+
+
+and
+                                                                m X
+                                                                  n
+                                 OPT(A) :=            max
+                                                                X
+                                                                          aij εi δj .
+                                               εi ,δj ∈{±1}
+                                                                i=1 j=1
+
+Thus proving SDP(A) ≤ K OPT(A) for all A proves KG ≤ K.
+
+Theorem A.1 (Krivine preprocessing and projection). Let f, g : Rk → {−1, 1} be odd measurable
+functions, and let H = Hf,g be the arcsine-normalized correlation function
+                              π h               p         i
+                    H(t) =      E f (G1 ) g tG1 + 1 − t2 G2 ,                       −1 < t < 1,
+                              2
+where G1 , G2 are independent standard Gaussian vectors in Rk . Suppose that H has a local
+inverse at the origin,
+                                    H −1 (ζ) =
+                                               X
+                                                 ar ζ r ,
+                                                            r≥1
+
+which is holomorphic on a neighborhood of γD, and suppose that
+
+                                                      |ar |γ r ≤ 1.
+                                              X
+
+                                              r≥1
+
+Then
+                                                              π
+                                                   KG ≤          .
+                                                              2γ
+
+Proof. It is enough to prove the conclusion with any 0 < γ ′ < γ in place of γ, and then let γ ′ ↑ γ.
+We therefore fix such a γ ′ . Put
+
+                                         Mγ ′ :=         |ar |(γ ′ )r < 1.
+                                                   X
+
+                                                   r≥1
+
+Let A = (aij ) ∈ Rm×n . Choose unit vectors x1 , . . . , xm , y1 , . . . , yn such that
+                                               X
+                                                      aij ⟨xi , yj ⟩
+                                                i,j
+
+is arbitrarily close to SDP(A); if necessary, replace all yj by −yj so that this quantity is
+nonnegative. We suppress this arbitrarily small error, since it disappears at the end.
+    Let                                      
+
+                                    K :=          H⊗r  ⊕ ReL ⊕ ReR ,
+                                             M
+
+                                             r≥1
+
+
+
+
+                                                         38
+where H is the Hilbert space containing the original vectors, and where eL , eR are unit vectors
+orthogonal to each other and to all tensor summands. Define
+                                     Mq                              q
+                          I(x) :=            |ar | (γ ′ )r/2 x⊗r ⊕       1 − Mγ ′ eL ⊕ 0
+                                     r≥1
+
+and                                            q                               q
+                    J(y) :=          sgn(ar ) |ar | (γ ′ )r/2 y ⊗r ⊕ 0 ⊕           1 − M γ ′ eR ,
+                               M
+
+                               r≥1
+
+with the convention that the summand corresponding to ar = 0 is zero. Then I(x) and J(y) are
+unit vectors whenever x, y are unit vectors. Moreover,
+                          ⟨I(x), J(y)⟩ =            ar (γ ′ )r ⟨x, y⟩r = H −1 γ ′ ⟨x, y⟩ .
+                                              X                                             
+
+                                              r≥1
+
+The first equality uses
+                                             ⟨x⊗r , y ⊗r ⟩ = ⟨x, y⟩r ,
+and the second equality uses the Taylor expansion of the inverse on γ ′ D.
+   Set
+                                 ui := I(xi ),   vj := J(yj ).
+The finitely many vectors ui , vj span a finite-dimensional subspace of K. Identify this subspace
+with RN . Let Γ : RN → Rk be a random Gaussian linear map, i.e. a k × N matrix whose entries
+are independent standard Gaussian random variables. Define random signs
+                                     εi := f (Γui ) ,           δj := g (Γvj ) .
+For each pair (i, j), the vectors Γui and Γvj are standard Gaussian vectors in Rk with coordi-
+natewise correlation ⟨ui , vj ⟩. Hence, by the definition of H,
+                                                          2
+                                            E[εi δj ] =     H(⟨ui , vj ⟩).
+                                                          π
+Using the preprocessing identity,
+                                                                      
+                           H(⟨ui , vj ⟩) = H H −1 γ ′ ⟨xi , yj ⟩            = γ ′ ⟨xi , yj ⟩.
+Therefore                                    
+                                                  2X
+                                E  aij εi δj  =
+                                   X
+                                                     aij H(⟨ui , vj ⟩)
+                                      i,j
+                                                           π i,j
+                                                           2γ ′ X
+                                                       =          aij ⟨xi , yj ⟩.
+                                                            π i,j
+Since the maximum over deterministic signs is at least the expectation of the randomized signs,
+we get
+                                              2γ ′
+                                 OPT(A) ≥          SDP(A).
+                                               π
+Thus
+                                               π
+                                 SDP(A) ≤ ′ OPT(A).
+                                              2γ
+Letting γ ↑ γ gives
+         ′
+                                               π
+                                 SDP(A) ≤          OPT(A).
+                                              2γ
+Since A was arbitrary, KG ≤ π/(2γ).
+
+                                                           39
+Corollary A.2 (Classical Krivine hyperplane bound). Let h : R → {−1, 1} be h(x) = sgn(x).
+Then the hyperplane scheme (h, h) gives
+                                                              π
+                                                 KG ≤            √ .
+                                                        2 log(1 + 2)
+Proof. For the hyperplane scheme, Grothendieck’s identity gives
+                                                                         2
+                                        E[sgn(X) sgn(Y )] =                arcsin(t)
+                                                                         π
+whenever X, Y are standard Gaussians with correlation t. In our normalization,
+
+                                                 Hh,h (t) = arcsin(t).
+
+Thus
+                                       −1                          (−1)q 2q+1
+                                           (ζ) = sin ζ =
+                                                             X
+                                      Hh,h                                 ζ  .
+                                                             q≥0
+                                                                 (2q + 1)!
+Let                                                                             √
+                                         ρ∗ := arsinh(1) = log(1 +                  2).
+Then
+                                                   ρ2q+1
+                                                    ∗
+                                                           = sinh(ρ∗ ) = 1.
+                                             X
+
+                                             q≥0
+                                                 (2q + 1)!
+Theorem A.1 therefore applies with γ = ρ∗ , giving
+                                                     π          π
+                                             KG ≤       =          √ .
+                                                    2ρ∗   2 log(1 + 2)
+
+
+Theorem A.3 (Mixed Krivine preprocessing and projection). Let L ∈ N. For each ℓ ∈ {1, . . . , L},
+let fℓ , gℓ : Rkℓ → {−1, 1} be odd measurable functions, and let Hℓ be the corresponding arcsine-
+normalized correlation function:
+                                             π h                 p         i
+                                  Hℓ (t) =     E fℓ (G1 ) gℓ tG1 + 1 − t2 G2 .
+                                             2
+Let λ1 , . . . , λL ≥ 0 satisfy      ℓ=1 λℓ = 1, and define the mixed function
+                                  PL
+
+                                                             L
+                                                 Hλ (t) :=         λℓ Hℓ (t).
+                                                             X
+
+                                                             ℓ=1
+
+Suppose that Hλ has a local inverse at the origin,
+
+                                                  Hλ−1 (ζ) =
+                                                               X
+                                                                     ar ζ r ,
+                                                               r≥1
+
+which is holomorphic on a neighborhood of γD, and suppose that
+
+                                               Mλ (γ) :=          |ar |γ r ≤ 1.
+                                                           X
+
+                                                           r≥1
+
+Then
+                                                                  π
+                                                      KG ≤           .
+                                                                  2γ
+
+                                                             40
+Proof. The preprocessing is identical to the proof of Theorem A.1, but using the inverse coefficients
+of Hλ−1 . As before, first fix 0 < γ ′ < γ, and set
+
+                                          Mλ,γ ′ :=         |ar |(γ ′ )r < 1.
+                                                      X
+
+                                                      r≥1
+
+For unit vectors x, y, define
+                                    Mq                               q
+                        I(x) :=             |ar | (γ ′ )r/2 x⊗r ⊕        1 − Mλ,γ ′ eL ⊕ 0
+                                    r≥1
+
+and                                           q                                    q
+                    J(y) :=         sgn(ar ) |ar | (γ ′ )r/2 y ⊗r ⊕ 0 ⊕                1 − Mλ,γ ′ eR .
+                              M
+
+                              r≥1
+
+Then I(x) and J(y) are unit vectors and
+
+                                      ⟨I(x), J(y)⟩ = Hλ−1 γ ′ ⟨x, y⟩ .
+                                                                                   
+
+
+    Now let A = (aij ) be arbitrary, and choose unit vectors xi , yj that nearly attain SDP(A),
+oriented so that i,j aij ⟨xi , yj ⟩ ≥ 0. Put
+                P
+
+                                        ui := I(xi ),           vj := J(yj ).
+
+Identify the span of the finitely many ui , vj with RN . For each ℓ, independently sample a
+Gaussian linear map
+                                      Γℓ : RN → Rkℓ .
+Also sample a single global index Λ ∈ {1, . . . , L}, independent of the Gaussian maps, with
+
+                                                  P[Λ = ℓ] = λℓ .
+
+The word “global” is important: the same index Λ is used for all i, j. Define
+
+                                εi := fΛ (ΓΛ ui ) ,             δj := gΛ (ΓΛ vj ) .
+
+Conditioning on Λ = ℓ, the same rotation-invariance calculation as in the pure case gives
+                                                                2
+                                     E[εi δj | Λ = ℓ] =           Hℓ (⟨ui , vj ⟩).
+                                                                π
+Averaging over Λ,
+                                           L
+                                        2X                        2
+                          E[εi δj ] =         λℓ Hℓ (⟨ui , vj ⟩) = Hλ (⟨ui , vj ⟩).
+                                        π ℓ=1                     π
+Since
+                                          ⟨ui , vj ⟩ = Hλ−1 γ ′ ⟨xi , yj ⟩ ,
+                                                                               
+
+we obtain
+                                                            2γ ′
+                                             E[εi δj ] =         ⟨xi , yj ⟩.
+                                                             π
+Therefore                                                   
+
+                                      OPT(A) ≥ E  aij εi δj 
+                                                  X
+
+                                                             i,j
+                                                     2γ ′ X
+                                                   =        aij ⟨xi , yj ⟩.
+                                                      π i,j
+
+                                                           41
+Taking the supremum over the original vectors gives
+
+                                                     2γ ′
+                                    OPT(A) ≥              SDP(A),
+                                                      π
+and hence
+                                                      π
+                                    SDP(A) ≤              OPT(A).
+                                                     2γ ′
+Letting γ ′ ↑ γ proves
+                                                     π
+                                     SDP(A) ≤           OPT(A).
+                                                     2γ
+Since A was arbitrary, KG ≤ π/(2γ).
+
+Remark. Theorem A.1 is the special case L = 1 of Theorem A.3. We separated the two
+statements because the pure case is the usual Krivine scheme, while the mixed case emphasizes
+the randomized choice of a common scheme Λ before projection.
+
+
+B      General Coefficient Formulas
+This appendix records two standard calculations used in Section 5. We first prove the closed
+form for the one-dimensional threshold coefficients. We then give the coefficient formula for a
+more general limiting scheme built from several Hermite correlation coordinates. The latter
+is not needed for the main theorem, but it explains how the calculation extends to other odd
+degrees.
+
+Lemma B.1 (One-dimensional threshold coefficients). Let Z be a standard Gaussian and define
+qk (u) = E[sgn(Z + u) Hek (Z)]. Then
+
+                                                           u
+                                                           
+                                       q0 (u) = erf        √ ,
+                                                            2
+and, for k ≥ 1,
+                                           2φ(u)
+                                   qk (u) = √ Hek−1 (−u),
+                                              k
+                          2
+where φ(u) = (2π)−1/2 e−u /2 .
+
+Proof. The formula for q0 follows directly from the Gaussian distribution function. For k ≥ 1,
+orthogonality to constants gives
+                                               Z ∞
+                                  qk (u) = 2         Hek (z)φ(z) dz.
+                                               −u
+
+The orthonormal probabilists’ Hermite polynomials satisfy
+                              d                    √
+                                 φ(z) Hek−1 (z) = − k φ(z) Hek (z).
+                                               
+                              dz
+Integrating from −u to ∞ proves the claim.
+
+
+
+
+                                                 42
+     We next record the general formula. Let D be a finite set of odd integers. Fix weights
+(sd )d∈D , set
+                                                          1/2
+                                                                                       sd
+                                        S=                                   αd =
+                                                     X
+                                                         s2d         ,                   ,
+                                                 d∈D
+                                                                                       S
+
+and let σd ∈ {−1, 1}. Consider the limiting Krivine scheme with partitions
+                                                                                                      
+
+                        fD (z, x, (rd )d∈D ) = sgnz + η He3 (x) +
+                                                                                         X
+                                                                                                  sd rd  ,
+                                                                                         d∈D
+                                                                                                        
+
+                       gD (z, x, (rd )d∈D ) = sgnz − η He3 (x) +
+                                                                                       X
+                                                                                              σd sd rd  ,
+                                                                                       d∈D
+
+whose coordinate correlation maps are t, t, and td for d ∈ D.
+   For a, b, k ≥ 0, define
+
+                                                                              Z + η He3 (X)
+                                                                                                  
+                            Ca,b,k = E Hea (Z) Heb (X)qk                                                 ,               (42)
+                                                                                    S
+
+where Z, X are independent standard Gaussians. For a multi-index ν = (νd )d∈D , write |ν| =
+                              Q νd
+ d νd , ν! =  d νd !, and α =  d αd .
+P            Q             ν
+
+
+Proposition B.2 (General degree formula). Let HD (t) =                                        m
+                                                                                  P
+                                                                                      m≥1 bm t be the correlation function
+of the scheme above. Then
+                                                                                           
+                 π                                                        k! 
+          bm =                               (−1)b            σdνd            α2νd  Ca,b,k                 k = |ν|.   (43)
+                            X                            Y                        Y
+                                                                                        2
+                                                                                              ,
+                 2                                                        ν! d∈D d
+                       a,b≥0, ν∈ND
+                        P        0
+                                                         d∈D
+                     a+b+    d∈D
+                                   dνd =m
+
+
+Only odd m occur.
+
+Proof. Set
+                            T (Z, X) = Z + η He3 (X),                         Rα =
+                                                                                       X
+                                                                                              αd Rd .
+                                                                                       d∈D
+
+Then fD = sgn(T + SRα ). Conditioning on Z, X, the coefficient of Hek (Rα ) is qk (T (Z, X)/S).
+Taking the inner product with Hea (Z) Heb (X) gives Ca,b,k .
+   The multivariate Hermite addition formula is
+                                                                    s
+                                                                          k! ν Y
+                            Hek             αd R d  =                            Heνd (Rd ).
+                                       X                    X
+                                                                             α
+                                                                          ν!
+                                       d∈D                 ν∈ND0
+                                                                               d∈D
+                                                           |ν|=k
+
+Hence the coefficient of Hea (Z) Heb (X)                 d Heνd (Rd ) in fD is
+                                                     Q
+
+                                                                 s
+                                                                     k! ν
+                                                     Ca,b,k             α .
+                                                                     ν!
+                                                                                                 νd
+The corresponding coefficient of gD differs by the factor (−1)b                               d σd .
+                                                                                         Q
+
+
+                                                                 43
+    Under the limiting scheme, the matching Hermite term contributes
+                                                                    P
+                                                 (td )νd = ta+b+           dνd
+                                           Y
+                                   ta tb                               d         .
+                                           d∈D
+
+Multiplying the two Hermite coefficients and collecting the coefficient of tm gives (43). Finally,
+both partitions are odd, so their Hermite coefficients vanish unless a + b + |ν| is odd. Since every
+d ∈ D is odd, this has the same parity as a + b + d dνd .
+                                                    P
+
+
+
+C       Certification Details
+This appendix proves Proposition 6.3. The first computation encloses the coefficient head through
+degree 251. The second bounds the single boundary norm ∥D3 H∥L2 (T) used in Lemma 6.2.
+
+
+C.1      The coefficient head
+Let W, X be independent standard Gaussians and write
+
+                                   f (w, x) = sgn w + ϑ He3 (x) .
+                                                                             
+
+
+For a, b ≥ 0, define
+                              Aa,b := E f (W, X) Hea (W ) Heb (X) .
+                                                                                        
+
+As shown in Section 4, if
+                                                     t − s23 t3 + s25 t5
+                                        ρ(t) =                           ,
+                                                       1 + s23 + s25
+then
+                                                π X 2
+                                   H(t) =              A ρ(t)a (−t)b ,                                  (44)
+                                                2 a,b≥0 a,b
+
+and hence
+                                        π X
+                               bm =             (−1)b A2a,b [tm−b ]ρ(t)a .                              (45)
+                                        2 a,b≥0
+                                           a+b≤m
+
+   The coefficients Aa,b reduce to one-dimensional Gaussian integrals. If Z is standard Gaussian
+and
+                                 qa (u) := E[sgn(Z + u) Hea (Z)],
+then
+                                  Aa,b = E Heb (X)qa (ϑ He3 (X)) ,
+                                                                                    
+
+where
+                               u                            2φ(u)
+                                   
+                  q0 (u) = erf √ ,                  qa (u) = √ Hea−1 (−u)                    (a ≥ 1).
+                                2                              a
+Each integral is enclosed by outward-rounded adaptive quadrature on a finite interval, together
+with a closed Gaussian-tail estimate. Finite coefficient extraction in (45) then gives
+
+                   b1 ≥ 0.881573822049,                          |bm | ≤ 1.1328860 · 10−5 .             (46)
+                                                         X
+
+                                                      3≤m≤251
+                                                       m odd
+
+
+
+
+                                                        44
+C.2      A boundary representation of D3 H
+For real |r| < 1, let
+                                          1            u2 − 2ruv + v 2
+                                                                                   !
+                           Kr (u, v) := √        exp −
+                                       2π 1 − r2          2(1 − r2 )
+be the centered bivariate Gaussian density with correlation r. Let Cr (x, y) denote the conditional
+sign-correlation kernel
+                                    π 
+                     Cr (x, y) :=     E sgn(W + ϑ He3 (x)) sgn(W ′ + ϑ He3 (y)) ,
+                                                                               
+                                    2
+where (W, W ′ ) is a standard Gaussian pair with correlation r. The two derivative identities
+needed below follow directly from the Hermite expansion of this kernel.
+
+Lemma C.1 (Differentiating the threshold-correlation kernel). For real |r| < 1,
+
+                        ∂r Cr (x, y) = 2πKr ϑ He3 (x), ϑ He3 (y) ,                              (47)
+                                                                      
+
+                     ∂x ∂y Cr (x, y) = 2πϑ   2
+                                                 He′3 (x) He′3 (y)Kr ϑ He3 (x), ϑ He3 (y) .     (48)
+                                                                                         
+
+
+Proof. Put
+                                    u = ϑ He3 (x),           v = ϑ He3 (y).
+The Hermite covariance identity gives
+                                                      πX a
+                                     Cr (x, y) =            r qa (u)qa (v),                    (49)
+                                                      2 a≥0
+
+where qa is the one-dimensional threshold coefficient defined above. The series and its r-derivative
+converge locally uniformly for |r| < 1. For a ≥ 1,
+
+                                               2φ(u)
+                                       qa (u) = √ Hea−1 (−u).
+                                                  a
+
+Consequently,
+                                          π X a−1
+                         ∂r Cr (x, y) =         ar qa (u)qa (v)
+                                          2 a≥1
+                                      = 2πφ(u)φ(v)              rn Hen (−u) Hen (−v).
+                                                          X
+
+                                                          n≥0
+
+Mehler’s identity identifies the last expression with 2πKr (u, v), proving (47).
+  Differentiating the defining integral for qa gives, for every a ≥ 0,
+
+                                          qa′ (u) = 2φ(u) Hea (−u).
+
+Differentiating (49) in x and y and applying Mehler’s identity once more yields
+                                             π 2 ′
+                         ∂x ∂y Cr (x, y) =     ϑ He3 (x) He′3 (y)     ra qa′ (u)qa′ (v)
+                                                                  X
+                                             2                    a≥0
+
+                                          = 2πϑ2 He′3 (x) He′3 (y)Kr (u, v),
+
+which proves (48).
+
+                                                        45
+   Thus, after one derivative, the discontinuous sign functions are replaced by explicit smooth
+Gaussian kernels. The formulas above initially hold for |r| < 1; the explicit Gaussian expressions
+provide the analytic continuation used on the complex curve r = ρ(eiθ ) below.
+   If Ψ has Hermite coefficients Ψ
+                                 b i,j , define the diagonal trace
+
+                            Tλ [Ψ] := Ψ
+                                      b 0,0 +            λn Ψ             |λ| ≤ 1.
+                                                  X
+                                                            b n,n ,
+                                                  n≥1
+
+For |λ| < 1, this is the expectation of Ψ(X, Y ) when (X, Y ) is a standard Gaussian pair with
+correlation λ.
+
+Lemma C.2 (Differentiating the diagonal trace). If Ψ(t) is a sufficiently regular family of
+kernels, then for |t| < 1,
+
+                    Dt T−t [Ψ(t)] = T−t [Dt Ψ(t) − t∂x ∂y Ψ(t)] ,                Dt = t∂t .   (50)
+
+Proof. Write
+                                Ψ(t; x, y) =           Ψ
+                                                       b i,j (t) Hei (x) Hej (y).
+                                               X
+
+                                               i,j≥0
+
+Since Dt (−t)n = n(−t)n , termwise differentiation gives
+
+                        Dt T−t [Ψ(t)] = T−t [Dt Ψ(t)] +                n(−t)n Ψ
+                                                                              b n,n (t).
+                                                                 X
+
+                                                                 n≥1
+
+                            √
+The identity dx
+              d
+                Hen (x) =       n Hen−1 (x) shows that
+
+                                −tT−t [∂x ∂y Ψ(t)] =            n(−t)n Ψ
+                                                                       b n,n (t).
+                                                          X
+
+                                                          n≥1
+
+Combining the last two displays proves (50).
+
+   The Cauchy–Schwarz inequality gives the boundary trace estimate
+                                                       π
+                                |Tλ [Ψ]| ≤ ∥Ψ∥L2 (µ) + √ ∥∂x ∂y Ψ∥L2 (µ) ,                    (51)
+                                                        6
+where µ is product standard Gaussian measure.
+   For |t| < 1, one has
+                                     H(t) = T−t [Cρ(t) ].
+Define
+                    Φ0 (t; x, y) := Cρ(t) (x, y),            Φk+1 := Dt Φk − t∂x ∂y Φk .
+Applying the differentiation identity three times gives
+
+                                       D3 H(t) = T−t [Φ3 (t; ·, ·)].                          (52)
+
+The interval bounds below provide a uniform integrable majorant, which justifies taking radial
+limits in (52) as |t| ↑ 1.
+
+
+
+
+                                                        46
+C.3     The nine smooth kernels
+Write ρj = Dtj ρ. For p + a ≥ 1, set
+
+                              Gp,a (t; x, y) := [∂rp (∂x ∂y )a Cr (x, y)]r=ρ(t) .
+
+Expanding the recursion before taking norms gives
+
+                                Φ3 (t; x, y) =                     cp,a (t)Gp,a (t; x, y),
+                                                          X
+
+                                                      (p,a)∈I
+
+where
+                 I = {(1, 0), (2, 0), (3, 0), (0, 1), (0, 2), (0, 3), (1, 1), (2, 1), (1, 2)},
+and
+
+                               (p, a)              cp,a (t)                (p, a)    cp,a (t)
+                               (1, 0)           ρ3                         (0, 1)     −t
+                               (2, 0)         3ρ1 ρ2                       (0, 2)     3t2
+                               (3, 0)           ρ31                        (0, 3)     −t3
+                               (1, 1)      −3t(ρ1 + ρ2 )                   (2, 1)    −3tρ21
+                               (1, 2)         3t2 ρ1
+
+   For t = eiθ on the unit circle, define the combined energy
+                                                      2                                    2
+                           S(θ) := Φ3 (eiθ ) L2 (µ) + 4 ∂x ∂y Φ3 (eiθ ) L2 (µ) .
+
+By (52), the trace estimate (51), and the Cauchy–Schwarz inequality
+                                    2                  2
+                                                                                    2
+                         x + √π6 y        ≤ 1 + π24               x2 + 4y 2 ≤ π6 x2 + 4y 2 ,
+                                                                                                    
+
+
+                                                              2
+one has the pointwise bound |D3 H(eiθ )|2 ≤ π6 S(θ). Since every construction coefficient is real,
+S(−θ) = S(θ), and therefore
+
+                                         1                                          π2 1
+                                             Z 2π                                          Z π
+                                                                       2
+                  ∥D3 H∥2L2 (T) =                     D3 H(eiθ ) dθ ≤                 ·            S(θ) dθ.   (53)
+                                        2π     0                                    6 π        0
+
+The interval computation certifies
+                                     1
+                                          Z π
+                                                S(θ) dθ ≤ 126.80385221.
+                                     π     0
+
+Substitution into (53) yields
+                                          π             1/2
+                           ∥D3 H∥L2 (T) ≤ √ 126.80385221     < 14.443.                                        (54)
+                                           6
+Together, (46) and (54) prove Proposition 6.3.
+
+
+
+
+                                                                  47
+C.4      Interval-arithmetic implementation
+For reproducibility, the implementation records the following data.
+  1. Every decimal parameter is treated as an exact terminating rational, or is replaced by an
+     explicit outward-rounded interval.
+  2. The one-dimensional coefficient integrals are evaluated by adaptive interval quadrature on
+     a finite interval, with a closed Gaussian-tail bound outside that interval.
+  3. Every derivative of Kr is reduced to a polynomially weighted Gaussian integral. The mixed
+     exponential is expanded into an absolutely convergent series with a certified tail.
+  4. The circle average of S is enclosed by a composite four-point Gauss–Legendre rule. A
+     panelwise eighth-derivative estimate supplies the rigorous remainder; by the symmetry
+     S(−θ) = S(θ) the average is taken over [0, π], and the computation uses 1024 panels.
+  5. On every panel, the code verifies the uniform bounds |1 − ρ(eiθ )2 | ≥ 0.3724 and a Gaussian
+     decay margin of at least 0.49. This also gives the domination needed for the radial boundary
+     passage above.
+    The certificate terminates by printing the outward-rounded statements
+
+      b1 ≥ 0.881573822049,                  |bm | ≤ 1.1328860 · 10−5 ,       ∥D3 H∥L2 (T) < 14.443,
+                                      X
+
+                                3≤m≤251
+                                 m odd
+
+and
+                                                         14.443
+                0.881545409 + 1.1328860 · 10−5 + √           < 0.881573822049.
+                                                   10 · 2515
+The last inequality is the complete numerical bridge from this appendix to Section 6.
+
+
+D       Certification of the Fiber Inequality
+This appendix reduces the fiber inequality (36),
+
+               V (u) ≤ 3νβ(u) − β(u)2            for every ternary u : R → {−1, 0, 1},
+
+to a finite family of one-dimensional inequalities, and documents the interval-arithmetic
+                                                                                    √ certificates
+                                                                                 2
+that verify each of them. Throughout, Z ∼ N (0, 1), γ is its law, φ(s) = e−s /2 / 2π, and
+                               3
+                     V (u) =         E[uψj ] ,     β(u) = E |Z| u(Z)2 ∈ [0, ν].
+                               X
+                                            2                           
+
+                               j=0
+
+    All computations are performed in Arb ball arithmetic [Joh17] (via python-flint 0.8.0,
+the Python interface to FLINT 3, which incorporates Arb; working precision 256–400 bits): every
+computed quantity is an interval [mid ± rad] whose radius is a rigorous outward-rounded error
+bound, and an inequality counts as certified only when the entire interval lies on the claimed
+side of 0. All certificates are deterministic. The scripts, their logs, and a one-command driver
+are collected in the repository directory lower_bound_reproducibility/; script names below
+refer to its scripts/ folder.
+
+
+
+                                                    48
+D.1      Reduction to two certified regimes
+The budget axis β ∈ [0, ν] is covered by two regimes: a direction-free bound for large budgets,
+and a Fenchel-dual bound for small budgets. Write
+                                                             q
+                                                  ϕ(β) :=        3νβ − β 2 ,
+
+so that (36) is exactly       V (u) ≤ ϕ(β(u)).
+                          p
+
+Lemma D.1 (High-budget regime). Let u be ternary with β(u) = β ∈ (0, ν], and let r ∈ (0, ∞]
+               2
+solve ν(1 − e−r /2 ) = β. Then
+                                      V (u) ≤ Pr(u ̸= 0) ≤ 2Φ(r) − 1.
+Consequently, if
+                                                                                                         2
+             g(r) := 3νβ(r) − β(r)2 − 2Φ(r) − 1 ≥ 0,                             β(r) := ν(1 − e−r /2 ),                (55)
+                                                                 
+
+then (36) holds for u.
+Proof. The first inequality is Bessel: ψ0 , . . . , ψ3 are orthonormal, so V (u) ≤ ∥u∥22 = E[u2 ] =
+Pr(u ̸= 0). The    second is the bathtub principle already used in Section 9.4: among all
+supports E with E |s| dγ = β, the Gaussian measure γ(E) is maximized by the centered interval
+                 R
+
+Er = {|s| ≤ r} with the same budget. Indeed (1E − 1Er )(|s| − r) ≥ 0 pointwise, and integrating
+gives 0 ≤ 0 − r(γ(E) − γ(Er )), i.e. γ(E) ≤ γ(Er ) = 2Φ(r) − 1.
+Lemma D.2 (Dual regime and the Fenchel splice). Call p =                                 j=0 aj ψj with ∥a∥2 = 1 a unit
+                                                                                      P3
+
+cubic, and set
+                                                            3ν p                                       3ν         c    
+ J(c, p) := E (|p(Z)| − c|Z|)+ ,              d(c) :=           1 + c2 − c ,               β∗ (c) :=        1− √
+                                                                        
+                                                                                                                          .
+                                                             2                                          2        1 + c2
+Fix cM > 0 and suppose that
+                   J(c, p) ≤ d(c)             for every unit cubic p and every c ≥ cM .                                 (56)
+Then (36) holds for every ternary u with β(u) ≤ β∗ (cM ).
+Proof. Let vj = E[uψj ] and m = ∥v∥2 = V (u). If m = 0 there is nothing to prove, since
+                                                        p
+
+3νβ − β 2 = β(3ν − β) ≥ 0 on [0, ν]. Otherwise p = j (vj /m)ψj is a unit cubic with m = E[u p],
+                                                  P
+
+and for every c ≥ 0,
+                      Z                       Z                            Z
+       m = E[u p] ≤                |p| dγ ≤       (|p| − c|s|)+ dγ + c                  |s| dγ = J(c, p) + c β(u).
+                          {u̸=0}                                               {u̸=0}
+
+Next, d is the concave conjugate of ϕ: since ϕ(β)2 + (β − 3ν
+                                                           2 ) = ( 2 ) , the graph of ϕ is the
+                                                              2   3ν 2
+
+upper semicircle of radius R = 2 centered at (R, 0), whence
+                               3ν
+
+                                                                  p
+                               sup       ϕ(β) − cβ = R                1 + c2 − c = d(c),
+                                                                                 
+                              0≤β≤2R
+
+attained at the tangency budget β = β∗ (c). The map c 7→ β∗ (c) is a strictly decreasing bijection
+from [0, ∞) onto (0, R], so for β ≤ β∗ (cM ) the tangent slope c(β) = β∗−1 (β) satisfies c(β) ≥ cM ,
+and biconjugation on the semicircle gives
+                               inf d(c) + cβ = d c(β) + c(β) β = ϕ(β).
+                                                                    
+                               c≥cM
+
+Combining, m ≤ ϕ(β(u)), i.e. V (u) = m2 ≤ 3νβ(u) − β(u)2 . (For β(u) = 0 the same chain gives
+m ≤ inf c≥cM d(c) = 0, using (56) for arbitrarily large c.)
+
+                                                             49
+      Remark (Exactness of the threshold reduction). The step m ≤ J(c, p) + cβ(u) is the easy half of
+      an exact pointwise duality: for every z,
+
+                                    max         v p(z) − c|z| v 2 = |p(z)| − c|z| + ,
+                                                                                    
+                                  v∈{−1,0,1}
+
+      with maximizer v(z) = sgn(p(z))1{|p(z)|≥c|z|} , so that in fact
+
+                                          sup       E[u p] − c β(u) = J(c, p),
+                                                                      
+                                        u ternary
+
+      attained by the threshold rule. The dual gate (56) is therefore not a lossy relaxation of the
+      small-budget regime: it says precisely that every priced threshold optimum lies below the
+      corresponding tangent line of the semicircle.
+      Proposition D.3 (Coverage). Take cM = 0.993405. The certificates of Sections D.2–D.4
+      establish:
+      (C1) g ≥ 0 on [r1 , ∞] with r1 = 1.081596; hence, by Lemma D.1, (36) holds whenever β(u) ≥
+           β0 := β(r1 ), with the certified enclosure β0 = 0.353345035094 ± 4.4 × 10−13 ;
+(C2), (C3) the dual bound (56) for all c ∈ [cM , 12] and all c ≥ 12 respectively;
+       (S) the splice inequality β0 ≤ β∗ (cM ), with certified enclosures β∗ (cM ) = 0.353346937306 ±
+           1.1 × 10−13 and β∗ (cM ) − β0 = 1.9022 × 10−6 ± 3.9 × 10−14 > 0.
+      Since [0, β∗ (cM )] ∪ [β0 , ν] = [0, ν], the fiber inequality (36) holds for every ternary u.
+          Everything that remains is finite: (C1) is a one-variable inequality on a half-line, (S) is a
+      single sign check, and (C2)–(C3) are inequalities over compact parameter sets — the medium
+      regime is certified on S 3 × [cM , 12], and in the tail regime the change of variables λ = 1/c turns
+      c ≥ 12 into the compact range S 3 × [0, 12 1
+                                                   ], with the endpoint λ = 0 handled through the scaled
+      Taylor expansion of Section D.4. The next three subsections describe exactly what is checked in
+      each case.
+
+
+      D.2      Certificate (C1): the high-budget inequality
+                                                         2
+      Differentiating (55) and using 2φ(r) = νe−r /2 ,
+                                                             2
+                                                                                                    2
+                                                                                                                 
+          g ′ (r) = 2φ(r) B(r),     B(r) = rν 1 + 2e−r /2 − 1,                 B ′ (r) = ν 1 − 2e−r /2 (r2 − 1) .
+                                                                  
+
+                          2
+      The function 2e−r /2 (r2 − 1) is maximized at r2 = 3, where it equals 4e−3/2 ; the certified check
+      4e−3/2 < 1 therefore gives B ′ > 0 for all r ≥ 1. Consequently the two thin-ball checks
+
+                                  g(r1 ) > 0,       B(r1 ) > 0            (r1 = 1.081596)
+
+      prove g ′ ≥ 0 hence g ≥ g(r1 ) > 0 on all of [r1 , ∞), and the certified limit g(∞) = 2ν 2 − 1 > 0
+      covers β = ν. The script highbeta_monotone.py (prec. 300) certifies all four facts, obtaining
+
+      g(r1 ) = 3.65×10−4 ±2.1×10−7 ,            B(r1 ) = 0.824613±3.7×10−7 ,                4e−3/2 = 0.89252 . . . < 1,
+
+      together with an independent (logically redundant) interval scan certifying B ′ > 0 on [1, 8). A
+      second script, highbeta_refine.py (prec. 400), supplies the splice constants: it computes the
+      certified enclosures of β0 = β(r1 ) and β∗ (cM ) quoted in Proposition D.3 and certifies the splice
+      inequality (S), re-verifying g ≥ 0 on [r1 , 1.0816] with fine interval balls along the way.
+
+                                                             50
+D.3 Certificate (C2): the dual envelope on the medium band
+c ∈ [cM , 12]
+Fold J onto the half-line and split p = e + o into its even part e = a0 ψ0 + a2 ψ2 and odd part
+o = a1 ψ1 + a3 ψ3 :
+                                   Z ∞h
+                                                                        i
+                       J(c, p) =          |p(s)| − cs + + |p(−s)| − cs + φ(s) ds,                 (57)
+                                                    
+                                   0
+
+and for each s the unordered pair {|p(s)|, |p(−s)|} equals {|e(s)| + |o(s)|, |e(s)| − |o(s)| }
+(because |e ± o|  take exactly these two values in some order). The integrand of (57) is therefore
+f |e(s)|, |o(s)| with
+                
+
+
+                       f (x, y) := (x + y − t)+ + |x − y| − t + ,       t = cs ≥ 0.
+                                                               
+
+
+Lemma D.4 (Envelope monotonicity). For every t ≥ 0, the function f is nondecreasing in
+each of x ≥ 0 and y ≥ 0. Hence f |e(s)|, |o(s)| ≤ f Ā(s), ω(s) for any pointwise upper bounds
+Ā ≥ |e|, ω ≥ |o|.
+
+Proof. f is symmetric in (x, y), so it suffices to treat x; fix y and distinguish the three regimes
+of the second term. If x − y > t, both terms are active (as x + y ≥ x − y > t) and the x-slope is
+1 + 1 = 2. If y − x > t, both terms are again active (x + y > 2x + t ≥ t) and the slopes cancel,
+1 − 1 = 0. If |x − y| ≤ t, the second term vanishes and f = (x + y − t)+ has x-slope 0 or 1. In
+every case the slope is ≥ 0.
+
+   The certificate applies Lemma D.4 with the Cauchy–Schwarz (Christoffel) envelopes
+
+                         q
+             |o(s)| ≤ ro Ko (s),                         Ko = ψ12 + ψ32 = 52 s2 − s4 + 16 s6 ,
+                                   q
+             |e(s)| ≤ |eā (s)| + ρ Ke (s),              Ke = ψ02 + ψ22 = 32 − s2 + 12 s4 ,
+                                                                                            √
+where ā = (ā0 , ā2 ) is the center of an even-coefficient box of circumradius ρ, and ro = 1 − l2
+with l = max(0, ∥ā∥ − ρ) bounds the odd-coefficient norm of any unit cubic whose even part lies
+in the box. In this way a single evaluation certifies the box against all compatible odd parts,
+and the search space is the two-dimensional even disk rather than S 3 (by J(c, −p) = J(c, p) one
+may take a0 ≥ 0).
+    The integral (57) is enclosed by 480 interval panels on s ∈ [0, 8] (per-panel ball enclosures
+of f (Ā, ω) times upper bounds of the panel’s Gaussian weight, all roundings outward) plus the
+closed-form tail majorant
+        Z ∞                 
+                   2
+              1 + s√+1
+                    2
+                       + s3 φ(s) ds ≤ 3.7 × 10−13            (the integral is ≈ 3.64 × 10−13 ).
+         8
+
+The majorant is valid √ because   f (x, y) ≤ (x√+ y) + |x −√y| = 2 max{x, y}, while for s ≥ 8 both
+|e| ≤ 1 + (s + 1)/ 2 ≤ s /2 and |o| ≤ Ko ≤ s3 / 6 ≤ s3 /2, so the folded integrand is
+             2               3
+                      2
+at most s3 ≤ 1 + s√+1   2
+                          + s3 ; the scripts use the rigorous Arb enclosure of the tail integral,
+not the rounded decimal above. On a c-band [cL , cU ] the certificate uses the monotonicities
+J(c, p) ≤ J(cL , p) and d(c) ≥ d(cU ), so certifying U (box, cL ) ≤ d(cU ) certifies all c in the band
+at once. The branch-and-bound starts from a grid of spacing 0.08 on the even disk whose boxes
+have half-width equal to the spacing (so they cover the disk with twofold overlap), splits any
+
+                                                    51
+     uncertified box into four (down to a failure floor of half-width 6 × 10−4 , never reached), and
+     subdivides c-bands geometrically on failure.
+         Run as eight parallel sub-bands whose union is [cM , 12] with no hole (bands 6 and 7 overlap
+     on [4.0, 4.083]), the certificate resolves 95,784 boxes in about 30 seconds and certifies (56) on the
+     whole band; per-band results are listed in Table 1. The worst certified margin over the tiling,
+     +2.26 × 10−5 , measures the tightness of the envelope relaxation, not of (36) (see the remark at
+     the end of this appendix); it grows under finer c-banding.
+
+                 band    c-range             sub-bands         boxes    worst certified margin
+                 1       [0.993405, 1.19]    12                12,164   +1.088 × 10−4
+                 2       [1.19, 1.30]        14                12,416   +9.058 × 10−5
+                 3       [1.30, 1.45]        12                10,712   +8.958 × 10−5
+                 4       [1.45, 1.75]        8                 7,988    +1.956 × 10−4
+                 5       [1.75, 3.5]         24                24,200   +2.260 × 10−5
+                 6       [3.5, 4.083]        10                7,584    +2.830 × 10−5
+                 7       [4.0, 6.0]          16                11,840   +3.571 × 10−5
+                 8       [6.0, 12.0]         14                8,880    +2.539 × 10−5
+
+Table 1: Certificate (C2): the eight sub-bands of the dual-envelope branch-and-bound
+(envelope_band.py, precision 256 bits). Each row certifies J(c, p) ≤ d(c) for all unit cubics p
+and all c in its range; “sub-bands” is the geometric c-tiling within the row.
+
+
+     D.4      Certificate (C3): the high-c tail c ≥ 12
+     For c ≥ 12 substitute λ = 1/c ∈ (0, 12 1
+                                              ] and x = cs. Both sides of (56) then carry a factor λ:
+     after dividing it out, the target becomes D(λ) ≥ I(λ, p) with
+                 3ν     1
+                                                     Z ∞h
+                                                                                          i
+        D(λ) =                           I(λ, p) =            |p(λx)| − x + + |p(−λx)| − x + φ(λx) dx.
+                                                                        
+                    ·  √       ,
+                  2 1 + 1 + λ2                       0
+
+     As λ ↓ 0 this degenerates, and it is worth seeing why. For large c the active condition |p(s)| ≥ c|s|
+     selects a small neighbourhood of the origin, where J(c, p) = φ(0) p(0)2 /c + O(c−3 ). Among unit
+     cubics the largest possible value of p(0)2 is the evaluation-kernel norm K≤3 (0, 0) = j≤3 ψj (0)2 =
+                                                                                          P
+
+     2 , attained by the normalized reproducing kernel at the origin,
+     3
+
+
+                                        K≤3 (s, 0)   3 − s2 q 2
+                              p0 (s) = q            = √    = 3 ψ0 − √13 ψ2 .
+                                         K≤3 (0, 0)     6
+
+     Since φ(0) = ν/2, this gives supp J(c, p) ∼ 3ν 4c , while also d(c) ∼ 4c : the dual bound is asymp-
+                                                                           3ν
+
+     totically tight, with equality direction p0 . In the scaled variables, D(0) = I(0, p0 ) = 34 ν, and
+     the margin vanishes to second order in λ. This is why the tail cannot be closed by more
+     branch-and-bound—near      the limit every box fails—and why the certified object is instead the
+     scaled margin D − I /λ2 , which has a strictly positive limit. For orientation (this computation
+                            
+
+     is cross-checked numerically but not used below): in the local chart introduced next,
+
+                               D(λ) − I(λ, p)    5ν  3ν
+                                              −→    + ∥y∥2                  (λ ↓ 0),
+                                    λ 2          32   4
+
+                                                         52
+and the certified leading jets of the majorant constructed below reproduce exactly these values
+minus the far-tail reserve of Lemma D.6 (0.094669 = 5ν 32 − 0.03 at y = 0; increment 0.598414 = 4
+                                                                                                3ν
+
+at y = (0, 0, 1)), confirming that the majorant is lossless at leading order.
+    Every unit cubic with q := |⟨p, p0 ⟩| > 0 can be written (up to sign) in the local chart
+                    p0 + λ w                   s2
+             p= p               ,       w = yE √ + y1 ψ1 + y3 ψ3 ⊥ p0 ,       ∥w∥ = ∥y∥,
+                    1 + λ2 ∥y∥2                 3
+and the transverse coordinate z := (1 − q 2 )/λ2 satisfies z = ∥y∥2 /(1 + λ2 ∥y∥2 ). The certificate
+covers all p by two overlapping charts:
+  • LOCAL (∥y∥ ≤ 2, equivalently z ≤ 4/(1 + 4λ2 ) ≥ 3.891 for λ ≤ 12
+                                                                  1
+                                                                     );
+  • AWAY (z ∈ [3.88, 4.2] by branch-and-bound in z, and z ≥ 4.2 by a certified monotone-
+    domination bracket); this includes q = 0, where z = c2 ≥ 144.
+Since 3.88 < 3.891 the union covers every z ≥ 0, i.e. every unit cubic, for every c ≥ 12.
+
+Localization and the far tail
+The active sets {x : |p(±λx)| ≥ x} are not compact in the scaled variable: a genuine cubic grows
+like λ3 x3 , so the active condition, which for moderate x holds only in a central window, holds
+again on a remote ray (for p = ψ3 and λ = 12     1
+                                                   the re-entry is near x ≈ 68). The certificate
+separates the two components and covers the remote one by an explicit allowance.
+Lemma D.5 (Localization). Let K(s) := 3j=0 ψj (s)2 = 32 + 32 s2 − 21 s4 + 16 s6 . For every unit
+                                                 P
+
+cubic p, every c ≥ 12 and every s ≥ 0: if |p(s)| ≥ cs, then
+                                                                    √
+                         cs < 1.5 (< L := 1.55)      or     s > 1.55 c.
+Proof. Cauchy–Schwarz gives        |p(s)|2 ≤ K(s), so activity implies Fc (s2 ) ≤ 0, where Fc (x) :=
+c x − 2 + 2 x − 2 x + 6 x . It therefore suffices that Fc > 0 on [(1.5/c)2 , 1.552 c]. Since
+ 2       3    3      1 2     1 3
+                                 
+                            2
+Fc′ (x) = c2 − 23 + x − x2 is a downward parabola in x, positive at the left endpoint, Fc is
+increasing-then-decreasing     on the interval, so its minimum is attained at an endpoint. At the
+                                             2    3
+left endpoint, Fc (1.5/c) = 34 − 32 u + u2 − u6 with u = 2.25/c2 ∈ (0, 64
+                           2                                                1
+                                                                              ], certified positive over
+                             
+
+the whole u-range; at the right endpoint, G(c) := Fc (1.55 c) is a cubic in c with positive leading
+                                                              2
+
+coefficient 1.552 (1 − 1.554 /6) and certified G(12) > 0, G′ (12) > 0 (and G′ is increasing), so G > 0
+for all c ≥ 12. The three sign evaluations are certified in highc_remote_tail.py.
+Lemma D.6 (Far-tail allowance). For every unit cubic p and every c ≥ 12,
+                                                                                  √   0.03
+                         Z
+        Jrem (c, p) :=                                      ≤ 2 1.552 c + 2 φ 1.55 c ≤      ;
+                                                                          
+                                   √   |p(s)| − c|s| + dγ
+                          {|s|≥1.55 c}                                                  c3
+equivalently, the remote active components contribute at most 0.03λ2 to I(λ, p).
+Proof. For s ≥ 2 one has K(s) ≤ s6 (equivalent   to 9 + 9s2 ≤ 3s4 + 5s6 R, true since 3s4 ≥ 12s2 >
+9s2 + 9), so on the remote set |p(s)| − c|s| + ≤ K(s) ≤ s3 ; applying a∞ s3 φ ds = (a2 + 2)φ(a)
+                                               p
+                                                                                               √
+on both half-lines gives the first bound. For the second, set t(c) := c3 · 2(1.552 c + 2)φ(1.55 c);
+then
+                         3    1.552      1.552   3       1.552       1.552
+         (ln t)′ (c) =     +           −       ≤   +               −       < −0.87,
+                         c 1.552 c + 2     2     12 12 · 1.552 + 2     2
+so t is decreasing on [12, ∞); the certified value t(12) = 0.0233 . . . < 0.03 completes the proof.
+Both sign checks are certified in highc_remote_tail.py.
+
+                                                       53
+    This is the exact role of the reserve 0.03λ2 deducted inside the certified functionals below: it
+pays for the far tail, so that certifying the central majorant against D −p0.03λ2 certifies all of (56).
+The central window is then frozen at the fixed cutoff A := p0 (0) = 3/2 (the limiting active
+boundary, since p0 (0) = x at x = A) by the following device, which avoids an interval-unstable
+moving root:
+                                                              √
+Lemma D.7 (Moving cutoff). Let 0 ≤ w(x) ≤ φ0 := 1/ 2π, let δ : [0, L] → R be measurable
+with |δ| ≤ ∆, and let 0 < A ≤ L. Then
+                Z L                                      Z A
+                       A − x + δ(x) + w(x) dx ≤                A − x + δ(x) w(x) dx + φ0 ∆2 .
+                                                                          
+                  0                                       0
+
+Proof. On [0, A], (A − x + δ)+ − (A − x + δ) = (x − A − δ)+ ≤ (x − A + ∆)+ , which is
+supported on [A − ∆, A] and bounded by ∆; its w-integral is at most φ0 ∆2 /2. On [A, L],
+(A − x + δ)+ ≤ (∆ − (x − A))+ , again contributing at most φ0 ∆2 /2.
+
+The LOCAL majorant
+In the local chart, with n :=            1 + λ2 ∥y∥2 ,
+                                     p
+
+
+                                       λ2 x2 yE λ3 x2               λ2 x3 − 3x 
+               n p(±λx) = P± (x) := A − √ + √         ± λ2 y1 x + y3     √        .
+                                          6      3                         6
+
+An interval evaluation certifies P± /n > 0 for x ∈ [0, L], λ ∈ [0, 12
+                                                                   1
+                                                                      ] and the whole y-range, so
+there |p(±λx)| = P± (x)/n; by Lemmas D.5 and D.6,
+                                  Z L h
+                                             P+      P
+                                                         −
+                                                               i
+                      I(λ, p) ≤                 −x +       −x     φ(λx) dx + 0.03λ2 .              (58)
+                                     0        n     +   n      +
+
+Write P± /n − x = A − x + δ± (x) withRδ± := P± /n − A, and apply Lemma D.7 to each branch
+with weight w = φ(λ ·) ≤ φ0 . In ± 0A δ± w the y1 , y3 terms cancel (they are odd under the
+                                   P
+
+branch sign), leaving, with the frozen moments Wj (λ) := 0A xj φ(λx) dx,
+                                                        R
+
+Z Lh     i                                                1           2λ2   2yE λ3
+       · · · φ(λx) dx ≤ Uloc := 2 AW0 −W1 +2A                   −1 W0 − √ W2 + √     W2 +φ0 ∆2+ +∆2− ,
+                                                                                                   
+ 0                                                            n          6n      3n
+where ∆± ≥ sup[0,L] |δ± | is supplied by the split ∆± = ME +MO into branch-even and branch-odd
+parts,
+                               1  λ2 L2 |yE | λ3 L2              λ2 ∥y∥L q 5
+               ME = A 1 −           +√       + √        ,   MO =             2.
+                                n        6n         3n                 n
+ME bounds the branch-even part of δ± termwise on [0, L]; MO bounds the branch-odd part by
+Cauchy–Schwarz,
+
+                          λ2 x3 − 3x   y1 ψ1 (λx) + y3 ψ3 (λx)   ∥y∥ q              q
+             y1 x + y 3       √      =                         ≤      Ko (λx) ≤ x∥y∥ 52 ,
+                                6                 λ               λ
+                               2 2
+using Ko (s) = s2 1 + (3−s6 ) ≤ 25 s2 for s2 ≤ 6; an interval check certifies s2 = λ2 x2 ≤ 0.017 on
+                                     
+
+the chart, so the condition holds with a wide margin.
+
+
+
+
+                                                         54
+The AWAY majorant
+Here only the
+            √ size of the transverse part enters, not its direction. Write p = ±(q p0 + τ ) with
+                                  √
+τ ⊥ p0 , q = 1 − λ2 z and ∥τ ∥ = λ z, and let
+
+                K⊥ (s) := K(s) − p0 (s)2 = 25 s2 − 23 s4 + 61 s6 ≤ 52 s2 (s2 ≤ 4).
+                   √ p
+Then |τ (±λx)| ≤ λ z K⊥ (λx) ≤ λ2 x 5z/2, so both branches obey the same bound |p(±λx)|−
+                                       p
+
+x ≤ A − x + δz (x) with
+                                                    qλ2 x2        q
+                             δz (x) = A(q − 1) − √ + λ2 x 5z
+                                                        6             2
+
+(no branch-positivity check is needed here, because |p| is bounded from above directly). Lemma D.7
+applied to both branches then gives
+                                              qλ2      q       
+           Uaway = 2 AW0 − W1 + 2 A(q − 1)W0 − √ W2 + λ2 5z       + 2φ0 Mz2 ,
+                             
+                                                            W 1
+                                                 6        2
+
+
+                       λ2 L2        5z
+                                    r
+with Mz = A(1 − q) + √ + λ2 L          ≥ sup[0,L] |δz | (using q ≤ 1). Finally, z ≥ 4.2 is reduced
+                          6          2
+to the certified band by domination:
+                                                              √                     √ p
+Lemma D.8 (Domination for z ≥ z0 = 4.2). Let az (x) := 1 − λ2 z p0 (λx) + λ z K⊥ (λx)
+denote the amplitude bound above, and let
+
+                          f⊥ (λ, x) :=   K⊥ (λx)
+                          K                      = 52 x2 − 23 λ2 x4 + 16 λ4 x6 ,
+                                           λ2
+a polynomial in (λ, x) (the continuous extension to λ = 0). If
+
+               z0 p0 (λx)2 ≥ K
+                             f⊥ (λ, x) 1 − z0 λ2          for all λ ∈ [0, 12
+                                                                          1
+                                                                             ], x ∈ [0, L],
+                                                    
+
+
+then ∂z az (x) ≤ 0 for every z ≥ z0 and λ ∈ (0, 12  1
+                                                      ]; hence every z ≥ z0 (including q = 0, i.e.
+z = c ) is pointwise dominated by z = z0 , which lies inside the certified band [3.88, 4.2].
+      2
+
+                                             √
+                                 λ2 p0      λ K⊥
+Proof. For λ > 0, ∂z az = − √             + √ ≤ 0 iff λ2 z p20 ≥ (1 − λ2 z)K⊥ (λx), i.e. (dividing
+                              2 1−λ z  2     2 z
+by λ ) iff z p0 ≥ K⊥ (1 − zλ ). The displayed hypothesis is this condition at z = z0 ; as z grows
+     2        2    f          2
+
+the left side increases and the right side decreases, so it persists for all z ≥ z0 . The hypothesis is
+certified on an interval grid with worst lower bound +0.29 (highc_certificate.py).
+
+Evaluation and results
+Each frozen moment is an entire function of λ2 ,
+                                            X (−1)m A j+2m+1
+                             Wj (λ) = φ0                               λ2m ,
+                                           m≥0
+                                               2m m! j + 2m + 1
+
+evaluated through the terms m ≤ 9, and the omitted tail must be accounted for with its power of
+λ. It is an alternating series with decreasing terms (successive ratios are at most λ2 A2 /2 ≤ 192
+                                                                                                1
+                                                                                                   ),
+hence dominated by its first term:
+                                      (A2 /2)10 A j+1 20
+            Wj (λ) − W
+                     cj (λ) ≤ φ0                       λ ≤ 10−9 λ20                (0 ≤ j ≤ 3),
+                                        10!     j + 21
+
+                                                   55
+     where Wcj denotes the truncation. The Wj enter Uloc and Uaway affinely, with coefficient magni-
+     tudes summing to less than 10, so the truncation perturbs G by at most 10−8 λ20 and the scaled
+     margin R = G/λ2 by at most 10−8 λ18 ≤ 10−27 , uniformly on (0, 12      1
+                                                                              ]: the λ20 factor survives the
+     division by λ2 , so the comparison is scale-aware and negligible against the certified margins below
+     (all ≥ 4 × 10−3 ). With these ingredients, G := D − Uloc/away − 0.03λ2 is an explicit algebraic
+     expression in λ, and a rigorous lower bound for R := G/λ2 , uniform in λ ∈ (0, 12       1
+                                                                                               ], is obtained
+     from the Taylor jet of G at λ = 0 (Arb series coefficients) plus a Lagrange remainder enclosed by
+     the corresponding ball-centered jet over [0, 12
+                                                   1
+                                                     ], for each interval box of chart parameters. By (58)
+     and its AWAY analogue, certifying R > 0 certifies D − I > 0, i.e. (56), on the box.
+         The branch-and-bound (highc_certificate.py, precision 300 bits) certifies: LOCAL, R > 0
+     over the ball ∥y∥ ≤ 2 (1,000 certified boxes, 1,319 subdivisions, ≈ 1 s), worst certified value
+     +4.211 × 10−3 ; AWAY, R > 0 on z ∈ [3.88, 4.2] (certified in a single interval evaluation),
+     worst +3.537 × 10−2 , together with the domination bracket of Lemma D.8 and the range
+     check for MO ; and the localization and far-tail constants of Lemmas D.5–D.6 are certified in
+     highc_remote_tail.py.
+
+      D.5     Summary of certified results and reproducibility
+
+   certificate           script(s)                what is certified                                worst margin
+   (C1) point + monot.   highbeta_monotone.py     g(r1 ) > 0, B(r1 ) > 0, 4e−3/2 < 1, g(∞) > 0     +3.65 × 10−4
+   (C1)+(S) fine scan    highbeta_refine.py       g ≥ 0 on [r1 , 1.0816]; β0 < β∗ (cM )            +1.90 × 10−6
+   (C2) medium band      envelope_band.py ×8      J(c, p) ≤ d(c), all p ∈ S 3 , c ∈ [cM , 12]      +2.26 × 10−5
+   (C3) tail, LOCAL      highc_certificate.py     R > 0, ∥y∥ ≤ 2, λ ∈ (0, 12 1
+                                                                                ]                  +4.21 × 10−3
+   (C3) tail, AWAY       highc_certificate.py     R > 0, z ∈ [3.88, 4.2]; domination
+                                                                                  √      z ≥ 4.2   +3.54 × 10−2
+   (C3) far tail         highc_remote_tail.py     active: cs < 1.5 or s > 1.55 c; Jrem ≤ 0.03c−3   +6.66 × 10−3
+
+Table 2: The fiber-inequality certificate, region by region (run of 2026-08-04; all margins are rigorous
+one-sided ball bounds). Together with Lemmas D.1 and D.2 these establish (36) for every ternary u
+via Proposition D.3.
+         Table 2 summarizes the certificate. The complete suite runs in under two minutes on one
+     machine via the driver run_all.sh of lower_bound_reproducibility/, which executes every
+     script, stores the logs under certificates/, and verifies the certified verdict line of each log; the
+     only requirement is Python ≥ 3.11 with python-flint 0.8.0. Every certificate is deterministic:
+     re-runs in the pinned environment reproduce the printed margins verbatim, and independent
+     environments must reproduce the same certified verdicts and enclosures.
+     Remark (The certified margins versus the true margin). The small margins in Table 2 measure
+     the slack of the relaxations being certified (the support bound of Lemma D.1 and the dual
+     envelope of Lemma D.2 are both nearly tight along their splice), not the distance of (36) from
+     failure. In the extremal coordinates of Section 9.4, the constant fiber u ≡ 1 (for which V = 1
+     and β = ν) realizes
+                                        3ν 2 − 1        π
+                                   ρ =           = 3−      = 1.42920 . . . ,
+                                           ν 2          2
+     and numerical scans over the threshold family (a, τ ) found no smaller value, suggesting that
+     3 − π/2 is the true infimum of ρ; we neither need nor prove that sharper assertion. The fiber
+     inequality asserts only ρ ≥ 1, so it holds with about 0.43 of numerical headroom; in particular,
+     the sharper inequality V ≤ 3νβ − cβ 2 appears to hold for every c < 3 − π/2, though only c = 1
+     is certified and used here.
+
+                                                       56
+
