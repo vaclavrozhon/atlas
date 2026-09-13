@@ -31,3 +31,4 @@ only; the archive is outside the research backlog unless explicitly requested.
 The independent book and survey library is in [library/](../library/README.md).
 Neither directory is needed to publish the reader or run the offline code checks.
 - [researcher-problems-20260913/](researcher-problems-20260913/README.md): 24 researcher-linked problems, 15 new cards, three authorized restorations and six existing matches, with individual categories and source/model review.
+- [author-problems-20260913/](author-problems-20260913/README.md): all 45 approved associations for 22 string/geometry researchers, 16 new cards, 16 existing updates and one lossless resolved-target archival, with precise formulations and coverage validation.

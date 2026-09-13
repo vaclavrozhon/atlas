@@ -22,7 +22,7 @@ R = {
  'sa': ref('sa', 'Compressed Inverse Suffix Arrays', 'https://arxiv.org/abs/2607.17287v2', 'Sharma V. Thankachan', 2026, 'Revision of 2 September 2026; introduction and SA/ISA distinction; announced for FOCS 2026.'),
  'topk': ref('topk', 'Top-k Document Retrieval in Compressed Space', 'https://users.dcc.uchile.cl/~gnavarro/abstracts/soda25.html', 'Gonzalo Navarro; Yakov Nekrich', 2025, 'SODA 2025; author abstract, first paragraph and main bounds.'),
  'er': ref('er', 'The Existential Theory of the Reals as a Complexity Class: A Compendium', 'https://arxiv.org/abs/2407.18006', 'Marcus Schaefer; Jean Cardinal; Tillmann Miltzow', 2024, 'Part I: definition of the class, containments and open questions.'),
- 'er25': ref('er25', 'Some Structural Complexity Results for the Existential Theory of the Reals', 'https://arxiv.org/abs/2502.00680', 'Klaus Meer; Adrian Wurm', 2025, 'Structural and relativized complexity results; compare unrelativized class equality.'),
+ 'er25': ref('er25', r'Some structural complexity results for \(\exists\mathbb R\)', 'https://arxiv.org/abs/2502.00680', 'Klaus Meer; Adrian Wurm', 2025, 'Structural and relativized complexity results; compare unrelativized class equality.'),
  'jumbled': ref('jumbled', 'On Hardness of Jumbled Indexing', 'https://arxiv.org/abs/1405.0189', 'Amihood Amir; Timothy M. Chan; Moshe Lewenstein; Noa Lewenstein', 2014, 'Problem definition and alphabet-dependent lower bounds.'),
  'mono': ref('mono', 'Deterministic Monotone Min-Plus Product and Convolution', 'https://arxiv.org/abs/2605.07150v2', 'Ce Jin; Jaewoo Park; Barna Saha; Yinzhan Xu', 2026, 'ICALP 2026; abstract, application tables and monotone-convolution theorem.'),
  'oracle': ref('oracle', 'Hamming Distance Oracles', 'https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.1', 'Itai Boneh; Dvir Fried; Shay Golan; Matan Kraus; Ely Porat', 2026, 'Abstract and exact-oracle bounds for constant and general alphabets.'),
@@ -32,27 +32,27 @@ R = {
  'gaps': ref('gaps', 'Gapped String Indexing in Subquadratic Space and Sublinear Query Time', 'https://arxiv.org/abs/2211.16860', 'Philip Bille; Inge Li Gørtz; Moshe Lewenstein; Solon P. Pissis; Eva Rotenberg; Teresa Anna Steiner', 2024, 'STACS 2024; query definition and space/query tradeoffs.'),
  'sum': ref('sum', 'Improved Time-Space Tradeoffs for 3SUM-Indexing', 'https://arxiv.org/abs/2512.04258v2', 'Itai Dinur; Alexander Golovnev', 2026, 'Revision of 23 April 2026; ICALP 2026; main bounds and string-indexing applications.'),
  'sets': ref('sets', 'Conditional Lower Bounds for Space/Time Tradeoffs', 'https://arxiv.org/abs/1706.05847', 'Isaac Goldstein; Tsvi Kopelowitz; Moshe Lewenstein; Ely Porat', 2017, 'SetDisjointness and 3SUM-indexing conjectures and tradeoffs.'),
- 'mini': ref('mini', 'GreedyMini: generating low-density DNA minimizers', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12261476/', 'Shay Golan and coauthors', 2025, 'Definition of expected density; section 5, open questions about complexity and optimal generation.'),
+ 'mini': ref('mini', 'GreedyMini: generating low-density DNA minimizers', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12261476/', 'Shay Golan; Ido Tziony; Matan Kraus; Yaron Orenstein; Arseny Shur', 2025, 'Definition of expected density; section 5, open questions about complexity and optimal generation.'),
  'optmini': ref('optmini', 'Generating minimum-density minimizers', 'https://doi.org/10.64898/2026.01.25.701585', 'Arseny Shur; Ido Tziony; Yaron Orenstein', 2026, '28 January 2026 preprint; abstract, Theorem 1 and complexity discussion.'),
- 'lcs': ref('lcs', 'Exploring the Gap Between LCS and LCStr', 'https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.27', 'Shay Golan and coauthors', 2026, 'Introduction: LCS approximation on growing alphabets and comparison with LCSS.'),
- 'lcs25': ref('lcs25', 'Deterministic LCS Approximation in Near-Linear Time', 'https://arxiv.org/abs/2507.22486', 'Itai Boneh; Shay Golan; Matan Kraus', 2025, 'Abstract and main approximation theorem.'),
+ 'lcs': ref('lcs', 'Exploring the Gap Between LCS and LCStr', 'https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.27', 'Shay Golan; Matan Kraus; Ely Porat; B. Riva Shalom', 2026, 'Introduction: LCS approximation on growing alphabets and comparison with LCSS.'),
+ 'lcs25': ref('lcs25', 'Deterministic Longest Common Subsequence Approximation in Near-Linear Time', 'https://arxiv.org/abs/2507.22486', 'Itai Boneh; Shay Golan; Matan Kraus', 2025, 'Abstract and main approximation theorem.'),
  'monge': ref('monge', 'Fast Distance Multiplication of Unit-Monge Matrices', 'https://doi.org/10.1007/s00453-013-9830-z', 'Alexander Tiskin', 2015, 'Algorithmica 71:859–888; definitions of simple unit-Monge matrices and introduction attributing the linear-time question to Landau.'),
  'monge25': ref('monge25', 'Core-Sparse Monge Matrix Multiplication: Improved Algorithm and Applications', 'https://arxiv.org/abs/2408.04613v2', 'Paweł Gawrychowski; Egor Gorbachev; Tomasz Kociumaka', 2025, 'ESA 2025; revised 7 July 2025; abstract retains the unit-Monge bound.'),
  'nfa': ref('nfa', 'The NFA Acceptance Hypothesis: Non-Combinatorial and Dynamic Lower Bounds', 'https://arxiv.org/abs/2311.10204', 'Karl Bringmann; Allan Grønlund; Marvin Künnemann; Kasper Green Larsen', 2024, 'TheoretiCS 2024; Hypothesis 1.1 and formal parameterized hypothesis.'),
  'regex': ref('regex', 'Sparse Regular Expression Matching', 'https://arxiv.org/abs/1907.04752', 'Philip Bille; Inge Li Gørtz', 2024, 'SODA 2024; abstract and simulation-density model.'),
  'rindex': ref('rindex', 'Optimal-Time Text Indexing in BWT-runs Bounded Space', 'https://arxiv.org/abs/1705.10382', 'Travis Gagie; Gonzalo Navarro; Nicola Prezza', 2017, 'BWT-run-bounded indexes and compressed suffix-tree representation.'),
- 'rtree': ref('rtree', 'Non-overlapping Indexing in BWT-Runs Bounded Space', 'https://par.nsf.gov/servlets/purl/10539699', 'Lorraine A. K. Ayad and coauthors', 2024, 'Introduction and section 3.1: full suffix-tree space bound and unresolved run-linear representation.'),
- 'ted': ref('ted', 'Hardness of Dynamic Tree Edit Distance and Friends', 'https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.78', 'Christopher Ye and coauthors', 2026, 'Abstract and discussion distinguishing the static and dynamic unweighted problems.'),
+ 'rtree': ref('rtree', 'Non-overlapping Indexing in BWT-Runs Bounded Space', 'https://par.nsf.gov/servlets/purl/10539699', 'Daniel Gibney; Paul Macnichol; Sharma V. Thankachan', 2024, 'Introduction and section 3.1: full suffix-tree space bound and unresolved run-linear representation.'),
+ 'ted': ref('ted', 'Hardness of Dynamic Tree Edit Distance and Friends', 'https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.78', 'Bingbing Hu; Jakob Nogler; Barna Saha', 2026, 'Abstract and discussion distinguishing the static and dynamic unweighted problems.'),
  'ed': ref('ed', 'Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time', 'https://arxiv.org/abs/2603.29702', 'Xiao Mao; Aviad Rubinstein', 2026, 'STOC 2026; main approximation-scheme theorem.'),
  'nn': ref('nn', 'Incremental Planar Nearest Neighbor Queries with Optimal Query Time', 'https://arxiv.org/abs/2504.07366', 'John Iacono; Yakov Nekrich', 2025, 'Abstract and main insertion/query guarantees.'),
  'nnold': ref('nnold', 'The Open Problems Project: Dynamic Planar Nearest Neighbors', 'https://topp.openproblem.net/p63', 'The Open Problems Project', 2006, 'Problem 63, statement.'),
  'voronoi': ref('voronoi', 'The Open Problems Project: Voronoi Diagram of Lines in 3D', 'https://topp.openproblem.net/p3', 'The Open Problems Project', 2001, 'Problem 3, statement, conjecture and references to Sharir.'),
  'durer': ref('durer', 'The Open Problems Project: Edge-Unfolding Convex Polyhedra', 'https://topp.openproblem.net/p9', 'The Open Problems Project', 2001, 'Problem 9, convex edge-unfolding formulation.'),
- 'points': ref('points', 'Universal Point Sets for Subclasses of Planar Graphs', 'https://arxiv.org/abs/2303.00109', 'Stefan Felsner; Hendrik Schrezenmaier; Felix Schröder; Raphael Steiner', 2023, 'General problem and linear-size constructions for restricted classes.'),
+ 'points': ref('points', 'Linear Size Universal Point Sets for Classes of Planar Graphs', 'https://arxiv.org/abs/2303.00109', 'Stefan Felsner; Hendrik Schrezenmaier; Felix Schröder; Raphael Steiner', 2023, 'General problem and linear-size constructions for restricted classes.'),
  'pointsold': ref('pointsold', 'The Open Problems Project: Smallest Universal Set of Points for Planar Graphs', 'https://topp.openproblem.net/p45', 'The Open Problems Project', 2001, 'Problem 45, statement and point-set convention.'),
  'labels': ref('labels', 'Better Distance Labeling for Unweighted Planar Graphs', 'https://doi.org/10.1007/s00453-023-01133-z', 'Paweł Gawrychowski; Przemysław Uznański', 2023, 'Introduction and main label-size theorem; journal version of WADS 2021.'),
- 'msa': ref('msa', 'Multiple Sequence Alignment', 'https://i.cs.hku.hk/~chin/paper/encycl_msa-1.pdf', 'Francis Y. L. Chin and coauthors', 2008, 'Encyclopedia article; sum-of-pairs objective and approximation barrier.'),
- 'msaopen': ref('msaopen', 'Some Open Problems in Computational Molecular Biology', 'https://profs.sci.univr.it/~rrizzi/classes/BioComp2003/homeworks/openProblems.pdf', 'Tao Jiang', 2002, 'Multiple sequence alignment and approximation questions.'),
+ 'msa': ref('msa', 'Efficient Methods for Multiple Sequence Alignment with Guaranteed Error Bounds', 'https://i.cs.hku.hk/~chin/paper/encycl_msa-1.pdf', 'Francis Y. L. Chin; S. M. Yiu', None, 'Undated supplied encyclopedia manuscript; sum-of-pairs objective and approximation barrier.'),
+ 'msaopen': ref('msaopen', 'Some Open Problems in Computational Molecular Biology', 'https://profs.sci.univr.it/~rrizzi/classes/BioComp2003/homeworks/openProblems.pdf', 'Tao Jiang; Paul Kearney; Ming Li', 2000, 'Multiple sequence alignment and approximation questions.'),
 }
 
 ASSIGNMENTS = [
@@ -84,7 +84,7 @@ def card(pid, title, formal, definitions, contexts, why, refs, progress, summary
         context_blocks=[dict(text=x) if isinstance(x,str) else dict(text=x[0],citation=x[1]) for x in contexts],
         why=why, answer_criterion=answer, references=[R[x] for x in refs],
         progress=[dict(date=d,text=t,citation=c) for d,t,c in progress],
-        year=max(R[x]['year'] for x in refs), evidence='reviewed', status=status,
+        year=max(R[x]['year'] or 0 for x in refs), evidence='reviewed', status=status,
         status_note='Primary sources and subsequent-result searches checked on 13 September 2026. No resolution of the precise target was located; this is a bounded literature review, not exhaustive certification of current openness. '+note,
         model_self_contained=True, requires_context=False,
         statement_review=dict(status='revised',reviewed_on=DATE,remaining_issue='',reason=note or 'Individual input, model, quantifier, source and answer-criterion review.'),
@@ -245,7 +245,7 @@ card('P26', 'Linear-time unit-Monge distance multiplication',
  ['The input consists of two permutations encoding structured distance matrices.','The output must encode their exact min-plus product.','All three representations have only linear size.','The question asks whether the computation can match that size in time.','The current general unit-Monge bound has a logarithmic overhead.'],
  area='Algebraic computation',criterion='resources',score=84,note='The counting-matrix convention makes Landau’s implicit-input question self-contained, including the representation of the answer.',category_note='The direct task is multiplication of structured matrices; sequence alignment is a major application.')
 
-card('P29', 'Dense NFA Acceptance Hypothesis',
+card('P29', 'Balanced dense NFA Acceptance Hypothesis',
  r'Is it true that, for every constant \(\varepsilon>0\), no uniform bounded-error randomized word-RAM algorithm decides acceptance of length-\(n\) binary words by the dense n-state automata defined below in \(O(n^{3-\varepsilon})\) worst-case time?',
  r'An instance supplies \(n\ge2\), states \(Q=\{0,\ldots,n-1\}\), a start state \(q_0\), a set \(F\subseteq Q\) of accepting states, and a transition relation \(\Delta\subseteq Q\times\{0,1\}\times Q\). There are no empty-word transitions and no multiplicities. Require \(n^2\le|\Delta|\le2n^2\); the transition relation is given as two explicit Boolean adjacency matrices. The input word is \(x\in\{0,1\}^n\), supplied explicitly. Acceptance means that states \(q_0,q_1,\ldots,q_n\) exist with \((q_{i-1},x_i,q_i)\in\Delta\) and \(q_n\in F\). Set \(L=n\). '+RAM+r' Correctness probability is at least \(2/3\) for every fixed automaton and word. The bound includes reading the automaton, and all preprocessing; no preprocessed automaton is supplied. A finite program and constants may depend on fixed \(\varepsilon\), but not on an instance. Non-combinatorial algorithms are allowed.',
  [r'Automaton acceptance follows a prescribed label sequence through a graph of possible states. A dense transition relation has quadratically many potential transitions.',
@@ -368,21 +368,6 @@ card('P32', 'Breaking two for sum-of-pairs multiple sequence alignment',
  criterion='tightness',score=92,note='The inherited source record is developed with an explicit rational metric, feasible alignment representation and a constant approximation improvement independent of the number of strings.')
 
 def prepare():
-    # Complete the bibliography from the primary pages read during this import.
-    R['er25']['title'] = r'Some structural complexity results for \(\exists\mathbb R\)'
-    R['mini']['authors'] = 'Shay Golan; Ido Tziony; Matan Kraus; Yaron Orenstein; Arseny Shur'
-    R['lcs']['authors'] = 'Shay Golan; Matan Kraus; Ely Porat; B. Riva Shalom'
-    R['lcs25']['title'] = 'Deterministic Longest Common Subsequence Approximation in Near-Linear Time'
-    R['rtree']['authors'] = 'Daniel Gibney; Paul Macnichol; Sharma V. Thankachan'
-    R['ted']['authors'] = 'Bingbing Hu; Jakob Nogler; Barna Saha'
-    R['msa']['title'] = 'Efficient Methods for Multiple Sequence Alignment with Guaranteed Error Bounds'
-    R['msa']['authors'] = 'Francis Y. L. Chin; S. M. Yiu'
-    R['msa']['year'] = None  # The supplied encyclopedia manuscript is undated.
-    R['msaopen']['authors'] = 'Tao Jiang; Paul Kearney; Ming Li'
-    R['msaopen']['year'] = 2000
-    R['points']['title'] = 'Linear Size Universal Point Sets for Classes of Planar Graphs'
-    CARDS['P29']['title'] = 'Balanced dense NFA Acceptance Hypothesis'
-    CARDS['P32']['year'] = 2000
     # The metadata is additive and does not overwrite other author-list imports.
     all_pids = sorted({p for _, ps in ASSIGNMENTS for p in ps})
     assert len(all_pids) == 32 and sum(len(ps) for _, ps in ASSIGNMENTS) == 45
@@ -423,4 +408,6 @@ def prepare():
     print(json.dumps(dict(new=sum('new_card' in p for p in plans),existing=sum('existing_id' in p for p in plans),detailed=len(CARDS),assignments=45)))
 
 if __name__=='__main__':
+    if (HERE/'import-result.json').exists():
+        raise SystemExit('This batch is already applied. Preserve its before snapshot; use validate_import.py for a read-only audit.')
     prepare()
