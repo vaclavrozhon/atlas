@@ -206,7 +206,7 @@ card('P21', 'Space-query exponent curve of gapped string indexing',
  'A tight curve would reveal how reusable space substitutes for work in a general paired-pattern search primitive important in text analysis and biological motif queries.',
  ['gaps','sum'], [('2024','The first simultaneous subquadratic-space and sublinear-overhead index is established.','gaps'),('2026','Further indexing tradeoffs improve some parameter regimes.','sum')],
  ['Queries supply two patterns and an interval of allowed separation.','Every matching pair of positions must be reported.','The separation is measured between starting positions.','The target is the optimal storage exponent as a function of query-overhead exponent.','The benchmark requires certified accuracy throughout that function’s domain.'],
- qtype='function',criterion='tightness',answer=CURVE.replace('f(x)','s_{\mathrm{gap}}(x)'),score=88,status='uncertain',
+ qtype='function',criterion='tightness',answer=CURVE.replace('f(x)',r's_{\mathrm{gap}}(x)'),score=88,status='uncertain',
  note='The proposal’s optimal tradeoff is formalized as an exponent curve under a stated reporting convention. The 0.01 curve target is editorial; the source bounds do not independently certify openness at that precision.')
 
 card('P22', 'Polynomial-time construction of minimum-density DNA minimizers',
@@ -401,8 +401,8 @@ def prepare():
             patch = dict(CARDS.get(pid, {}))
             patch.pop('key',None)
             # Preserve prior editorial scores for already assessed cards.
-            if old.get('importance',{}).get('method')=='editorial':
-                patch.pop('importance',None)
+            if old.get('importance',{}).get('method')=='editorial' and patch:
+                patch['importance'] = dict(old['importance'], reason=patch['why'])
             # Keep the original category unless the card is explicitly reclassified.
             if patch:
                 patch['area'] = old['area']
@@ -416,6 +416,7 @@ def prepare():
                 new['replaces_resolved_card'] = 'TCS-5851'
                 new['source_consolidations'] = [dict(id='TCS-5851',reason='The first-truly-subcubic target is resolved; the user approved a new almost-quadratic target, with a separate active identity and lossless archival of the old record.')]
             plans.append(dict(proposal_id=pid, new_card=new, association=association))
+    before['TCS-5851'] = json.loads((ROOT/'data/cards/TCS-5851.json').read_text())
     (HERE/'before.json').write_text(json.dumps(before,ensure_ascii=False,indent=2)+'\n')
     (HERE/'import-plan.json').write_text(json.dumps(dict(batch=BATCH,assignments=ASSIGNMENTS,plans=plans),ensure_ascii=False,indent=2)+'\n')
     (HERE/'new-cards.json').write_text(json.dumps([p['new_card'] for p in plans if 'new_card' in p],ensure_ascii=False,indent=2)+'\n')
