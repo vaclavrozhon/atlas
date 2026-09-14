@@ -47,8 +47,8 @@ is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. An additional individual audit of the developed active companion TCS-7260
 extended the queue to 615 entries. A fresh active-only census subsequently added
 299 already developed cards that still needed an individual quality and source
-audit, increasing the queue to 914 entries. At the latest checkpoint, 212 are
-completed, 701 pending and one outside active scope. The live counts
+audit, increasing the queue to 914 entries. At the latest checkpoint, 216 are
+completed, 697 pending and one outside active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -389,3 +389,32 @@ Validation for checkpoint 212: `make check` passed. Combined workspace
 publication and `node tests/math.cjs` passed for all 1,055 active cards and
 16,077 mathematical expressions; version `c296ba06b37299573e06`. The
 publication retains the concurrent community-feedback changes.
+
+
+Four further individual audits complete TCS-6656, TCS-6666, TCS-0021 and
+TCS-6651. Planted clique now fixes the exact-size planted distribution,
+balanced testing success and eventual-success quantifiers, distinguishing
+stronger advantage hypotheses, restricted refutation lower bounds and new
+conditional applications. The tau conjecture specifies charged construction
+of integer constants, distinct integer roots and its full exponent negation;
+the source review separates finite circuit censuses from asymptotic evidence.
+The NP circuit card fixes nonuniform size bounds and their infinitely-often
+negation, including the scopes of natural proofs, ACC and depth-two threshold
+results. Hadwiger now has full Lean acceptance, precise ordinary branch sets,
+correct small-case indexing, and a source-checked distinction from odd minors.
+The recent triple-logarithmic coloring theorem remains a preprint claim.
+All four retain their assessed importance and categories.
+
+Checkpoint 216 has 1,055 active cards: 358 individually completed/reviewed and
+697 pending. The queue has 216 completed entries (205 active and 11 subsequently
+archived), 697 pending and one outside active scope. The other 153 individually
+reviewed active cards remain separately accounted for. There have been 165
+completions since the renewed request. The completed active-output hash audit
+matches all 205 records and skips all 11 inactive bodies. The overall pass
+remains incomplete; concurrent feedback work is preserved separately.
+
+Validation for checkpoint 216: `make check` passed, followed by combined
+workspace publication and `node tests/math.cjs` for all 1,055 active cards and
+16,233 mathematical expressions. Version `765f3cb7d9b99f5b53fc` retains the
+concurrent community-feedback changes. Source hashes match all 205 completed
+active outputs; no inactive card body was read.
