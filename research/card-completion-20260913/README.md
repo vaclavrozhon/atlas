@@ -45,8 +45,10 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. An additional individual audit of the developed active companion TCS-7260
-extended the queue to 615 entries: at this checkpoint 195 completed, 419 pending
-and one out of active scope. The live counts
+extended the queue to 615 entries. A fresh active-only census subsequently added
+299 already developed cards that still needed an individual quality and source
+audit, increasing the queue to 914 entries. At the latest checkpoint, 202 are
+completed, 711 pending and one outside active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -280,3 +282,48 @@ renewed request. The active-output hash audit checked 185 completed active
 records with no mismatches and skipped all ten inactive bodies. Individual
 audits of the older developed cards outside this queue also remain in scope.
 The completion pass is still in progress.
+
+
+The next seven reviews complete TCS-6714, TCS-6817, TCS-6978, TCS-1602,
+TCS-7222, TCS-6747 and TCS-6743. The matching card specifies nonuniform
+logarithmic-depth circuits and explains the source’s equivalent threshold-matching
+variant. Directed reachability uses a single uniform machine meeting both time
+and space bounds. The explicitly selected quasilinear multitape-time versus
+linear-space variant is covered by Williams’s published 2025 theorem; its complete
+card was preserved through the archive workflow rather than advertised as open.
+
+Tournament king search now has a full deterministic decision-tree target with
+constant-factor asymptotic precision. The expected randomized improvement,
+partial reachability and resolved strong-king problem remain distinct. The two
+graph-isomorphism cards specify deterministic and bounded-error randomized
+computation separately, handle malformed encodings, incorporate the author’s
+2017 correction and distinguish parameterized progress from a general algorithm.
+Randomized evasiveness explicitly selects the two-sided-error question and checks
+original query-model definitions before describing zero-error lower bounds.
+
+The fresh census corrects the earlier informal tracking of older developed
+cards: 299 active records without an individual quality audit were added to the
+queue, without editing or promoting their bodies. Existing wording reviews or
+filled definitions alone were not credited as this audit. One of these, TCS-7222,
+has now received its individual review. The 153 already individually reviewed
+active cards outside the queue remain separately accounted for.
+
+At this checkpoint there are 1,055 active cards: 344 have an individually
+recorded completion/quality review, and 711 still require work. A total of 643
+have definitions and an answer criterion; this structural count is not a
+completion certificate. The queue has 914 records: 202 completed (191 still
+active and 11 subsequently archived), 711 pending and one previously removed
+from active scope. There have been 151 completions since the renewed request.
+No pre-existing archived card body was reviewed. The overall pass remains
+incomplete. Concurrent community-feedback edits are retained separately and
+are not automatically counted as new individual completions.
+
+Validation for this checkpoint: `make check` passed in the shared workspace;
+publication and the complete active-card KaTeX check passed in an isolated
+checkout containing the individually reviewed changes (15,941 expressions).
+The isolated publication contains 1,054 active cards; the additional new card
+in the shared workspace belongs to concurrent feedback work and remains
+pending in this pass. The active completion-output hash audit has 191 matches
+and skips all 11 subsequently archived bodies. Previously completed TCS-0019
+and TCS-0020 received separately checked contextual feedback additions without
+changing their completed targets; the ledger records the updated hashes.
