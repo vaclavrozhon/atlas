@@ -1882,10 +1882,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6671 — FPRAS for counting undirected Euler tours
 
-An undirected Euler tour traverses every edge of a graph exactly once and returns to its starting point. The saved question asks for a fully polynomial randomized approximation scheme for counting such tours. Approximate counting would estimate how many global traversals satisfy local edge-use constraints without listing them all. The undirected setting has its own combinatorial symmetries and should not be conflated with formulas for directed Eulerian graphs. The source is a talk abstract, so conventions about starting points, reversal, graph promises, and the precise counted objects still need to be recovered before a finished statement is possible.
+An Euler tour traverses every edge of an undirected graph exactly once and returns to its start. This question asks whether the number of such tours can be approximated by a randomized algorithm in fully polynomial time. The count uses labelled edges and a fixed first traversal to remove rotation and reversal ambiguity. The accuracy is multiplicative, and the success probability must be at least three quarters on every input. Known orientation-counting algorithms and restricted graph results do not resolve the general tour-counting question.
 
-[Read in atlas](index.html#TCS-6671) · [Mary Cryan — Euler-tours of low-height toroidal grids (SCM 2024)](https://sites.cs.st-andrews.ac.uk/scm2024/abstracts.html)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6671) · [Euler-tours of low-height toroidal grids](https://sites.cs.st-andrews.ac.uk/scm2024/abstracts.html) · [The Complexity of Counting Eulerian Tours in 4-regular Graphs](https://www.cs.rochester.edu/~stefanko/Publications-new/J25.pdf) · [Sampling and counting notes (Mixingbook)](https://www.math.cmu.edu/~af1p/Mixingbook.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7112 — Output-polynomial hypergraph transversal enumeration
 
@@ -3373,10 +3373,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6620 — Vinogradov’s least quadratic nonresidue conjecture
 
-A quadratic nonresidue modulo an odd prime is a nonzero residue that is not the square of another residue. Vinogradov's conjecture asks whether the least positive example is smaller than \(p^{\varepsilon}\) for every fixed positive \(\varepsilon\) at sufficiently large primes. The question asserts that a small witness of nonsquareness always appears very early among the integers. Such a bound would sharpen the understanding of multiplicative structure and support deterministic searches for useful field elements. The saved proposal gives an asymptotic existence bound, not a polylogarithmic target or a reviewed account of later progress.
+A quadratic nonresidue is a nonzero residue that is not a square modulo the prime. Vinogradov’s conjecture says that the least positive one eventually lies below every fixed positive power of the prime. The threshold may depend on the exponent, but the bound must cover every sufficiently large odd prime. Conditional logarithmic-square estimates and almost-all-prime results do not establish this unconditional statement. A refutation would require one fixed positive exponent and arbitrarily large primes violating its bound.
 
-[Read in atlas](index.html#TCS-6620) · [Research reference · arXiv 1410.7073](https://arxiv.org/abs/1410.7073)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6620) · [The Elliott–Halberstam conjecture implies the Vinogradov least quadratic nonresidue conjecture](https://arxiv.org/abs/1410.7073) · [Fourier optimization and the least quadratic non-residue](https://www.cirm-math.fr/RepOrga/3213/Slides/Talk-quesada-herrera.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7169 — Exact Euclidean SVP in BQP
 
@@ -3734,10 +3734,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6672 — Sublinear testing of bounded-degree graph isomorphism
 
-Graph isomorphism means that a vertex relabeling makes two graphs identical. The saved question asks to distinguish isomorphic bounded-degree graphs from pairs requiring many edge changes to become isomorphic. The tester receives adjacency-list oracle access and should use sublinear queries for every fixed degree bound and accuracy. Such a result would show that approximate sameness can be recognized without reading both graphs in full. The stated target allows two-sided error with success probability at least two thirds, so it does not require a locally checkable witness for every rejection.
+The tester sees two sparse graphs only by asking for individual neighbors. It must accept isomorphic graphs and reject pairs that require many edge edits after every possible relabelling. The question asks for fewer than a linear number of queries at every fixed degree bound and proximity. Both graphs are unknown, and arbitrary disconnected or highly connected inputs must be covered. Known small-component testers and recent results for typical known targets do not establish this general two-input guarantee.
 
-[Read in atlas](index.html#TCS-6672) · [Open Problems in Testing Graph Properties — Oded Goldreich](https://eccc.weizmann.ac.il/report/2021/088/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6672) · [Open Problems in Property Testing of Graphs](https://eccc.weizmann.ac.il/report/2021/088/) · [Testing Isomorphism in the Bounded-Degree Graph Model](https://www.wisdom.weizmann.ac.il/~/oded/VO/iso.pdf) · [On Testing Isomorphism to a Fixed Graph in the Bounded-Degree Graph Model](https://www.wisdom.weizmann.ac.il/~/oded/COL3/bdg-iso-fixed.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1030 — Characterizing polynomial-query dense graph properties
 
