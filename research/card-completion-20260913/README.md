@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 132 completed, 481 pending and one out of active scope. The live counts
+checkpoint 140 completed, 473 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -79,14 +79,14 @@ current output path; archived content remains a completed review.
 
 This checkpoint also completes and archives TCS-5494 (published matching bounds for
 stochastic stationarity) and TCS-7008 (the explicitly selected fully polynomial
-entrywise low-rank target under P different from NP). There are now 1,058 active
+entrywise low-rank target under P different from NP). There are now 1,057 active
 cards. Their model choices, resolution scope and full content are preserved. The
 completion helper requires an explicit archival reason for an inactive outcome,
 validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 577 detailed active cards and 481 pending active reviews in the queue.
+there are 584 detailed active cards and 473 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -115,5 +115,15 @@ TCS-0033 records the published exponential separation while retaining the
 broader extremal query-bound target. The quantum query/space card records the
 September 2026 label-symmetry restriction, and the unitary-synthesis card
 distinguishes restricted-query bounds from general polynomial-time synthesis.
-All nine remain active. At this checkpoint 81 individual reviews have been
+All nine remain active. At this checkpoint 89 individual reviews have been
 completed since the renewed request, in addition to the original 51.
+
+The following checkpoint completes TCS-1138, TCS-5013, TCS-1043, TCS-1005,
+TCS-0557, TCS-6599, TCS-6594 and TCS-0024. TCS-1043 was matched directly
+to Göös’s published 2015 theorem and archived after its full review. No
+pre-existing archived body was inspected. The remaining cards distinguish
+conditional counting verification, layered versus general secure computation,
+exact subexponential class quantifiers, randomized algorithm conventions and
+the direction of circuit/proof-complexity implications. At this checkpoint
+there are 1,057 active cards, 584 detailed active cards and 473 pending queue
+entries; 89 reviews have been completed since the renewed request.
