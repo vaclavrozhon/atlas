@@ -418,3 +418,37 @@ workspace publication and `node tests/math.cjs` for all 1,055 active cards and
 16,233 mathematical expressions. Version `765f3cb7d9b99f5b53fc` retains the
 concurrent community-feedback changes. Source hashes match all 205 completed
 active outputs; no inactive card body was read.
+
+Four further individual audits complete TCS-6618, TCS-6611, TCS-7314 and
+TCS-7248. Prime-field discrete logarithms now specify a complete uniform
+classical bit model, per-instance success, full input and output encodings,
+and the scope of generic, small-characteristic and quantum results. Permanent
+versus determinant fixes unrestricted complex affine representations,
+nonuniform matrix size and the quantifiers of superpolynomial growth, and
+separates ordinary representations from border, symmetry and additive
+Boolean-sum restrictions. Komlós fixes full real-matrix signing and its
+unbounded-discrepancy negation. Its status review was amended before
+publication after a further search located the 10 September Guo–Fang–Lu
+preprint claiming the full constant bound: the target matches, but the new
+proof has not been independently verified, so the card remains active with
+uncertain status. The earlier same-day negative search conclusion is
+explicitly superseded in the ledger. Tutte 5-flow fixes integer conservation,
+parallel edges, components and Lean acceptance, with primary-source context
+and a distinction between existence and the recently refuted reconfiguration
+property. Existing importance assessments and categories are retained.
+
+Checkpoint 220 has 1,055 active cards: 362 individually completed/reviewed and
+693 pending. Its queue contains 220 completed records (209 active and 11
+subsequently archived), 693 pending and one outside active scope. The other
+153 reviewed active cards are counted separately. There have been 169
+completions since the renewed request. The active-output hash audit matches
+all 209 completed records and skips all 11 inactive bodies. The overall pass
+remains incomplete; an uncertain scientific status does not prevent completion
+of an accurately qualified editorial review.
+
+Validation for checkpoint 220: `make check` passed before the final Komlós
+status amendment; that amendment passed canonical validation, followed by
+combined-workspace publication and `node tests/math.cjs` for all 1,055 cards
+and 16,381 mathematical expressions. Published version:
+`8e9f60788f9b38e408f9`. Concurrent community-feedback work is preserved in the
+combined publication and is not automatically credited as individual review.
