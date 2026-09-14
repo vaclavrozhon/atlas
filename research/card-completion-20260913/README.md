@@ -680,3 +680,27 @@ publication is de64c6070abf16f85a8d. The math check passed 1,052 active cards an
 5eea803f86ddddc21dc65f65980207d531389392 (version 0c9fc96da100fd698dc2); the
 subsequent concurrent publication was live-verified as a38f481993089503a57f
 with publication timestamp 2026-09-14T19:55:27+00:00.
+
+Checkpoint 261 completes TCS-6606 and TCS-6628. The Gaussian-interference
+review repairs the channel and acceptance formulas, preserves the full real
+domain and average-message power model, distinguishes complex-channel constant
+gaps from the requested real-unit tolerance, and qualifies all current claims.
+The 2026 outer-bound manuscript’s body only gives the recorded very-weak and
+one-sided specializations; Khandani v12 remains unverified. The 2013 survey’s
+pagination was corrected against the publisher’s summary.
+
+The general perfect-matching FPRAS card now specifies its full bit encoding,
+finite probabilistic machine, every-tape polynomial clock, relative error and
+Lean acceptance. The chain lower bound was corrected to its actual disjunction:
+exponentially small perfect-matching stationary mass or exponential mixing.
+The review distinguishes unweighted all-matchings counting from the unary-weight
+monomer–dimer result, and records the 2026 bipartite and fixed-density advances
+without expanding their scope.
+
+The combined census is 1,052 active cards: 400 individually completed/reviewed
+and 652 pending. The queue has 261 completions, including 14 inactive records.
+Twenty-two concurrent individual reviews are included, with TCS-1007 and
+TCS-0652 added since checkpoint 257. make check, publication and the active
+formula check passed for this checkpoint. Checkpoint 257 was deployed and
+live-verified at a34d3b2c663110bfe8a5, published 2026-09-14T20:07:34+00:00,
+Pages commit 5e94e207f87329af478f26a5cd0dd1b80ac826e2.
