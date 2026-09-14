@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 163 completed, 450 pending and one out of active scope. The live counts
+checkpoint 166 completed, 447 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 607 detailed active cards and 450 pending active reviews in the queue.
+there are 610 detailed active cards and 447 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -184,3 +184,15 @@ from metric-tree embeddings. All three dynamic cards preserve their individual
 scores. This checkpoint has 163 completed, 450 pending and one outside active
 scope, with 1,057 active and 607 detailed active cards; 112 completions occurred
 after the renewed request. The archive’s existing card bodies were not read.
+
+The next checkpoint completes TCS-0545 with a specified deterministic black-box
+weighted-matching conversion for every approximation ratio, distinguishing the
+near-optimal SODA 2026 result. TCS-1116 now defines the universal additive EFX
+constant with absolute 1/100 benchmark precision, positive-good comparisons and
+complete allocations; it incorporates the July 2026 frontier revision and the
+separate May 2026 EFkX results. TCS-0658 selects the quantum-ETH implication as
+an explicit assumption variant of Bennett’s cryptographic-factor GapSVP question,
+with exact promise, encoding and quantum-computation conventions. All three
+scores were preserved. Counts are 166 completed, 447 pending and one outside
+active scope, with 1,057 active cards and 610 detailed active cards; 115 reviews
+were completed after the renewed request. The pass remains in progress.
