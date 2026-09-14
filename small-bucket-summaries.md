@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-601 five-sentence working summaries, based on saved source material.
+600 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -184,17 +184,17 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1099 — Separating levels of bounded arithmetic
 
-Buss's bounded-arithmetic hierarchy organizes formal theories according to restricted reasoning principles. The saved question asks to separate two levels of that hierarchy. A separation would exhibit a statement provable with the stronger principles but unavailable in the weaker theory. Such results connect logical induction strength with computational complexity and the formal resources needed to certify algorithms. The inherited title does not identify the levels or the intended witness statements, so the working summary cannot select a particular strict inclusion or claim it follows from known complexity separations.
+The question asks whether two positive levels of Buss’s bounded-arithmetic hierarchy prove different sentences. Each level has the same basic arithmetic axioms but permits induction for a different class of bounded formulas. A solution may choose any two distinct positive levels and must prove an unconditional difference in their deductive strength. The full axiom list, formula grammar and induction scheme specify the theories without relying on an unstated standard model. Recent conditional separations do not provide the unconditional nonprovability witness required here.
 
-[Read in atlas](index.html#TCS-1099) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1099) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416) · [Bounded Arithmetic, Propositional Logic, and Complexity Theory](https://www.karlin.mff.cuni.cz/~krajicek/kniha.pdf) · [Parallelism and Adaptivity in Student-Teacher Witnessing](https://arxiv.org/abs/2602.19934)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1096 — Unprovability of polynomial circuit upper bounds in \(S_{2}^{1}\)
+### TCS-1096 — Unprovability of polynomial circuit upper bounds in \(S_2^1\)
 
-The theory \(S_{2}^{1}\) formalizes a restricted form of arithmetic associated with computational reasoning. This entry asks about its inability to prove polynomial circuit upper bounds. The issue concerns what the theory can certify, even if the underlying circuit claim has a definite mathematical truth value. An unprovability result would expose limits on formal arguments asserting broadly efficient nonuniform computation. The source label does not specify the language, circuit-size quantifiers, or required consistency assumptions, so it does not yet yield one self-contained bounded-arithmetic proposition.
+For each fixed polynomial exponent, the question asks for a polynomial-time predicate whose corresponding circuit upper bounds cannot be proved in S-two-one. The same predicate must resist every fixed multiplicative coefficient in that exponent. Its function representation, the arithmetic theory, circuit encoding and length quantifiers are explicitly specified. The conclusion is nonprovability of upper bounds, not an asserted standard-model circuit lower bound. Recent weaker-theory results and EXP consistency results leave this particular target open in the checked sources.
 
-[Read in atlas](index.html#TCS-1096) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1096) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416) · [Bounded Arithmetic, Propositional Logic, and Complexity Theory](https://www.karlin.mff.cuni.cz/~krajicek/kniha.pdf) · [Parallelism and Adaptivity in Student-Teacher Witnessing](https://arxiv.org/abs/2602.19934) · [From Gödel incompleteness to the consistency of circuit lower bounds](https://arxiv.org/abs/2604.25251)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1097 — Unprovability of NP circuit upper bounds in \(T_{2}^{1}\)
 
@@ -1515,7 +1515,7 @@ Minimization CSPs seek assignments minimizing a specified constraint-violation c
 [Read in atlas](index.html#TCS-6757) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Online algorithms, scheduling and packing (28)
+## Online algorithms, scheduling and packing (27)
 
 ### TCS-6575 — Deterministic competitiveness of k-server
 
@@ -1565,13 +1565,6 @@ In randomized k-server, an online strategy moves k servers to serve sequential m
 
 [Read in atlas](index.html#TCS-7317) · [Randomized k-server in polynomial time](https://arxiv.org/abs/2605.01497) · [The Randomized k-Server Conjecture is False!](https://arxiv.org/abs/2211.05753)
 Existing status: `source_open` · Summary written: 2026-09-12
-
-### TCS-0924 — Precedence scheduling for weighted completion time
-
-Precedence-constrained scheduling requires each job to wait until its predecessors finish. The saved entry considers identical machines and minimizes the weighted sum of job completion times. This objective rewards finishing important jobs early rather than only minimizing the time of the last completion. Dependencies can force a scheduler to process seemingly less valuable work to unlock high-weight jobs. The inherited title does not specify an approximation target, machine-count regime, or preemption rule, so these remain necessary before a precise computational question can be stated.
-
-[Read in atlas](index.html#TCS-0924) · [Scheduling](https://doi.org/10.4230/DagRep.6.2.97)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5030 — Optimal randomized competitive ratio of weighted k-server
 

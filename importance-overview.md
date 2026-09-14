@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-770 records have an editorial importance assessment; 287 remain provisional.
+769 records have an editorial importance assessment; 287 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -208,7 +208,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 | 7 | [Effective polynomial simulation of Extended Frege by Resolution](index.html#TCS-7163) | 86 |
 | 8 | [Frege lower bounds from circuit hardness](index.html#TCS-0024) | 84 |
 | 9 | [Separating levels of bounded arithmetic](index.html#TCS-1099) | 82 |
-| 10 | [Unprovability of polynomial circuit upper bounds in \\(S_{2}^{1}\\)](index.html#TCS-1096) | 79 |
+| 10 | [Unprovability of polynomial circuit upper bounds in \\(S_2^1\\)](index.html#TCS-1096) | 79 |
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 21; provisional: 9.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 20; provisional: 9.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -310,7 +310,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 | 7 | [Matroid secretary conjecture](index.html#TCS-7316) | 94 |
 | 8 | [Randomized competitiveness of k-server](index.html#TCS-7317) | 93 |
 | 9 | [Minimax rate of sequential binary calibration](index.html#TCS-7319) | 89 |
-| 10 | [Precedence scheduling for weighted completion time](index.html#TCS-0924) | 88 |
+| 10 | [Optimal randomized competitive ratio of weighted k-server](index.html#TCS-5030) | 88 |
 
 ## 9. Beyond worst-case and average-case analysis (small)
 

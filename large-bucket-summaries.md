@@ -173,19 +173,19 @@ Stable ternary compaction moves every 2 to the end while preserving the order of
 [Read in atlas](index.html#TCS-7243) · [Linear-size circuits for stable \(0,1 < 2\) sorting?](https://www.openproblemgarden.org/op/linear_size_circuits_for_stable_0_1_2_sorting) · [Sorting Short Keys in Circuits of Size \(o(n \log  n)\)](https://arxiv.org/abs/2010.09884)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0017 — Karchmer–Raz–Wigderson conjecture
+### TCS-0017 — KRW formula-size conjecture with constant loss
 
-Composing Boolean functions means applying one function to separate input blocks and feeding the results into another. A straightforward formula substitutes a copy of the inner formula for each outer input occurrence. The KRW conjecture asks whether formula complexity must essentially multiply under this operation. Unexpected sharing is unavailable in formulas, but alternate logical factorizations might still save size. The project seeks a composition lower bound powerful enough to separate efficient circuits from much larger formulas.
+The selected KRW variant asks whether minimum formula size under block composition is always within a constant factor of the product of the two minimum sizes. Both functions can be arbitrary nonconstant Boolean functions, and the inner one is applied to disjoint input blocks. Formulas use binary AND and OR with negation, count variable occurrences, and cannot share intermediate computations. The constant must work for every function and dimension, so dimension-dependent losses do not suffice. The original depth conjecture and recent results for strengthened communication tasks are related but distinct statements.
 
-[Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Super-logarithmic Depth Lower Bounds via the Direct Sum in Communication Complexity](https://doi.org/10.1007/BF01206317) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0019 — Polynomial formulas versus linear circuits
 
-Circuits can reuse intermediate results, while formulas duplicate them whenever several later computations need them. The conjecture asks for functions with linear-size circuits but no polynomial-size formulas. Known polynomial gaps do not establish this superpolynomial separation. The source connects the goal to understanding formula complexity under repeated composition. The project asks whether a small directed computational graph can perform a task that every tree-shaped computation must express with vastly more repeated work.
+The conjecture asks for Boolean functions with linear-size circuits but no polynomial-size formulas. Circuits may reuse intermediate results, while formulas have a tree structure and count repeated variable occurrences separately. The computational basis is binary AND and OR with unary negation, and correctness is exact on every input. The family is nonuniform, and exceeding each polynomial at arbitrarily large lengths is sufficient. Known nearly cubic gaps and recent composition results do not yet give the required superpolynomial separation.
 
-[Read in atlas](index.html#TCS-0019) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0019) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6455 — Doubly efficient \(\mathrm{IP} = \mathrm{PSPACE}\) for the full time range
 
