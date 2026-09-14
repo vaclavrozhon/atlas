@@ -124,6 +124,9 @@ with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
         raise AssertionError('Conflicting context was silently discarded')
     authored['why'] += '\n\nPublication regression fixture.'
     authored['working_summary']['sentences'][0] += ' (Summary edit fixture.)'
+    authored['community_reviews'] = [dict(source='github', id='999001',
+        original_problem_id=card['id'], original_text='Original public feedback.',
+        status='solved', response='Feedback incorporated.', reviewed_on='2026-09-14')]
     path.write_text(json.dumps(authored))
     edited = publish.publish()
     assert edited['changed_ids'] == [card['id']]
@@ -131,10 +134,21 @@ with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
     assert delta['base_version'] == first['version']
     assert delta['cards'][0]['why'] == authored['why']
     assert delta['cards'][0]['working_summary'] == authored['working_summary']
+    assert delta['cards'][0]['community_reviews'] == authored['community_reviews']
     assert hashes()[str(path.relative_to(base))] == hashlib.sha256(path.read_bytes()).hexdigest()
     assert_export_parity(site, edited)
 
     unchanged = {name: (site / name).read_bytes() for name in ['catalog.json', 'version.json']}
+    invalid_review = copy.deepcopy(authored)
+    invalid_review['community_reviews'][0].pop('original_text')
+    path.write_text(json.dumps(invalid_review))
+    try:
+        publish.publish()
+    except ValueError as error:
+        assert 'incomplete community review' in str(error)
+    else:
+        raise AssertionError('A review without its original contribution was published')
+    assert all((site / name).read_bytes() == content for name, content in unchanged.items())
     authored['progress'][0]['citation'] = 'missing-regression-reference'
     path.write_text(json.dumps(authored))
     try:

@@ -51,6 +51,31 @@ const http=require('node:http');
     await page.waitForFunction(()=>ATLAS_COMMUNITY.contributions.length===3&&!document.getElementById('refresh-community').disabled);
     const total=await page.evaluate(()=>ATLAS_DEBUG.state.matches.length);
     assert.equal(await page.locator('#community-problems img,#community-problems script,.public-note script').count(),0);
+    // Editorial responses follow the exact saved contribution, without changing
+    // its text or ownership. A note on a consolidated card stays visible.
+    const originalLegacyBody=legacy.body;
+    legacy.body='<!-- atlas-note:v1 TCS-6712 -->\n\nPreserve this original note <script>window.injected=true</script>.';
+    await page.evaluate(({body,proposalBody})=>{
+      const card=TCS_ATLAS.cards.find(card=>card.id==='TCS-6575');
+      card.community_reviews=[{source:'github',id:'101',original_problem_id:'TCS-6712',original_text:body,status:'solved',response:'Consolidated here <img src=x onerror=window.injected=true>.',reviewed_on:'2026-09-14'},
+        {source:'github',id:'102',original_problem_id:'GH-102',original_text:proposalBody,status:'added',response:'Added to the catalogue.',reviewed_on:'2026-09-14'}];
+    },{body:legacy.body,proposalBody:proposal.body});
+    await page.evaluate(()=>ATLAS_COMMUNITY.refresh(true));
+    assert.equal(await page.locator('#TCS-6575 .public-note-text').textContent(),'Preserve this original note <script>window.injected=true</script>.');
+    assert((await page.locator('#TCS-6575 .public-note-author').textContent()).includes('Originally on TCS-6712'));
+    assert((await page.locator('#TCS-6575 .community-review').textContent()).includes('[solved]'));
+    assert.equal(await page.locator('#TCS-6575 .community-review a').getAttribute('href'),'#TCS-6575');
+    assert.equal(await page.locator('#TCS-6575 .public-note img,#TCS-6575 .public-note script').count(),0);
+    assert((await page.locator('#GH-102 .card-meta').textContent()).includes('Reviewed community proposal'));
+    assert((await page.locator('#GH-102 .community-review').textContent()).includes('[added]'));
+    assert.equal(await page.locator('#GH-102 .community-review a').getAttribute('href'),'#TCS-6575');
+    assert.equal(await page.locator('#GH-102 .community-statement').textContent(),'A community question.');
+    legacy.body+=' Edited after review.';
+    await page.evaluate(()=>ATLAS_COMMUNITY.refresh(true));
+    assert.equal(await page.locator('#TCS-6575 .community-review').count(),0,'An edited contribution must not inherit a stale resolution');
+    legacy.body=originalLegacyBody;
+    await page.evaluate(()=>{delete TCS_ATLAS.cards.find(card=>card.id==='TCS-6575').community_reviews;});
+    await page.evaluate(()=>ATLAS_COMMUNITY.refresh(true));
     await page.locator('#TCS-6575 [data-public-note]').click();
     assert.equal(await page.locator('#submit-contribution').innerText(),'Post note');
     assert((await page.locator('#contribution-help').innerText()).includes('no account needed'));
@@ -70,6 +95,16 @@ const http=require('node:http');
     assert.equal(await page.locator('#TCS-6575 .public-note').count(),2,'Only one new note was created');
     assert.equal(await page.locator('#TCS-6575 .public-note img,#TCS-6575 .public-note script').count(),0);
     assert.equal(await page.evaluate(()=>window.injected),undefined);
+    const postedText=await page.locator('#TCS-6575 .public-note-text').last().textContent();
+    await page.evaluate(()=>{
+      const note=ATLAS_COMMUNITY.contributions.find(item=>item.source==='direct');
+      TCS_ATLAS.cards.find(card=>card.id==='TCS-6575').community_reviews=[{source:'direct',id:note.id,original_problem_id:note.problem_id,original_text:note.text,status:'reviewed',response:'Source checked.',reviewed_on:'2026-09-14'}];
+      document.dispatchEvent(new CustomEvent('atlas:publication'));
+    });
+    assert.equal(await page.locator('#TCS-6575 .public-note-text').last().textContent(),postedText);
+    assert((await page.locator('#TCS-6575 .community-review').textContent()).includes('[reviewed]'));
+    assert.equal(await page.locator('#TCS-6575 [data-delete-note]').count(),1,'Reviewing a note preserves its ownership');
+    await page.evaluate(()=>{delete TCS_ATLAS.cards.find(card=>card.id==='TCS-6575').community_reviews;document.dispatchEvent(new CustomEvent('atlas:publication'));});
     await page.locator('#TCS-6575 [data-public-note]').click();assert.equal(await page.locator('#public-note-text').inputValue(),'');
     await page.setViewportSize({width:390,height:844});
     assert(await page.locator('#contribution-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth));

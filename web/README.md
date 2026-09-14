@@ -57,3 +57,14 @@ previews, so blank lines or excerpt limits cannot split a formula. Source excerp
 and reference titles render math too. Long inline expressions scroll within the
 card on small screens. Search uses readable mathematical text rather than requiring
 LaTeX command names. Public reader notes retain their plain-text format.
+
+Editorial responses to public contributions are stored in the destination card's
+`community_reviews` array. The reader appends `[solved]` for an addressed correction,
+`[reviewed]` for an assessed observation, or `[added]` for an incorporated proposal,
+with the response, date and catalogue link. These labels describe the feedback,
+not whether the mathematical problem is solved. Original notes and proposals,
+authors and deletion ownership are preserved. Reviews match the source, stable
+contribution ID, original problem ID and exact original text (the whole issue body
+for GitHub); edited contributions do not inherit a stale response. A reviewed note
+on a consolidated problem also appears on its active successor, naming its original
+card. Publication updates refresh responses with their canonical card.

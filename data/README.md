@@ -98,3 +98,11 @@ The 13 September 2026 migration superseded `deleted_records.json` with the
 archive index and recovered available historical card content from Git.
 Recovery provenance and any unavailable legacy contents are recorded in
 `archive/recovery.json`; missing historical content is not fabricated.
+
+A card may also contain `community_reviews`: editorial responses to public notes
+or proposals. Each entry records `source` (`direct` or `github`), the contribution
+`id`, `original_problem_id`, verbatim `original_text`, `status` (`solved`, `reviewed`
+or `added`), `response`, and `reviewed_on`. Keep the response on the active card
+that incorporates the feedback, including when an older card was consolidated.
+The original contribution stays in its service; publication adds a separate
+response in the reader and does not rewrite or delete the author's text.

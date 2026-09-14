@@ -90,6 +90,26 @@ def validate_record(card, path, criteria):
         raise ValueError(f'{identifier}: duplicate reference ID')
     if card['evidence'] == 'reviewed':
         validate_card(card, path, criteria)
+    reviews = card.get('community_reviews', [])
+    if not isinstance(reviews, list):
+        raise ValueError(f'{identifier}: community reviews must be a list')
+    seen_reviews = set()
+    for review in reviews:
+        if not isinstance(review, dict) or review.get('source') not in {'direct', 'github'}:
+            raise ValueError(f'{identifier}: invalid community review source')
+        pattern = r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}' if review['source'] == 'direct' else r'[1-9]\d*'
+        if not isinstance(review.get('id'), str) or not re.fullmatch(pattern, review['id']):
+            raise ValueError(f'{identifier}: invalid community review ID')
+        if (review.get('status') not in {'solved', 'reviewed', 'added'} or
+                any(not isinstance(review.get(key), str) or not review[key].strip()
+                    for key in ['original_text', 'response', 'original_problem_id', 'reviewed_on']) or
+                not re.fullmatch(r'(?:TCS-\d{4,}|GH-[1-9]\d*)', review['original_problem_id'])):
+            raise ValueError(f'{identifier}: incomplete community review')
+        datetime.date.fromisoformat(review['reviewed_on'])
+        key = (review['source'], review['id'])
+        if key in seen_reviews:
+            raise ValueError(f'{identifier}: duplicate community review')
+        seen_reviews.add(key)
     summary = card.get('working_summary')
     if summary:
         sentences = summary.get('sentences', [])
