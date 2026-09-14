@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 173 completed, 440 pending and one out of active scope. The live counts
+checkpoint 178 completed, 435 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -79,14 +79,14 @@ current output path; archived content remains a completed review.
 
 This checkpoint also completes and archives TCS-5494 (published matching bounds for
 stochastic stationarity) and TCS-7008 (the explicitly selected fully polynomial
-entrywise low-rank target under P different from NP). There are now 1,057 active
+entrywise low-rank target under P different from NP). There are now 1,056 active
 cards. Their model choices, resolution scope and full content are preserved. The
 completion helper requires an explicit archival reason for an inactive outcome,
 validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 617 detailed active cards and 440 pending active reviews in the queue.
+there are 621 detailed active cards and 435 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -210,3 +210,21 @@ gates and full-input correctness. All seven assessed scores were preserved.
 Counts are 173 completed, 440 pending and one outside active scope, with 1,057
 active and 617 detailed active cards; 122 completions followed the renewed
 request. Existing archived card bodies remain outside the review.
+
+
+Five further reviews complete TCS-0019, TCS-0017, TCS-0924, TCS-1099 and
+TCS-1096. The formula cards distinguish failure of a polynomial upper bound
+from eventual domination, and the constant-loss KRW formula-size variant from
+depth and weaker-loss versions. TCS-0924 retains the original factor-four
+improvement request and was matched to Shi Li’s published general-processing-time
+result before being archived. The two bounded-arithmetic cards now supply the
+complete BASIC axioms, full formula hierarchy and relevant induction schemes;
+the circuit-unprovability card also defines the representation and arithmetic
+upper-bound sentence. The February and April 2026 results are recorded with
+their different theory and complexity-class scopes. All five scores were preserved.
+The checkpoint is 178 completed, 435 pending and one outside active scope, with
+1,056 active cards and 621 detailed active cards; 127 reviews followed the renewed
+request. The 176-entry hash audit checked 167 then-active outputs with no hash
+mismatches and skipped all nine inactive bodies. Forty-three original completed
+records predate the separate quality_review metadata field; that absence was
+recorded as a metadata difference, not silently filled or treated as a new review.
