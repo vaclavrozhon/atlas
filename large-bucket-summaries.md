@@ -2056,6 +2056,13 @@ Proper learning of decision trees requires the learner to output a decision tree
 [Read in atlas](index.html#TCS-0677) · [Open Problem: Properly learning decision trees in polynomial time?](https://proceedings.mlr.press/v178/open-problem-blanc22a.html) · [Properly Learning Decision Trees with Queries Is NP-Hard](https://arxiv.org/abs/2307.04093) · [Fast Decision Tree Learning Solves Hard Coding-Theoretic Problems](https://arxiv.org/abs/2409.13096)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-1573 — NP-hardness of improper learning of \(\mathrm{P}/\mathrm{poly}\)
+
+The question asks whether SAT reduces to agnostic learning of general polynomial-size Boolean circuits. The learning oracle receives a circuit sampling labeled examples and returns an approximately optimal hypothesis. The returned hypothesis may use an arbitrarily larger fixed polynomial size than the comparator circuits. The reduction must work with every valid oracle reply and without additional cryptographic assumptions. A June 2026 follow-up gives related conditional hardness, leaving the unconditional target unresolved.
+
+[Read in atlas](index.html#TCS-1573) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34) · [Non-Levin NP-Hardness of Implicit MCSP and PAC Learning under Few Assumptions](https://eccc.weizmann.ac.il/report/2026/091/)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-3787 — Proper unlabeled compression of ample classes
 
 An ample class strongly shatters every set of coordinates that it shatters. A compressor selects at most d input points from any realizable labeled sample, where d is the class’s VC dimension. A reconstructor must recover a concept in the original class consistent with all sample labels while receiving only the selected points. Maximum classes satisfy this exact bound, and labeled compression is known more generally. The 2024 oriented-matroid results still leave proper unlabeled size-d compression for all ample classes open.
@@ -2131,13 +2138,6 @@ Existing status: `source_open` · Summary written: 2026-09-14
 A statistical property is elicitable when minimizing an expected loss recovers that property of the underlying distribution. Familiar examples motivate asking which statistics admit such loss functions and how those functions can be characterized. The source also studies elicitation complexity, the number of intermediate real-valued reports needed to recover a desired statistic. Some properties that cannot be elicited directly may become accessible through a richer intermediate prediction. A general characterization would explain the expressive limits of empirical risk minimization and guide the design of objectives for estimating specific distributional quantities.
 
 [Read in atlas](index.html#TCS-0689) · [COLT / PMLR](https://proceedings.mlr.press/v49/frongillo16.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1573 — NP-hardness of improper learning of P/poly
-
-Improper learning allows a learner to output a hypothesis outside the representation class used by the target function. This project asks for NP-hardness of learning functions represented by polynomial-size circuits even with that freedom. Hardness arguments for proper learning can fail because they constrain the output representation, a restriction absent here. The source develops connections between strong formulations of learning hardness and cryptographic primitives such as witness encryption. A reduction with the required guarantees would sharpen the boundary between computational learning and worst-case complexity while clarifying those cryptographic consequences.
-
-[Read in atlas](index.html#TCS-1573) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3177 — Learning PH/poly from learning NP/poly
@@ -2387,25 +2387,25 @@ Identity-based encryption lets a single public setup support exponentially many 
 [Read in atlas](index.html#TCS-7278) · [Generic-Group Identity-Based Encryption: A Tight Impossibility Result](https://eprint.iacr.org/2021/745.pdf) · [Identity-Based Encryption from the Weil Pairing](https://crypto.stanford.edu/~dabo/pubs/papers/bfibe.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-3025 — Exponentially hard weak versus strong one-way functions
+
+The premise is a polynomial-time function that defeats exponential-size inversion circuits on an inverse-polynomial fraction of inputs. The question asks whether this already guarantees a function whose inversion success is negligible for exponential-size circuits. An attacker succeeds by finding any preimage of a challenge sampled from a uniform input. Ordinary repetition enlarges the input and can lose hardness exponential in the new length. Security-preserving results for regular functions do not settle the general case, which remains open in a 2025 revision.
+
+[Read in atlas](index.html#TCS-3025) · [Hardness of KT Characterizes Parallel Cryptography](https://doi.org/10.4230/LIPIcs.CCC.2021.35) · [Hardness of KT Characterizes Parallel Cryptography — revision 2](https://eccc.weizmann.ac.il/report/2021/057/revision/2/download/) · [Security Preserving Amplification of Hardness](https://www.cs.utexas.edu/~diz/pubs/gilvz.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-2732 — Subpolynomial-key perfectly secure three-server DPFs
+
+A distributed point function gives three servers compact shares of a vector supported at one secret location. Each server can evaluate its own share, and the three outputs must add to the requested point function. A single key must reveal exactly no information about either the location or the stored value. The target is a key length smaller than every positive power of the domain size over some fixed nontrivial finite Abelian group. Known subpolynomial constructions achieve perfect privacy with four servers or statistical privacy with three, a distinction retained in a 2026 survey.
+
+[Read in atlas](index.html#TCS-2732) · [Information-Theoretic Distributed Point Functions](https://doi.org/10.4230/LIPIcs.ITC.2022.17) · [Efficient Information-Theoretic Distributed Point Function with General Output Groups](https://eprint.iacr.org/2023/625) · [Distributed Point Functions and Function Secret Sharing](https://arxiv.org/abs/2607.27696)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-1138 — Polynomial-time computationally sound NP verification of #SAT
 
 Counting satisfying assignments is harder to certify directly than showing that a single satisfying assignment exists. This project asks for a polynomial-time verifier for a claimed #SAT answer in the model called computationally sound NP by the source. Soundness is required against computationally bounded attempts to produce false proofs rather than against every possible proof string. That distinction allows the question to go beyond ordinary NP verification without asserting that #SAT has standard short certificates. A construction would expand the range of efficiently checkable counting claims and connect computational soundness with the source's broader study of derandomization.
 
 [Read in atlas](index.html#TCS-1138) · [New ways of studying the \(\mathrm{BPP} = \mathrm{P}\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2732 — Subpolynomial-key perfectly secure three-server DPFs
-
-A distributed point function splits a vector that is nonzero at one hidden position into compact evaluation keys held by several servers. Combining their outputs recovers the point function while permitted individual views hide its location. The question asks for a perfectly secure three-server construction with key size \(N^{o}(1)\), subpolynomial in the domain size N. The source achieves statistical privacy with three servers and perfect privacy with four, leaving the simultaneous three-server and perfect-security target. Meeting it would improve information-theoretic private retrieval and aggregation by reducing server requirements without giving up exact privacy.
-
-[Read in atlas](index.html#TCS-2732) · [Information-Theoretic Distributed Point Functions](https://doi.org/10.4230/LIPIcs.ITC.2022.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3025 — Exponentially hard weak versus strong one-way functions
-
-A weak one-way function resists inversion on a noticeable fraction of inputs, while a strong one-way function resists almost every efficient inversion attempt. Standard hardness amplification connects the two at ordinary polynomial security scales. This project asks whether equivalence also holds when the starting and resulting functions must both withstand exponential-time attacks relative to their input length. The obstacle is that familiar amplification increases input length enough to weaken the resulting exponent. A tighter transformation would preserve fine-grained cryptographic hardness and strengthen connections between one-wayness and average-case complexity.
-
-[Read in atlas](index.html#TCS-3025) · [Hardness of KT Characterizes Parallel Cryptography](https://doi.org/10.4230/LIPIcs.CCC.2021.35)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4754 — Unconditional zero knowledge for gap circuit complexity
@@ -2552,10 +2552,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0029 — Maximum randomized-versus-quantum gap for total functions
 
-Query complexity measures how many input bits an algorithm needs to inspect, while allowing other computation for free. This problem compares bounded-error randomized and quantum query complexity for Boolean functions defined on every input. Aaronson's saved survey describes examples approaching a cubic separation and an upper bound with exponent four. The target is the largest possible separation, so finding either more extreme functions or a sharper universal upper bound would address the gap. Requiring total functions distinguishes this question from promise problems, where special input structure can permit much larger quantum advantages.
+The question asks for the largest polynomial quantum query advantage over randomized algorithms on total Boolean functions. Both models must answer correctly with probability at least two thirds on every input. Only queries to input bits are counted, with other computation and workspace unrestricted. Known results put the optimal separation exponent between three and four. The target is to certify that exponent within one hundredth, without resolving finer logarithmic factors.
 
-[Read in atlas](index.html#TCS-0029) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0029) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629) · [k-Forrelation Optimally Separates Quantum and Classical Query Complexity](https://arxiv.org/abs/2008.07003)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6449 — Quantum versus classical nonuniform advice
 
@@ -2566,10 +2566,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0033 — Quantum query complexity versus bounded approximate degree
 
-The polynomial method bounds quantum query complexity using low-degree polynomials that approximate a function's output. This problem considers partial Boolean functions, whose inputs are subject to a promise. The approximating polynomial must still remain bounded on all Boolean inputs, including those outside the promise. The question asks how large the gap between this bounded approximate degree and actual quantum query complexity can become, potentially even exponentially large. Such a gap would expose a limitation of representing the behavior of a quantum algorithm by its acceptance polynomial alone.
+The question compares quantum query complexity with polynomials that approximate a promised Boolean function. The polynomial must remain between zero and one even on inputs outside the promise. The target is the largest quantum query complexity possible at each input length and bounded-degree budget. A 2023 theorem already proves that the gap can be exponential, so that subquestion is no longer open. The remaining task is to determine the full extremal bound up to universal multiplicative constants.
 
-[Read in atlas](index.html#TCS-0033) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0033) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [An Exponential Separation Between Quantum Query Complexity and the Polynomial Degree](https://doi.org/10.4230/LIPIcs.CCC.2023.24) · [Separations in Query Complexity for Total Search Problems](https://arxiv.org/abs/2410.16245)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-5021 — Limiting optimized QAOA energy in the SK model
 
@@ -2585,12 +2585,12 @@ Uniformity testing distinguishes a perfectly uniform distribution from one separ
 [Read in atlas](index.html#TCS-1882) · [Uniformity Testing When You Have the Source Code](https://doi.org/10.4230/LIPIcs.TQC.2025.7) · [Uniformity testing when you have the source code — version record](https://arxiv.org/abs/2411.04972v1)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-0861 — \(\mathrm{QMA}(2)\) versus BQEXP
+### TCS-0861 — \(\mathrm{QMA}(2)\) versus \(\mathrm{BQEXP}\)
 
-\(\mathrm{QMA}(2)\) allows a quantum verifier to receive two witnesses promised to be unentangled with each other. The question asks whether every problem with such a proof system can be decided by a bounded-error quantum algorithm in exponential time. The saved source contrasts this proposed BQEXP upper bound with a nondeterministic exponential-time upper bound. Exploiting the independence of the witnesses is difficult because it restricts possible proofs without turning them into ordinary classical certificates. A better upper bound would locate the computational power of unentangled quantum proofs more precisely among large complexity classes.
+The question asks whether every problem with two unentangled quantum proofs can be decided in quantum exponential time without proofs. The verifier is polynomial-time and may process both proofs jointly, but the proofs must initially be a product state. The deciding algorithm must be uniform and have bounded error on every promised input. The standard upper bound uses nondeterministic exponential time, which does not give the requested algorithm. Recent quantified and stoquastic results concern different upper-bound models and leave this inclusion unresolved.
 
-[Read in atlas](index.html#TCS-0861) · [TCS Open Problems](https://tcsopenproblems.com/problem/9)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0861) · [Is QMA(2) in BQEXP?](https://tcsopenproblems.com/problem/9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimisation](https://arxiv.org/abs/1001.0017) · [On the Pure Quantum Polynomial Hierarchy and Quantified Hamiltonian Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.103) · [The Power of Unentanglement Without Destructive Interference](https://arxiv.org/abs/2604.27886)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6447 — Strong quantum IOPs with polynomial communication
 
@@ -2608,24 +2608,24 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0034 — Quantum query–space tradeoffs for collisions and distinctness
 
-Collision and element distinctness problems ask whether an input function repeats an output, under different promises on the input. Quantum algorithms can reduce the number of queries, but their best query performance may require substantial stored information. This project asks for the optimal tradeoff between queries and memory, separating quantum workspace from classical memory where relevant. The source specifically raises whether nearly optimal query bounds remain possible with little memory and whether coherently accessible classical storage can replace qubits. Matching algorithms and lower bounds would make quantum speedups more meaningful under realistic storage constraints.
+The question asks for the optimal quantum query cost of collision testing and element distinctness at every allowed memory budget. The oracle returns an output symbol, and the algorithm must decide the answer with bounded worst-case error. All retained storage counts, including classical tables and query registers. Recent lower bounds concern nested collision tasks or search algorithms restricted by label symmetry. The target remains matching upper and lower bounds for unrestricted algorithms solving the two decision problems.
 
-[Read in atlas](index.html#TCS-0034) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0034) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [On the Need for (Quantum) Memory with Short Outputs](https://arxiv.org/abs/2602.23763) · [Tight Time-Space Lower Bounds for Collision Finding and Element Distinctness under Label Symmetry](https://arxiv.org/abs/2609.10808)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0862 — Constant-round QRG versus PSPACE
+### TCS-0862 — Constant-round quantum refereed games versus \(\mathrm{PSPACE}\)
 
-Quantum refereed games model a verifier interacting with opposing provers, one trying to obtain acceptance and the other rejection. The number of interaction rounds can change the power of the resulting proof system. This problem asks whether every game with a fixed constant number of rounds can be decided using polynomial space. The saved source contrasts the one-round case with the stronger class obtained when polynomially many rounds are available. Understanding the intermediate regime would show how quickly repeated quantum interaction increases the complexity of adversarial verification.
+A quantum refereed game has two competing provers trying to make an efficient verifier accept or reject. The provers exchange private quantum messages with the verifier and may keep private memory. The question asks whether every game with a constant number of interaction cycles can be simulated in deterministic polynomial space. Polynomial-space simulations are known for specific patterns in which interaction switches from one prover to the other only once. Polynomially many general rounds capture exponential time, leaving the full constant-round boundary open.
 
-[Read in atlas](index.html#TCS-0862) · [TCS Open Problems](https://tcsopenproblems.com/problem/13)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0862) · [Is QRG with Constant Rounds in PSPACE?](https://tcsopenproblems.com/problem/13) · [Quantum Interactive Proofs with Competing Provers](https://arxiv.org/abs/cs/0412102) · [Parallel Approximation of Min-Max Problems with Applications to Classical and Quantum Zero-Sum Games](https://arxiv.org/abs/1011.2787) · [Toward a General Theory of Quantum Games](https://arxiv.org/abs/quant-ph/0611234)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0027 — Black-box unitary synthesis
 
-An arbitrary unitary transformation may require an enormous circuit when described directly. This question asks whether access to a suitably chosen classical Boolean oracle can always make that transformation efficiently implementable by a quantum computer. The oracle may depend on the unitary, but the implementation must act correctly on arbitrary input states. Aaronson's survey distinguishes this from preparing one chosen state or reproducing the unitary on only a few basis vectors. The problem tests whether difficult quantum transformations can always be made easy by supplying enough classical black-box information.
+The problem asks whether every quantum unitary can be implemented efficiently using an appropriately chosen Boolean oracle. One fixed circuit family must work for all unitaries, with the desired unitary encoded only in the oracle. The implementation must work on arbitrary inputs, including states entangled with an untouched reference. Both total computation and coherent oracle access must remain polynomial in the number of input qubits. Known exponential-time implementations and restricted-query lower bounds leave the general question unresolved.
 
-[Read in atlas](index.html#TCS-0027) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0027) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [A One-Query Lower Bound for Unitary Synthesis and Breaking Quantum Cryptography](https://people.eecs.berkeley.edu/~jswright/papers/one-query-unitary-synthesis.pdf) · [Query and Depth Upper Bounds for Quantum Unitaries via Grover Search](https://arxiv.org/abs/2111.07992) · [Explicit Separations for One-Query Unitary Synthesis](https://arxiv.org/abs/2607.26478)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0860 — Complexity of Quantum Approximate Counting
 
