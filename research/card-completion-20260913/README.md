@@ -47,8 +47,8 @@ is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. An additional individual audit of the developed active companion TCS-7260
 extended the queue to 615 entries. A fresh active-only census subsequently added
 299 already developed cards that still needed an individual quality and source
-audit, increasing the queue to 914 entries. At the latest checkpoint, 202 are
-completed, 711 pending and one outside active scope. The live counts
+audit, increasing the queue to 914 entries. At the latest checkpoint, 208 are
+completed, 705 pending and one outside active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -327,3 +327,39 @@ pending in this pass. The active completion-output hash audit has 191 matches
 and skips all 11 subsequently archived bodies. Previously completed TCS-0019
 and TCS-0020 received separately checked contextual feedback additions without
 changing their completed targets; the ledger records the updated hashes.
+
+
+The final deployment of checkpoint 202 used the combined shared workspace,
+including the concurrent community-feedback changes and the new active card.
+It superseded the temporary isolated build described above: all 1,055 active
+cards and 15,974 mathematical expressions passed publication validation, and
+live version `f4ccfe1b302db8a9096a` was verified after deployment
+`7e9beab74cbb8d856608d7190af10c1ffe86d403`.
+
+Six further individual reviews complete TCS-6593, TCS-6595, TCS-6592,
+TCS-6532, TCS-6617 and TCS-6601. ETH and SETH now define attainable
+exponential rates, distinguish infima from attained bounds, and state the
+precise order of their algorithm and width quantifiers. The FPT card fixes
+uniformity, complete input length and parameterized many-one reductions.
+The polynomial-hierarchy card repairs incorrect Sigma notation and specifies
+the all-level assertion and its finite-collapse negation. Factoring fixes the
+full output, bit model, success probability and worst-case random clock.
+Extended Frege specifies its proof encoding and extension freshness, and
+checks Cook's correction and the scope of recent conditional, algebraic and
+intuitionistic results. All six retain their assessed importance and categories.
+
+Checkpoint 208 has 1,055 active cards: 350 individually completed/reviewed and
+705 pending. The queue has 208 completed records, comprising 197 active cards
+and 11 subsequently archived cards, plus 705 pending and one outside active
+scope. The 153 independently reviewed active cards outside this queue remain
+separately counted. There have been 157 completions since the renewed request.
+No pre-existing archived card body was inspected. Filled fields alone are not
+credited as a completed quality audit, and the overall pass remains incomplete.
+
+Validation for checkpoint 208: `make check` passed, combined shared-workspace
+publication passed, and `node tests/math.cjs` checked all 1,055 active cards
+and 16,016 mathematical expressions. `git diff --check` passed. The completion
+hash audit matched all 197 completed active outputs and skipped all 11 inactive
+bodies. The published version is `7a41d3e7a6247773f215`. Concurrent community
+changes are retained in the combined publication without being automatically
+credited as this pass's individual completions.
