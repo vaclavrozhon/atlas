@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-402 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (70)
@@ -1588,7 +1588,7 @@ The nuclear norm of a matrix is the sum of its singular values and measures a di
 [Read in atlas](index.html#TCS-7010) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Optimization and numerical computation (17)
+## Optimization and numerical computation (18)
 
 ### TCS-0008 — Strongly polynomial linear programming
 
@@ -1624,6 +1624,13 @@ The simplex method solves a linear program by moving between feasible bases thro
 
 [Read in atlas](index.html#TCS-6572) · [Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually Takes Polynomial Time](https://www.cs.yale.edu/homes/spielman/simplex/) · [An unconditional lower bound for the active-set method on the hypercube](https://arxiv.org/abs/2502.18019) · [An Unconditional Lower Bound for the Active-Set Method in Convex Quadratic Maximization](https://epubs.siam.org/doi/10.1137/1.9781611978971.14) · [Lower Bounds for Ranking-Based Pivot Rules](https://drops.dagstuhl.de/storage/00lipics/lipics-vol364-stacs2026/html/LIPIcs.STACS.2026.31/LIPIcs.STACS.2026.31.html) · [On the number of degenerate simplex pivots](https://link.springer.com/article/10.1007/s10107-026-02349-x)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7314 — Komlós conjecture
+
+Komlós asks whether every collection of real vectors of Euclidean norm at most one can be assigned signs so that every coordinate of their sum is bounded by one universal constant. The dimensions and entries are arbitrary, and the same complete choice of signs must control all coordinates simultaneously. The positive answer requires some finite constant, without determining the best one or giving an efficient algorithm. Such a theorem would imply the Beck–Fiala discrepancy bound and strengthen rounding and optimization guarantees. A complete Lean proof must establish the universal bound or unbounded discrepancy; the 10 September 2026 preprint claims the full positive bound, but this review has not independently verified its proof.
+
+[Read in atlas](index.html#TCS-7314) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [An Algorithm for Komlós Conjecture Matching Banaszczyk’s Bound](https://doi.org/10.1137/17M1126795) · [An Exposition of the \(\widetilde O((\log n)^{1/4})\) Bound for the Komlós Problem](https://arxiv.org/abs/2608.28452v1) · [A \((\log n)^{1/4}\) Bound for the Komlós Problem](https://arxiv.org/abs/2609.08885v1) · [Algorithms for Standard-Form ILP Problems via Komlós’ Discrepancy Setting](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.25) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
+Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-0491 — Log-squared query complexity for fixed-dimensional Tarski
 
