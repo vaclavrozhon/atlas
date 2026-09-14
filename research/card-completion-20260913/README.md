@@ -44,8 +44,9 @@ with outstanding model flags to the queue: TCS-0011, TCS-0465, TCS-0946, TCS-171
 TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individual
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
-part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 178 completed, 435 pending and one out of active scope. The live counts
+part of this census. An additional individual audit of the developed active companion TCS-7260
+extended the queue to 615 entries: at this checkpoint 186 completed, 428 pending
+and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +87,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 621 detailed active cards and 435 pending active reviews in the queue.
+there are 628 detailed active cards and 428 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -228,3 +229,27 @@ request. The 176-entry hash audit checked 167 then-active outputs with no hash
 mismatches and skipped all nine inactive bodies. Forty-three original completed
 records predate the separate quality_review metadata field; that absence was
 recorded as a metadata difference, not silently filled or treated as a new review.
+
+
+Eight further individual reviews complete TCS-0287, TCS-5011, TCS-5825,
+TCS-2861, TCS-0306, TCS-7260, TCS-6650 and TCS-7194. The sequence extractor
+specifies conditional effective dimensions and global oracle independence. The
+perceptron card recovers the source's polylogarithmic slack and distinguishes
+the Gaussian conjecture from the Rademacher lower-bound theorem. Prefix-U-one
+retains worst-case operation cost. Matroid WNR sampling uses the base polytope,
+exact marginals and an explicit expected-time oracle model, with the 2026 proof-gap
+discussion recorded. The three d-DNNF cards distinguish polynomial-time
+complementation, polynomial-size existence and deterministic equivalence;
+the structured-output lower bound is not applied to unrestricted circuits.
+TCS-7260 was an already developed active companion without an individual
+completion review and was added to the queue for this audit, increasing its
+scope from 614 to 615 entries. TCS-7194 distinguishes expanded shortest-solution
+length from compressed size and fixes the universal polynomial exponent.
+
+The checkpoint is 186 completed, 428 pending and one outside active scope, with
+1,056 active cards and 628 detailed active cards; 135 reviews followed the renewed
+request. The active-output hash audit checked 177 completed active records with
+no mismatches and skipped all nine inactive bodies. The queue is not a certificate
+that every older developed active card has already passed individual quality
+audit; that remaining census is still part of the requested work. No pre-existing
+archived card body was reviewed. This pass remains incomplete.
