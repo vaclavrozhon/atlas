@@ -1074,10 +1074,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6660 — Polynomial kernel for Edge Multiway Cut
 
-Edge Multiway Cut removes at most k edges from an undirected graph to separate every pair of designated terminals. The question asks for polynomial-time preprocessing into an equivalent instance with encoding length polynomial in k. Crucially, the size bound must remain independent of how many terminals the original graph contains. Such a kernel would show that a small separation budget also limits the information needed to represent the problem. The saved target explicitly allows randomized preprocessing, but preserving all terminal separation requirements is the central compression difficulty.
+Edge Multiway Cut removes a small number of edges so that no two designated terminals remain connected. The question asks whether polynomial-time preprocessing can reduce any instance to an equivalent instance of size polynomial in the deletion budget alone. The number of terminals is unrestricted, and the size exponent must not depend on it. Randomized preprocessing is allowed with a per-instance equivalence guarantee of at least two thirds. Known fixed-terminal kernels and quasipolynomial-size kernels leave the unrestricted polynomial-size target open in the checked sources.
 
-[Read in atlas](index.html#TCS-6660) · [Quasipolynomial multicut-mimicking networks and kernelization of multiway cut problems](https://arxiv.org/abs/2002.08825)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6660) · [Quasipolynomial multicut-mimicking networks and kernels for multiway cut problems](https://arxiv.org/abs/2002.08825v3) · [Quasipolynomial-Time Deterministic Kernelization and (Gammoid) Representation](https://doi.org/10.4230/LIPIcs.MFCS.2025.54)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-4790 — Subset Sum below the meet-in-the-middle exponent
 
@@ -1547,10 +1547,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6576 — Optimal competitive ratio for convex body chasing
 
-Convex body chasing presents a sequence of convex feasible regions in Euclidean space. After seeing each region, an online algorithm must choose a point inside it and pay for movement from its previous choice. The question asks for the best deterministic competitive ratio as a function of dimension. The saved formulation identifies a gap between a lower bound of order the square root of dimension and a linear upper bound. Closing that gap would quantify how severely high-dimensional feasibility constraints penalize decisions made without knowing future regions.
+Convex body chasing requires an online player to move into each newly revealed convex set. The player pays Euclidean movement while an offline comparator knows all future requests. This question asks for the optimal deterministic competitive ratio as dimension grows, up to universal constant factors. The strategy must work for arbitrary finite request sequences without knowing the horizon. The checked sources leave a gap between square-root and linear dimension dependence for general requests, with stronger results only in restricted settings.
 
-[Read in atlas](index.html#TCS-6576) · [Research reference · theory.epfl.ch](https://theory.epfl.ch/WinterSchool2025/slides/2025/Gupta_lec4-chasing.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6576) · [Online Algos: Old and New — Lecture 4: Search Problems](https://theory.epfl.ch/WinterSchool2025/slides/2025/Gupta_lec4-chasing.pdf) · [Chasing Convex Bodies Optimally](https://arxiv.org/abs/1905.11968v3) · [Chasing Nested Convex Bodies Nearly Optimally](https://arxiv.org/abs/1811.00999)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6577 — Minimax dimension dependence in bandit convex optimization
 
@@ -1903,10 +1903,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-1004 — Deterministic relative counting for DNF
 
-A disjunctive normal form represents a Boolean function as an OR of conjunctions. The question asks for deterministic relative approximation of the number of satisfying assignments. Overlapping terms make naive addition overcount, while a small satisfying fraction makes additive approximation insufficient. A fully specified solution would remove randomness from a basic approximate counting task closely connected with pseudorandomness. The inherited book label does not preserve the requested running time or accuracy convention, so those details must be recovered before assuming that every deterministic approximation guarantee answers the source question.
+A DNF formula describes a union of sets of Boolean assignments, one set for each conjunction. The question asks for deterministic relative approximation of the number of assignments in that union. One uniform algorithm must run in time polynomial in the explicit formula size and reciprocal error. The estimate must count assignments once despite overlapping terms and must be exactly zero for an unsatisfiable formula. Randomized schemes and deterministic algorithms for restricted formulas leave the general fully polynomial target unresolved in the checked sources.
 
-[Read in atlas](index.html#TCS-1004) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1004) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [A Note on Deterministic Approximate Counting for k-DNF](https://eccc.weizmann.ac.il/report/2002/069/) · [Pseudorandomness for read-k DNF formulas](https://www.cs.columbia.edu/~rocco/Public/read-k.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-3037 — Parity subgraph-counting dichotomy
 
