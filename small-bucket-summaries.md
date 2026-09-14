@@ -815,8 +815,8 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 Derandomization replaces efficient bounded-error randomized algorithms by deterministic ones. The question assumes this replacement for promise problems and asks whether it forces an exponential-time language to lack polynomial-size Boolean circuits. Known implications involving nondeterministic exponential time do not establish the deterministic-class target. The issue is a converse to hardness-based pseudorandomness constructions. The project seeks to explain whether eliminating randomness necessarily reveals an explicit source of circuit hardness at the corresponding deterministic computational scale.
 
-[Read in atlas](index.html#TCS-1021) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1021) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1022 — Derandomization implying exponential nondeterministic circuit hardness
 
@@ -2856,12 +2856,12 @@ Pairwise maximin-share fairness compares an agent's bundle with what they could 
 [Read in atlas](index.html#TCS-1119) · [Fair Division of Indivisible Goods: A Survey](https://www.cs.toronto.edu/~nisarg/teaching/2556s22/papers/fair-division-survey.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0073 — Complexity of mixed equilibria in identical-payoff polymatrix games
+### TCS-0073 — Polynomial-time mixed equilibria in coordination polymatrix games
 
-A polymatrix game sums a player's payoffs from separate two-player interactions along a graph. The source asks about computing mixed equilibria when the relevant interactions have identical payoffs. Shared payoffs can encourage coordination, but each player's action simultaneously affects several neighboring interactions. Understanding this restriction would show how common-interest structure changes the complexity of randomized strategic stability. The saved title does not spell out whether identical payoff is imposed globally or edge by edge, nor the requested approximation, so the precise game class still needs its source definition.
+Each player uses one action across several pairwise interactions in a graph. The two endpoints of each edge receive equal payoffs from that interaction. The target is a deterministic polynomial-time algorithm returning any exact mixed Nash equilibrium. Pure equilibria are permitted outputs, but an algorithm may also use genuinely mixed profiles. Known pure-equilibrium and adversarial two-team hardness results do not settle this coordination-only mixed search task.
 
-[Read in atlas](index.html#TCS-0073) · [Equilibrium Computation](https://doi.org/10.4230/DagRep.4.8.73)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0073) · [Equilibrium Computation](https://drops.dagstuhl.de/entities/document/10.4230/DagRep.4.8.73) · [On Minmax Theorems for Multiplayer Games](https://people.csail.mit.edu/costis/network2.pdf) · [The Complexity of Two-Team Polymatrix Games with Independent Adversaries](https://arxiv.org/abs/2409.07398)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0571 — Positional Nash Equilibria
 

@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-405 five-sentence working summaries, based on saved source material.
+406 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (70)
@@ -898,7 +898,7 @@ A deterministic cellular automaton induces a transformation on probability distr
 [Read in atlas](index.html#TCS-6158) · [Probabilistic cellular automata, invariant measures, and perfect sampling](https://doi.org/10.4230/LIPIcs.STACS.2011.296)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Semantics, logic and verification (38)
+## Semantics, logic and verification (39)
 
 ### TCS-6565 — Positivity problem for linear recurrences
 
@@ -956,6 +956,13 @@ In a mean-payoff game, two players move a token through a finite weighted direct
 [Read in atlas](index.html#TCS-6568) · [The complexity of mean payoff games](https://link.springer.com/chapter/10.1007/BFb0030814) · [Faster Algorithms for Mean-Payoff Games](https://lsv.ens-paris-saclay.fr/~doyen/papers/Faster_Algorithms_for_Mean-Payoff_Games.pdf) · [Value Iteration Using Universal Graphs and the Complexity of Mean Payoff Games](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2020.34) · [Smoothed Analysis of Deterministic Discounted and Mean-Payoff Games](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.147) · [Strategy Improvement, the Simplex Algorithm and Lopsidedness](https://arxiv.org/abs/2509.16075) · [Set-defined graph classes: \(\chi\)-boundedness meets tropical algebra](https://arxiv.org/abs/2607.23754)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7230 — Tarski’s exponential function problem
+
+Tarski’s exponential function problem asks whether one terminating algorithm can decide every first-order sentence about the standard real numbers with their full exponential function. The input is finite symbolic syntax with no arbitrary real constants or real-number oracle, and quantifiers range over all reals. Acceptance requires a complete Lean-checked proof of total correct decidability or a proof of undecidability, with no time bound and no unresolved extra hypothesis. The question extends decidable polynomial real arithmetic and already controls conditional verification results for restricted weighted automata. Macintyre–Wilkie’s conditional theorem and the checked June2026 axiomatization still rely on the real Schanuel hypothesis; restricted model completeness is a different conclusion.
+
+[Read in atlas](index.html#TCS-7230) · [On the elementary theory of the real exponential field](https://arxiv.org/abs/2603.08365v2) · [Schanuel’s Conjecture and the Decidability of the Real Exponential Field](https://link.springer.com/chapter/10.1007/978-94-015-8923-9_11) · [Algorithmic Applications of Schanuel’s Conjecture](https://people.mpi-sws.org/~joel/publications/algorithmic-schanuel25.pdf) · [The Big-O Problem for Labelled Markov Chains and Weighted Automata](https://doi.org/10.4230/LIPIcs.CONCUR.2020.41)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-6566 — Continuous Skolem problem
 
 A rational linear differential system evolves as a matrix exponential applied to its initial state. Continuous Skolem asks whether a specified linear observation of that trajectory is exactly zero at some nonnegative real time. The dimension is unrestricted, and the project seeks decidability without a time horizon. Approaching zero or changing sign are inadequate substitutes because trajectories may approach without hitting or touch zero without crossing it. A resolution would establish the limits of exact reachability verification even for continuous systems with linear, fully specified dynamics.
@@ -1011,6 +1018,13 @@ Church’s thesis says that every internal function from natural numbers to natu
 
 [Read in atlas](index.html#TCS-3031) · [Church’s Thesis and Related Axioms in Coq’s Type Theory](https://doi.org/10.4230/LIPIcs.CSL.2021.21) · [Coq 8.11 Reference Manual: Calculus of Inductive Constructions](https://docs.rocq-prover.org/v8.11/refman/language/cic.html) · [Consistency of Classical Synthetic Computability Theory](https://repozitorij.uni-lj.si/IzpisGradiva.php?id=153088&lang=eng)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6112 — Univalence, impredicativity and propositional resizing
+
+An impredicative universe supports quantification over types without the usual increase in universe size, while univalence connects equivalence with equality. Propositional resizing adds the requirement that large propositions have equivalent small representatives. The source asks for a model of type theory supporting all three features together. Its cubical assembly construction provides univalence and impredicativity but fails resizing, and a related positive model weakens identity and dependent-product structure. Constructing a model with the intended ordinary type-theoretic rules would clarify whether these attractive foundational principles can coexist without sacrificing essential forms of dependent reasoning.
+
+[Read in atlas](index.html#TCS-6112) · [Cubical Assemblies, a Univalent and Impredicative Universe and a Failure of Propositional Resizing](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.TYPES.2018.7)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0640 — Shortest runs in 3-D VASS
 
@@ -1116,13 +1130,6 @@ First-order theories of the real numbers become more expressive when exponential
 
 [Read in atlas](index.html#TCS-6036) · [Invariants for Continuous Linear Dynamical Systems](https://doi.org/10.4230/LIPIcs.ICALP.2020.107)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6112 — Univalence, impredicativity and propositional resizing
-
-An impredicative universe supports quantification over types without the usual increase in universe size, while univalence connects equivalence with equality. Propositional resizing adds the requirement that large propositions have equivalent small representatives. The source asks for a model of type theory supporting all three features together. Its cubical assembly construction provides univalence and impredicativity but fails resizing, and a related positive model weakens identity and dependent-product structure. Constructing a model with the intended ordinary type-theoretic rules would clarify whether these attractive foundational principles can coexist without sacrificing essential forms of dependent reasoning.
-
-[Read in atlas](index.html#TCS-6112) · [Cubical Assemblies, a Univalent and Impredicative Universe and a Failure of Propositional Resizing](https://doi.org/10.4230/LIPIcs.TYPES.2018.7)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6245 — Exponential witness bounds for three-dimensional VAS
 
@@ -1392,12 +1399,12 @@ The task is to simulate a long random walk on a graph presented as an edge strea
 [Read in atlas](index.html#TCS-0980) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:22)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0985 — $L_\infty$ Estimation
+### TCS-0985 — Streaming space for additive \(L_\infty\) estimation
 
-The infinity norm of a frequency vector is the largest absolute frequency. Multiplicative approximation is expensive in general, so the source instead allows additive error scaled by epsilon times the l1 or l2 norm. It asks whether estimating just this numerical value needs less space than finding the identities of heavy items. In particular, the domain-size dependence may be avoidable because the output contains no item name. The project is to separate the memory needed to estimate the largest magnitude from the extra information required to locate its contributing coordinates.
+The output is a single estimate of the largest absolute coordinate of a streamed frequency vector. The allowed additive error is one over k times the final L1 or L2 norm. Insertion-only streams and signed differences of two streams are distinct modes of the same resource question. The target is a tight bit-space characterization in the domain size, update budget and accuracy. A 2016 paper reports resolving the insertion-only L1 part, while this review does not certify a complete characterization of all cases.
 
-[Read in atlas](index.html#TCS-0985) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:3)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0985) · [Open Problem 3: L-infinity Estimation](https://sublinear.info/3) · [An Optimal Algorithm for l1-Heavy Hitters in Insertion Streams and Related Problems](https://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/bdw16.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-0988 — Deterministic Summary Structures
 
