@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. An additional individual audit of the developed active companion TCS-7260
-extended the queue to 615 entries: at this checkpoint 186 completed, 428 pending
+extended the queue to 615 entries: at this checkpoint 195 completed, 419 pending
 and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
@@ -80,14 +80,14 @@ current output path; archived content remains a completed review.
 
 This checkpoint also completes and archives TCS-5494 (published matching bounds for
 stochastic stationarity) and TCS-7008 (the explicitly selected fully polynomial
-entrywise low-rank target under P different from NP). There are now 1,056 active
+entrywise low-rank target under P different from NP). There are now 1,055 active
 cards. Their model choices, resolution scope and full content are preserved. The
 completion helper requires an explicit archival reason for an inactive outcome,
 validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 628 detailed active cards and 428 pending active reviews in the queue.
+there are 636 detailed active cards and 419 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -253,3 +253,30 @@ no mismatches and skipped all nine inactive bodies. The queue is not a certifica
 that every older developed active card has already passed individual quality
 audit; that remaining census is still part of the requested work. No pre-existing
 archived card body was reviewed. This pass remains incomplete.
+
+
+Nine further individual reviews complete TCS-6285, TCS-2029, TCS-4746,
+TCS-3886, TCS-4988, TCS-5593, TCS-6139, TCS-6091 and TCS-6712. The
+randomized-class questions now distinguish accepting computation paths, error
+parameter quantifiers, globally gapped witness predicates and effective
+representative enumerations without an extra computable-clock requirement.
+TFNP uses all-input totality and the source's many-one search reductions. The
+Black-Box Hypothesis includes unary size bounds and full computational cost.
+The random-tape card restores arbitrary two-way access and records its explicit
+sublinear-exponent convention; the depth-three card fixes the E evaluator and
+infinitely-often class noncontainment convention. Restricted and conditional
+results are distinguished from general resolutions.
+
+TCS-6712 was an active duplicate of TCS-0019: formula balancing and polynomial
+padding make its nonuniform class equality the negation of the retained
+linear-circuit separation. After an individual source and quantifier review,
+its content was preserved through the archive workflow, and the retained card
+now includes the equivalence and all source provenance. No pre-existing
+archived card body was reviewed.
+
+This checkpoint is 195 completed, 419 pending and one outside active scope,
+with 1,055 active cards and 636 detailed active cards; 144 reviews followed the
+renewed request. The active-output hash audit checked 185 completed active
+records with no mismatches and skipped all ten inactive bodies. Individual
+audits of the older developed cards outside this queue also remain in scope.
+The completion pass is still in progress.
