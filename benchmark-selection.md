@@ -11,30 +11,28 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 484 | 16 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 797 | 203 |
+| [Top 500](index.html?benchmark=top500) | 500 | 487 | 13 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 816 | 184 |
 
 ## Unfilled places
 
-- top500: Algorithms has 24/25 places.
+- top500: Optimization and numerical computation has 24/25 places.
 - top500: Sampling, Markov chains and mixing times has 9/10 places.
-- top500: Data structures has 7/10 places.
 - top500: Differential privacy has 7/10 places.
 - top500: Miscellaneous has 2/10 places.
-- top1000: Algorithms has 24/50 places.
+- top1000: Algorithms has 26/50 places.
 - top1000: Automata and formal languages has 33/50 places.
 - top1000: Semantics, logic and verification has 39/50 places.
-- top1000: Optimization and numerical computation has 26/50 places.
-- top1000: Geometry, topology and metric spaces has 42/50 places.
-- top1000: Learning theory has 42/50 places.
-- top1000: Cryptography has 30/50 places.
+- top1000: Optimization and numerical computation has 24/50 places.
+- top1000: Geometry, topology and metric spaces has 41/50 places.
+- top1000: Learning theory has 39/50 places.
+- top1000: Cryptography has 31/50 places.
 - top1000: Computability and algorithmic information theory has 18/20 places.
 - top1000: Beyond worst-case and average-case analysis has 13/20 places.
 - top1000: Sampling, Markov chains and mixing times has 9/20 places.
-- top1000: Counting and enumeration has 17/20 places.
-- top1000: Data structures has 7/20 places.
-- top1000: Dynamic algorithms has 14/20 places.
-- top1000: String algorithms and computational biology has 13/20 places.
+- top1000: Counting and enumeration has 18/20 places.
+- top1000: Data structures has 18/20 places.
+- top1000: Dynamic algorithms has 17/20 places.
 - top1000: Property testing and distribution learning has 16/20 places.
 - top1000: Differential privacy has 7/20 places.
 - top1000: Constraint satisfaction has 19/20 places.
@@ -75,9 +73,9 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | 2 | [Sorting \(X + Y\)](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
 | 3 | [Hypergraph cut sparsifiers with \(O(n/\varepsilon ^{2})\) hyperedges](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
 | 4 | [Near-linear-time approximation of reachability diameter](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
-| 5 | [Optimal size of four-additive graph spanners](index.html#TCS-6783) (TCS-6783) | Needs review | 89 | Unreviewed replacement |
+| 5 | [Near-linear output-sensitive Subset Sum](index.html#TCS-7350) (TCS-7350) | Needs review | 90 | Unreviewed replacement |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-0946, TCS-1141.
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0474, TCS-0771, TCS-0946, TCS-1141.
 
 ## Automata and formal languages
 
@@ -93,7 +91,7 @@ Previous prefix: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563.
 | 4 | [Decidability of every level of the dot-depth hierarchy](index.html#TCS-6561) (TCS-6561) | Logical language hierarchies | 95 | A longstanding structural decision problem linking finite automata, logical definability and finite monoids; a full solution would explain much more than the known low-level algorithms. |
 | 5 | [Equivalence of deterministic macro tree transducers](index.html#TCS-6563) (TCS-6563) | Tree-transducer equivalence | 95 | A central longstanding transducer-equivalence problem, connecting functional program verification with finite-state methods, algebraic invariants and structural recursion. |
 
-Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0121, TCS-0146, TCS-0135, TCS-0167, TCS-0136.
+Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0146, TCS-0135, TCS-0167, TCS-0136.
 
 ## Semantics, logic and verification
 
@@ -157,7 +155,7 @@ Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 | 4 | [Polynomial Hirsch conjecture](index.html#TCS-6573) (TCS-6573) | Polytope geometry | 95 | The surviving fundamental diameter question after the original Hirsch bound failed; it separates geometric existence of short routes from algorithmic navigation and the newly resolved circuit analogue. |
 | 5 | [Planar k-set extremal function](index.html#TCS-0318) (TCS-0318) | Planar extremal geometry | 94 | A defining two-parameter extremal problem underlying levels and geometric selection; its source-defined asymptotic function is admissible under the restored numerical/function policy. |
 
-Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
+Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
 
 ## Learning theory
 
@@ -171,7 +169,7 @@ Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 | 2 | [Learning parity with noise in polynomial time](index.html#TCS-6542) (TCS-6542) | Learning with noise | 96 | A fundamental boundary between information-theoretic learnability and efficient learning, with broad consequences for noise-tolerant algorithms and cryptographic assumptions. |
 | 3 | [Learning Boolean juntas from uniform random examples](index.html#TCS-6543) (TCS-6543) | Sparse Boolean structure | 95 | A central unresolved task in computational learning theory, isolating feature selection and serving as a prerequisite for efficient learning of general decision trees and DNF formulas. |
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) (TCS-5358) | Distribution-free Boolean rule learning | 97 | A defining improper PAC-learning question for compact Boolean rules under arbitrary input distributions, with broad consequences for decision-tree and junta learning. The general target and its conditional-hardness evidence are now stated precisely. |
-| 5 | [Distribution-free learning of intersections of two halfspaces](index.html#TCS-6544) (TCS-6544) | Needs review | 92 | Unreviewed replacement |
+| 5 | [Distribution-free learning of two margin halfspaces](index.html#TCS-6544) (TCS-6544) | Needs review | 92 | Unreviewed replacement |
 
 Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-5358.
 
@@ -309,7 +307,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [Deterministic competitiveness of k-server](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational quantitative question about the price of future uncertainty on arbitrary metrics, with a persistent gap between general upper and lower bounds despite many settled special cases. |
 | 2 | [Optimal approximation ratio for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-4983, TCS-5030, TCS-5158, TCS-5221, TCS-5252, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
+Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-4983, TCS-5030, TCS-5221, TCS-5252, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 
@@ -374,7 +372,7 @@ Previous prefix: empty.
 | 1 | [Dynamic optimality conjecture](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [Superlogarithmic static cell-probe lower bounds](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-0300, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-5706, TCS-0300, TCS-5825.
 
 ## Dynamic algorithms
 
@@ -478,7 +476,7 @@ Previous prefix: TCS-6631, TCS-0506.
 | 1 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
-Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507.
+Candidates considered: TCS-6673, TCS-0506, TCS-0510, TCS-0507.
 
 ## Constraint satisfaction
 
