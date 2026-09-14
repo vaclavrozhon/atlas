@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-603 five-sentence working summaries, based on saved source material.
+604 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -61,12 +61,12 @@ Every tuple of strings has a profile of complexities of its nonempty subtuples. 
 [Read in atlas](index.html#TCS-0250) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Algebraic Barriers to Halving Algorithmic Information Quantities in Correlated Strings](https://doi.org/10.4230/LIPIcs.MFCS.2025.84)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-0247 — Equivalence of Shannon and algorithmic network coding
+### TCS-0247 — Shannon feasibility from algorithmic network coding
 
-Shannon network coding studies transmission of random information through a network, while algorithmic network coding describes information using individual strings and program lengths. The question asks whether the two frameworks have equivalent capabilities in the source's sense. Such an equivalence would connect probabilistic entropy-based feasibility with finite-object descriptions lacking an underlying distribution. It could explain when network coding conclusions transfer between statistical and algorithmic information theories. The saved index does not preserve the network model, approximation terms, or asymptotic scaling, so the exact meaning of equivalence must be recovered before matching their achievable regions.
+Several correlated sources must be transmitted through a fixed directed acyclic network to designated recipients. Shannon coding chooses local encoding and decoding maps that work with high probability for random source blocks. Algorithmic coding instead allows each realized block to have its own short local programs and compatible edge messages. The question asks whether high-probability algorithmic feasibility with logarithmic overhead always implies Shannon feasibility at the same asymptotic rates. The target is this general converse, with vanishing error and rate slack defined explicitly, rather than a finite-block equivalence inferred from the title.
 
-[Read in atlas](index.html#TCS-0247) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0247) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Multisource Algorithmic Information Theory](https://www.lirmm.fr/~ashen/multisource-dagstuhl.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0287 — Strong extractors for infinite sequences
 
@@ -909,12 +909,12 @@ A combinatorial rectangle tests whether each coordinate falls inside a chosen su
 [Read in atlas](index.html#TCS-1124) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1019 — Polynomial-time derandomization of randomized AC0
+### TCS-1019 — Polynomial-time derandomization of randomized \(\mathrm{AC}^0\)
 
-Randomized AC0 computations use shallow AND–OR circuits together with random input bits. The saved question asks whether randomness can be removed within AC0, or at least by a polynomial-time algorithm. Constant depth severely restricts computation, but eliminating random choices need not preserve that circuit shape. Separating these two targets would clarify whether randomness adds expressive power or merely complicates the representation of a deterministic computation. The historical note does not state uniformity conventions, which are necessary because an arbitrary nonuniform circuit family cannot automatically be treated as a uniform polynomial-time algorithm.
+The question asks whether randomness can be removed from uniform shallow AND–OR computations using deterministic polynomial time. Each randomized circuit must answer correctly with probability at least two thirds on every input. A single polynomial-time procedure constructs the family’s circuit descriptions from the input length. The deterministic simulator may use arbitrary polynomial-time computation and need not remain a constant-depth circuit. Quasipolynomial simulation, correctness on most inputs and nonuniform deterministic circuits do not meet the full target.
 
-[Read in atlas](index.html#TCS-1019) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1019) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/) · [Weak derandomization of weak algorithms: explicit versions of Yao’s lemma](https://www.cs.haifa.ac.il/~ronen/online_papers/YaoLemma.pdf) · [Improved Pseudorandom Generators for \(\mathrm{AC}^0\) Circuits](https://doi.org/10.4230/LIPIcs.CCC.2022.34)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1122 — Nontrivial PRGs for logarithmic-degree binary polynomials
 
@@ -2572,7 +2572,7 @@ Dynamic s–t reachability asks whether a fixed target can be reached from a fix
 [Read in atlas](index.html#TCS-6477) · [Deterministic Fully Dynamic SSSP and More](https://doi.org/10.1109/FOCS57990.2023.00142)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## String algorithms and computational biology (25)
+## String algorithms and computational biology (26)
 
 ### TCS-6623 — Worst-case sample complexity of trace reconstruction
 
@@ -2581,19 +2581,26 @@ A deletion trace independently removes bits of an unknown string while preservin
 [Read in atlas](index.html#TCS-6623) · [New lower bounds for trace reconstruction](https://www.math.kent.edu/~zchase/tr_lower.pdf) · [New upper bounds for trace reconstruction](https://arxiv.org/abs/2009.03296) · [Trace Reconstruction from Local Statistical Queries](https://arxiv.org/abs/2407.11177) · [Near-Optimal Trace Reconstruction for Mildly Separated Strings](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.3) · [New Bounds for Circular Trace Reconstruction](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.30) · [Quasipolynomial Trace Reconstruction](https://arxiv.org/abs/2607.04073)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-6624 — Constant-factor edit-distance approximation in \(O(n \operatorname{polylog} n)\) time
+### TCS-6624 — Constant-factor edit-distance approximation in \(O(n\operatorname{polylog} n)\) time
 
-Edit distance counts the cheapest sequence of insertions, deletions, and substitutions transforming one string into another. The reviewed question asks for a randomized universal constant-factor approximation in near-linear time. Insertions can shift many positions, making direct coordinate comparisons misleading even when edit distance is tiny. The target would estimate global alignment cost without constructing the full quadratic dynamic-programming table. The guarantee is purely multiplicative, so identical strings must yield zero and nearby strings cannot be hidden behind a large additive error.
+Edit distance is the minimum number of unit-cost insertions, deletions and substitutions transforming one string into another. The question asks for one randomized algorithm with a universal constant approximation factor and only a fixed polylogarithmic overhead beyond linear input length. Its runtime must hold on every execution and its probability of a correct multiplicative estimate must be at least two thirds separately on every pair. Known fixed-slack constant-factor algorithms and earlier subpolynomial or additive approximations do not meet all these requirements simultaneously. The target remains distinct from the two retained questions about arbitrarily accurate estimates at slower stated runtimes.
 
-[Read in atlas](index.html#TCS-6624) · [Edit Distance in Near-Linear Time: It’s a Constant Factor](https://epubs.siam.org/doi/10.1137/21M1392322) · [Edit Distance in Near-Linear Time: it’s a Constant Factor — full manuscript](https://arxiv.org/abs/2005.07678) · [Approximating Edit Distance in Near-Linear Time](https://arxiv.org/abs/1109.5635) · [Constant factor approximations to edit distance on far input pairs in nearly linear time](https://arxiv.org/abs/1904.05459) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702) · [Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)](https://arxiv.org/abs/1412.0348)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6624) · [Edit Distance in Near-Linear Time: It’s a Constant Factor](https://epubs.siam.org/doi/10.1137/21M1392322) · [Edit Distance in Near-Linear Time: it’s a Constant Factor — full manuscript](https://arxiv.org/abs/2005.07678v2) · [Approximating Edit Distance in Near-Linear Time](https://arxiv.org/abs/1109.5635v1) · [Constant factor approximations to edit distance on far input pairs in nearly linear time](https://arxiv.org/abs/1904.05459v2) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702v1) · [Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)](https://arxiv.org/abs/1412.0348v4)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-7220 — Truly subquadratic \((1+\varepsilon )\)-approximation of edit distance
+### TCS-7235 — Almost-linear-time \((1+\varepsilon)\)-approximation of edit distance
 
-Unit-cost edit distance counts the fewest single-symbol insertions, deletions and substitutions needed to transform one string into another. The question asks whether every fixed positive \(\varepsilon\) permits a randomized \((1+\varepsilon )\)-approximation in \(O(n^{2- \delta _{\varepsilon}})\) time for some fixed \(\delta _{\varepsilon}>0\) on every input pair. Mao and Rubinstein’s 2026 approximation scheme gives a quasipolynomial speedup over quadratic time without establishing that fixed exponent saving. The numerical estimate must have purely multiplicative error even for strings with very small distance, and all preprocessing is included in the runtime. This accuracy target remains separate from TCS-6624, which allows a fixed constant factor but requires \(O(n \operatorname{polylog} n)\) time.
+Edit distance counts unit-cost insertions, deletions and substitutions needed to transform one string into another. The question asks for an arbitrarily accurate fixed multiplicative estimate on every explicitly stored pair in almost-linear worst-case time. For each accuracy, one randomized algorithm must satisfy every positive fixed exponent slack and succeed separately on every input pair. Known constant-factor algorithms have different accuracy guarantees, while the 2026 near-exact scheme has a weaker stated running-time bound. This target strengthens the retained truly subquadratic near-exact question while remaining distinct from constant-factor approximation with a fixed polylogarithmic overhead.
 
-[Read in atlas](index.html#TCS-7220) · [Approximating Edit Distance](https://theorydish.blog/2018/07/20/approximating-edit-distance/) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://arxiv.org/abs/2005.07678)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7235) · [Approximating Edit Distance](https://theorydish.blog/2018/07/20/approximating-edit-distance/) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://arxiv.org/abs/2005.07678v2) · [Edit Distance in Near-Linear Time: It’s a Constant Factor](https://epubs.siam.org/doi/10.1137/21M1392322) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702v1) · [Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)](https://arxiv.org/abs/1412.0348v4)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7220 — Truly subquadratic \((1+\varepsilon)\)-approximation of edit distance
+
+Unit-cost edit distance counts insertions, deletions and substitutions needed to transform one string into another. The question asks whether every fixed positive relative tolerance permits a randomized approximation with a positive fixed saving from the quadratic time exponent. Both the algorithm and the exponent saving may depend on the tolerance but must work on every explicitly stored pair with the stated per-input success probability. The 2026 approximation scheme gives a quasipolynomial speedup over quadratic time without establishing this fixed-exponent guarantee. The target remains distinct from fast coarse approximation and is implied by the stronger retained almost-linear near-exact question.
+
+[Read in atlas](index.html#TCS-7220) · [Approximating Edit Distance](https://theorydish.blog/2018/07/20/approximating-edit-distance/) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702v1) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://arxiv.org/abs/2005.07678v2) · [Edit Distance in Near-Linear Time: It’s a Constant Factor](https://epubs.siam.org/doi/10.1137/21M1392322) · [Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)](https://arxiv.org/abs/1412.0348v4)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6669 — Breaking two for sum-of-pairs multiple sequence alignment
 
@@ -2984,6 +2991,13 @@ Two group presentations can describe the same abstract group despite using diffe
 [Read in atlas](index.html#TCS-6677) · [The theory of one-relator groups: history and recent progress](https://arxiv.org/abs/2501.18306) · [The isomorphism problem for all hyperbolic groups](https://arxiv.org/abs/1002.2590) · [Generic properties of Whitehead's Algorithm and isomorphism rigidity of random one-relator groups](https://arxiv.org/abs/math/0303386) · [Small Cancellation Stability and Isomorphism Rigidity for Generic Finitely Presented Groups](https://arxiv.org/abs/2608.17238) · [Undecidability of the Diophantine problem for one-relator groups and one-relation monoids](https://arxiv.org/abs/2608.01983)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7113 — Derandomizing polynomial identity testing
+
+An arithmetic circuit may compute the zero polynomial even when cancellation is difficult to see from its graph. The question asks for an exact deterministic polynomial-time test given the entire circuit over binary-encoded integer constants. Circuits may reuse intermediate results, have arbitrary depth and compute polynomials of exponential degree. Randomized polynomial-time tests are known, while removing their randomness would have major circuit lower-bound consequences. Recent deterministic results for restricted circuit shapes do not provide the requested algorithm for all explicit circuits.
+
+[Read in atlas](index.html#TCS-7113) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042) · [Derandomizing Polynomial Identity Tests Means Proving Circuit Lower Bounds](https://www.cs.sfu.ca/~kabanets/Research/poly.html) · [Homomorphism Indistinguishability, Multiplicity Automata Equivalence, and Polynomial Identity Testing](https://doi.org/10.4230/LIPIcs.STACS.2026.25) · [Polynomial Identity Testing and Reconstruction for Depth-4 Powering Circuits of High Degree](https://arxiv.org/abs/2602.20832v1)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-7174 — Bit complexity of integer multiplication
 
 What is the optimal worst-case bit complexity of multiplying two n-bit integers? The model charges individual steps of a fixed deterministic multitape Turing machine. An \(O(n \log  n)\) algorithm is known, but only a linear general lower bound is established. A 2025 theorem connects the conjectured matching lower bound to the unresolved cost of matrix transposition. Bounds for restricted branching programs do not determine the optimal cost in this model.
@@ -3332,13 +3346,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Multivariate polynomial factorization decomposes a polynomial into simpler multiplicative components. The saved question seeks efficient deterministic factorization and asks whether derandomizing polynomial identity testing is enough to obtain it. This probes whether the randomness used by factoring algorithms can be reduced to testing algebraic equality. A positive reduction would connect two fundamental computer-algebra tasks through a single derandomization breakthrough. The polynomial representation, coefficient field, and treatment of factor output sizes are missing from the short note, so the eventual statement must specify them instead of combining dense and circuit-based models implicitly.
 
 [Read in atlas](index.html#TCS-6914) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7113 — Derandomizing polynomial identity testing
-
-An explicitly represented arithmetic circuit can contain many cancellations, making zero output difficult to recognize from its syntax. The question asks for an efficient deterministic polynomial identity test using that circuit description. Unlike black-box testing, the algorithm may inspect the graph and exploit how intermediate expressions are built. The enumeration source includes this problem because algebraic identity checks can control the effectiveness of broader generation procedures. The saved note does not specify field and degree assumptions, and its dated provenance should be retained while separating this white-box task from stronger evaluation-only derandomization requests.
-
-[Read in atlas](index.html#TCS-7113) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Lattices and computational number theory (27)
@@ -3760,6 +3767,13 @@ A graph-removal statement links distance from excluding a fixed pattern to the n
 [Read in atlas](index.html#TCS-1029) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-5085 — Query complexity of Max-CSP testing
+
+A tester must distinguish constraint systems whose optimum satisfied fractions lie on opposite sides of a fixed gap. It can query variables to reveal incident constraint occurrences, with only a constant number of occurrences per variable. The target is the asymptotic query complexity for every finite predicate template, gap, degree bound and density regime. The actual number of constraints matters because value is normalized by constraints rather than by all possible incidence slots. Known linear lower bounds and related streaming results leave the complete query classification unresolved.
+
+[Read in atlas](index.html#TCS-5085) · [Unbounded-Width CSPs Are Untestable in a Sublinear Number of Queries](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.31) · [Near-Optimal Space Lower Bounds for Streaming CSPs](https://arxiv.org/abs/2604.01400v1)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-0848 — Testing Submodularity
 
 A submodular set function has diminishing marginal gains as the set receiving a new element grows. The source entry asks about testing this property from limited access to function values. A tester must distinguish true submodularity from functions requiring substantial change to acquire it. Efficient testing would help identify when optimization techniques relying on diminishing returns are applicable. The saved label does not specify the domain representation, range, distance measure, or desired query bound, so no particular tester or lower-bound target is inferred.
@@ -3815,13 +3829,6 @@ Sublinear graph testing tries to infer a global property from a small number of 
 
 [Read in atlas](index.html#TCS-4376) · [Every Property of Outerplanar Graphs is Testable](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5085 — Query complexity of Max-CSP testing
-
-The source asks how many local queries are needed to distinguish high-value from low-value Max-CSP instances. Its target covers every predicate family \(\Gamma\) and every completeness–soundness pair c,s in the bounded-degree model. A tester sees only a small portion of an instance, so global unsatisfiability must be reflected in accessible local evidence. A classification would map the boundary between sublinear testing and problems requiring much broader inspection. The saved statement does not reproduce the degree-oracle conventions or admissible gap parameters, which are necessary to assign exact query complexities.
-
-[Read in atlas](index.html#TCS-5085) · [Unbounded-Width CSPs Are Untestable in a Sublinear Number of Queries](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.31)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5210 — Polylogarithmic-query pattern-freeness testing
 

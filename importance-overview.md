@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-789 records have an editorial importance assessment; 266 remain provisional.
+791 records have an editorial importance assessment; 264 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -190,7 +190,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 | 6 | [Universality of Turing equivalence](index.html#TCS-6679) | 95 |
 | 7 | [Mortality of \\(2\\times 2\\) integer matrix semigroups](index.html#TCS-7193) | 91 |
 | 8 | [Scaling joint Kolmogorov-complexity profiles](index.html#TCS-0250) | 85 |
-| 9 | [Equivalence of Shannon and algorithmic network coding](index.html#TCS-0247) | 81 |
+| 9 | [Shannon feasibility from algorithmic network coding](index.html#TCS-0247) | 81 |
 | 10 | [Strong extractors for infinite sequences](index.html#TCS-0287) | 74 |
 
 ## 2. Proof complexity (small)
@@ -420,9 +420,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Worst-case sample complexity of trace reconstruction](index.html#TCS-6623) | 96 |
-| 2 | [Constant-factor edit-distance approximation in \\(O(n \\operatorname{polylog} n)\\) time](index.html#TCS-6624) | 95 |
-| 3 | [Almost-linear-time \\((1+\\varepsilon )\\)-approximation of edit distance](index.html#TCS-7235) | 97 |
-| 4 | [Truly subquadratic \\((1+\\varepsilon )\\)-approximation of edit distance](index.html#TCS-7220) | 96 |
+| 2 | [Constant-factor edit-distance approximation in \\(O(n\\operatorname{polylog} n)\\) time](index.html#TCS-6624) | 95 |
+| 3 | [Almost-linear-time \\((1+\\varepsilon)\\)-approximation of edit distance](index.html#TCS-7235) | 97 |
+| 4 | [Truly subquadratic \\((1+\\varepsilon)\\)-approximation of edit distance](index.html#TCS-7220) | 96 |
 | 5 | [Breaking two for sum-of-pairs multiple sequence alignment](index.html#TCS-6669) | 92 |
 | 6 | [Almost-linear constant-factor approximation of LCS](index.html#TCS-7371) | 91 |
 | 7 | [Text-to-pattern Hamming distances below the square-root barrier](index.html#TCS-7367) | 89 |
@@ -449,7 +449,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance 
 
 ## 17. Algebraic computation (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 64; importance assessed: 39; provisional: 25.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 64; importance assessed: 40; provisional: 24.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -500,7 +500,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 20. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 11; provisional: 5.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 12; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -509,11 +509,11 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 3 | [Sublinear testing of bounded-degree graph isomorphism](index.html#TCS-6672) | 92 |
 | 4 | [Characterizing polynomial-query dense graph properties](index.html#TCS-1030) | 88 |
 | 5 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
-| 6 | [Testing Submodularity](index.html#TCS-0848) | 75 |
-| 7 | [Equivalence Testing with Conditional Samples](index.html#TCS-0841) | 72 |
-| 8 | [Query complexity of directed acyclicity testing with bidirectional access](index.html#TCS-0847) | 68 |
-| 9 | [Efficient characterization of instance-optimal identity testing](index.html#TCS-0672) | 65 |
-| 10 | [A dimension-free directed \\(\\mathrm{L}^{1}\\) Poincaré inequality](index.html#TCS-2535) | 50 |
+| 6 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
+| 7 | [Testing Submodularity](index.html#TCS-0848) | 75 |
+| 8 | [Equivalence Testing with Conditional Samples](index.html#TCS-0841) | 72 |
+| 9 | [Query complexity of directed acyclicity testing with bidirectional access](index.html#TCS-0847) | 68 |
+| 10 | [Efficient characterization of instance-optimal identity testing](index.html#TCS-0672) | 65 |
 
 ## 21. Differential privacy (small)
 
