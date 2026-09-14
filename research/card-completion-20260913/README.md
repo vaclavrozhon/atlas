@@ -47,8 +47,8 @@ is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. An additional individual audit of the developed active companion TCS-7260
 extended the queue to 615 entries. A fresh active-only census subsequently added
 299 already developed cards that still needed an individual quality and source
-audit, increasing the queue to 914 entries. At the latest checkpoint, 224 are
-completed, 689 pending and one outside active scope. The live counts
+audit, increasing the queue to 914 entries. At the latest checkpoint, 232 are
+completed, 681 pending and one outside active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -481,3 +481,39 @@ workspace publication and `node tests/math.cjs` for all 1,055 active cards and
 16,551 mathematical expressions. Published version: `393f22252d7b8e34a040`.
 The snapshot retains the concurrent community-feedback changes; subsequent
 independent card edits are not credited as this pass’s completed reviews.
+
+Deployment note for checkpoint 224: concurrent publication advanced the shared
+build before the Pages snapshot. The deployed combined version was
+`e18fb388ad4dac4a8223`, commit `8a8c218920472530e89ddd5f3118298fdf8b993f`,
+and its live version was subsequently verified. It includes the four audited
+cards and the concurrent updates. A later combined build also passed all
+mathematical rendering checks for 16,582 expressions. The source commit for
+the four owned reviews is `28001fb9`; concurrent canonical work was preserved.
+
+Two further individual audits complete TCS-7230 and TCS-7221. Tarski’s
+exponential-function problem now has a fixed finite sentence grammar, uniform
+total bit-machine semantics and exact Lean acceptance, with the real Schanuel
+assumption and the weaker effective separation condition correctly separated.
+Its June2026 source gives unrestricted decidability only conditionally; the
+unconditional restricted model-completeness result does not settle the target.
+The #BIS audit corrects the 2019 author list and reconciles the differently
+titled 2023 preprint and ICALP2024 article. It specifies explicit graph and
+accuracy encodings, relative error, every-random-tape runtime and the full
+impossibility negation, and distinguishes fixed-density, random-regular and
+balanced-count results from the total count on all bipartite graphs.
+
+The combined checkpoint 232 census is 1,055 active cards: 374 individually
+completed/reviewed and 681 pending. Six other individually completed records
+were added to the shared ledger by the concurrent random-card review:
+TCS-7365, TCS-7227, TCS-1021, TCS-6112, TCS-0073 and TCS-0985. These are
+separately authored reviews, rather than automatic credit for field edits.
+The queue has 232 completed records (221 active and 11 subsequently archived),
+681 pending and one outside active scope; the other 153 reviewed active cards
+remain separately accounted for. The overall active-card pass is incomplete.
+
+Validation for the combined checkpoint 232: `make check` passed. Publication
+and `node tests/math.cjs` passed for all 1,055 cards and 16,743 mathematical
+expressions, version `b031d8f5e440b0e4a108`. All 221 completed active output
+hashes match; the 11 inactive card bodies were skipped. The two owned source
+reviews are committed with their own queue and ledger snapshot; the six
+concurrent completions remain preserved for their separate source commit.
