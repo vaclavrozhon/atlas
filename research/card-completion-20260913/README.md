@@ -655,3 +655,28 @@ Deployment note for checkpoint 247: the combined root build was deployed and
 live-verified as a6e9bc6def6bbba3d8ac, Pages commit
 c6288951c454d4c7c542d9b653ae9d325a4512fe. Concurrent publication had advanced
 the shared build; the combined state was retained.
+
+Checkpoint 257 completes TCS-6665, the rational finite-alphabet private-message
+broadcast capacity function. It now has complete deterministic code maps, a
+joint average-error criterion, explicit base-two units, the entire channel-table
+domain and corrected 1/100 Lean acceptance. The review checked Marton’s original
+model, the finite auxiliary-cardinality theorem, product-channel sum-rate
+regularization, the conditional convergence hypotheses in the 2024 full-text XML,
+and the actual scope of the 2026 outer-bound and Marton-suboptimality manuscripts.
+The latter’s unconstrained example has an enlarged rational alphabet; its proof
+and numerical certificates were not independently verified.
+
+The combined census is 1,052 active cards: 396 individually completed/reviewed
+and 656 pending. The queue has 257 completions, including 14 now-inactive records
+whose bodies were skipped; all 243 completed active queue output hashes match.
+Twenty concurrent individual reviews are included, with TCS-3631, TCS-5127,
+TCS-4099 and TCS-0818 added since checkpoint 252. The last three of those were
+individually retired as resolved in that concurrent review. They are separate
+from the owned broadcast-card change.
+
+Validation for checkpoint 257: make check and make publish passed; the combined
+publication is de64c6070abf16f85a8d. The math check passed 1,052 active cards and
+17,427 expressions. The earlier checkpoint 252 deployment produced Pages commit
+5eea803f86ddddc21dc65f65980207d531389392 (version 0c9fc96da100fd698dc2); the
+subsequent concurrent publication was live-verified as a38f481993089503a57f
+with publication timestamp 2026-09-14T19:55:27+00:00.
