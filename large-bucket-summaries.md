@@ -3,7 +3,7 @@
 402 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (71)
+## Computational complexity (70)
 
 ### TCS-0001 — P versus NP
 
@@ -152,6 +152,13 @@ Majority returns one when at least half of its input bits are one. ACC⁰ circui
 [Read in atlas](index.html#TCS-1056) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Optimal Lower Bounds for Symmetric Modular Circuits](https://arxiv.org/abs/2604.04760)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-6817 — Directed reachability in polynomial time and polylogarithmic space
+
+The problem asks for directed reachability to be decided simultaneously in polynomial time and polylogarithmic space. One uniform deterministic machine must meet both bounds on every explicitly encoded graph and marked vertex pair. No graph restrictions, randomness, advice or additional catalytic memory are allowed. Separate efficient-time and small-space algorithms do not satisfy the joint requirement. The target is equivalently inclusion of nondeterministic logspace in SC, and is weaker than L equaling NL.
+
+[Read in atlas](index.html#TCS-6817) · [Computational Complexity: A Modern Approach (web draft)](https://theory.cs.princeton.edu/complexity/book.pdf) · [A Sublinear Space, Polynomial Time Algorithm for Directed s-t Connectivity](https://doi.org/10.1137/S0097539793283151) · [Directed st-Connectivity with Few Paths Is in Quantum Logspace](https://doi.org/10.4230/LIPIcs.CCC.2025.18) · [A Space-space Trade-off for Directed st-Connectivity](https://arxiv.org/abs/2602.21088v1)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-0018 — P versus NP intersect coNP
 
 A language in NP intersect coNP has short efficiently checkable certificates for both yes and no instances. The question asks whether some such language still lies outside deterministic polynomial time. Having two kinds of witnesses does not automatically tell an algorithm how to find either one. The separation would identify difficulty independent of the asymmetric certification typical of NP-complete problems. The project explores whether efficiently verifiable certainty on both sides can coexist with an intrinsically hard decision process.
@@ -186,6 +193,13 @@ The question concerns a fixed machine that prints all digits of a real number wi
 
 [Read in atlas](index.html#TCS-7159) · [On the computational complexity of algebraic numbers: the Hartmanis–Stearns problem revisited](https://arxiv.org/abs/1601.02771) · [Time-Restricted Sequence Generation](https://people.csail.mit.edu/meyer/time-restricted-sequence-generation-jcss.pdf) · [On Transcendence of Numbers Related to Sturmian and Arnoux-Rauzy Words](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.144) · [Computing the base-b representation of quadratic irrationals using automata](https://doi.org/10.1016/j.tcs.2026.115843)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6714 — Nonuniform \(\mathrm{NC}^{1}\) perfect matching
+
+The question asks whether perfect-matching existence in every undirected graph has nonuniform polynomial-size circuits of logarithmic depth. The circuits use binary AND and OR with negation and return only an exact decision bit. This is equivalent to polynomial-size formulas and, under explicit graph transformations, to the matching-threshold question in the original source. Monotone lower bounds and broader polylogarithmic-depth algorithms do not decide the unrestricted NC-one target. The July 2026 bipartite NC result also has a different graph scope and depth guarantee.
+
+[Read in atlas](index.html#TCS-6714) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [The Matching Problem in General Graphs Is in Quasi-NC](https://doi.org/10.1109/FOCS.2017.70) · [Bipartite Matching is in NC](https://eccc.weizmann.ac.il/report/2026/100/revision/2/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7243 — Linear-size circuits for stable ternary compaction
 
@@ -425,13 +439,6 @@ ARRIVAL describes a deterministic walk in a directed graph whose vertices altern
 [Read in atlas](index.html#TCS-6006) · [A Subexponential Algorithm for ARRIVAL](https://doi.org/10.4230/LIPIcs.ICALP.2021.69)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6714 — Nonuniform \(\mathrm{NC}^{1}\) perfect matching
-
-Matching asks for edges with disjoint endpoints, with perfect matching requiring every vertex to be covered. Polynomial-time matching algorithms imply polynomial-size Boolean circuits for the decision problem. The question asks whether general circuits can achieve logarithmic depth as well. The cited source discusses a matching-size threshold and proves a strong depth lower bound when the circuit is required to be monotone. The project is to understand whether allowing negation permits substantially shallower matching computations, beyond the restrictions captured by that monotone lower bound.
-
-[Read in atlas](index.html#TCS-6714) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6715 — Monotone circuits versus monotone span programs
 
 A monotone span program accepts an input when vectors enabled by its one-bits span a designated target vector over a field. A monotone Boolean circuit instead combines input bits using AND and OR gates. The question asks for functions with polynomial-size monotone circuits that require superpolynomial-size monotone span programs. The source discusses a separation in the opposite direction, so this asks whether the two models can be incomparable in efficiency. Such an example would expose a limitation of linear-algebraic representations even for functions having short purely monotone logical computations.
@@ -460,13 +467,6 @@ Graph nonisomorphism asks whether two graphs cannot be matched by any relabeling
 [Read in atlas](index.html#TCS-6747) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6817 — Directed reachability in polynomial time and polylogarithmic space
-
-Directed reachability asks whether a path exists from a specified start vertex to a specified target. A graph search can solve it in polynomial time using substantial memory, while recursive reachability methods save memory at a time cost. The question asks for one algorithm that simultaneously uses polynomial time and only polylogarithmic space. Obtaining the two resource bounds in separate algorithms does not meet this requirement. The problem is a basic test of whether reachability can combine efficient exploration with an extremely small working memory.
-
-[Read in atlas](index.html#TCS-6817) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6832 — Separations among P, RP and NP
 
 P consists of problems with deterministic polynomial-time algorithms, while RP permits randomized algorithms that can miss yes-instances but never falsely accept no-instances. Every RP algorithm can be viewed as an NP verification procedure by treating its random choices as a certificate. This gives the chain P contained in RP contained in NP. The question asks which of these inclusions are strict. The alternatives distinguish whether randomness adds power beyond deterministic computation and whether one-sided randomized search can capture the full strength of efficiently verifiable existence.
@@ -488,19 +488,12 @@ SAT asks whether a Boolean formula has a satisfying assignment. The selected que
 [Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6978 — Separating space from comparable time bounds
+### TCS-6979 — Independence of P versus NP from ZFC
 
-Time measures how many computational steps an algorithm takes, while space measures how much working memory it uses. A computation can reuse the same memory through a very long sequence of steps. The question seeks a problem solvable within a given space bound that cannot be solved within roughly the same time bound. A precise version must specify the machine model, the resource function, and what slack is allowed by roughly the same. Such a separation would capture a basic advantage of reusable memory that ordinary time and space hierarchy theorems do not directly compare.
+P versus NP asks whether efficiently verifiable decisions can always be made efficiently. This card asks specifically whether ZFC proves neither the usual arithmetic statement P = NP nor its negation. It defines that statement through polynomial-time deterministic satisfiability and allows all finite ZFC proofs. Results for restricted theories and oracle machines do not establish the asserted independence from full ZFC. The question has a definite yes/no target once the axioms are fixed, and a positive answer would also imply their consistency.
 
-[Read in atlas](index.html#TCS-6978) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6979 — Independence of P versus NP
-
-P versus NP asks whether every efficiently verifiable decision problem can also be solved efficiently. The independence question concerns the possibility that a chosen mathematical axiom system proves neither equality nor inequality. This is a question about formal provability, distinct from proposing either an algorithm or a complexity lower bound. Any precise claim must name the axiom system and the assumptions made about its consistency or soundness. Investigating independence could identify limitations of the available foundations or proof methods, without treating the difficulty of existing approaches as evidence that independence must hold.
-
-[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ## Algorithms (26)
 
@@ -1173,7 +1166,7 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Distributed, parallel and sublinear algorithms (59)
+## Distributed, parallel and sublinear algorithms (60)
 
 ### TCS-6553 — P versus NC
 
@@ -1328,6 +1321,13 @@ Triangle detection asks a distributed network to report whether any three vertic
 
 [Read in atlas](index.html#TCS-2997) · [Distributed Subgraph Finding — ADGA 2025](https://adga-workshop.org/2025/keren.pdf) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802) · [Near-optimal Distributed Triangle Enumeration via Expander Decompositions](https://doi.org/10.1145/3446330)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7376 — Polylogarithmic-space streaming Euclidean MST estimation
+
+Points arrive one at a time in Euclidean space, and the goal is to estimate the cost of connecting them by a minimum spanning tree. The algorithm gets one insertion-only pass and may keep only memory polynomial in the dimension and the logarithmic input parameters. It should return a constant-factor estimate with probability at least two thirds for every input order. The cited paper leaves a gap between its sublinear-space constant-factor result and this smaller memory budget. The question asks how compactly one can summarize global geometric connectivity, without requiring the summary to output the tree itself.
+
+[Read in atlas](index.html#TCS-7376) · [Community proposal: Streaming Euclidean MST to constant factor in space polylogarithmic in the number of points](https://github.com/vaclavrozhon/atlas/issues/2) · [Streaming Euclidean MST to a Constant Factor](https://doi.org/10.1145/3564246.3585168)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0984 — Optimal measurements and near-linear decoding for universal ℓ₂/ℓ₁ sparse recovery
 
