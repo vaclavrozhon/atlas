@@ -47,8 +47,8 @@ is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. An additional individual audit of the developed active companion TCS-7260
 extended the queue to 615 entries. A fresh active-only census subsequently added
 299 already developed cards that still needed an individual quality and source
-audit, increasing the queue to 914 entries. At the latest checkpoint, 208 are
-completed, 705 pending and one outside active scope. The live counts
+audit, increasing the queue to 914 entries. At the latest checkpoint, 212 are
+completed, 701 pending and one outside active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -363,3 +363,29 @@ hash audit matched all 197 completed active outputs and skipped all 11 inactive
 bodies. The published version is `7a41d3e7a6247773f215`. Concurrent community
 changes are retained in the combined publication without being automatically
 credited as this pass's individual completions.
+
+
+Four further individual reviews complete TCS-0007, TCS-6603, TCS-4245 and
+TCS-6571. The matrix-multiplication exponent retains the approved absolute
+1/100 numerical target while making arithmetic circuits and infimum bounds
+precise. Log-rank fixes the protocol and real-rank models and distinguishes
+one-sided rectangle partitions from full deterministic protocols. Parity games
+now specify arbitrary vertex ownership, binary priorities and a uniform bit
+model; the November 2025 claimed solution remains explicitly unverified,
+with the June 2026 CONCUR revision recorded separately. Hilbert's tenth
+problem over Q now specifies full total computability and Lean acceptance,
+with source-checked distinctions from integer rings, universal quantifiers
+and extra height predicates. Existing scores and categories are retained.
+
+Checkpoint 212 has 1,055 active cards: 354 individually completed/reviewed and
+701 pending. Its queue contains 212 completed records (201 active and 11
+subsequently archived), 701 pending and one outside active scope. The other
+153 reviewed active cards are accounted for separately. There have been 161
+completions since the renewed request. The completed active-output hash
+audit matches all 201 records; inactive bodies were skipped. The overall
+pass remains incomplete.
+
+Validation for checkpoint 212: `make check` passed. Combined workspace
+publication and `node tests/math.cjs` passed for all 1,055 active cards and
+16,077 mathematical expressions; version `c296ba06b37299573e06`. The
+publication retains the concurrent community-feedback changes.
