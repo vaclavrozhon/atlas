@@ -2494,12 +2494,12 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Quantum computation and information (54)
 
-### TCS-6446 — Quantum PCP conjecture
+### TCS-6446 — Quantum PCP conjecture with classical reductions
 
-The quantum PCP conjecture asks whether even a coarse estimate of a quantum system's lowest energy can capture the difficulty of verifying quantum proofs. The system is specified by local interactions, each involving only a bounded number of qubits. The target is hardness for distinguishing two possible ground energies separated by a constant after normalizing the total interaction strength. Normalization prevents a small gap from becoming a constant merely by multiplying the Hamiltonian by a large number. The problem connects robust quantum verification with entanglement, quantum codes, and the limits of approximation algorithms.
+A local Hamiltonian describes a quantum system through bounded-strength interactions on a fixed number of qubits at a time. The question asks whether distinguishing two constant-separated ranges of its average ground energy is as hard as every problem with a quantum witness verifier. The saved variant requires deterministic classical reductions, a stronger requirement than the original survey’s formulation allowing quantum reductions. All global quantum states are allowed, and neither growing locality nor a vanishing normalized gap meets the target. Known low-energy state complexity, interactive verification and restricted gap-amplification results leave the stated hardness question unresolved in the checked sources.
 
-[Read in atlas](index.html#TCS-6446) · [The Quantum PCP Conjecture](https://arxiv.org/abs/1309.7495) · [Private PCPs from Product Expansion](https://eccc.weizmann.ac.il/report/2026/150/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6446) · [The Quantum PCP Conjecture](https://arxiv.org/abs/1309.7495v1) · [NLTS Hamiltonians from good quantum codes](https://arxiv.org/abs/2206.13228v4) · [The status of the quantum PCP conjecture (games version)](https://arxiv.org/abs/2403.13084v1) · [Quantum PCPs: on Adaptivity, Multiple Provers and Reductions to Local Hamiltonians](https://arxiv.org/abs/2403.04841v3) · [Derandomised tensor product gap amplification for quantum Hamiltonians](https://arxiv.org/abs/2510.01333v1) · [Probabilistically Checking Quantum Proofs, with Interaction](https://arxiv.org/abs/2606.09588v1) · [Gap Amplification for Local Hamiltonians with Combinatorial Soundness](https://simons.berkeley.edu/talks/quynh-t-nguyen-harvard-university-2026-07-23) · [Private PCPs from Product Expansion](https://eccc.weizmann.ac.il/report/2026/150/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0036 — BPP versus BQP
 

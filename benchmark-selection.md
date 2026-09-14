@@ -197,7 +197,7 @@ Previous prefix: TCS-6446, TCS-0036, TCS-6516, TCS-6580, TCS-6515.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Quantum PCP conjecture](index.html#TCS-6446) (TCS-6446) | Local Hamiltonian hardness | 98 | A defining quantum-complexity conjecture connecting robust verification, approximation hardness, and the structure of many-body Hamiltonians. |
+| 1 | [Quantum PCP conjecture with classical reductions](index.html#TCS-6446) (TCS-6446) | Local Hamiltonian hardness | 98 | A defining quantum-complexity conjecture connecting robust verification, approximation hardness, and the structure of many-body Hamiltonians. |
 | 2 | [BPP versus BQP](index.html#TCS-0036) (TCS-0036) | Quantum computational advantage | 97 | A central foundational separation between classical and quantum efficient computation, with consequences for algorithms, simulation, and the computational interpretation of quantum mechanics. |
 | 3 | [Area law for gapped two-dimensional Hamiltonians](index.html#TCS-6516) (TCS-6516) | Ground-state entanglement | 97 | A fundamental unresolved link between spectral gaps, geometric locality, entanglement, and the resources needed to describe quantum many-body ground states. |
 | 4 | [Information-theoretic classical verification of quantum computation](index.html#TCS-6580) (TCS-6580) | Classical verification | 97 | A central quantum-complexity question connecting interactive proofs, delegation and the minimum resources needed to verify computations beyond classical simulation. |

@@ -165,7 +165,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 55; importance 
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
-| 1 | [Quantum PCP conjecture](index.html#TCS-6446) | 98 |
+| 1 | [Quantum PCP conjecture with classical reductions](index.html#TCS-6446) | 98 |
 | 2 | [BPP versus BQP](index.html#TCS-0036) | 97 |
 | 3 | [Area law for gapped two-dimensional Hamiltonians](index.html#TCS-6516) | 97 |
 | 4 | [Information-theoretic classical verification of quantum computation](index.html#TCS-6580) | 97 |
