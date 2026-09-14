@@ -33,11 +33,29 @@ consolidation decisions are preserved. Previously unassessed cards require an
 individual importance assessment under the completed-card rules; their new
 scores have problem-specific reasons and may change membership of the ranked
 exports. The queue priorities remain the baseline priorities, so this does not
-silently shrink the review scope. At the current Wi-Fi publication checkpoint,
-this pass has completed 51 of the 606 baseline cards; 555 remain in the review
-queue.
+silently shrink the review scope. The first Wi-Fi publication checkpoint completed
+51 of the 606 baseline cards. The renewed request explicitly requires continuing
+until every unfinished active card meets the P versus NP reference standard.
 Independent concurrent card edits are not automatically credited as this pass’s
 completed reviews.
+
+The renewed active census started with 1,064 cards. It added eight developed cards
+with outstanding model flags to the queue: TCS-0011, TCS-0465, TCS-0946, TCS-1714,
+TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individual
+reviews. TCS-5851 had already been deactivated by another workspace change and
+is recorded as out of the active scope; its inactive body was not reviewed as
+part of this census. The expanded queue therefore has 614 entries: at this
+checkpoint 123 completed, 490 pending and one out of active scope. The live counts
+in `queue.json` are authoritative after this checkpoint. This remains incomplete.
+
+`complete_review.py` records individually authored revisions after checking the
+input hash under the publication lock. A concurrent change requires explicit
+reconciliation; it is not overwritten using the old baseline. The ledger keeps
+both substantive reviews and subsequent amendments, so its line count is not a
+completion count. Selected primary source PDFs and extracted text are retained
+locally in the ignored `sources/` cache to make the reviewed definitions and
+theorem scopes inspectable. Source links and precise locators are versioned in
+the cards and ledger; downloaded third-party texts are not redistributed.
 
 On 13 September the user explicitly chose concrete editorial variants for the
 eight previously documented specification gaps. Those cards now identify the
@@ -58,3 +76,34 @@ review ledger. TCS-5158 was matched to a published negative resolution and retai
 as a resolved canonical record, subsequently moved to `data/archive/cards/`
 by the independent activity migration. Completed queue entries record their
 current output path; archived content remains a completed review.
+
+This checkpoint also completes and archives TCS-5494 (published matching bounds for
+stochastic stationarity) and TCS-7008 (the explicitly selected fully polynomial
+entrywise low-rank target under P different from NP). There are now 1,058 active
+cards. Their model choices, resolution scope and full content are preserved. The
+completion helper requires an explicit archival reason for an inactive outcome,
+validates its content and immediately invokes the activity workflow.
+
+TCS-6529 was also completed and archived after matching the planar Earth Mover
+distortion target to the published STOC 2026 resolution. At this checkpoint
+there are 568 detailed active cards and 490 pending active reviews in the queue.
+
+The review continued on 14 September. The user reiterated that only active cards
+are in scope; no pre-existing archived card bodies are being reviewed. The helper
+now records the actual Prague calendar date rather than a fixed first-day date.
+The current checkpoint includes exact matching, MST and convex-hull complexity,
+three-dimensional point location, polygon visibility recognition, three separate
+homeomorphism questions, EMD sketching, proper decision-tree learning and the
+recursive teaching dimension conjecture. The queue remains incomplete.
+
+Further individual checks completed TCS-0664 and TCS-1539 and matched three
+previously active questions to published resolutions: TCS-0684 (horizon-free
+reinforcement learning), TCS-3113 (improper agnostic CPAC impossibility), and
+TCS-2654 (the general bounded-metric arbitrary-response online question). Their
+full reviewed records were preserved through the archive workflow; pre-existing
+archived bodies were not reviewed.
+
+TCS-0671 now specifies the agnostic rate-comparison question and records a
+matching August 2026 claimed refutation as uncertain. TCS-0683 specifies the
+source-grounded reconstruction target with explicitly documented bounded-data
+and computational-model choices, rather than conflating it with density learning.

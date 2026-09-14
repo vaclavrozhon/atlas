@@ -19,14 +19,21 @@ for a in result['assignments']:
 areas = collections.Counter()
 developed = set(result['new_import']['imported']) | set(result['mathematical_updates'])
 inherited_model_gaps = []
+subsequent_model_completions = []
 for pid,identifier in mapping.items():
     card = json.loads((ROOT/'data/cards'/f'{identifier}.json').read_text())
     assert identifier in published
     assert card['evidence']=='reviewed'
     if identifier in developed:
         assert card['model_self_contained'], identifier
-    else:
-        assert card.get('model_self_contained') == before[identifier].get('model_self_contained'), identifier
+    elif card.get('model_self_contained') != before[identifier].get('model_self_contained'):
+        # A later individual completion must not be undone to reproduce the import checkpoint.
+        assert card.get('model_self_contained'), identifier
+        assert card.get('statement_review') != before[identifier].get('statement_review'), identifier
+        review = card.get('quality_review', {})
+        assert review.get('reference_card') == 'TCS-0001' and review.get('checked_sources'), identifier
+        assert card.get('requires_context') is False, identifier
+        subsequent_model_completions.append(identifier)
     if not card.get('model_self_contained'):
         inherited_model_gaps.append(identifier)
     associations = [a for a in card['author_problem_imports'] if a['batch']==result['batch']]
@@ -44,4 +51,5 @@ print(json.dumps(dict(unique_topics=32,researchers=22,assignments=45,
     new_cards=len(result['new_import']['imported']),existing_cards=len(result['existing_updated']),
     archived=['TCS-5851'],archive_preserved=True,all_active_and_published=True,
     inherited_model_gaps=inherited_model_gaps,
+    subsequent_model_completions=subsequent_model_completions,
     categories=dict(areas),publication_version=catalog.get('meta',{}).get('version')),indent=2))

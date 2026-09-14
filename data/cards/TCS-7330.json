@@ -1,19 +1,35 @@
 {
   "key": "researcher-problems-20260913:confluent-trie-local-global",
-  "title": "Simultaneous local and global bounds for confluently persistent tries",
+  "title": "Combined depth and size bounds for confluently persistent tries",
   "area": "Data structures",
   "criterion": "resources",
   "question_type": "yes_no",
-  "formal": "Can the functional trie representations of Demaine, Langerman and Price be combined so that modifying a node at depth \\(d\\) costs \\(O(1+\\min\\{d\\log(2+\\Delta),\\log(2+n)\\})\\) time and permanent space, while preserving their navigation and subtree-copy interface? Here \\(n\\) is the number of logical nodes of the modified version and \\(\\Delta\\) bounds the relevant trie degrees.",
-  "definitions": "A trie is a rooted tree with distinct ordered labels on the outgoing edges of each node and constant-size data at each node. Versions remain available, including both sources of a subtree copy. There are a fixed constant number of fingers per version. Navigation places a finger at the root, moves to its parent or follows a child edge of a supplied label. Updates change node data, insert or delete a leaf, copy a subtree from one version into another, or remove a subtree. A functional pointer representation may allocate initialized records but cannot overwrite old records. Logical nodes can share physical representation, so logical version size differs from total allocated space. The source distinguishes temporary records allocated during navigation from those retained by a subsequent modification; that distinction affects the proposed minimum bound.",
+  "formal": "For every fixed integer \\(k\\ge2\\), does there exist a deterministic uniform functional trie representation and a constant \\(C_k>0\\) that supports the version, finger-navigation and subtree-copy interface below, with worst-case navigation time \\(C_k\\log_2(2+\\Delta)\\), no new permanent records from navigation, and both worst-case modification time and newly permanent record count at most \\(C_k[1+\\min\\{D\\log_2(2+\\Delta),\\log_2(2+N)\\}]\\) for every valid operation sequence?",
+  "definitions": "A logical trie is a finite rooted tree, including its root, with distinct totally ordered labels on the outgoing edges of each node and one constant-size data atom per node. Logical occurrences are counted separately even when their physical representations share records. For each fixed integer \\(k\\ge2\\), every stored version has \\(k\\) finger positions, possibly coincident. Selecting a version restores those positions in at most \\(C_k\\) operations; navigation changes a working copy of them. Reading a node’s data also costs at most \\(C_k\\) operations. These calls do not permit uncharged preprocessing. It can reset a finger to the root, move it to its parent, follow a child with a supplied label, or read the data at a finger. A failed parent or child move reports failure and leaves the finger unchanged. A modification creates a new stored version and leaves every previous version usable. It can change data at a finger, add a new leaf with an unused child label, remove the non-root subtree at a finger, or copy the subtree at a finger of any source version as a child with an unused label at a destination finger. The source and destination versions may coincide. The copy is a logical duplicate, so later changes to either occurrence do not change the other. Surviving destination fingers keep their logical positions; fingers in a removed subtree reset to the root. A copy may replace any specified subset of the resulting finger slots by counterparts of source fingers inside the copied subtree. Thus at most \\(k\\) fingers are stored in the resulting version. All parameters are supplied through version handles, finger indices and constant-size atoms; arbitrary logical nodes cannot be addressed directly.\n\nUse a deterministic uniform pointer program with a fixed number of fields per record. A field holds a pointer, an opaque label or data atom, or an integer counter. Reading a field, comparing or copying atoms or pointers, comparing labels, and adding, subtracting or comparing counters cost one operation. New records may be initialized, but a previously initialized record is never overwritten. There is no pointer arithmetic, address-indexed array lookup, arithmetic on labels, random choice, oracle or nonuniform table. Counters have magnitude polynomial in the largest logical version size and operation count so far; costs count record operations, not their bit implementation. The program and field count are independent of all versions and operation sequences; constants may depend on the fixed finger bound \\(k\\). The initial version is a single root and costs \\(O(k)\\) operations and records.\n\nFor a modification, let \\(N\\) be the sum of the logical node counts of its participating input versions and its output version, counting a shared input only once. Let \\(\\Delta\\ge2\\) be the maximum of two and all node outdegrees in those versions. Let \\(D=1+\\sum_f\\operatorname{depth}(f)\\), summing the depths of the \\(k\\) stored or working fingers in each participating input version; root depth is zero. Define \\(B=1+\\min\\{D\\log_2(2+\\Delta),\\log_2(2+N)\\}\\). For navigation, \\(\\Delta\\) is instead the maximum of two and the outdegrees in the selected logical version. Navigation must cost at most \\(C_k\\log_2(2+\\Delta)\\) operations, and a modification at most \\(C_kB\\) operations, in the worst case for every individual call in every finite valid sequence.\n\nA record is permanent when reachable from any stored version handle, including that version’s stored finger representation. All stored versions remain available. Navigation may allocate temporary records but must leave the set of permanent records unchanged. A modification is charged every record newly made permanent by its result, including records allocated during earlier navigation; this count must be at most \\(C_kB\\). Existing permanent records shared by the new version are not charged again. Temporary allocation time is always charged to the call performing it; the permanent-space guarantee is not a bound on peak temporary storage. All logarithms and bounds use logical version sizes, not the number of previously allocated physical records.",
   "why": "The question concerns whether persistent hierarchical data can exploit shallow or local changes while also protecting users against arbitrarily deep versions.",
   "context_blocks": [
     {
-      "text": "The locality-sensitive representation allocates records during navigation; those records can become permanent when a modification commits them. The globally balanced representation instead has logarithmic update space with navigation using no permanent space.",
+      "text": "Version control must preserve old directory trees while allowing a whole directory to be copied between branches. A logical subtree copy can contain very many nodes, yet a representation can initially share their unchanged contents. Confluent persistence requires both source versions and all older versions to remain usable after this operation.",
       "citation": "primary"
     },
     {
-      "text": "Section 6 explicitly asks for the minimum of local-depth and global-size costs. Treating the first representation as already having both guarantees overlooks navigation space retained by later updates.",
+      "text": "The source gives two functional representations. One exploits locality of finger operations with \\(O(\\log\\Delta)\\) time and allocation per call; navigation records can later become permanent. The other uses \\(O(\\log n)\\) time and permanent space per modification, with \\(O(\\log\\Delta)\\) navigation time and no permanent navigation space. These are different guarantees because navigation may be followed by either another query or a modification.",
+      "citation": "primary"
+    },
+    {
+      "text": "An arbitrarily long path illustrates the size/depth distinction. A change near its root has small root depth even when the version is enormous, whereas a change near the bottom has large depth. The requested minimum would retain a shallow-update bound and also cap deep-update costs logarithmically in logical size. The question concerns one representation with simultaneous guarantees, not choosing a separate representation after seeing the next operation.",
+      "citation": "primary"
+    },
+    {
+      "text": "Charging only the records allocated inside the final update would conceal part of the first representation’s cost. Records produced by earlier finger moves count against the update if the new stored version retains them. Conversely, a navigation-only sequence produces no new stored versions, so discarded temporary work does not count as permanent history.",
+      "citation": "primary"
+    },
+    {
+      "text": "Editorial specification: Section 6 states the combined depth/size goal but leaves the multi-finger parameters implicit. This benchmark uses the sum of participating finger depths, a maximum degree over participating versions, and the sum of input/output logical sizes. With a fixed number of fingers these specify a single bound for copies and deletions; a one-finger point modification retains the root-depth scale \\(1+d\\). They are explicit conventions for the combined variant, not definitions quoted verbatim from the authors.",
+      "citation": "primary"
+    },
+    {
+      "text": "The source’s constant-time comparison of labels and functional pointer-record model are retained. This is not a claim about the cost of comparing arbitrary file-name strings, storing file contents, or implementing large counters in a bit machine. The documented temporary/permanent distinction is part of the target, rather than an unrecorded memory exemption.",
       "citation": "primary"
     }
   ],
@@ -24,7 +40,7 @@
       "authors": "Erik D. Demaine; Stefan Langerman; Eric Price",
       "year": 2010,
       "url": "https://erikdemaine.org/papers/ConfluentTries_Algorithmica/paper.pdf",
-      "locator": "§1 persistent-trie interface and Table 1; Theorems 1–2; §6 open problems."
+      "locator": "Author manuscript: §1 persistent-trie interface and functional pointer model, Table 1 and permanent navigation-space discussion (pp. 2–6), Theorems 1–2, §3.3 multiple fingers, and §6 open problem (p. 17)."
     }
   ],
   "progress": [
@@ -34,26 +50,29 @@
       "citation": "primary"
     }
   ],
-  "answer_criterion": "Give a complete Lean-checked proof of the stated existence claim or its logical negation, with the same inputs, computation model, space allowance, quantifiers and cost guarantees. A result for a restricted input family or a different model does not decide the full target.",
+  "answer_criterion": "Give a complete Lean-checked proof that representations and constants with every stated interface, persistence, worst-case time and permanent-space property exist for all fixed \\(k\\ge2\\), or prove the logical negation in Lean. A positive proof must charge navigation records subsequently retained by an update and preserve all prior versions. Separate representations attaining the two bounds, an amortized guarantee, or a theorem only for point changes without subtree copies does not meet the combined specification.",
   "related": [],
   "related_problem_ids": [
     "TCS-7327"
   ],
   "year": 2010,
-  "evidence": "source",
+  "evidence": "reviewed",
   "status": "source_open",
-  "status_note": "Explicitly open in the 2010 source; the bounded 13 September 2026 search did not identify a later resolution. Current-status confidence is lower than for the recent-source entries. The navigation-space accounting is marked needs_specification.",
-  "model_self_contained": false,
-  "requires_context": true,
+  "status_note": "The combined goal is explicitly open in the source’s Section 6. A bounded 13 September 2026 search did not locate a later resolution. The complete benchmark makes its multi-finger parameters and space accounting explicit editorial conventions; it does not claim that the source spelled out this entire interface or that absence of a later result was exhaustively established.",
+  "model_self_contained": true,
+  "requires_context": false,
   "formulation_reviewed_on": "2026-09-13",
   "statement_review": {
-    "status": "needs_specification",
+    "status": "revised",
     "reviewed_on": "2026-09-13",
-    "remaining_issue": "Before marking the benchmark statement complete, fix the exact charging of navigation records retained by a later update, and the depth/size convention for multi-finger copies between versions. The source conclusion states the minimum bound but does not restate these combined guarantees. A fresh independent confirmation of openness beyond the 2010 source was not located.",
+    "remaining_issue": "",
     "notes": [
-      "Individual formulation, model, duplicate and category review for the user-requested researcher list."
+      "Read the complete source interface, permanent navigation-allocation discussion, Theorems 1–2 and the combined bound in Section 6.",
+      "Specified persistent version/finger handles, label comparisons, functional records, all supported update operations and deterministic worst-case costs.",
+      "Resolved the retained-navigation accounting and stated the selected multi-finger depth/size conventions explicitly as editorial choices; no implicit undefined parameter remains.",
+      "Distinguished permanent history from temporary workspace and logical trie size from physical sharing. The bounded later-work search did not locate a resolution of the combined goal."
     ],
-    "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
   "importance": {
     "score": 65,
@@ -67,14 +86,14 @@
   },
   "working_summary": {
     "sentences": [
-      "Confluent persistence permits copying subtrees between historical versions.",
-      "Functional representations preserve old records instead of overwriting them.",
-      "The question seeks the minimum of a local-depth bound and a logarithmic version-size bound.",
-      "Navigation space retained by a later update is an essential part of that comparison.",
-      "The source question is retained with its remaining accounting clarification rather than a silently invented stronger interface."
+      "Confluent persistence lets a subtree be copied between historical trie versions while retaining all old versions.",
+      "The question asks for one functional representation combining a shallow-update bound with a logarithmic bound in logical version size.",
+      "Navigation has its own worst-case time bound and may not extend permanent version history.",
+      "An update must pay for any earlier navigation records that its new stored version retains.",
+      "The model and parameters explicitly cover multiple fingers, logical sharing, subtree copies and temporary versus permanent memory."
     ],
     "basis": "saved_sources",
-    "source_basis": "source-text",
+    "source_basis": "individual_source_review",
     "written_on": "2026-09-13",
     "source_refs": [
       "primary"
@@ -87,9 +106,25 @@
     ],
     "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
   },
-  "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+  "review_note": "Completed individual review against P versus NP on 13 September 2026; see research/card-completion-20260913/reviews.jsonl.",
   "id": "TCS-7330",
   "published_at": "2026-09-13T09:26:53+00:00",
-  "updated_at": "2026-09-13T09:26:53+00:00",
-  "is_new": true
+  "updated_at": "2026-09-13T16:24:02+00:00",
+  "is_new": true,
+  "quality_review": {
+    "reviewed_on": "2026-09-13",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": [
+      "Read the complete source interface, permanent navigation-allocation discussion, Theorems 1–2 and the combined bound in Section 6.",
+      "Specified persistent version/finger handles, label comparisons, functional records, all supported update operations and deterministic worst-case costs.",
+      "Resolved the retained-navigation accounting and stated the selected multi-finger depth/size conventions explicitly as editorial choices; no implicit undefined parameter remains.",
+      "Distinguished permanent history from temporary workspace and logical trie size from physical sharing. The bounded later-work search did not locate a resolution of the combined goal."
+    ],
+    "checked_sources": [
+      "research/card-completion-20260913/sources/confluent-tries-2010.pdf — full source, especially printed pages 2–6, 8–11 and 17.",
+      "https://erikdemaine.org/papers/ConfluentTries_Algorithmica/paper.pdf — Section 6 and targeted later-work search for combined functional bounds."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }
