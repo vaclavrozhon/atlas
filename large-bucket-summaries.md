@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-408 five-sentence working summaries, based on saved source material.
+407 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -1180,7 +1180,7 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Distributed, parallel and sublinear algorithms (60)
+## Distributed, parallel and sublinear algorithms (59)
 
 ### TCS-6553 — P versus NC
 
@@ -1538,13 +1538,6 @@ Parallel flow algorithms seek small total work and short dependency depth while 
 
 [Read in atlas](index.html#TCS-4763) · [Parallel \((1+e)\)-Approximate Multi-Commodity Min-Cost Flow in Almost Optimal Depth and Work](https://doi.org/10.1109/FOCS63196.2025.00099)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5127 — Wait-free solvability of graph approximate agreement
-
-Graph approximate agreement asks distributed processes to choose outputs satisfying proximity and validity conditions expressed on a graph. The source asks which graphs admit wait-free solutions using only registers. Wait-freedom requires each participating process to finish despite delays or failures of other processes. Classifying the admissible graphs would reveal how the geometry of permitted outputs interacts with the power of basic shared memory. The saved note preserves uncertainty for many graphs but does not state the exact validity condition or process count, so these cannot be supplied from ordinary real-valued agreement conventions.
-
-[Read in atlas](index.html#TCS-5127) · [The Impossibility of Approximate Agreement on a Larger Class of Graphs](https://doi.org/10.4230/LIPIcs.OPODIS.2022.22)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5427 — Characterizing multipass turnstile streaming
 
