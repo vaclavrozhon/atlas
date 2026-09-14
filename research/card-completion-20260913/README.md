@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 150 completed, 463 pending and one out of active scope. The live counts
+checkpoint 156 completed, 457 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 594 detailed active cards and 463 pending active reviews in the queue.
+there are 600 detailed active cards and 457 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -148,3 +148,16 @@ DNF counting with fully polynomial reciprocal-accuracy dependence. The running
 checkpoint is now 150 completed entries, 463 pending and one out of active
 scope, with 1,057 active cards and 594 detailed active cards. Of these reviews,
 99 were completed after the renewed request.
+
+
+Six further individual reviews complete TCS-6668, TCS-6839, TCS-6840,
+TCS-6843, TCS-6857 and TCS-6851. They distinguish the cubic-lattice critical
+temperature from the tree threshold, worst-state plus-boundary mixing from
+2026 phase-ordering results, and interaction-wise monotonicity from
+order-preserving dynamics. The expander and pivot cards now specify exact
+walks and convergence targets. TCS-6851 corrects an imported exact-output
+misreading by restoring Aldous–Fill’s supplied-start, fixed-relative-error
+approximation question. The checkpoint has 156 completed entries, 457 pending
+and one outside active scope, with 1,057 active cards and 600 detailed active
+cards. There have been 105 individual completions since the renewed request.
+The completed active-card hash audit passed; inactive bodies were skipped.
