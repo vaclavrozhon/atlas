@@ -436,12 +436,12 @@ Cryptogenography studies communication in which someone wants to convey hidden i
 [Read in atlas](index.html#TCS-0218) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:79)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0811 — Monochromatic Rectangles in Low-Rank Matrices
+### TCS-0811 — Large zero rectangles in low-rank real matrices
 
-A monochromatic rectangle in a matrix selects rows and columns whose intersecting entries all have one value. The source asks about finding or guaranteeing such rectangles when the matrix has low rank. Rank constrains algebraic dependence, whereas a rectangle requires a particularly rigid combinatorial pattern. Relating the two could improve structural tools used in exact algorithms and communication-style arguments. The saved label does not specify the entry alphabet, underlying field, or desired rectangle size, so the intended quantitative claim cannot be recovered from rank alone.
+The question concerns square real matrices with low rank and at least half their entries equal to zero. It asks for a Cartesian block consisting entirely of zeros whose area is a square-root-exponential fraction of the whole matrix. The constant in that guarantee must be the same for every matrix and dimension. The rank is over the real numbers, and entries may have arbitrary signs and magnitudes. Recent results establish related guarantees under additional entry restrictions, while the checked sources retain the general real-matrix question.
 
-[Read in atlas](index.html#TCS-0811) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0811) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [Disjoint pairs in set systems and combinatorics of low rank matrices](https://arxiv.org/abs/2411.13510v1) · [Extremal Combinatorics, Oberwolfach Report 42/2025](https://ems.press/content/serial-article-files/52246)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0464 — Information leakage in distributed OR
 

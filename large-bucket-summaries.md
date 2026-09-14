@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-406 five-sentence working summaries, based on saved source material.
+407 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (70)
@@ -2287,14 +2287,14 @@ Learning a deterministic finite automaton from examples means producing a hypoth
 [Read in atlas](index.html#TCS-5902) · [Approximate Learning of Limit-Average Automata](https://doi.org/10.4230/LIPIcs.CONCUR.2019.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Cryptography (28)
+## Cryptography (29)
 
 ### TCS-6545 — Public-key encryption from one-way functions
 
-A one-way function is easy to evaluate but hard to invert on a randomly generated input. Public-key encryption needs a further asymmetry: anyone can encrypt using public information, while only the secret-key holder can decrypt. This project asks whether the existence of one-way functions alone guarantees such an encryption scheme in the standard classical model. Symmetric encryption follows from one-way functions, but its initially shared secret does not supply the missing public-key structure. The question allows constructions that inspect the implementation of the underlying function, so limitations of black-box constructions do not settle it.
+A one-way function is easy to evaluate and difficult for efficient classical algorithms to invert on a random input. Public-key encryption requires that anyone can encrypt with public information while a receiver can decrypt with a related secret key. The question asks whether the existence of any one-way function implies such a uniform classical scheme, allowing arbitrary non-black-box constructions. The scheme must have negligible average decryption error and hide an encrypted bit from every efficient chosen-plaintext observer. Oracle barriers do not settle the unrestricted implication, and a 2023 preprint claiming a positive solution remains unverified in this review.
 
-[Read in atlas](index.html#TCS-6545) · [Foundations of Cryptography, Lecture 10](https://mit6875.github.io/FA23SLIDES/lec10.pdf) · [The Complexity of Public-Key Cryptography](https://eprint.iacr.org/2017/365) · [Limits on the provable consequences of one-way permutations](https://doi.org/10.1145/73007.73012) · [A Pseudorandom Generator from any One-way Function](https://johanhastad.se/prgfromowf.pdf) · [Merkle Puzzles are Optimal — an \(O(n^{2})\)-query attack on any key exchange from a random oracle](https://www.boazbarak.org/Papers/merkle.pdf) · [Public-Key Encryption from the MinRank Problem](https://arxiv.org/abs/2510.03752)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6545) · [Foundations of Cryptography, Lecture 10](https://mit6875.github.io/FA23SLIDES/lec10.pdf) · [The Complexity of Public-Key Cryptography](https://eccc.weizmann.ac.il/report/2017/065/) · [Limits on the Provable Consequences of One-Way Permutations](https://www.cs.cmu.edu/~rudich/papers/oneway.ps) · [A Pseudorandom Generator from any One-way Function](https://johanhastad.se/prgfromowf.pdf) · [Merkle Puzzles are Optimal — an \(O(n^{2})\)-query attack on key exchange from a random oracle](https://www.boazbarak.org/Papers/merkle.pdf) · [Public-Key Encryption from the MinRank Problem](https://link.springer.com/chapter/10.1007/978-3-032-25327-9_16) · [Public-Key Encryption from Average Hard NP Language](https://eprint.iacr.org/2023/1260)
+Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-0022 — One-way functions from \(\mathrm{P} \ne  \mathrm{NP}\)
 
@@ -2337,6 +2337,13 @@ Can public-key encryption be proved computationally secure without an unproved h
 
 [Read in atlas](index.html#TCS-7168) · [Foundations of Cryptography, Volume 2: Basic Applications](https://www.wisdom.weizmann.ac.il/~oded/foc-vol2.html) · [Encryption Schemes: draft chapter for Foundations of Cryptography](https://www.wisdom.weizmann.ac.il/~oded/PSBookFrag/enc.ps) · [On Lattices, Learning with Errors, Random Linear Codes, and Cryptography](https://cims.nyu.edu/~regev/papers/qcrypto.pdf) · [Post-Quantum Cryptography from Quantum Stabilizer Decoding](https://arxiv.org/abs/2603.19110)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7229 — Key agreement from one-way functions
+
+A one-way function is easy to compute and hard for every efficient classical algorithm to invert on a random input. Key agreement asks two initially independent parties to produce the same secret by exchanging only public messages. The target asks whether the existence of any one-way function already implies such a uniform classical protocol, allowing arbitrary non-black-box constructions. The keys must agree with negligible error and remain indistinguishable from independent uniform keys even when an efficient observer sees the whole transcript. Oracle barriers do not refute this unrestricted implication, while a claimed positive construction of public-key encryption from 2023 remains unverified in this review.
+
+[Read in atlas](index.html#TCS-7229) · [Limits on the Provable Consequences of One-Way Permutations](https://www.cs.cmu.edu/~rudich/papers/oneway.ps) · [Black-Box Uselessness: Composing Separations in Cryptography](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2021.47) · [On Bounded Storage Key Agreement and One-Way Functions](https://link.springer.com/chapter/10.1007/978-3-031-78011-0_10) · [Impossibility of Perfectly Complete Many-Round Key Agreement in the QROM](https://arxiv.org/abs/2608.03824v1) · [Public-Key Encryption from Average Hard NP Language](https://eprint.iacr.org/2023/1260)
+Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-6549 — Oblivious transfer from public-key encryption
 
@@ -2620,6 +2627,13 @@ The question asks whether every problem with two unentangled quantum proofs can 
 [Read in atlas](index.html#TCS-0861) · [Is QMA(2) in BQEXP?](https://tcsopenproblems.com/problem/9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimisation](https://arxiv.org/abs/1001.0017) · [On the Pure Quantum Polynomial Hierarchy and Quantified Hamiltonian Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.103) · [The Power of Unentanglement Without Destructive Interference](https://arxiv.org/abs/2604.27886)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-4715 — Succinct entangled proofs with efficient provers
+
+The question asks a classical verifier to check a quantum circuit’s acceptance using two separated quantum provers. Both the questions and answers together must use only polylogarithmically many bits in the circuit description length. Honest provers must prepare and execute their shared strategy efficiently from polynomially many copies of a valid quantum witness. Cheating provers may use arbitrary finite-dimensional entanglement and unlimited computation, but cannot communicate while answering. Known succinct computational arguments and entangled proofs without efficient honest preparation do not supply all of these requirements.
+
+[Read in atlas](index.html#TCS-4715) · [Succinct Arguments for QMA from Standard Assumptions via Compiled Nonlocal Games](https://doi.org/10.1109/FOCS61266.2024.00078) · [The status of the quantum PCP conjecture (games version)](https://arxiv.org/abs/2403.13084) · [Succinct Perfect Zero-knowledge for MIP*](https://arxiv.org/abs/2503.04517v2) · [A Modular Approach to Succinct Arguments for QMA](https://arxiv.org/abs/2606.10408v1)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-6447 — Strong quantum IOPs with polynomial communication
 
 Interactive oracle proofs let a verifier inspect only selected parts of much larger prover messages. This question asks for constant-round quantum versions that verify all QMA promise problems with polynomial total communication and only constantly many queries. The strong quantum access model is part of the target, because different ways of querying quantum messages permit different verification strategies. Soundness must cover arbitrary prover behavior, while the verifier remains efficient and has a constant completeness-soundness gap. The project probes how far proof compression and local checking can extend when the evidence itself is quantum.
@@ -2639,6 +2653,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 The question asks for the optimal quantum query cost of collision testing and element distinctness at every allowed memory budget. The oracle returns an output symbol, and the algorithm must decide the answer with bounded worst-case error. All retained storage counts, including classical tables and query registers. Recent lower bounds concern nested collision tasks or search algorithms restricted by label symmetry. The target remains matching upper and lower bounds for unrestricted algorithms solving the two decision problems.
 
 [Read in atlas](index.html#TCS-0034) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [On the Need for (Quantum) Memory with Short Outputs](https://arxiv.org/abs/2602.23763) · [Tight Time-Space Lower Bounds for Collision Finding and Element Distinctness under Label Symmetry](https://arxiv.org/abs/2609.10808)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-4238 — Sequential randomness certification against non-signaling adversaries
+
+A single entangled pair of qubits is measured once by Alice and repeatedly by Bob. The question asks whether the certified unpredictability of Bob’s entire outcome string has a universal finite bound against an adversary constrained only by no-signaling and causal order. The honest experiment uses just one qubit per wing, but the adversary is not assumed to be quantum or dimension-limited. Alice may have more possible measurement choices as the sequence grows, and the full observed correlations are assumed known. Unbounded randomness against quantum adversaries and general repeated Bell-test accumulation do not by themselves settle this fixed-resource post-quantum question.
+
+[Read in atlas](index.html#TCS-4238) · [A Single Entangled System Is an Unbounded Source of Nonlocal Correlations and of Certified Random Numbers](https://doi.org/10.4230/LIPIcs.TQC.2017.1) · [Secure and robust randomness with sequential quantum measurements](https://doi.org/10.1038/s41534-024-00879-w) · [Accumulation of Device-Independent Quantum Randomness against Time-Ordered No-Signalling Adversaries](https://arxiv.org/abs/2506.17020v1)
 Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0862 — Constant-round quantum refereed games versus \(\mathrm{PSPACE}\)
@@ -2725,13 +2746,6 @@ A lifting theorem transfers a lower bound for querying one input into a lower bo
 [Read in atlas](index.html#TCS-3709) · [Quantum Distinguishing Complexity, Zero-Error Algorithms, and Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.TQC.2019.2)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4238 — Sequential randomness certification against non-signaling adversaries
-
-Sequential measurements can extract certified randomness from an entangled system while preserving some ability to use it again. The cited work analyzes this phenomenon against adversaries constrained by quantum mechanics. This question asks whether unbounded certified randomness remains possible against the broader class of adversaries constrained only by no-signaling. The geometry of the no-signaling correlation set differs from the quantum set used in the paper's argument. A bound or construction would determine how much repeated randomness certification depends on trusting quantum theory beyond the prohibition on faster-than-light signaling.
-
-[Read in atlas](index.html#TCS-4238) · [A Single Entangled System Is an Unbounded Source of Nonlocal Correlations and of Certified Random Numbers](https://doi.org/10.4230/LIPIcs.TQC.2017.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4457 — Simulation or postselection universality for algebraic two-qubit interactions
 
 A fixed two-qubit interaction generates circuits by evolving selected ordered pairs for specified times. Every circuit begins in a computational-basis state and ends with computational-basis measurement. The chosen dichotomy asks for efficient classical approximate sampling or full PP decision power with postselection. The variant makes all matrix constants, time encodings, sampling accuracy and conditioning probabilities explicit. Commuting-interaction results and analog Hamiltonian simulations do not by themselves classify this unrestricted circuit model.
@@ -2744,13 +2758,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 For a multipartite quantum state, the entropies of all subsystems form a vector subject to universal inequalities. Positivity and strong subadditivity give basic constraints on those vectors. This question asks whether additional inequalities are needed to describe the quantum entropy cone for four or more parties. The cited stabilizer-state analysis relates the problem to classical non-Shannon inequalities and to states violating the Ingleton inequality. New constraints or counterexamples would sharpen the mathematical description of how quantum information can be shared among several systems.
 
 [Read in atlas](index.html#TCS-4615) · [The Quantum Entropy Cone of Stabiliser States](https://doi.org/10.4230/LIPIcs.TQC.2013.270)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4715 — Succinct entangled proofs with efficient provers
-
-Succinct quantum verification aims to check a large computation or witness using very little communication. In the entangled two-prover setting, making verifier questions short is more tractable than making prover answers short. The source explains that efficient honest provers and small communication must be achieved together, so powerful protocols with inefficient provers do not meet the intended target. It uses compiled nonlocal games to combine useful features of cryptographic and multiprover approaches. The remaining direction is to obtain fully succinct verification while overcoming the difficult answer-reduction step in a sound quantum setting.
-
-[Read in atlas](index.html#TCS-4715) · [Succinct Arguments for QMA from Standard Assumptions via Compiled Nonlocal Games](https://doi.org/10.1109/FOCS61266.2024.00078)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4734 — Locality-preserving quantum gap amplification
