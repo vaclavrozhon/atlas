@@ -1817,10 +1817,45 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6668 — Polynomial mixing of critical three-dimensional Ising dynamics
 
-The three-dimensional Ising model assigns interacting plus or minus spins to the sites of a cubic lattice box. The proposal asks whether single-site heat-bath dynamics mixes in time polynomial in the side length at the infinite-lattice critical inverse temperature. It fixes free boundaries, nearest-neighbor ferromagnetic interactions, and zero external field. Criticality is precisely where large-scale correlations can obstruct rapid relaxation despite updates being local and easy to perform. The saved references concern higher-dimensional lattices or a tree uniqueness threshold, so their polynomial-mixing results do not by themselves answer this specific three-dimensional critical-point question.
+This question concerns local heat-bath sampling of the Ising model at the critical point of the infinite cubic lattice. The finite system is a three-dimensional box with free boundaries and zero external field. It asks whether every initial spin configuration becomes close to equilibrium after polynomially many individual updates. The critical inverse temperature is specified by the infinite-volume magnetization threshold, without relying on a numerical estimate. Known critical results in other dimensions and at the regular-tree threshold do not settle this three-dimensional lattice problem.
 
-[Read in atlas](index.html#TCS-6668) · [Log-Sobolev inequality for near critical Ising models](https://arxiv.org/abs/2202.02301) · [Polynomial Mixing of the critical Glauber Dynamics for the Ising Model](https://arxiv.org/abs/2411.10318)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6668) · [Log-Sobolev inequality for near critical Ising models](https://doi.org/10.1002/cpa.22172) · [Polynomial Mixing of the critical Glauber Dynamics for the Ising Model](https://arxiv.org/abs/2411.10318)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6839 — Polynomial mixing of planar Ising dynamics with plus boundaries
+
+Fixing plus spins around a planar Ising box selects a boundary phase while the interior spins evolve randomly. The question asks whether local heat-bath updates mix in polynomial time at every fixed positive temperature. The bound must hold from every interior starting configuration, including the all-minus state. Polynomial constants may depend on temperature but cannot grow with the box size. The checked 2026 source retains this question while improving quasipolynomial mixing and proving rapid ordering from more favorable initializations.
+
+[Read in atlas](index.html#TCS-6839) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Quasi-polynomial mixing of the 2D stochastic Ising model with “plus” boundary up to criticality](https://arxiv.org/abs/1012.1271) · [Rapid phase ordering of Ising dynamics on \(\mathbb Z^2\)](https://arxiv.org/abs/2605.08052)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6843 — Cutoff for bounded-degree transitive expanders
+
+Expander graphs are sparse graphs on which random walks mix rapidly. This question asks whether vertex symmetry forces a sharp transition to equilibrium in every bounded-degree expander sequence. The model uses a lazy walk, a uniformly positive spectral gap and graph sizes tending to infinity. Cutoff requires the mixing times at any two fixed total-variation accuracy levels to become asymptotically equal. The checked Ramanujan theorem covers a special spectral regime, while the 2025 source retains the general conjecture.
+
+[Read in atlas](index.html#TCS-6843) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Modern aspects of Markov chains: entropy, curvature and the cutoff phenomenon](https://arxiv.org/abs/2508.21055) · [Cutoff on all Ramanujan graphs](https://arxiv.org/abs/1507.04725)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6840 — Monotonicity of Ising spectral gaps
+
+A ferromagnetic Ising model favors neighboring spins that agree. This question asks whether increasing its interactions always reduces the spectral gap of local heat-bath updates. The graph has a fixed vertex set, arbitrary nonnegative edge strengths and no external field. The spectral gap is defined from the exact transition matrix and measures the relaxation rate. The checked cycle and equal-coupling complete-graph theorems do not cover independent interaction changes on arbitrary graphs.
+
+[Read in atlas](index.html#TCS-6840) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Glauber dynamics on the cycle is monotone](https://arxiv.org/abs/math/0305056) · [Relaxation time is monotone in temperature in the mean-field Ising model](https://arxiv.org/abs/1103.0327) · [Spectral gap and curvature of monotone Markov chains](https://arxiv.org/abs/2305.04688)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6857 — Mixing of the self-avoiding-walk pivot chain
+
+A self-avoiding walk models a polymer whose lattice vertices cannot overlap. The pivot chain samples such walks by rotating or reflecting a tail and rejecting intersections. This card asks for matching asymptotic bounds on its worst-state total-variation mixing time on the square lattice. Time counts every proposed pivot, including rejected attempts, with a fixed distribution over five symmetries. Efficient implementations and observed decorrelation do not by themselves determine this mixing-time order.
+
+[Read in atlas](index.html#TCS-6857) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Efficient implementation of the pivot algorithm for self-avoiding walks](https://arxiv.org/abs/1005.1444)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6851 — Deterministic approximation scheme for graph cover times
+
+The cover time is the expected number of random-walk steps needed to visit every vertex. This card asks for a deterministic approximation scheme from any specified starting vertex of an arbitrary connected graph. For each fixed relative accuracy, the runtime must be polynomial in graph size. The original source asks for approximation, so the imported demand for exact output has been corrected. Known constant-factor and restricted-family results do not provide the full all-graph guarantee stated here.
+
+[Read in atlas](index.html#TCS-6851) · [Reversible Markov Chains and Random Walks on Graphs](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch6.S8.html#SS3) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Cover times, blanket times, and majorizing measures](https://annals.math.princeton.edu/2012/175-3/p08) · [Deterministic approximation for the cover time of trees](https://cims.nyu.edu/~zeitouni/pdf/feigezeitouni3.pdf) · [A polynomial time approximation scheme for computing the supremum of Gaussian processes](https://arxiv.org/abs/1202.4970)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-2861 — Efficient negatively dependent sampling from matroid polytopes
 
@@ -1828,41 +1863,6 @@ A point of a matroid polytope specifies desired marginal probabilities for selec
 
 [Read in atlas](index.html#TCS-2861) · [Submodular Dominance and Applications](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.44)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6839 — Polynomial mixing of Ising dynamics with plus boundaries
-
-In the grid Ising model, boundary spins fixed to plus favor one orientation while interior spins are repeatedly updated. The saved textbook question asks for polynomial mixing time for Glauber dynamics at every temperature in that setting. Even a preferred boundary does not immediately explain how quickly a large interior region loses memory of an unfavorable starting configuration. A proof would connect the boundary's global influence with efficient local equilibration across temperature regimes. The grid dimension, update normalization, and permitted temperature dependence of the polynomial remain those of the 2017 source, rather than an inferred statement about arbitrary lattices or boundary conditions.
-
-[Read in atlas](index.html#TCS-6839) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6840 — Monotonicity of Ising spectral gaps
-
-The spectral gap of Ising Glauber dynamics controls how quickly the chain relaxes toward equilibrium. The recorded textbook question proposes monotonic behavior of this gap as temperature or interaction strengths change. The intuition is that strengthening collective alignment can alter how easily local updates move between configurations. A rigorous comparison would allow relaxation bounds in one parameter regime to inform another without analyzing every chain independently. The saved paraphrase does not reproduce the exact direction, boundary assumptions, or normalization of the proposed inequalities, so these details must be retained from the original question before asserting a universal monotonicity law.
-
-[Read in atlas](index.html#TCS-6840) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6843 — Cutoff for bounded-degree transitive expanders
-
-Cutoff is a sharp transition from a distribution far from stationarity to one close to it, within a window small relative to the mixing time. The textbook asks whether families of bounded-degree vertex-transitive expanders necessarily exhibit that behavior. Expansion provides strong connectivity, and transitivity makes every vertex structurally equivalent. Those properties help control mixing but do not immediately force its transition window to be narrow. A positive answer would reveal a common asymptotic profile for a broad class of symmetric random walks, with the walk's laziness or continuous-time convention still needing to match the dated source.
-
-[Read in atlas](index.html#TCS-6843) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6851 — Polynomial-time computation of exact cover time
-
-A graph's cover time is the maximum, over starting vertices, of the expected time a random walk needs to visit every vertex. The recorded question asks whether this exact quantity can be computed by a deterministic polynomial-time algorithm. Tracking both the current vertex and the entire set already visited gives a direct approach with exponentially many possible states. The challenge is to avoid that expansion while still accounting for dependencies between visits to different vertices. An exact algorithm would provide more than simulation or approximate bounds, and the final card must specify the graph encoding and how the exact numerical answer is represented.
-
-[Read in atlas](index.html#TCS-6851) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6857 — Mixing of the self-avoiding-walk pivot chain
-
-A self-avoiding walk is a lattice path that never visits the same vertex twice. The pivot chain proposes a geometric transformation of part of such a path and accepts moves that preserve self-avoidance. The saved textbook direction asks for rigorous convergence and mixing-time analysis of this sampling procedure. Changing a large portion of a path in one move can explore configurations efficiently, but the self-avoidance constraint makes acceptance and global communication between configurations difficult to control. The particular lattice, path length, pivot transformations, and desired quantitative bound remain part of the source's formulation rather than a single rate fixed by this short summary.
-
-[Read in atlas](index.html#TCS-6857) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Counting and enumeration (15)
 

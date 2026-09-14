@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-764 records have an editorial importance assessment; 293 remain provisional.
+769 records have an editorial importance assessment; 288 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -331,19 +331,19 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance 
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 9; importance assessed: 3; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 9; importance assessed: 8; provisional: 1.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Rapid mixing of Glauber dynamics with \\(\\Delta +2\\) colours](index.html#TCS-6621) | 95 |
 | 2 | [Kannan–Tetali–Vempala conjecture](index.html#TCS-6622) | 94 |
 | 3 | [Polynomial mixing of critical three-dimensional Ising dynamics](index.html#TCS-6668) | 93 |
-| 4 | [Efficient negatively dependent sampling from matroid polytopes](index.html#TCS-2861) | 50 |
-| 5 | [Polynomial mixing of Ising dynamics with plus boundaries](index.html#TCS-6839) | 50 |
-| 6 | [Monotonicity of Ising spectral gaps](index.html#TCS-6840) | 50 |
-| 7 | [Cutoff for bounded-degree transitive expanders](index.html#TCS-6843) | 50 |
-| 8 | [Polynomial-time computation of exact cover time](index.html#TCS-6851) | 50 |
-| 9 | [Mixing of the self-avoiding-walk pivot chain](index.html#TCS-6857) | 50 |
+| 4 | [Polynomial mixing of planar Ising dynamics with plus boundaries](index.html#TCS-6839) | 90 |
+| 5 | [Cutoff for bounded-degree transitive expanders](index.html#TCS-6843) | 90 |
+| 6 | [Monotonicity of Ising spectral gaps](index.html#TCS-6840) | 85 |
+| 7 | [Mixing of the self-avoiding-walk pivot chain](index.html#TCS-6857) | 84 |
+| 8 | [Deterministic approximation scheme for graph cover times](index.html#TCS-6851) | 82 |
+| 9 | [Efficient negatively dependent sampling from matroid polytopes](index.html#TCS-2861) | 50 |
 
 ## 11. Counting and enumeration (small)
 
