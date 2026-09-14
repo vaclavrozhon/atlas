@@ -616,3 +616,42 @@ active cards and 666 pending (247 queue completions, including 11 inactive).
 All 236 completed active output hashes match. These thirteen concurrent source
 reviews remain preserved for their separate source commit. The full pass is
 still incomplete.
+
+
+Two further owned reviews complete TCS-7234 and TCS-6667. They retain the same
+unrestricted rational-basis short-vector target with distinct uniform quantum
+and classical randomized bit models, fixed rank-only approximation exponents,
+nonzero output on every run and complete Lean acceptance. The quantum review
+records the disputed August 2026 DCP claim and the September response, including
+failed ePrint PDF retrieval and the unverified scope of the linked Lean code;
+it no longer says that no claim was found. Decision, uniqueness promises and
+arbitrary-basis search remain explicitly distinct.
+
+The classical audit visually checks the scanned LLL short-vector and bit-cost
+propositions, checks the exact certificate and conditional-hardness scopes,
+and reads the PotBKZ theorem including coefficient, enumeration and node costs.
+The 2024 Shenoy factor depends on the actual basis and does not establish a
+uniform polynomial in rank. Wan’s 8 September major revision expressly drops
+its first version’s dimension-dependent claims; the retained constant-factor
+claims are identified as unverified. April deterministic-subexponential
+reductions, the September RANDOM publication and generic-metric oracle bounds
+are scoped separately from the full target.
+
+Checkpoint 251 has 1,055 active cards: 393 individually completed/reviewed and
+662 pending. The queue contains 251 completions (240 active and 11 later
+archived), 662 pending and one outside active scope; 153 reviewed active cards
+remain separately accounted for. All 240 completed active hashes match, and
+inactive card bodies were skipped. Fifteen concurrent random-card reviews are
+included, with TCS-7113, TCS-0247, TCS-5085 and TCS-7257 added since checkpoint
+245; their source changes remain preserved for separate commits.
+
+Validation: make check passed; publication produced 0e44573e820d0fecaac8;
+node tests/math.cjs passed 1,055 active cards and 17,377 expressions. A subsequent
+sixteenth concurrent completion, TCS-7373, advances the combined queue to 252
+completed and 661 pending, or 394 reviewed active cards. The overall pass is
+still incomplete.
+
+Deployment note for checkpoint 247: the combined root build was deployed and
+live-verified as a6e9bc6def6bbba3d8ac, Pages commit
+c6288951c454d4c7c542d9b653ae9d325a4512fe. Concurrent publication had advanced
+the shared build; the combined state was retained.
