@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-407 five-sentence working summaries, based on saved source material.
+408 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (70)
+## Computational complexity (71)
 
 ### TCS-0001 — P versus NP
 
@@ -270,6 +270,13 @@ An interactive proof lets a verifier check a claim through conversation with a p
 
 [Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient \(\mathrm{IP}=\mathrm{PSPACE}\)](https://eccc.weizmann.ac.il/report/2026/102/)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7257 — Formula versus circuit noise thresholds
+
+Each gate of a Boolean circuit independently flips its computed output with the same probability. The circuit may reuse noisy intermediate values and may be arbitrarily large. The question asks whether universal reliable computation is possible exactly below the known two-input formula threshold. Reliability requires one positive correctness advantage that works for every Boolean function and input length at the chosen noise level. A resolution would determine whether sharing intermediate computations changes the fundamental tolerance to gate errors.
+
+[Read in atlas](index.html#TCS-7257) · [Noise Threshold for Universality of Two-Input Gates](https://ir.cwi.nl/pub/13657) · [Tight Limits on Nonlocality from Nontrivial Communication Complexity; a.k.a. Reliable Computation with Asymmetric Gate Noise](https://arxiv.org/abs/1809.09748v5) · [Noise Quantification and Control in Circuits via Strong Data-Processing Inequalities](https://arxiv.org/abs/2507.15108v1)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7260 — Polynomial-size closure of d-DNNF under negation
 

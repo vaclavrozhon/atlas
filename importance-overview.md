@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-791 records have an editorial importance assessment; 264 remain provisional.
+792 records have an editorial importance assessment; 263 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -565,7 +565,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 
 ## 24. Database theory and finite model theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 21; importance assessed: 15; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 21; importance assessed: 16; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -575,10 +575,10 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 21; importance 
 | 4 | [Asser’s problem](index.html#TCS-7232) | 96 |
 | 5 | [Decidability of conjunctive-query entailment in SROIQ](index.html#TCS-6680) | 95 |
 | 6 | [Conjunctive-query containment under bag semantics](index.html#TCS-0492) | 92 |
-| 7 | [Computability of entropic query-size bounds](index.html#TCS-0488) | 84 |
-| 8 | [Linear-round convergence over stable semirings](index.html#TCS-0482) | 83 |
-| 9 | [Complexity of polymatroid query-size bounds](index.html#TCS-0487) | 81 |
-| 10 | [Finite controllability from bounded derivation](index.html#TCS-0494) | 79 |
+| 7 | [A logic capturing logarithmic space](index.html#TCS-3631) | 86 |
+| 8 | [Computability of entropic query-size bounds](index.html#TCS-0488) | 84 |
+| 9 | [Linear-round convergence over stable semirings](index.html#TCS-0482) | 83 |
+| 10 | [Complexity of polymatroid query-size bounds](index.html#TCS-0487) | 81 |
 
 ## 25. Miscellaneous (small)
 

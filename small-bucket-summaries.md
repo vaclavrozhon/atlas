@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-604 five-sentence working summaries, based on saved source material.
+605 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -636,10 +636,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7373 — Balanced dense NFA Acceptance Hypothesis
 
-A binary word is checked against a nondeterministic finite automaton. The number of transitions is quadratic in the number of states. The word length equals the number of states. The hypothesis excludes a fixed polynomial improvement over cubic time. Both algebraic and randomized algorithms are included in the stated model.
+A binary word of length equal to the number of automaton states must be tested for acceptance. The automaton has quadratically many transitions and is supplied explicitly without preprocessing. The question excludes every fixed polynomial improvement over cubic running time for randomized word-RAM algorithms. The source relates a broader NFA Acceptance hypothesis to major static and dynamic complexity barriers. This card keeps the balanced dense binary specialization separate from sparse-automaton results and from simulation-density bounds for regular expressions.
 
-[Read in atlas](index.html#TCS-7373) · [The NFA Acceptance Hypothesis: Non-Combinatorial and Dynamic Lower Bounds](https://arxiv.org/abs/2311.10204) · [Sparse Regular Expression Matching](https://arxiv.org/abs/1907.04752)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7373) · [The NFA Acceptance Hypothesis: Non-Combinatorial and Dynamic Lower Bounds](https://theoretics.episciences.org/14397) · [Sparse Regular Expression Matching](https://arxiv.org/abs/1907.04752v7)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0562 — Refuting nondeterministic SETH
 
@@ -3348,7 +3348,7 @@ Multivariate polynomial factorization decomposes a polynomial into simpler multi
 [Read in atlas](index.html#TCS-6914) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Lattices and computational number theory (27)
+## Lattices and computational number theory (28)
 
 ### TCS-6571 — Hilbert’s tenth problem over the rationals
 
@@ -3359,10 +3359,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6667 — Polynomial-time, polynomial-factor approximation of Euclidean SVP
 
-The shortest vector problem seeks a nonzero integer combination of lattice basis vectors with minimum Euclidean length. The reviewed question asks for polynomial-time approximation within some fixed polynomial in the lattice rank. Long basis vectors can cancel to form much shorter vectors, so the input representation hides the relevant geometry. Reaching polynomial factors would close a major gap between general reduction algorithms and fundamental lattice-hardness regimes. The saved review separates subexponential approximation factors, decision certificates, and constant-factor hardness from the requested polynomial-factor search guarantee.
+The shortest vector problem asks for a nonzero integer combination of a rational lattice basis with minimum Euclidean length. This card asks whether one uniform classical randomized algorithm can approximate that length within some fixed power of the rank on every basis. It must return a nonzero vector on every run, achieve the length bound with probability at least two thirds per input, and count all input, arithmetic and output bits in a polynomial clock. Known general upper guarantees, conditional hardness at smaller factors and basis-dependent approximation expressions do not settle this target. The September 2026 review retains the distinctions between search and decision, classical and quantum computation, and current theorems and withdrawn claims.
 
-[Read in atlas](index.html#TCS-6667) · [Factoring Polynomials with Rational Coefficients](https://www.math.ucdavis.edu/~deloera/MISC/LA-BIBLIO/trunk/Lovasz/LovaszLenstraLenstrafactor.pdf) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Tensor-based Hardness of the Shortest Vector Problem to within Almost Polynomial Factors](https://theoryofcomputing.org/articles/v008a023/v008a023.pdf) · [Lattice Problems in \(\mathrm{NP} \cap  \mathrm{coNP}\)](https://cims.nyu.edu/~regev/papers/cvpconp.pdf) · [A new BKZ-type reduction with provable termination and development of its self-dual variant](https://link.springer.com/article/10.1007/s13160-026-00799-6) · [One-Sided-Error Parameterized Reductions for the Minimum Distance and Shortest Vector Problems](https://arxiv.org/abs/2608.14305)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6667) · [Factoring Polynomials with Rational Coefficients](https://www.math.ucdavis.edu/~deloera/MISC/LA-BIBLIO/trunk/Lovasz/LovaszLenstraLenstrafactor.pdf) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Tensor-based Hardness of the Shortest Vector Problem to within Almost Polynomial Factors](https://theoryofcomputing.org/articles/v008a023/v008a023.pdf) · [Lattice Problems in \(\mathrm{NP}\cap\mathrm{coNP}\)](https://cims.nyu.edu/~regev/papers/cvpconp.pdf) · [A Novel Approximation Algorithm for the Shortest Vector Problem](https://doi.org/10.1109/ACCESS.2024.3469368) · [A new BKZ-type reduction with provable termination and development of its self-dual variant](https://link.springer.com/article/10.1007/s13160-026-00799-6) · [Deterministic Hardness of Approximation For SVP in all Finite \(\ell_p\) Norms](https://arxiv.org/abs/2604.01451v2) · [One-Sided-Error Parameterized Reductions for the Minimum Distance and Shortest Vector Problems](https://arxiv.org/abs/2608.14305v1) · [Euclidean SVP is deterministically NP-hard to approximate within any constant factor](https://arxiv.org/abs/2608.12664v2) · [Adversary Lower Bounds for Lattice Problems](https://eccc.weizmann.ac.il/report/2026/170/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6617 — Integer factorization in randomized polynomial time
 
@@ -3377,6 +3377,13 @@ Given a prime p, a generator g and a nonzero residue h, the task is to recover t
 
 [Read in atlas](index.html#TCS-6618) · [A Survey of Techniques Used in Algebraic and Number Theoretic Algorithms](https://www.csa.iisc.ac.in/~chandan/research/survey_CNT.pdf) · [The impact of the number field sieve on the discrete logarithm problem in finite fields](https://library.slmath.org/books/Book44/files/12oliver.pdf) · [Lower Bounds for Discrete Logarithms and Related Problems](https://www.shoup.net/papers/dlbounds1.pdf) · [Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer](https://arxiv.org/abs/quant-ph/9508027) · [Discrete logarithms in quasi-polynomial time in finite fields of fixed characteristic](https://arxiv.org/abs/1906.10668v2) · [Discrete Logarithm Factory](https://doi.org/10.62056/ah2ip2fgx) · [A provably quasi-polynomial algorithm for the discrete logarithm problem in finite fields of small characteristic](https://doi.org/10.1016/j.ffa.2025.102753) · [Quantum Advantage with Adaptive Shallow Circuits](https://arxiv.org/abs/2608.15545v1)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7234 — Quantum polynomial-factor approximation of Euclidean SVP
+
+A lattice consists of all integer combinations of a linearly independent rational basis, and its shortest nonzero vector can be much shorter than every basis column. The question asks whether one uniform quantum algorithm finds a nonzero vector within a fixed power of the rank of that optimum on every explicitly given basis. Its probability of meeting the length bound must be at least two thirds per input, with polynomial total bit cost on every execution and classical vector output. Known reductions for decision or uniqueness-promised lattice problems do not by themselves establish this unrestricted search guarantee. An August 2026 claimed lattice consequence and its September algorithm-specific rebuttal are recorded as disputed evidence with explicit verification limits.
+
+[Read in atlas](index.html#TCS-7234) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [On Lattices, Learning with Errors, Random Linear Codes, and Cryptography](https://arxiv.org/abs/2401.03703v1) · [Learning With Errors and Extrapolated Dihedral Cosets](https://arxiv.org/abs/1710.08223v2) · [Quantum Algorithms for Lattice Problems](https://eprint.iacr.org/2024/555) · [Exact Coset Sampling for Quantum Lattice Algorithms](https://arxiv.org/abs/2509.12341v8) · [A Polynomial-Time Quantum Algorithm for the Dihedral Coset Problem](https://eprint.iacr.org/2026/1591) · [The ePrint:2026/1591 Quantum Algorithm Does Not Solve DCP](https://eprint.iacr.org/2026/1693) · [Lean formalization accompanying the DCP refutation](https://github.com/sragavan99/lean-ePrint-2026-1591-refutation)
+Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-6619 — Exact Euclidean SVP in single-exponential time and polynomial space
 
@@ -4160,6 +4167,13 @@ Under bag semantics, database tuples and query answers have multiplicities rathe
 [Read in atlas](index.html#TCS-0492) · [List of open questions: Decidability of conjunctive query containment under bag semantics](https://a3nm.net/work/research/questions/#decidability-of-conjunctive-query-containment-under-bag-semantics) · [Semirings in Databases, Automata, and Logic (Dagstuhl Seminar 25081)](https://doi.org/10.4230/DagRep.15.2.89) · [Bag Semantics Conjunctive Query Containment. Four Small Steps Towards Undecidability](https://doi.org/10.1145/3651604) · [Bag Containment of Join-On-Free Queries](https://doi.org/10.4230/LIPIcs.ICDT.2025.5) · [Bag Semantics Query Containment: The CQ vs. UCQ Case and Other Stories](https://arxiv.org/abs/2503.07219v3)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-3631 — A logic capturing logarithmic space
+
+The input is a finite relational structure with no distinguished ordering of its elements. The question asks for an effective logic expressing exactly all isomorphism-invariant Boolean queries decidable in deterministic logarithmic space. Each sentence must compile to a halting evaluation algorithm with a certified logarithmic workspace bound. The proposed CLogspace logic is known to miss some such queries, while ordered structures and strings admit stronger capturing results. A solution would settle a broad descriptive-complexity question linking small-memory computation to the expressive power of logical queries.
+
+[Read in atlas](index.html#TCS-3631) · [Choiceless Logarithmic Space](https://doi.org/10.4230/LIPIcs.MFCS.2019.31) · [Is Polynomial Time Choiceless?](https://logic.rwth-aachen.de/pub/graedel/cptYuri.pdf) · [FC-Datalog as a Framework for Efficient String Querying](https://arxiv.org/abs/2501.10344v2)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-0488 — Computability of entropic query-size bounds
 
 Entropy-based bounds use information inequalities to limit the number of answers a database query can produce. The source asks whether the relevant entropic query-size bounds are computable. The issue is not merely evaluating one join, but determining an extremal bound over all data distributions or instances satisfying the supplied constraints. An effective method would strengthen the use of information theory in predicting query output size. The inherited label does not preserve the constraint language, exact-versus-approximate target, or entropy region, so these must be recovered before the computability claim is formalized.
@@ -4222,13 +4236,6 @@ Stratified Datalog can negate relations already computed in earlier stages. Semi
 
 [Read in atlas](index.html#TCS-3557) · [Datalog with Negation and Monotonicity](https://doi.org/10.4230/LIPIcs.ICDT.2020.19) · [Weaker Forms of Monotonicity for Declarative Networking](https://www.basketsman.com/public/documents/posters/poster_pods2014.pdf) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic](https://doi.org/10.4230/LIPIcs.CSL.2021.18)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-3631 — A logic capturing logarithmic space
-
-Choiceless logarithmic space aims to describe memory-bounded computation without imposing an arbitrary order on the input structure. The source asks whether its ideas can be extended into a logic capturing all logarithmic-space queries. Capturing requires both that every definable query is computable within the resource bound and that every query in the class is expressible. A successful logic would bridge feasible computation and order-independent descriptive complexity. The source's input structures and effectiveness requirements remain essential, because adding a built-in order or an unrestricted mechanism for choices would change the intended challenge.
-
-[Read in atlas](index.html#TCS-3631) · [Choiceless Logarithmic Space](https://doi.org/10.4230/LIPIcs.MFCS.2019.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4458 — First-order versus successor-invariant logic
 
