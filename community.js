@@ -41,7 +41,7 @@
     const body=issue.body.replace(/\r\n/g,'\n');
     const marker=body.match(/^<!-- atlas-(note|problem):v1 ([A-Za-z0-9-]+) -->\n/);
     if(!marker)return null;
-    const base={number:issue.number,url:`${github}/issues/${issue.number}`,author:String(issue.user?.login||'Unknown contributor'),created_at:issue.created_at,updated_at:issue.updated_at,original_body:issue.body};
+    const base={number:issue.number,url:`${github}/issues/${issue.number}`,author:String(issue.user?.login||'Unknown contributor'),created_at:issue.created_at,updated_at:issue.updated_at};
     const text=body.slice(marker[0].length).trim();
     if(marker[1]==='note')return /^(TCS-\d{4,}|GH-\d+)$/.test(marker[2])&&text?{...base,kind:'note',problem_id:marker[2],text}:null;
     const values=sections(text);
@@ -62,32 +62,17 @@
   const date=value=>{const parsed=new Date(value);return Number.isNaN(parsed.valueOf())?'':parsed.toLocaleDateString('en',{year:'numeric',month:'short',day:'numeric'});};
   const byAuthor=item=>item.source==='direct'?`${esc(item.author)} · ${esc(date(item.created_at))} <span title="No account is required; names are not verified.">· unverified</span>`:`<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.author)} · ${esc(date(item.created_at))} ↗</a>`;
 
-  function reviewFor(item){
-    const source=item.source==='direct'?'direct':'github',id=source==='direct'?item.id:String(item.number);
-    const original=source==='direct'?item.text:item.original_body;
-    for(const card of data.cards){
-      if(['resolved','excluded'].includes(card.status))continue;
-      const review=card.community_reviews?.find(review=>review.source===source&&review.id===id&&review.original_problem_id===(item.kind==='problem'?item.id:item.problem_id)&&review.original_text===original);
-      if(review)return {card,review};
-    }
-    return null;
-  }
-  function reviewHTML(item){
-    const result=reviewFor(item);if(!result)return '';
-    const {card,review}=result;
-    return `<p class="community-review"><strong>[${esc(review.status)}]</strong> ${esc(review.response)} <span class="small">Editorial review · ${esc(date(review.reviewed_on))} · <a href="#${esc(card.id)}">${esc(card.id)}</a></span></p>`;
-  }
   function notesContent(id){
-    const notes=contributions.filter(item=>item.kind==='note'&&(item.problem_id===id||reviewFor(item)?.card.id===id));
+    const notes=contributions.filter(item=>item.kind==='note'&&item.problem_id===id);
     if(!notes.length)return '';
-    return `<details class="community-thread" data-thread="${esc(id)}" ${openThreads.has(id)?'open':''}><summary>Public notes (${notes.length})</summary>${notes.map(item=>`<article class="public-note"><p class="public-note-author">${byAuthor(item)}${item.problem_id!==id?` · Originally on ${esc(item.problem_id)}`:''}</p><p class="public-note-text">${esc(item.text)}</p>${reviewHTML(item)}${item.source==='direct'?(ownership[item.id]?`<button type="button" class="text-button" data-delete-note="${esc(item.id)}">Delete my note</button>`:''):`<a class="small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Reply or edit on GitHub ↗</a>`}</article>`).join('')}</details>`;
+    return `<details class="community-thread" data-thread="${esc(id)}" ${openThreads.has(id)?'open':''}><summary>Public notes (${notes.length})</summary>${notes.map(item=>`<article class="public-note"><p class="public-note-author">${byAuthor(item)}</p><p class="public-note-text">${esc(item.text)}</p>${item.source==='direct'?(ownership[item.id]?`<button type="button" class="text-button" data-delete-note="${esc(item.id)}">Delete my note</button>`:''):`<a class="small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Reply or edit on GitHub ↗</a>`}</article>`).join('')}</details>`;
   }
   function notesHTML(id){return `<div class="public-notes" data-public-notes="${esc(id)}">${notesContent(id)}</div>`;}
   function render(){
     const problems=contributions.filter(item=>item.kind==='problem');
     $('community-count').textContent=problems.length?`(${problems.length})`:'';
     $('community-problem-count').textContent=`(${problems.length})`;
-    $('community-problems').innerHTML=problems.length?problems.slice(0,displayed).map(item=>`<article class="community-problem" id="${item.id}"><div class="card-meta"><span>${item.id}</span><span>${reviewFor(item)?'Reviewed community proposal':'Community draft · not reviewed'}</span><span>${esc(categoryLabel(item.category))}</span></div><h2>${esc(item.title)}</h2>${window.ATLAS_VOTES?.html(item.id)||''}<p class="community-author">${byAuthor(item)}</p><p class="community-statement">${esc(item.statement)}</p>${Object.keys(sectionNames).filter(key=>key!=='statement'&&item[key]).map(key=>`<section><h3>${esc(sectionNames[key])}</h3><p class="community-text">${esc(item[key])}</p></section>`).join('')}${reviewHTML(item)}${notesHTML(item.id)}<div class="community-actions"><button type="button" data-public-note="${item.id}">Add public note</button><a href="${item.url}" target="_blank" rel="noopener noreferrer">Discuss or edit on GitHub ↗</a></div></article>`).join('')+(problems.length>displayed?'<button type="button" id="more-community">Load more community problems</button>':''):`<p class="community-empty">${loadedAt?'No community problems have been submitted yet. Use “New problem” to add the first one.':'Shared problems will appear here after contributions load.'}</p>`;
+    $('community-problems').innerHTML=problems.length?problems.slice(0,displayed).map(item=>`<article class="community-problem" id="${item.id}"><div class="card-meta"><span>${item.id}</span><span>Community draft · not reviewed</span><span>${esc(categoryLabel(item.category))}</span></div><h2>${esc(item.title)}</h2>${window.ATLAS_VOTES?.html(item.id)||''}<p class="community-author">${byAuthor(item)}</p><p class="community-statement">${esc(item.statement)}</p>${Object.keys(sectionNames).filter(key=>key!=='statement'&&item[key]).map(key=>`<section><h3>${esc(sectionNames[key])}</h3><p class="community-text">${esc(item[key])}</p></section>`).join('')}${notesHTML(item.id)}<div class="community-actions"><button type="button" data-public-note="${item.id}">Add public note</button><a href="${item.url}" target="_blank" rel="noopener noreferrer">Discuss or edit on GitHub ↗</a></div></article>`).join('')+(problems.length>displayed?'<button type="button" id="more-community">Load more community problems</button>':''):`<p class="community-empty">${loadedAt?'No community problems have been submitted yet. Use “New problem” to add the first one.':'Shared problems will appear here after contributions load.'}</p>`;
     for(const slot of document.querySelectorAll('[data-public-notes]'))slot.innerHTML=notesContent(slot.dataset.publicNotes);
     revealHash();
   }

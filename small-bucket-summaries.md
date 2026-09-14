@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-601 five-sentence working summaries, based on saved source material.
+602 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1964,7 +1964,7 @@ Enumeration CSP asks an algorithm to list every satisfying assignment of a fixed
 [Read in atlas](index.html#TCS-7099) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Structural graph theory and graph algorithms (49)
+## Structural graph theory and graph algorithms (50)
 
 ### TCS-6651 — Hadwiger’s conjecture
 
@@ -1993,6 +1993,13 @@ Reed's conjecture bounds chromatic number by the rounded average of maximum degr
 
 [Read in atlas](index.html#TCS-6682) · [\(\omega , \Delta\), and \(\chi\)](https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291097-0118%28199804%2927%3A4%3C177%3A%3AAID-JGT1%3E3.0.CO%3B2-K) · [Bounding \(\chi\) by a fraction of \(\Delta\) for graphs without large cliques](https://arxiv.org/abs/1803.01051) · [An improved procedure for colouring graphs of bounded local density](https://arxiv.org/abs/2007.07874) · [A Recolouring Version of a Conjecture of Reed](https://arxiv.org/abs/2502.10147) · [An analogue of Reed’s conjecture for digraphs](https://arxiv.org/abs/2407.05827)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7222 — Graph isomorphism in polynomial time
+
+Graph isomorphism asks whether two finite simple graphs agree after a bijective relabeling of their vertices. The target is a single deterministic algorithm that answers correctly on every explicitly encoded pair in polynomial time. A proposed relabeling is easy to verify, while ruling out all relabelings can require substantially more structure. The checked general upper bound is quasipolynomial, and efficient algorithms for restricted graph classes do not establish the unrestricted polynomial bound. A resolution would settle a central structural comparison problem whose position between P and NP-completeness remains unresolved.
+
+[Read in atlas](index.html#TCS-7222) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Group, Graphs, Algorithms: The Graph Isomorphism Problem](https://people.cs.uchicago.edu/~laci/papers/icm18-babai.pdf) · [Parameterized complexity of graph isomorphism testing](https://doi.org/10.1016/j.cosrev.2026.100918) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/update.html) · [Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem](https://doi.org/10.4230/LIPIcs.MFCS.2021.27) · [On the Relative Power of Linear Algebraic Approximations of Graph Isomorphism](https://doi.org/10.4230/LIPIcs.MFCS.2021.37)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7248 — Tutte’s 5-flow conjecture
 

@@ -10,7 +10,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | large 2 | Algorithms | 5 | 25 | 50 | 26 |
 | large 3 | Automata and formal languages | 5 | 25 | 50 | 33 |
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 39 |
-| large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 61 |
+| large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 60 |
 | large 6 | Optimization and numerical computation | 5 | 25 | 50 | 24 |
 | large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 41 |
 | large 8 | Learning theory | 5 | 25 | 50 | 39 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 21 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 2 |
 
-Candidate pool: 1055. Inactive records: 6320 (excluded from active work).
+Candidate pool: 1054. Inactive records: 6320 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

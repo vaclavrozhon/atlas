@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-402 five-sentence working summaries, based on saved source material.
+401 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (70)
@@ -145,12 +145,26 @@ The question asks for one language decidable in deterministic time exponential i
 [Read in atlas](index.html#TCS-6091) · [NP-hardness of Minimum Circuit Size Problem for OR-AND-MOD Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.5) · [Optimal Monotone Depth-Three Circuit Lower Bounds for Majority](https://arxiv.org/abs/2601.04072v2)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6743 — Randomized evasiveness conjecture
+
+A monotone graph property is invariant under vertex renaming and cannot be destroyed by adding edges. The conjecture says every nonconstant such property needs a quadratic number of adjacency queries even with randomized error at most one third. The query bound is worst-case over graphs and random choices, while the error guarantee holds separately for each graph. Zero-error expected-cost lower bounds and the solved quantum analogue concern distinct computational models. A resolution would establish or refute a universal information barrier for randomized exact graph recognition.
+
+[Read in atlas](index.html#TCS-6743) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html) · [Complexity Measures and Decision Tree Complexity: A Survey](https://homepages.cwi.nl/~rdewolf/publ/qc/dectree.pdf) · [Instance Complexity and Unlabeled Certificates in the Decision Tree Model](https://www.wisdom.weizmann.ac.il/~naor/PAPERS/instance_complexity.pdf) · [Improved Lower Bounds on the Randomized Complexity of Graph Properties](https://www.cs.dartmouth.edu/~ac/Pubs/rsa-randglb.pdf) · [The Influence Lower Bound Via Query Elimination](https://theoryofcomputing.org/articles/v007a010/v007a010.pdf) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629v1) · [CS 860: Introduction — Graph Properties](https://cs.uwaterloo.ca/~eblais/cs860/w25/intro)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-1056 — Majority outside constant-depth modular circuits
 
 Majority returns one when at least half of its input bits are one. ACC⁰ circuits combine Boolean operations and modular-counting gates using constant depth and polynomial size. The question asks whether every fixed choice of modulus and depth fails to compute majority within polynomial size. Known results for prime moduli or additional circuit restrictions do not settle the full composite-modulus question. A separation would show that this shallow modular model cannot express a basic threshold operation efficiently.
 
 [Read in atlas](index.html#TCS-1056) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Optimal Lower Bounds for Symmetric Modular Circuits](https://arxiv.org/abs/2604.04760)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-6747 — Graph nonisomorphism in BPP
+
+Graph nonisomorphism asks whether two graphs have no adjacency-preserving vertex bijection. The target is one randomized polynomial-time algorithm with error at most one third on every encoded input. Because BPP is closed under complement, the same question can be phrased for ordinary graph isomorphism. Interactive proofs, quasipolynomial algorithms and algorithms for restricted graph classes do not provide the required decider. A resolution would clarify whether random computation alone suffices for this central structural comparison problem.
+
+[Read in atlas](index.html#TCS-6747) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/update.html) · [Group, Graphs, Algorithms: The Graph Isomorphism Problem](https://people.cs.uchicago.edu/~laci/papers/icm18-babai.pdf) · [Parameterized complexity of graph isomorphism testing](https://doi.org/10.1016/j.cosrev.2026.100918)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6817 — Directed reachability in polynomial time and polylogarithmic space
 
@@ -313,6 +327,13 @@ Time-space lower bounds show that some combinations of fast running time and tin
 [Read in atlas](index.html#TCS-0303) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-1602 — Deterministic query complexity of tournament kings
+
+A king in a tournament reaches every other vertex along a directed path of at most two edges. A deterministic algorithm learns the orientation of one chosen edge per query and must output a king for every tournament. The target is its optimal worst-case query count up to constant factors as the number of vertices grows. The checked deterministic bounds remain \(\Omega(n^{4/3})\) and \(O(n^{3/2})\), whereas randomization permits linear expected query cost. Closing the deterministic gap would quantify how much pairwise information this total search task inherently requires.
+
+[Read in atlas](index.html#TCS-1602) · [Hardness of Finding Kings and Strong Kings](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.36) · [Searching for Sorted Sequences of Kings in Tournaments](https://cis.temple.edu/~wu/research/publications/Publication_files/41005.pdf) · [Randomized and Quantum Query Complexities of Finding a King in a Tournament](https://doi.org/10.4230/LIPIcs.FSTTCS.2023.30) · [From Donkeys to Kings in Tournaments](https://doi.org/10.4230/LIPIcs.ESA.2024.3) · [When You Come at the King You Best Not Miss](https://doi.org/10.4230/LIPIcs.FSTTCS.2022.25)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-0310 — Polynomial-time weighted falsifiability of unambiguous DNFs
 
 An unambiguous DNF has mutually disjoint satisfying terms, making some counting tasks straightforward. The question instead asks for a falsifying assignment with sufficiently large total variable weight. Weights and the threshold are binary encoded. Knowing how many assignments falsify the formula does not reveal whether one reaches the desired score. The project tests whether the strong disjointness promise still helps when every term must be defeated simultaneously while optimizing an additive objective over the complement.
@@ -360,13 +381,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Multi-prover interactive proofs let a verifier question several provers that cannot coordinate their answers during the protocol. The source asks for such a proof system for SAT whose honest provers run in randomized polynomial time with SAT-oracle access. Unrestricted provers do not meet this efficiency requirement. The question is tied to whether SAT programs can be checked through suitable oracle interactions. The project seeks a verification protocol whose participants need no computational power beyond the problem they are supposed to certify.
 
 [Read in atlas](index.html#TCS-0298) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1602 — Deterministic query complexity of tournament kings
-
-A king in a tournament is a vertex that can reach every other vertex along a directed path of at most two edges. The graph is accessed by queries revealing the direction of individual edges. Every tournament has a king, so the challenge is to find one while inspecting as few edges as possible. The source asks for the deterministic query complexity, reporting an \(O(n^{3/2})\) algorithm and an \(\Omega (n^{4/3})\) lower bound. Closing this gap would quantify the information needed to locate a globally influential vertex in a completely oriented graph.
-
-[Read in atlas](index.html#TCS-1602) · [Hardness of Finding Kings and Strong Kings](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.36)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2215 — A real analogue of Toda’s theorem
@@ -453,20 +467,6 @@ Ordinary span programs may enable vectors using either positive or negative inpu
 [Read in atlas](index.html#TCS-6716) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6743 — Randomized evasiveness conjecture
-
-A monotone graph property is preserved when edges are added, and a graph property ignores vertex labels. The randomized evasiveness conjecture asks whether every nontrivial such property on k vertices requires \(\Omega\)(k squared) adjacency queries for exact recognition with bounded error. The algorithm must distinguish every yes-instance from every no-instance, including graphs differing by very few edges. This differs fundamentally from property testing, which allows a gap between valid graphs and graphs far from validity. A quadratic lower bound would say that randomness cannot avoid inspecting a constant fraction of potential edges in the worst case.
-
-[Read in atlas](index.html#TCS-6743) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6747 — Graph nonisomorphism in BPP
-
-Graph nonisomorphism asks whether two graphs cannot be matched by any relabeling that preserves adjacency. The question asks for a randomized polynomial-time algorithm with bounded error for this decision problem. Interactive protocols can certify nonisomorphism efficiently using help from an untrusted prover, but that assistance is absent in BPP. Since BPP is closed under complement, the same algorithmic question can be phrased for graph isomorphism. Resolving it would clarify whether randomization alone can efficiently handle a central structural comparison problem that has distinctive behavior among complexity-theoretic examples.
-
-[Read in atlas](index.html#TCS-6747) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6832 — Separations among P, RP and NP
 
 P consists of problems with deterministic polynomial-time algorithms, while RP permits randomized algorithms that can miss yes-instances but never falsely accept no-instances. Every RP algorithm can be viewed as an NP verification procedure by treating its random choices as a certificate. This gives the chain P contained in RP contained in NP. The question asks which of these inclusions are strict. The alternatives distinguish whether randomness adds power beyond deterministic computation and whether one-sided randomized search can capture the full strength of efficiently verifiable existence.
@@ -488,12 +488,12 @@ SAT asks whether a Boolean formula has a satisfying assignment. The selected que
 [Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6979 — Independence of P versus NP from ZFC
+### TCS-6979 — Independence of P versus NP
 
-P versus NP asks whether efficiently verifiable decisions can always be made efficiently. This card asks specifically whether ZFC proves neither the usual arithmetic statement P = NP nor its negation. It defines that statement through polynomial-time deterministic satisfiability and allows all finite ZFC proofs. Results for restricted theories and oracle machines do not establish the asserted independence from full ZFC. The question has a definite yes/no target once the axioms are fixed, and a positive answer would also imply their consistency.
+P versus NP asks whether every efficiently verifiable decision problem can also be solved efficiently. The independence question concerns the possibility that a chosen mathematical axiom system proves neither equality nor inequality. This is a question about formal provability, distinct from proposing either an algorithm or a complexity lower bound. Any precise claim must name the axiom system and the assumptions made about its consistency or soundness. Investigating independence could identify limitations of the available foundations or proof methods, without treating the difficulty of existing approaches as evidence that independence must hold.
 
-[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)
-Existing status: `source_open` · Summary written: 2026-09-14
+[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Algorithms (26)
 
@@ -1166,7 +1166,7 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Distributed, parallel and sublinear algorithms (60)
+## Distributed, parallel and sublinear algorithms (59)
 
 ### TCS-6553 — P versus NC
 
@@ -1321,13 +1321,6 @@ Triangle detection asks a distributed network to report whether any three vertic
 
 [Read in atlas](index.html#TCS-2997) · [Distributed Subgraph Finding — ADGA 2025](https://adga-workshop.org/2025/keren.pdf) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802) · [Near-optimal Distributed Triangle Enumeration via Expander Decompositions](https://doi.org/10.1145/3446330)
 Existing status: `open` · Summary written: 2026-09-11
-
-### TCS-7376 — Polylogarithmic-space streaming Euclidean MST estimation
-
-Points arrive one at a time in Euclidean space, and the goal is to estimate the cost of connecting them by a minimum spanning tree. The algorithm gets one insertion-only pass and may keep only memory polynomial in the dimension and the logarithmic input parameters. It should return a constant-factor estimate with probability at least two thirds for every input order. The cited paper leaves a gap between its sublinear-space constant-factor result and this smaller memory budget. The question asks how compactly one can summarize global geometric connectivity, without requiring the summary to output the tree itself.
-
-[Read in atlas](index.html#TCS-7376) · [Community proposal: Streaming Euclidean MST to constant factor in space polylogarithmic in the number of points](https://github.com/vaclavrozhon/atlas/issues/2) · [Streaming Euclidean MST to a Constant Factor](https://doi.org/10.1145/3564246.3585168)
-Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0984 — Optimal measurements and near-linear decoding for universal ℓ₂/ℓ₁ sparse recovery
 
