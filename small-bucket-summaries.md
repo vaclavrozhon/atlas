@@ -3774,12 +3774,12 @@ The graph is directed and has bounded incoming and outgoing degree. A tester can
 [Read in atlas](index.html#TCS-0847) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:41) · [An Optimal Separation Between Two Property Testing Models for Bounded Degree Directed Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2023.96) · [Lower Bounds for Testing Directed Acyclicity in the Unidirectional Bounded-Degree Model](https://arxiv.org/abs/2604.13577v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0672 — Tight Characterization of Instance-Optimal Identity Testing
+### TCS-0672 — Efficient characterization of instance-optimal identity testing
 
-Identity testing decides whether an unknown distribution matches a specified reference distribution or is noticeably far from it in total variation distance. Instance-optimal testing seeks the minimum sample count for that particular reference, rather than the worst reference of a given domain size. The source's upper and lower bounds use related truncated functionals of the reference probabilities but can differ by an arbitrarily large factor. The open question is to identify a functional that characterizes the true sample complexity up to constants. Such a result would explain precisely which shapes of probability distributions make equality testing easy or difficult.
+The problem asks for an efficiently computable estimate of the optimal sample count for testing equality to a particular known distribution. The selected variant gives the reference probabilities and distance threshold explicitly as binary rational numbers. The estimate must match the information-theoretic optimum within one universal factor at exactly the requested distance. Existing instance-dependent bounds can disagree by arbitrarily large factors because their distance parameters differ. The card makes efficient evaluation precise while keeping the computation of the statistical test unrestricted.
 
-[Read in atlas](index.html#TCS-0672) · [COLT / PMLR](https://proceedings.mlr.press/v247/canonne24a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0672) · [Open Problem: Tight Characterization of Instance-Optimal Identity Testing](https://proceedings.mlr.press/v247/canonne24a.html) · [An Automatic Inequality Prover and Instance Optimal Identity Testing](https://doi.org/10.1109/FOCS.2014.14)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-2535 — A dimension-free directed \(\mathrm{L}^{1}\) Poincaré inequality
 

@@ -512,7 +512,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 6 | [Testing Submodularity](index.html#TCS-0848) | 75 |
 | 7 | [Equivalence Testing with Conditional Samples](index.html#TCS-0841) | 72 |
 | 8 | [Query complexity of directed acyclicity testing with bidirectional access](index.html#TCS-0847) | 68 |
-| 9 | [Tight Characterization of Instance-Optimal Identity Testing](index.html#TCS-0672) | 65 |
+| 9 | [Efficient characterization of instance-optimal identity testing](index.html#TCS-0672) | 65 |
 | 10 | [A dimension-free directed \\(\\mathrm{L}^{1}\\) Poincaré inequality](index.html#TCS-2535) | 50 |
 
 ## 21. Differential privacy (small)

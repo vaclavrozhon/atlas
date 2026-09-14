@@ -201,19 +201,19 @@ A De Morgan formula computes with binary AND and OR gates and input negations, w
 [Read in atlas](index.html#TCS-0305) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Towards Stronger Depth Lower Bounds](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.10)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1052 — Depth-three lower bounds beyond the switching-lemma barrier
+### TCS-1052 — Depth-three lower bounds beyond the log-depth simulation threshold
 
-Depth-three Boolean circuits compute through only three layers of gates but may have many gates within each layer. The source asks for lower bounds exceeding the reach of the stated switching-lemma approach. Switching arguments simplify restricted circuits, so the challenge is to prove hardness that survives limitations of that simplification method. Progress would strengthen explicit circuit lower bounds at a very small depth. The short inherited label does not preserve the gate basis, target function, or quantitative barrier, and those source details are needed before identifying exactly what improvement would answer the question.
+The target is an explicit Boolean family requiring extremely large depth-three AND/OR circuits. The required exponent must grow faster than input length divided by its iterated logarithm. Both top-gate orientations, arbitrary sharing and unbounded bottom fan-in are included. Such a lower bound would exclude the joint possibility of linear circuit size and logarithmic depth for that family. Recent stronger-looking bounds impose additional circuit restrictions or assumptions and do not answer this question.
 
-[Read in atlas](index.html#TCS-1052) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1052) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Optimal Monotone Depth-Three Circuit Lower Bounds for Majority](https://arxiv.org/abs/2601.04072) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank Under NSETH and Beyond](https://eccc.weizmann.ac.il/report/2025/038/revision/3/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1053 — Depth-three size bounds beyond exponential square root
+### TCS-1053 — Depth-three circuit lower bounds beyond the square-root exponent
 
-The saved problem concerns size lower bounds for Boolean circuits of depth three. Its target lies beyond an exponential-in-square-root scale, asking for a stronger obstruction than the source's reference bound. Depth is fixed, so the sought improvement must come from showing that many parallel gates cannot compensate for limited composition. Such a result would clarify the expressive power of very shallow Boolean computation. The book pointer does not include the underlying input parameter, basis, or function family, so the notation for the exponential threshold must be recovered instead of guessed from the abbreviated title.
+The question asks for an explicit family that is harder for depth-three AND/OR circuits than the known square-root exponent scale. The circuits have top OR gates, allow negated inputs and unrestricted fan-in, and may share gates. Explicitness means a single polynomial-time verifier with polynomial-length certificates, following the book. The exponent must improve by an unbounded factor, so increasing a fixed coefficient does not suffice. Recent exponential bounds in more restricted depth-three models leave this general frontier unresolved.
 
-[Read in atlas](index.html#TCS-1053) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1053) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Optimal Monotone Depth-Three Circuit Lower Bounds for Majority](https://arxiv.org/abs/2601.04072) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank Under NSETH and Beyond](https://eccc.weizmann.ac.il/report/2025/038/revision/3/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0293 — Subquadratic deterministic simulation of nondeterministic space
 
@@ -245,31 +245,31 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1035 — Cost of restricting linear circuits to depth two
 
-A linear circuit shares partial sums to compute a matrix transformation over a specified operation system. Restricting it to depth two allows only one intermediate layer. The source asks how much this restriction can increase circuit complexity, with different behavior for OR, SUM, and XOR operations. Known separations leave room for stronger gaps, particularly over the binary field. The project seeks to quantify the value of additional computational layers even when the final transformation is algebraically simple.
+The problem asks how much more expensive a matrix transformation can become when its circuit is restricted to two addition layers. It compares the minimum wire count at depth two with the unrestricted minimum for the same matrix and operation. Boolean OR, ordinary addition and addition modulo two have separate extremal penalty functions. A 2017 result already gives a polynomial penalty for XOR, resolving a narrower earlier question. The remaining target is the optimal asymptotic order of each penalty, with upper and lower bounds matching within constants.
 
-[Read in atlas](index.html#TCS-1035) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1035) · [Complexity of Linear Boolean Operators](https://doi.org/10.1561/0400000063) · [Solution of Problem 7.7](https://web.vu.lt/mif/s.jukna/Knizka/problem-7.7.html)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1040 — Nonlinear-gate advantages for binary linear operators
 
-A binary linear operator outputs parity combinations of its input bits. XOR circuits stay linear at every intermediate step, while general Boolean circuits may temporarily compute nonlinear functions. The question asks whether those nonlinear intermediates can provide an unbounded size advantage. The source relates this to rank-based conjectures for partially specified matrices. The project tests whether matching the algebraic form of the output is essentially optimal, or whether leaving that form during computation can lead to substantially more efficient circuits.
+The problem asks whether nonlinear intermediate computation can save an unbounded number of wires when the final output map is linear over the two-element field. The comparison is between XOR-only circuits and circuits with arbitrary Boolean gate functions. Both have unrestricted depth and fan-in and must compute the same map exactly on every input. Correctness only on basis vectors and results restricted to shallow circuits do not answer this question. A positive answer establishes arbitrarily large savings, while a negative answer gives one simulation factor for every matrix.
 
-[Read in atlas](index.html#TCS-1040) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1040) · [Complexity of Linear Boolean Operators](https://doi.org/10.1561/0400000063) · [Lower Bounds for Linear Operators](https://arxiv.org/abs/2509.02730)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1034 — Largest separation between SUM and OR circuits
 
-The same zero-one matrix can define a transformation using ordinary addition or Boolean OR. OR is idempotent, so repeated contributions can collapse, while SUM must count them accurately. The source asks for the largest possible circuit-size gap between these two computation systems. Depth restrictions lead to additional versions with different known bounds. The project aims to quantify how much the ability to ignore duplicate contributions changes the cost of computing many related linear-looking outputs at once.
+The problem asks for the largest circuit-size advantage of Boolean OR over ordinary nonnegative addition on the same zero-one matrix. Both models must compute all output sums exactly and are charged for wires. The card asks separately for unrestricted depth and for exactly two addition layers. Known constructions show growing gaps, but agreement of separate worst-case matrix complexities does not settle these ratios. The answer must determine both extremal growth rates with matching constant-factor bounds.
 
-[Read in atlas](index.html#TCS-1034) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1034) · [Complexity of Linear Boolean Operators](https://doi.org/10.1561/0400000063) · [Separating OR, SUM, and XOR Circuits](https://doi.org/10.1016/j.jcss.2016.01.001)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1036 — Unbounded XOR-over-OR complexity separations
 
-For one zero-one matrix, OR circuits and XOR circuits combine the same selected input positions using different operations. OR ignores repeated positive contributions, whereas XOR can cancel them modulo two. The question asks whether unrestricted XOR complexity can exceed OR complexity by an unbounded factor. Results for restricted depth do not automatically extend to arbitrary circuits. The project seeks a concrete matrix family showing that cancellation is not always an advantage when many outputs must share intermediate computations.
+The question asks whether some zero-one matrices are arbitrarily more costly to evaluate with XOR gates than with OR gates. Cost is the minimum number of wires, and both circuits may have unrestricted depth. The same coefficient matrix specifies parity outputs in one model and union outputs in the other. Known shallow-circuit gaps and hardness of rewriting representations do not establish this unrestricted size separation. A proof needs arbitrarily large ratios, while a refutation needs one universal constant bound.
 
-[Read in atlas](index.html#TCS-1036) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1036) · [Complexity of Linear Boolean Operators](https://doi.org/10.1561/0400000063) · [Separating OR, SUM, and XOR Circuits](https://doi.org/10.1016/j.jcss.2016.01.001)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0297 — A counting characterization of P with NP access
 
