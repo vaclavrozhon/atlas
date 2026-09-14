@@ -1854,10 +1854,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6628 — FPRAS for counting perfect matchings
 
-A perfect matching pairs every vertex of a graph with exactly one neighbor. The question asks for a randomized relative approximation to the number of perfect matchings in every graph, in time polynomial in input size and inverse accuracy. Existence is efficiently decidable, but counting requires estimating the total number of complete pairings. The saved review distinguishes this task from the solved bipartite permanent problem and from counting all matchings. Known bottlenecks obstruct particular general-graph sampling chains, while leaving open whether another algorithm can overcome the odd-cycle structure.
+A perfect matching pairs every vertex of a graph with exactly one neighbor. The question asks for one randomized algorithm giving arbitrarily accurate relative estimates of their number on every finite unweighted simple graph. Its worst-case running time must be polynomial in the full input length and inverse accuracy, with success probability at least three quarters for each input. Bipartite perfect matchings and all matchings have approximation schemes, but the checked 2026 dense-graph and permanent results retain restrictions absent from this target. A complete Lean proof must establish such a uniform scheme with exact zero behavior or prove that no scheme meeting all requirements exists.
 
-[Read in atlas](index.html#TCS-6628) · [Approximating the Permanent](https://doi.org/10.1137/0218077) · [A Polynomial-Time Approximation Algorithm for the Permanent of a Matrix with Nonnegative Entries](https://faculty.cc.gatech.edu/~vigoda/Permanent.pdf) · [On Counting Perfect Matchings in General Graphs](https://arxiv.org/abs/1712.07504) · [Two-State Spin Systems with Negative Interactions](https://arxiv.org/abs/2309.04735) · [Faster FPRAS for the Permanent via Restricted Poincaré Inequalities and Coupled Flows](https://arxiv.org/abs/2608.26599)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6628) · [Approximating the Permanent](https://webspace.maths.qmul.ac.uk/m.jerrum/papers/SIAMperm.pdf) · [A Polynomial-Time Approximation Algorithm for the Permanent of a Matrix with Nonnegative Entries](https://people.eecs.berkeley.edu/~sinclair/perm2.pdf) · [On Counting Perfect Matchings in General Graphs](https://arxiv.org/abs/1712.07504v1) · [Two-State Spin Systems with Negative Interactions](https://arxiv.org/abs/2309.04735v3) · [Faster FPRAS for the Permanent via Restricted Poincaré Inequalities and Coupled Flows](https://arxiv.org/abs/2608.26599v1) · [Diffuse Gaussian Truncation For Deterministic Approximate Counting](https://arxiv.org/abs/2609.04079v1)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7221 — FPRAS for #BIS
 
@@ -2828,12 +2828,12 @@ The cake is a divisible interval valued differently by each agent. The desired d
 [Read in atlas](index.html#TCS-7203) · [Waste Makes Haste: Bounded Time Protocols for Envy-Free Cake Cutting with Free Disposal](https://arxiv.org/abs/1511.02599) · [A Discrete and Bounded Envy-Free Cake Cutting Protocol for Any Number of Agents](https://arxiv.org/abs/1604.03655) · [Envy-Free Cake Divisions Cannot Be Found by Finite Protocols](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfree.pdf) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0056 — Best \(\alpha\) for \(\alpha\)-MMS existence
+### TCS-0056 — Universal maximin-share approximation for additive goods
 
-An agent's maximin share is the value they can secure by dividing the goods into bundles and receiving the least valuable one. The recorded question asks for the largest universally guaranteed multiplicative approximation \(\alpha\) to these benchmarks. Each agent evaluates and partitions the same goods differently, so their individual guarantees may conflict. Determining \(\alpha\) would quantify how much of this personal fairness entitlement can always be achieved simultaneously. The saved title does not specify valuation class, agent count, or goods-versus-chores conventions, which are essential before one universal constant is identified.
+Each agent’s maximin share is the best value they can secure by partitioning the goods and receiving a least-valued bundle. The target is the largest fraction of those personal shares that can always be met simultaneously for nonnegative additive valuations. It ranges over all finite numbers of agents and indivisible goods, with equal entitlements and no sharing. Determining this constant would quantify the inherent loss of fairness caused by indivisibility, independently of computational efficiency. The card requires a Lean-certified absolute error of at most one hundredth and records the precise versions and limits of the known bounds.
 
-[Read in atlas](index.html#TCS-0056) · [TCS Open Problems](https://tcsopenproblems.com/problem/4)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0056) · [Best α for α-MMS existence](https://tcsopenproblems.com/problem/4) · [A tight negative example for MMS fair allocations](https://arxiv.org/abs/2104.04977v2) · [Improved Maximin Share Guarantee for Additive Valuations](https://arxiv.org/abs/2510.10423v1) · [An FPTAS for 7/9-Approximation to Maximin Share Allocations](https://arxiv.org/abs/2511.13056v2)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1115 — Polynomial-time EF1 and Pareto-optimal goods allocation
 

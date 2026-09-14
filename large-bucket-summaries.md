@@ -1303,10 +1303,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-0469 — Maximum independent set in the congested clique
 
-Maximum independent set asks for a largest collection of pairwise nonadjacent vertices. Here each vertex is a processor in a congested clique, whose communication links exist even between nonadjacent input vertices. The question asks for the optimal deterministic number of rounds, with unlimited local computation and storage. Collecting the full graph at one processor gives an elementary upper bound, after which even exhaustive local optimization costs no communication rounds. The challenge is to determine how much information must move to identify an exact optimum, independently of the usual centralized NP-hardness barrier.
+An exact maximum independent set contains as many pairwise nonadjacent vertices as possible. Each vertex initially knows its incident edges and can exchange a logarithmic number of bits with every other processor in a round. The target is the optimal worst-case number of deterministic communication rounds, with local computation uncharged. A tight bound would measure the information exchange needed for exact graph optimization in a network without distance barriers. The source leaves bandwidth and randomness broader, while this card preserves its explicit deterministic logarithmic-bandwidth specialization.
 
-[Read in atlas](index.html#TCS-0469) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [On the Power of the Congested Clique Model](https://www.cs.tau.ac.il/~roshman/papers/podc14_clique.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0469) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://drops.dagstuhl.de/storage/04dagstuhl-reports/volume15/issue05/25191/html/DagRep.15.5.1/DagRep.15.5.1.html) · [On the Power of the Congested Clique Model](https://www.cs.tau.ac.il/~roshman/papers/podc14_clique.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0519 — Bipartite maximal matching with polynomial-in-degree volume
 
