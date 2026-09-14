@@ -554,3 +554,29 @@ TCS-4238; the subsequent `node tests/math.cjs` passed all 1,055 active cards
 and 16,901 expressions. The published build is `81289a35b2eea279ca5b`.
 All 227 completed active output hashes match; the 11 inactive bodies were
 skipped. Concurrent source work is preserved for its separate commit.
+
+
+Two further owned reviews complete TCS-6646 and TCS-6635. Martin’s conjecture
+now has explicit cone and ordinal-rank quantifiers, both conjecture parts,
+full determinacy/dependent-choice assumptions and faithful internal set-theoretic
+Lean acceptance. The audit reads the corrected order-preserving result, the
+survey erratum at limit ordinals, and the differently scoped 2026 Day–Marks
+paper. Choice-based counterexamples do not refute its determinacy target.
+
+The promise-CSP card preserves its unconditional fixed-template decision target,
+with precise explicit encodings, uniform algorithms, promise reductions and the
+full negation. It removes the old algorithm instructions, adds the 2019 symmetric
+Boolean classification without negations and the July 2026 three-element target
+classification, and checks the conditional scope of the LICS 2026 result.
+
+Checkpoint 240 has 1,055 active cards: 382 individually completed/reviewed and
+673 pending. The queue contains 240 completions (229 active and 11 later
+archived), 673 pending and one outside active scope; 153 reviewed active cards
+are separately accounted for. Ten completed concurrent random-card reviews
+remain preserved separately from the owned source commit. The full pass is
+still incomplete.
+
+Validation: make check and publication passed. The combined build version is
+40298fc778ed5961c111, and node tests/math.cjs passed all 1,055 active cards and
+16,997 expressions. All 229 completed active output hashes match; the 11
+inactive card bodies were skipped.
