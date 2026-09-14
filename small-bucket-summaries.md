@@ -326,10 +326,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6603 — Log-rank conjecture
 
-Alice and Bob must compute a total Boolean function while each sees only one part of its input. The log-rank conjecture asks whether deterministic communication is bounded by a universal polynomial in the logarithm of the real rank of the communication matrix. Rank captures linear dependence among rows, whereas a protocol must organize inputs into consistently labeled transcript regions. A positive answer would make this algebraic invariant a remarkably effective predictor of exact communication cost. The reviewed formulation allows unlimited rounds and local computation, and excludes promises, approximation, sign rank, and randomized or quantum protocols.
+Alice and Bob must exactly evaluate a total Boolean function while each receives only one part of its input. The conjecture asks whether their minimum worst-case deterministic communication is bounded by one universal polynomial in logarithmic real matrix rank. The protocol may use arbitrary interaction and local computation, but all input pairs must be handled correctly. A refutation must defeat every universal polynomial, rather than a single proposed constant or exponent. Known square-root-rank upper bounds, nearly quadratic logarithmic lower bounds and signed-partition equivalences leave the central gap unresolved.
 
-[Read in atlas](index.html#TCS-6603) · [The Log-Rank Conjecture: New Equivalent Formulations](https://arxiv.org/abs/2510.02583v3) · [Matrix discrepancy and the log-rank conjecture](https://doi.org/10.1007/s10107-024-02117-9) · [Deterministic Communication vs. Partition Number](https://doi.org/10.1137/16M1059369) · [Alphabet-Preserving Lifting for the Log-Rank Conjecture](https://arxiv.org/abs/2608.01812v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6603) · [The Log-Rank Conjecture: New Equivalent Formulations](https://arxiv.org/abs/2510.02583v3) · [Matrix discrepancy and the log-rank conjecture](https://doi.org/10.1007/s10107-024-02117-9) · [Deterministic Communication vs. Partition Number](https://doi.org/10.1137/16M1059369) · [Alphabet-Preserving Lifting for the Log-Rank Conjecture](https://arxiv.org/abs/2608.01812v1) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6604 — Fourier Entropy–Influence conjecture
 
@@ -2909,10 +2909,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0007 — Matrix multiplication exponent
 
-Matrix multiplication asks for every entry of the product of two arbitrary square matrices over the complex numbers. The target is the infimum arithmetic-circuit exponent \(\omega\). The well-known conjecture \(\omega =2\) is one possible value, rather than the only answer considered by this card. The infimum can be approached without an algorithm attaining its endpoint exponent. The Lean benchmark accepts a certified value with absolute error at most 0.01, while the saved literature supplies upper bounds and barriers for specific methods.
+The matrix multiplication exponent measures the least asymptotic power of n needed by exact arithmetic circuits for multiplying two complex n by n matrices. The target permits a separate circuit for every size and counts all addition, subtraction and multiplication gates. Its infimum may be approached without an algorithm attaining the endpoint exponent. The accepted answer must locate the exponent with a Lean-certified absolute error of at most 0.01. Recent upper bounds and lower bounds for restricted tensor methods do not yet give a matching interval for the unrestricted optimum.
 
 [Read in atlas](index.html#TCS-0007) · [Gaussian elimination is not optimal](https://doi.org/10.1007/BF02165411) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Limits on the Universal Method for Matrix Multiplication](https://arxiv.org/abs/1812.08731) · [More Asymmetry Yields Faster Matrix Multiplication](https://doi.org/10.1137/1.9781611978322.63) · [Improving the matrix multiplication exponent with modern optimization and AlphaEvolve](https://arxiv.org/abs/2608.16884v1) · [More Asymmetry Yields Faster Matrix Multiplication — August 2026 revision](https://arxiv.org/abs/2404.16349v3)
-Existing status: `source_open` · Summary written: 2026-09-12
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6611 — Permanent versus determinant
 
@@ -3338,10 +3338,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6571 — Hilbert’s tenth problem over the rationals
 
-Hilbert's tenth problem over the rationals asks whether a polynomial equation with integer coefficients has any rational solution. The project seeks one algorithm that always decides this for unrestricted numbers of variables and degrees. Enumerating rational tuples eventually finds an existing solution, but supplies no stopping rule when none exists. Undecidability over the integers does not transfer automatically because allowing fractions removes the integrality restriction. A resolution would locate a fundamental computability boundary for exact arithmetic constraints and the geometry of rational points.
+Hilbert’s tenth problem over the rationals asks whether an arbitrary integer-coefficient polynomial has a zero consisting of exact rational numbers. The target requires one deterministic algorithm that always halts and decides this for every number of variables, degree and coefficient size. There is no efficiency requirement, and merely enumerating rational solutions does not decide instances with no solution. Undecidability over integers, universal definitions and results with extra height predicates have different logical or arithmetic scope. Recent advances over rings of integers preserve that distinction, and the checked sources do not settle the rational-solvability question.
 
-[Read in atlas](index.html#TCS-6571) · [Hilbert’s Tenth Problem over Rings of Number-Theoretic Interest](https://math.mit.edu/~poonen/papers/aws2003.pdf) · [Defining \(\mathbb{Z}\) in \(\mathbb{Q}\)](https://annals.math.princeton.edu/wp-content/uploads/annals-v183-n1-p02-p.pdf) · [A survey of local-global methods for Hilbert’s Tenth Problem](https://arxiv.org/abs/2309.14987) · [Effectivity for existence of rational points is undecidable](https://arxiv.org/abs/2311.01958v2) · [Rank stability makes rings of integers diophantine](https://math.mit.edu/~poonen/papers/h10_over_OK.pdf) · [Rank stability in quadratic extensions and Hilbert’s tenth problem for the ring of integers of a number field](https://link.springer.com/article/10.1007/s00222-025-01392-3)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6571) · [Hilbert’s Tenth Problem over Rings of Number-Theoretic Interest](https://math.mit.edu/~poonen/papers/aws2003.pdf) · [Defining \(\mathbb Z\) in \(\mathbb Q\)](https://annals.math.princeton.edu/wp-content/uploads/annals-v183-n1-p02-p.pdf) · [A survey of local-global methods for Hilbert’s Tenth Problem](https://arxiv.org/abs/2309.14987v1) · [Effectivity for existence of rational points is undecidable](https://arxiv.org/abs/2311.01958v2) · [Rank stability makes rings of integers diophantine](https://math.mit.edu/~poonen/papers/h10_over_OK.pdf) · [Rank stability in quadratic extensions and Hilbert’s tenth problem for the ring of integers of a number field](https://link.springer.com/article/10.1007/s00222-025-01392-3)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6667 — Polynomial-time, polynomial-factor approximation of Euclidean SVP
 

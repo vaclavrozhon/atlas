@@ -937,10 +937,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-4245 — Parity games in polynomial time
 
-Parity games ask which player can force an infinite play whose minimum infinitely recurring priority has the desired parity. The target is a uniform deterministic polynomial-time decision algorithm for arbitrary finite arenas and binary-encoded priorities. Quasipolynomial algorithms and lower bounds for separating-automaton methods are known. A November 2025 preprint claims a polynomial-time solution, but this review did not establish its correctness. A separate April 2026 paper still treats the question as open, so the completed card explicitly records an unverified current status.
+A parity game is a finite arena in which two players choose an infinite path, and the least priority recurring infinitely often decides the winner. The target asks whether one uniform deterministic polynomial-time algorithm decides the winner from every specified starting vertex. The card specifies arbitrary vertex ownership, full-history strategies, binary priorities and the complete bit-cost model. Quasipolynomial algorithms are established, while known separating-automaton lower bounds concern restricted methods. A November 2025 preprint claims a polynomial-time solution, but its correctness remains unverified in this review despite later literature continuing to call the problem open.
 
-[Read in atlas](index.html#TCS-4245) · [Deciding Parity Games in Quasipolynomial Time](https://www.cs.auckland.ac.nz/~cristian/crispapers/paritygame-stoc.pdf) · [Universal trees grow inside separating automata: Quasi-polynomial lower bounds for parity games](https://arxiv.org/abs/1807.10546) · [Attractors Is All You Need: Parity Games In Polynomial Time](https://arxiv.org/abs/2511.03752v1) · [On the Complexity of Robust Markov Decision Processes and Bisimulation Metrics](https://arxiv.org/abs/2604.26748)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4245) · [The Model-Theoretic Expressiveness of Propositional Proof Systems](https://doi.org/10.4230/LIPIcs.CSL.2017.27) · [Deciding Parity Games in Quasipolynomial Time](https://www.cs.auckland.ac.nz/~cristian/crispapers/paritygame-stoc.pdf) · [Universal trees grow inside separating automata: Quasi-polynomial lower bounds for parity games](https://arxiv.org/abs/1807.10546v2) · [Attractors Is All You Need: Parity Games In Polynomial Time](https://arxiv.org/abs/2511.03752v1) · [On the Complexity of Robust Markov Decision Processes and Bisimulation Metrics](https://arxiv.org/abs/2604.26748v2)
+Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-5773 — Skolem problem
 
