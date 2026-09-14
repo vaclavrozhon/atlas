@@ -627,6 +627,13 @@ Two lists contain subsets of a logarithmic-size universe. The task is to find wh
 [Read in atlas](index.html#TCS-6599) · [The Fine-Grained Complexity of Multi-Dimensional Ordering Properties](https://doi.org/10.4230/LIPIcs.IPEC.2021.3) · [Approximation and Fixed Parameter Subquadratic Algorithms for Radius and Diameter in Sparse Graphs](https://theory.stanford.edu/~virgi/dirRad.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6944 — Min-Weight k-Clique hypothesis
+
+The task finds a fixed-size clique minimizing the sum of its integer edge weights. The hypothesis says that no randomized algorithm saves a positive constant from the exponent k for the source’s full polynomial weight range. Its formal model charges uniform word-RAM computation and requires a correct complete answer with bounded error on every graph. A resolution would affect the fine-grained foundations of weighted graph, geometric and sequence optimization. The card preserves the fixed signed range and distinguishes newer conjectures whose weight exponent is quantified differently.
+
+[Read in atlas](index.html#TCS-6944) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [More Consequences of Falsifying SETH and the Orthogonal Vectors Conjecture](https://www.mpi-inf.mpg.de/~kbringma/paper/2018STOC-1.pdf) · [Hardness of Dynamic Tree Edit Distance and Friends](https://drops.dagstuhl.de/doi/10.4230/LIPIcs.ITCS.2026.78)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-7347 — Directed unweighted APSP below \(n^{5/2}\)
 
 Directed unweighted all-pairs shortest paths asks for every ordered-pair distance when each arc has length one. The full distance matrix must be output explicitly. The question asks for a fixed exponent improvement below \(n^{5/2}\) with bounded-error randomization. The target makes no assumption about matrix multiplication or additive combinatorics. Recent conditional equivalences connect this barrier to other APSP hypotheses without resolving it.
@@ -662,12 +669,12 @@ The permanent sums products of matrix entries over all permutations and is a cen
 [Read in atlas](index.html#TCS-0815) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0761 — Fine-grained complexity of k-LCS
+### TCS-0761 — Time exponents for multiple-string LCS over fixed alphabets
 
-The k-LCS problem seeks a longest subsequence shared by k input strings. Dynamic programming naturally tracks positions in several strings, making the number of strings a significant source of cost. The source entry asks for fine-grained limits or improvements to that dependence. Resolving the intended bound would explain whether coordinating many sequences intrinsically requires a rapidly growing exponent. The inherited label does not specify alphabet size, string lengths, or the hypothesis behind a lower bound, so no particular exponent is presented as the target.
+Multiple-string LCS finds a longest string that occurs as a subsequence of every input. The target is the optimal deterministic time exponent for every fixed alphabet size and fixed number of strings. It makes the source’s question about a fractional exponent saving into an explicitly broader quantitative function. Resolving the function would identify how alphabet size changes the computational cost of coordinating many sequences. Acceptance requires a Lean-certified error of at most one hundredth at every parameter pair, while retaining the source question separately.
 
-[Read in atlas](index.html#TCS-0761) · [Randomization in Parameterized Complexity](https://doi.org/10.4230/DagRep.7.1.103)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0761) · [Randomization in Parameterized Complexity (Dagstuhl Seminar 17041)](https://doi.org/10.4230/DagRep.7.1.103) · [Tight Hardness Results for LCS and other Sequence Similarity Measures](https://theory.stanford.edu/~virgi/LCS.pdf) · [Exploring the Gap Between LCS and LCStr](https://drops.dagstuhl.de/storage/00lipics/lipics-vol369-cpm2026/html/LIPIcs.CPM.2026.27/LIPIcs.CPM.2026.27.html)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-5422 — Consequences of linear-time Orthogonal Vectors
 
@@ -709,13 +716,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Orthogonal Vectors searches for a disjoint pair across two set families, while Hitting Set asks for one set intersecting every set in the other family. The source asks whether the former hypothesis implies the latter. Their different quantifier patterns make the connection subtler than complementing one pairwise intersection test. An implication would reduce the number of independent assumptions needed for fine-grained lower bounds. The saved question must be interpreted with matching universe dimensions, randomized guarantees, and exponent conventions, since a reduction losing too much time would not transfer the hypothesized barrier.
 
 [Read in atlas](index.html#TCS-6942) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6944 — Min-Weight k-Clique hypothesis
-
-Minimum-Weight k-Clique selects k mutually adjacent vertices minimizing the sum of their edge weights. The source hypothesizes randomized running time essentially \(n^{k}\) in its specified weight range. Optimizing numeric interactions can be harder than merely detecting whether an unweighted clique exists. The conjecture serves as a strong benchmark for fine-grained reductions involving weighted selection problems. The saved note does not reproduce the allowed weights or exact quantifier convention, so matrix-multiplication algorithms for unweighted clique and improvements under special weight restrictions do not automatically address this target.
-
-[Read in atlas](index.html#TCS-6944) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6945 — Exact-Weight k-Clique hypothesis
@@ -1868,10 +1868,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6629 — Deterministic FPTAS for the nonnegative permanent
 
-The nonnegative permanent sums the weights of all perfect matchings in a bipartite graph. The question asks for a deterministic approximation within any requested relative error, with fully polynomial running time. Randomized approximation already achieves this guarantee, so the missing resource is derandomization without sacrificing accuracy. The saved September review describes deterministic subexponential-factor progress but explains why that factor is still far from one plus epsilon. Zero entries and arbitrary rational weights are allowed, making bit complexity and reliable handling of very small positive values part of the full target.
+The permanent of a nonnegative matrix sums the weights of all perfect matchings in its bipartite support graph. The question asks for one deterministic algorithm approximating this value to any requested relative accuracy on every nonnegative rational matrix. Its running time must be polynomial in the full binary input length and inverse accuracy, with a fixed exponent and exact output zero when the permanent is zero. Randomized approximation is established, while checked 2026 deterministic results have dimension-dependent error factors or fixed density and weight restrictions. A complete Lean proof must establish the unrestricted deterministic scheme or prove that none meets the stated guarantees.
 
-[Read in atlas](index.html#TCS-6629) · [A Polynomial-Time Approximation Algorithm for the Permanent of a Matrix with Nonnegative Entries](https://doi.org/10.1145/1008731.1008738) · [A Tight Analysis of Bethe Approximation for Permanent](https://epubs.siam.org/doi/10.1137/19M1306142) · [Faster FPRAS for the Permanent via Restricted Poincaré Inequalities and Coupled Flows](https://arxiv.org/abs/2608.26599) · [Beyond the Bethe Approximation of the Permanent](https://arxiv.org/abs/2608.28031) · [Structural Corrections to the Bethe Approximation of the Permanent](https://arxiv.org/abs/2608.31061) · [Subexponential Approximation of the Permanent in Deterministic Polynomial Time](https://arxiv.org/abs/2609.10516)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6629) · [A Polynomial-Time Approximation Algorithm for the Permanent of a Matrix with Nonnegative Entries](https://people.eecs.berkeley.edu/~sinclair/perm2.pdf) · [A Tight Analysis of Bethe Approximation for Permanent](https://arxiv.org/abs/1811.02933v2) · [Faster FPRAS for the Permanent via Restricted Poincaré Inequalities and Coupled Flows](https://arxiv.org/abs/2608.26599v1) · [Beyond the Bethe Approximation of the Permanent](https://arxiv.org/abs/2608.28031v2) · [Structural Corrections to the Bethe Approximation of the Permanent](https://arxiv.org/abs/2608.31061v1) · [Subexponential Approximation of the Permanent in Deterministic Polynomial Time](https://arxiv.org/abs/2609.10516v1) · [Diffuse Gaussian Truncation For Deterministic Approximate Counting](https://arxiv.org/abs/2609.04079v1)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6671 — FPRAS for counting undirected Euler tours
 
