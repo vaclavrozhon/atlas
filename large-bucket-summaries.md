@@ -793,12 +793,12 @@ A visibly pushdown automaton reads finite words whose letters prescribe its stac
 [Read in atlas](index.html#TCS-2243) · [The \(\mathrm{AC}^{0}\)-Complexity of Visibly Pushdown Languages](https://doi.org/10.4230/LIPIcs.STACS.2024.38)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-0136 — Universality of register automata over ordered domains
+### TCS-0136 — Universality of unambiguous register automata over ordered integers
 
-Register automata process data words while remembering selected input values in finitely many registers. Here data come from the integers, and transitions may use order tests and constants. The source asks whether universality is decidable under the promise that each accepted word has a unique accepting run. If it is decidable, the next target is the complexity of a complete procedure. This would determine whether unique acceptance sufficiently controls the infinite ordered data domain to make exhaustive coverage of all input words algorithmically checkable.
+A register automaton reads letters paired with integer data and retains finitely many integer values. Its transitions may compare stored values, input values and named constants, and may guess new values. Unambiguity promises at most one accepting run for every word. The question asks whether one can decide that every finite data word is accepted. Known algorithms over equality or dense rational order do not by themselves settle the selected discrete-integer model.
 
-[Read in atlas](index.html#TCS-0136) · [Unambiguity in Automata Theory](https://doi.org/10.4230/DagRep.11.10.57)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0136) · [Unambiguity in Automata Theory (Dagstuhl Seminar 21452)](https://doi.org/10.4230/DagRep.11.10.57) · [New Techniques for Universality in Unambiguous Register Automata](https://doi.org/10.4230/LIPIcs.ICALP.2021.129) · [Orbit-Finite-Dimensional Vector Spaces and Weighted Register Automata](https://arxiv.org/abs/2104.02438)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0138 — Deterministic separability of nondeterministic timed languages
 
@@ -1012,6 +1012,13 @@ A context-free grammar specifies integer update sequences for a single nonnegati
 [Read in atlas](index.html#TCS-2033) · [Challenges of the Reachability Problem in Infinite-State Systems (Invited Paper)](https://doi.org/10.4230/LIPIcs.MFCS.2024.2) · [Reachability in One-Dimensional Pushdown Vector Addition Systems is Decidable](https://arxiv.org/abs/2411.02386) · [On the Reachability Problem for One-Dimensional Thin Grammar Vector Addition Systems](https://arxiv.org/abs/2602.05315)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-3031 — Consistency of excluded middle and Church’s thesis in Coq
+
+Church’s thesis says that every internal function from natural numbers to natural numbers is computable. The law of excluded middle gives classical reasoning about propositions. The question asks whether adding both propositional axioms to Coq’s ordinary cumulative inductive core can produce a contradiction. The distinction between propositional existence and computable witness extraction is essential. A 2023 thesis proves consistency for a restricted fragment, leaving the selected full-calculus target beyond that result.
+
+[Read in atlas](index.html#TCS-3031) · [Church’s Thesis and Related Axioms in Coq’s Type Theory](https://doi.org/10.4230/LIPIcs.CSL.2021.21) · [Coq 8.11 Reference Manual: Calculus of Inductive Constructions](https://docs.rocq-prover.org/v8.11/refman/language/cic.html) · [Consistency of Classical Synthetic Computability Theory](https://repozitorij.uni-lj.si/IzpisGradiva.php?id=153088&lang=eng)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-0640 — Shortest runs in 3-D VASS
 
 A three-dimensional VASS is a finite-state system with three nonnegative integer counters. The source asks whether some reachable instances require shortest runs longer than every single-exponential bound in their binary input length. Encoding a large initial counter in binary already permits exponentially many necessary steps, so a stronger growth rate is required. A July 2026 preprint states a doubly-exponential upper bound, improving the triple-exponential bound from 2025. The remaining threshold question measures how much reachability-witness complexity three counters can force.
@@ -1060,13 +1067,6 @@ The machine combines finite nondeterministic choices with rational probabilistic
 
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-3031 — Consistency of excluded middle and Church’s thesis in Coq
-
-Church's thesis, as a type-theoretic axiom, says that every total function from natural numbers to natural numbers has a computational realization. The law of excluded middle supplies classical reasoning about propositions, and its compatibility with that thesis depends on the surrounding logical rules. The source conjectures that both axioms can consistently coexist in Coq because elimination from general propositions into computational types is restricted. This restriction prevents some classical existence proofs from automatically producing data, especially without additional choice principles. A consistency model would clarify how classical propositional reasoning can be combined with a constructive account of all representable numerical functions.
-
-[Read in atlas](index.html#TCS-3031) · [Church’s Thesis and Related Axioms in Coq’s Type Theory](https://doi.org/10.4230/LIPIcs.CSL.2021.21)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3655 — Inductive-inductive types from inductive types without UIP
 

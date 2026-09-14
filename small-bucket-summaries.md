@@ -783,33 +783,33 @@ BPP contains decision problems solved efficiently using random bits with bounded
 [Read in atlas](index.html#TCS-1005) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1018 — Optimal generators for hardness-to-randomness transformations
+### TCS-1018 — Linear-seed hardness-to-randomness sampling
 
-Hardness-to-randomness constructions turn a computationally difficult function into a generator that fools a specified class of tests. The saved textbook note asks for generators with linear seed length in its designated black-box framework. Such a transformation must translate limited access to the hard function into many pseudorandom output bits. Improving seed efficiency can greatly reduce the cost of enumerating all seeds in a deterministic simulation. The note does not reproduce the hardness parameters or black-box access requirements, so the word optimal cannot yet be interpreted as one explicit seed-length formula.
+A hard Boolean function can provide pseudorandom bits by being evaluated at carefully correlated inputs. The question asks for a uniform sampler using only a constant multiple of one input length as its random seed. It must produce polynomially many bits in the hardness parameter, each from exactly one evaluation of the original function. Every function with the specified average-case circuit hardness must yield a generator fooling the stated circuits to inverse-output-length error. General short-seed transformations and newer results under stronger hardness assumptions do not automatically preserve this required evaluation form.
 
-[Read in atlas](index.html#TCS-1018) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1018) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Nearly Optimal Pseudorandomness from Hardness](https://doi.org/10.1145/3555307)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1015 — Seeded extraction with constant total entropy loss
 
-A seeded extractor combines a weak random source with a short independent uniform seed to produce nearly uniform output. The saved question seeks logarithmic seed length together with constant total entropy loss. Entropy loss measures how much usable randomness disappears during purification rather than how long the original source is. Keeping that loss constant would make extraction nearly information-efficient while requiring only a small amount of initially perfect randomness. The historical note omits the error regime and total-loss convention, so those parameters must be restored before comparing the target with known extractor bounds.
+A seeded extractor combines an arbitrary weak random source with a short independent uniform seed. This question asks for logarithmic seed length and an output losing at most a constant number of the combined available entropy bits. The statistical error is fixed at one hundredth for every source meeting the min-entropy bound. The entire family must be evaluated by one deterministic polynomial-time algorithm, including any preprocessing. Nonconstructive existence and recent faster constant-fraction extractors leave this specific combination of parameters unsettled in the checked sources.
 
-[Read in atlas](index.html#TCS-1015) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1015) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Nearly-Linear Time Seeded Extractors with Short Seeds](https://arxiv.org/abs/2411.07473v2)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1016 — Extraction with log n plus constant seed length
 
-This extractor question seeks a seed of length log n plus only an additive constant for an n-bit weak source. The source also requires a substantial amount of nearly uniform output. At this seed scale, even a multiplicative improvement in the logarithmic coefficient matters. A construction could sharpen the boundary between the information-theoretic amount of seed randomness and what explicit algorithms achieve. The saved note does not specify source entropy, output length, or error, so a logarithmic-seed extractor with unspecified constants would not automatically satisfy its intended target.
+This question asks how close an efficiently computable extractor can get to the minimum useful seed length. It requires at most the base-two logarithm of the source length plus a constant number of seed bits. The output must contain a fixed positive fraction of the source entropy and have statistical error at most one hundredth. One deterministic polynomial-time family must meet these guarantees for every source length and entropy threshold. Known constructions in the checked sources optimize related parameters but do not supply this full combination.
 
-[Read in atlas](index.html#TCS-1016) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1016) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Nearly Optimal Pseudorandomness from Hardness](https://doi.org/10.1145/3555307) · [Nearly-Linear Time Seeded Extractors with Short Seeds](https://arxiv.org/abs/2411.07473v2)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1006 — Explicit simultaneous isolation for perfect matchings
+### TCS-1006 — Universal determinant evaluations for bipartite matching
 
-Isolation methods assign weights so that a desired combinatorial solution becomes uniquely distinguished. The saved question asks for an explicit simultaneous construction supporting perfect matching, ideally computable in NC. Its textbook note describes universal determinant-evaluation points as the relevant algebraic object. A sufficiently efficient construction could remove random choices from parallel matching algorithms. Universality means the same construction must work across the permitted inputs, and the saved material does not reproduce the exact evaluation family or isolation promise needed to formulate that requirement completely.
+The determinant test for a bipartite graph succeeds when its edge variables receive suitable integer values. This question asks for one fixed table of values that succeeds simultaneously for every graph of the same size. The complete table must be constructed by uniform polynomial-size circuits of polylogarithmic depth. A probabilistic argument proves such tables exist, but does not compute them with that resource bound. A new 2026 preprint claims an NC matching algorithm using a different block-matrix test, so its scope is distinguished from this universal-table requirement.
 
-[Read in atlas](index.html#TCS-1006) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1006) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Bipartite Perfect Matching is in quasi-NC](https://arxiv.org/abs/1601.06319) · [Bipartite Matching is in NC](https://eccc.weizmann.ac.il/report/2026/100/revision/2/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1021 — Promise-BPP derandomization implying EXP circuit hardness
 
@@ -839,12 +839,12 @@ CNFs and DNFs combine clauses or terms through two layers of Boolean operations.
 [Read in atlas](index.html#TCS-1133) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1014 — Constant-loss condensers with logarithmic seeds
+### TCS-1014 — Lossless condensers with constant output overhead
 
-A lossless condenser compresses a weak random source while approximately preserving its entropy. The saved question seeks logarithmic seed length and only constant entropy loss. The associated graph viewpoint uses unbalanced expanders whose small left-vertex sets have nearly all possible distinct neighbors. A construction with this efficiency would support extraction and other randomness-processing tasks without discarding much information. The source note links the problem to near-lossless expanders but does not preserve the exact entropy range, output length, and loss convention, which determine the intended parameter tradeoff.
+A lossless condenser compresses a weak random source while preserving its guaranteed entropy together with the seed entropy. This question asks for a logarithmic seed and an output only a constant number of bits longer than that preserved entropy. The output may be nonuniform, but it must be within one hundredth in statistical distance of a distribution with the required min-entropy. The equivalent graph target has nearly lossless expansion and only a constant factor more right vertices than the number of outgoing edges from a source set. Recent multiplicity-code and two-sided-expansion results improve related structure without meeting this constant-overhead target.
 
-[Read in atlas](index.html#TCS-1014) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1014) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Unbalanced Expanders from Multiplicity Codes](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.12) · [Two-Sided Lossless Expanders in the Unbalanced Setting](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.34)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1024 — Extracting from low-entropy efficiently samplable sources
 
