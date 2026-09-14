@@ -10,7 +10,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | large 2 | Algorithms | 5 | 25 | 50 | 26 |
 | large 3 | Automata and formal languages | 5 | 25 | 50 | 33 |
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 39 |
-| large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 60 |
+| large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 59 |
 | large 6 | Optimization and numerical computation | 5 | 25 | 50 | 24 |
 | large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 41 |
 | large 8 | Learning theory | 5 | 25 | 50 | 39 |
@@ -21,7 +21,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 3 | Communication complexity and Boolean function analysis | 2 | 10 | 20 | 33 |
 | small 4 | Fine-grained complexity | 2 | 10 | 20 | 29 |
 | small 5 | Pseudorandomness and derandomization | 2 | 10 | 20 | 43 |
-| small 6 | Parameterized complexity and algorithms | 2 | 10 | 20 | 44 |
+| small 6 | Parameterized complexity and algorithms | 2 | 10 | 20 | 43 |
 | small 7 | Approximation algorithms and inapproximability | 2 | 10 | 20 | 30 |
 | small 8 | Online algorithms, scheduling and packing | 2 | 10 | 20 | 29 |
 | small 9 | Beyond worst-case and average-case analysis | 2 | 10 | 20 | 13 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 21 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 2 |
 
-Candidate pool: 1054. Inactive records: 6321 (excluded from active work).
+Candidate pool: 1052. Inactive records: 6323 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

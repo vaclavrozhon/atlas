@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-407 five-sentence working summaries, based on saved source material.
+406 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -1180,7 +1180,7 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Distributed, parallel and sublinear algorithms (59)
+## Distributed, parallel and sublinear algorithms (58)
 
 ### TCS-6553 — P versus NC
 
@@ -1503,13 +1503,6 @@ Set agreement lets n processes decide at most k proposed values. Its task has an
 
 [Read in atlas](index.html#TCS-3792) · [On Deterministic Linearizable Set Agreement Objects](https://doi.org/10.4230/LIPIcs.OPODIS.2019.16) · [On the Number of Objects with Distinct Power and the Linearizability of Set Agreement Objects](https://doi.org/10.4230/LIPIcs.DISC.2017.12) · [Life beyond set agreement](https://doi.org/10.1007/s00446-020-00372-5)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-4099 — Pseudodeterministic NC perfect matching in general graphs
-
-A pseudodeterministic randomized algorithm returns the same canonical answer with high probability on repeated runs of a fixed input. For perfect matching, this demands reproducible selection of one matching rather than merely finding any valid matching. The question asks for such an algorithm on general nonbipartite graphs using polynomially many processors and polylogarithmic parallel depth. The source achieves this for bipartite graphs, but extending the selection mechanism must account for the additional structure of general matching. A solution would give stable outputs from efficient parallel randomization and advance the relationship between matching algorithms and derandomization.
-
-[Read in atlas](index.html#TCS-4099) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4193 — LOCAL lower bounds for 2-ruling sets
 

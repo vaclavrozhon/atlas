@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-605 five-sentence working summaries, based on saved source material.
+604 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -932,10 +932,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1007 — Universal traversal sequences under arbitrary labels
 
-A universal traversal sequence prescribes local edge choices intended to visit every vertex of any graph in a designated family. The textbook asks for polynomial-length explicit sequences accommodating arbitrary edge labels. Local port labels can differ across vertices, so one fixed instruction sequence must succeed despite many incompatible labelings. Such sequences would support deterministic exploration with very little stored knowledge of the graph. The saved note does not provide the graph regularity or traversal convention, and arbitrary labels must not be replaced by an easier globally consistent labeling promise.
+A universal traversal sequence is one list of absolute local port numbers that visits every vertex of every graph of a specified size and degree. The graph may have parallel edges and self-loops, and its local port labels are arbitrary. The question asks for a deterministic polynomial-time constructor given only the size and degree parameters. Short sequences are known to exist, but incoming-port-based exploration and polynomial cover time with expensive local computation are different guarantees. An efficient construction would remove randomness from graph-independent traversal under severely restricted information.
 
-[Read in atlas](index.html#TCS-1007) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1007) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Self-stabilizing Graph Exploration by a Single Agent](https://arxiv.org/abs/2010.08929v4) · [Self-stabilizing graph exploration by a single agent](https://doi.org/10.1016/j.tcs.2026.116085)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1956 — Super-bits from demi-bits
 
@@ -1042,7 +1042,7 @@ Vertex expansion measures how many distinct outside neighbors a small vertex set
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (42)
+## Parameterized complexity and algorithms (41)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1119,13 +1119,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The seminar asks for stronger fixed-parameter inapproximability results that remain beyond known techniques even when Gap-ETH is assumed. For k-Set Cover, one target is approximation hardness of order \(\log ^{0.99}(n)\), where n is the number of elements to cover. A second target is to rule out every \(g(k)\)-factor FPT approximation for Exact k-Set Cover, whose promise is that a size-k cover consisting of disjoint sets exists. It also asks for \(o(k)\)-factor hardness of Densest k-Subgraph with perfect completeness under Gap-ETH, matching a result based on the Strongish Planted Clique Hypothesis. In particular, hardness with disjoint-cover completeness would support further reductions to coding and lattice problems.
 
 [Read in atlas](index.html#TCS-0734) · [Parameterized Approximation: Algorithms and Hardness](https://doi.org/10.4230/DagRep.13.7.96)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0818 — Complexity of #k-SAT
-
-Counting k-SAT asks for the number of satisfying assignments of a Boolean formula with clauses of width at most k. Unlike decision satisfiability, an algorithm must account for every satisfying assignment rather than find one witness. The source entry concerns the computational complexity of this counting task as clause width and instance size vary. Quantitative bounds would clarify how much additional difficulty exact counting introduces into a basic constraint problem. The saved title leaves the desired exponent, treatment of k, and use of randomness unspecified, so the draft does not select a particular counting hypothesis.
-
-[Read in atlas](index.html#TCS-0818) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0784 — Polynomial kernels for Edge-Disjoint Paths
@@ -3464,10 +3457,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-0652 — Dimension-preserving search-to-decision reductions for SVP
 
-Search SVP outputs a short lattice vector, while a decision version only distinguishes possible ranges of the shortest length. The source asks for reductions from search to decision that preserve dimension. Adding dimensions can greatly increase the cost of exponential-time algorithms even when the reduction is polynomial in input size. A dimension-preserving transformation would make decision algorithms more directly useful for search and sharpen fine-grained lattice comparisons. The saved title does not specify exact versus approximate SVP or the permitted factor loss, so those guarantees must be fixed before evaluating a candidate reduction.
+The input is a rational lattice basis, and the search task is to produce a nonzero vector whose length approximates the shortest possible length. The available oracle only distinguishes short-vector lengths across a multiplicative gap. The question asks for a classical polynomial-time reduction that keeps every query in the original dimension and loses only a polynomial in dimension and approximation factor. Known exact and near-exact reductions do not supply this guarantee across the full approximation range. A resolution would clarify whether approximate lattice decision algorithms can be converted efficiently into search algorithms without an exponential dimensional penalty.
 
-[Read in atlas](index.html#TCS-0652) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0652) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Search-to-Decision Reductions for Lattice Problems with Approximation Factors (Slightly) Greater Than One](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.19) · [Dimension-Preserving Reductions Between Lattice Problems](https://www.noahsd.com/latticeproblems.pdf) · [Open problems from the Summer 2022 Lattices Program](https://wiki.simons.berkeley.edu/doku.php?id=lat22:start)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0648 — Constant-gap hardness of unique SVP
 
@@ -3564,10 +3557,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6665 — Capacity of the general broadcast channel
 
-A broadcast channel sends one transmitter's input to two receivers with different noisy observations. The target is the weighted supporting function of the private-message capacity region for every rational channel table and weight. One codeword must simultaneously carry information useful to each receiver, creating tradeoffs not determined by their individual capacities. A full characterization would resolve a fundamental multi-user communication problem beyond particular channel families. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
+One transmitter sends two independent private messages through a memoryless channel to receivers with different noisy observations. The target is the weighted support function of the average-error capacity region for every finite rational channel table and rational weight between zero and one. All rates are measured in bits per channel use, and the two individual capacities do not determine the joint tradeoff. Classical and recent work provides achievable regions, converse bounds and special cases, while the August 2026 Marton-suboptimality preprint is a narrower unverified claim. A complete Lean proof must certify a supplied function within absolute error 1/100 over the entire stated domain.
 
-[Read in atlas](index.html#TCS-6665) · [A Coding Theorem for the Discrete Memoryless Broadcast Channel](https://www.seas.ucla.edu/csl/files/temp/DBCAchievability.pdf) · [Evaluation of Marton’s Inner Bound for the General Broadcast Channel](https://arxiv.org/abs/0904.4541) · [On Marton’s Inner Bound and Its Optimality for Classes of Product Broadcast Channels](https://doi.org/10.1109/TIT.2013.2285925) · [Blahut–Arimoto Algorithms for Inner and Outer Bounds on Capacity Regions of Broadcast Channels](https://pmc.ncbi.nlm.nih.gov/articles/PMC10969477/) · [A Two Auxiliary Receiver Outer Bound to the Capacity Region of a Two-Receiver Discrete Memoryless Broadcast Channel](https://chandra.ie.cuhk.edu.hk/pub/papers/BC/GK-outer.pdf) · [Sub-optimality of Marton’s Inner Bound for the Two-Receiver Broadcast Channel](https://arxiv.org/abs/2608.19869)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-6665) · [A Coding Theorem for the Discrete Memoryless Broadcast Channel](https://www.seas.ucla.edu/csl/files/temp/DBCAchievability.pdf) · [Evaluation of Marton’s Inner Bound for the General Broadcast Channel](https://arxiv.org/abs/0904.4541v3) · [On Marton’s Inner Bound and Its Optimality for Classes of Product Broadcast Channels](https://chandra.ie.cuhk.edu.hk/pub/papers/BC/proBC.pdf) · [Blahut–Arimoto Algorithms for Inner and Outer Bounds on Capacity Regions of Broadcast Channels](https://pmc.ncbi.nlm.nih.gov/articles/PMC10969477/) · [A Two Auxiliary Receiver Outer Bound to the Capacity Region of a Two-Receiver Discrete Memoryless Broadcast Channel](https://chandra.ie.cuhk.edu.hk/pub/papers/BC/GK-outer.pdf) · [Sub-optimality of Marton’s Inner Bound for the Two-Receiver Broadcast Channel](https://arxiv.org/abs/2608.19869v1)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6584 — Li–Li conjecture
 
