@@ -580,3 +580,39 @@ Validation: make check and publication passed. The combined build version is
 40298fc778ed5961c111, and node tests/math.cjs passed all 1,055 active cards and
 16,997 expressions. All 229 completed active output hashes match; the 11
 inactive card bodies were skipped.
+
+
+Four further owned reviews complete TCS-6446, TCS-7235, TCS-7220 and TCS-6624.
+The quantum-PCP card preserves the saved classical-reduction variant and names
+that qualifier explicitly: the original 2013 source instead permits quantum
+reductions, so their equivalence is not asserted. Its audit checks normalized
+energy, exact local-matrix encodings, QMA promises, complete Lean acceptance,
+the corrected status of the games formulation, NLTS and the restricted scope
+of 2025–2026 amplification and interactive results.
+
+The three edit-distance reviews define their respective quantifier orders and
+bit costs: near-exact almost-linear approximation, near-exact truly subquadratic
+approximation and constant-factor approximation with a fixed polylogarithmic
+overhead. The first two keep unit-cost substitutions distinct from the
+insertion/deletion convention in a cited intermediate manuscript. The audit
+checks the July 2022 constant-factor theorem and its August 2026 journal
+publication, the March 2026 approximation scheme and its June STOC provenance,
+the additive term in the far-pair result, and the conditional scope of exact
+edit-distance hardness. Neither n to a fixed exponent above one nor the
+subpolynomial saving in the 2026 scheme is substituted for a stronger target.
+
+Checkpoint 245 had 1,055 active cards: 387 individually completed/reviewed and
+668 pending. Its queue contained 245 completions (234 active, 11 subsequently
+archived), 668 pending and one outside active scope. Eleven concurrent random
+reviews were included, with TCS-1019 newly completed since checkpoint 240.
+The other 153 reviewed active cards are separately accounted for. All 234
+active output hashes matched, and the 11 inactive bodies were skipped.
+
+Validation for checkpoint 245: make check and publication passed. The combined
+publication version was 1941c00367b60eb9c4c9; node tests/math.cjs passed all
+1,055 active cards and 17,133 expressions. Two further concurrent reviews,
+TCS-7113 and TCS-0247, subsequently advanced the combined count to 389 reviewed
+active cards and 666 pending (247 queue completions, including 11 inactive).
+All 236 completed active output hashes match. These thirteen concurrent source
+reviews remain preserved for their separate source commit. The full pass is
+still incomplete.
