@@ -119,3 +119,27 @@ The first source commit is `e511c0e8`. Shared queue and ledger staging included
 only this process's completed records, preserving the parallel process's pending
 changes. Checkpoint four verifies seventeen retained active cards and the absence
 of the newly retired record from the live catalogue.
+
+The fifth draw brings this process to twenty-two completed reviews, including
+three newly resolved records preserved in the archive:
+
+- TCS-0652: dimension-preserving search-to-decision reduction for approximate
+  Euclidean SVP, with rational input, one fixed approximation parameter,
+  adversarial promise-gap answers and explicit polynomial approximation loss.
+  The 2016 near-exact reduction does not cover the full parameter range.
+- TCS-4099: pseudodeterministic NC construction of a perfect matching in general
+  graphs. Corollary 3 of Anari–Vazirani (ITCS 2020), independently attributed in
+  ITCS 2026, settles the target. The full record was preserved in the archive.
+  Individual historical importance: 85.
+- TCS-0818: the source's deterministic exact counting algorithm with a uniform
+  positive saving proportional to n/k for every fixed clause width. Theorem 1.6
+  of the Chan–Williams journal manuscript and its proof settle this question;
+  its journal and preliminary theorem numbers are distinguished. The complete
+  record was preserved in the archive, with assessed importance unchanged.
+- TCS-1007: polynomial-time construction of universal traversal sequences under
+  arbitrary local port labels. Incoming-port exploration and whiteboard models
+  in later work are distinguished from a single fixed list of absolute labels.
+
+There are now eight new individual importance assessments across these draws.
+Checkpoint five checks nineteen retained active cards and all three deliberate
+retirements. The queue remains an ongoing joint task.
