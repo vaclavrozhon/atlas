@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-402 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (71)
+## Computational complexity (72)
 
 ### TCS-0001 — P versus NP
 
@@ -193,6 +193,13 @@ An interactive proof lets a verifier check a claim through conversation with a p
 
 [Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient \(\mathrm{IP}=\mathrm{PSPACE}\)](https://eccc.weizmann.ac.il/report/2026/102/)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7260 — Polynomial-size closure of d-DNNF under negation
+
+The question asks whether every d-DNNF has a polynomial-size d-DNNF representing its Boolean complement. One polynomial must bound the size increase for every circuit and every finite variable set. The complement may use entirely different decompositions, provided that decomposability and determinism are retained. No efficient procedure for finding the complement is required in this representational question. The published failure of closure for structured circuits does not settle closure for general d-DNNFs.
+
+[Read in atlas](index.html#TCS-7260) · [List of open questions: PTIME complementation of d-DNNF](https://a3nm.net/work/research/questions/#ptime-complementation-of-d-dnnf) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819) · [Structured d-DNNF Is Not Closed under Negation](https://doi.org/10.24963/ijcai.2024/398) · [On the Complexity of Language Membership for Probabilistic Words](https://doi.org/10.4230/LIPIcs.STACS.2026.5)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0305 — Supercubic uniform formula lower bounds for SAT
 

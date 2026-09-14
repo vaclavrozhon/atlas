@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-600 five-sentence working summaries, based on saved source material.
+601 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -70,10 +70,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0287 — Strong extractors for infinite sequences
 
-An extractor aims to transform imperfectly random input into output with stronger randomness properties. This entry asks about strong extractors for infinite sequences in an algorithmic-information setting. Infinite inputs raise uniformity and dependence issues that differ from extracting a fixed number of random bits from a finite distribution. A successful construction would show how computable transformations can concentrate randomness while respecting the source's side-information guarantees. The inherited title does not specify the input randomness rate, number of sources, or definition of strong, so no output guarantee can be stated precisely from the label alone.
+The question asks for one computable transformation of two independent infinite binary sequences of effective dimension one half. Its output must have effective dimension one even when either entire input is available as an oracle. Independence is the global oracle condition, which is stronger than comparing only finite input prefixes. The transformation may use unbounded computation but must produce every output bit on every promised input pair. Known ordinary extraction, finite-string strong extraction and finite-state impossibility results do not settle this stated target.
 
-[Read in atlas](index.html#TCS-0287) · [Computability, Complexity and Randomness](https://doi.org/10.4230/DagRep.2.1.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0287) · [Computability, Complexity and Randomness](https://doi.org/10.4230/DagRep.2.1.19) · [Algorithmically independent sequences](https://doi.org/10.1016/j.ic.2009.05.004) · [Two sources are better than one for increasing the Kolmogorov complexity of infinite sequences](https://arxiv.org/abs/0705.4658) · [Generating Kolmogorov random strings from sources with limited independence](https://doi.org/10.1093/logcom/exr053) · [Randomness Extraction Fails for Finite-State Dimension](https://doi.org/10.4230/LIPIcs.LICS.2026.78)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0238 — An algorithmic Ahlswede–Körner lemma
 
@@ -1750,19 +1750,19 @@ Does FLIP for Max-Cut have polynomial expected path length on every graph under 
 [Read in atlas](index.html#TCS-6658) · [Local Max-Cut on Sparse Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2024.98) · [Smoothed complexity of local Max-Cut and binary Max-CSP](https://arxiv.org/abs/1911.10381) · [Superpolynomial smoothed complexity of 3-FLIP in Local Max-Cut](https://people.maths.ox.ac.uk/michel/Papers/smoothed-complexity-local-max-cut-3-flip.pdf)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-5011 — Algorithmic threshold for the symmetric binary perceptron
+
+The symmetric binary perceptron seeks a sign vector satisfying many random Gaussian two-sided constraints. The conjecture places the efficient-search density at the scale of the squared margin, allowing fixed powers of its reciprocal logarithm. The card defines a supremum over uniform polynomial-time algorithms and states its exact real-arithmetic convention. The input dimension tends to infinity at each fixed margin and density before the margin approaches zero. Stable-algorithm barriers, a sign-matrix algorithm and conditional lattice reductions each have limits that prevent treating them as a full resolution.
+
+[Read in atlas](index.html#TCS-5011) · [Algorithms and Barriers in the Symmetric Binary Perceptron Model](https://doi.org/10.1109/FOCS54457.2022.00061) · [Symmetric Perceptrons, Number Partitioning and Lattices](https://arxiv.org/abs/2501.16517) · [Parametric RDT approach to computational gap of symmetric binary perceptron](https://arxiv.org/abs/2601.10628)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-4876 — Algorithmic threshold for random k-SAT
 
 The input is a random conjunction of fixed-width clauses, with all literal positions sampled independently. The algorithm must find an assignment satisfying every clause with probability tending to one. The conjectured leading threshold is two to the clause width times its natural logarithm, divided by the width. Known algorithms reach this scale, while satisfying assignments exist at substantially higher densities. Existing overlap-gap and low-degree barriers do not establish optimality against every polynomial-time algorithm.
 
 [Read in atlas](index.html#TCS-4876) · [Sharp Thresholds for the Overlap Gap Property: Ising p-Spin Glass and Random k-SAT — full version](https://arxiv.org/abs/2309.09913) · [A Better Algorithm for Random k-SAT](https://doi.org/10.1137/09076516X) · [The Algorithmic Phase Transition of Random k-SAT for Low Degree Polynomials](https://arxiv.org/abs/2106.02129)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5011 — Algorithmic threshold for the symmetric binary perceptron
-
-The symmetric binary perceptron asks for a Boolean vector satisfying random symmetric constraints controlled by a margin parameter kappa. The source conjectures an algorithmic threshold at a scale proportional to kappa squared as kappa tends to zero. The goal is to locate where efficient construction of a feasible vector becomes possible, rather than only where one exists. This would sharpen a statistical-versus-computational comparison in a basic random constraint model. The excerpt truncates the allowed correction factors and model normalization, so the exact threshold and algorithm class must be recovered before interpreting the asymptotic scale quantitatively.
-
-[Read in atlas](index.html#TCS-5011) · [Algorithms and Barriers in the Symmetric Binary Perceptron Model](https://doi.org/10.1109/FOCS54457.2022.00061)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5406 — Optimization and certification in sparse random CSPs
 
@@ -1829,6 +1829,13 @@ Expander graphs are sparse graphs on which random walks mix rapidly. This questi
 [Read in atlas](index.html#TCS-6843) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Modern aspects of Markov chains: entropy, curvature and the cutoff phenomenon](https://arxiv.org/abs/2508.21055) · [Cutoff on all Ramanujan graphs](https://arxiv.org/abs/1507.04725)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-2861 — Weakly negatively regressive sampling of matroid bases
+
+The problem asks for efficient sampling of a matroid basis with any prescribed rational point of the base polytope as its exact marginal vector. The output law must satisfy weak negative regression for every increasing function of all coordinates except one. The chosen model uses an independence oracle and a uniform exact sampler with expected polynomial bit complexity. This dependence property implies favorable submodular expectations and supports known concentration guarantees. A reported gap in an older general-matroid claim remains acknowledged in the 2026 literature, while newer special-case rounding results do not settle this target.
+
+[Read in atlas](index.html#TCS-2861) · [Submodular Dominance and Applications](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.44) · [Concentration of Submodular Functions and Read-k Families Under Negative Dependence](https://doi.org/10.1007/s00453-026-01372-w) · [Dimension-Free Correlated Sampling for the Hypersimplex](https://doi.org/10.4230/LIPIcs.ITCS.2026.104)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-6840 — Monotonicity of Ising spectral gaps
 
 A ferromagnetic Ising model favors neighboring spins that agree. This question asks whether increasing its interactions always reduces the spectral gap of local heat-bath updates. The graph has a fixed vertex set, arbitrary nonnegative edge strengths and no external field. The spectral gap is defined from the exact transition matrix and measures the relaxation rate. The checked cycle and equal-coupling complete-graph theorems do not cover independent interaction changes on arbitrary graphs.
@@ -1849,13 +1856,6 @@ The cover time is the expected number of random-walk steps needed to visit every
 
 [Read in atlas](index.html#TCS-6851) · [Reversible Markov Chains and Random Walks on Graphs](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch6.S8.html#SS3) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Cover times, blanket times, and majorizing measures](https://annals.math.princeton.edu/2012/175-3/p08) · [Deterministic approximation for the cover time of trees](https://cims.nyu.edu/~zeitouni/pdf/feigezeitouni3.pdf) · [A polynomial time approximation scheme for computing the supremum of Gaussian processes](https://arxiv.org/abs/1202.4970)
 Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-2861 — Efficient negatively dependent sampling from matroid polytopes
-
-A point of a matroid polytope specifies desired marginal probabilities for selecting elements. The question asks for efficient sampling of a feasible set distribution with those marginals and a strong negative-dependence property. The source lists weak negative regression, negative association, and negative regression as possible targets. Such dependence supports useful guarantees for expected submodular value, while maximum-entropy distributions do not automatically possess it. The project seeks principled randomized rounding whose joint behavior is controlled beyond merely matching individual selection probabilities.
-
-[Read in atlas](index.html#TCS-2861) · [Submodular Dominance and Applications](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Counting and enumeration (15)
 
@@ -2388,6 +2388,13 @@ A search should be cheap when its key is close in rank to a recently requested k
 [Read in atlas](index.html#TCS-5706) · [The Group Access Bounds for Binary Search Trees](https://drops.dagstuhl.de/storage/00lipics/lipics-vol297-icalp2024/LIPIcs.ICALP.2024.38/LIPIcs.ICALP.2024.38.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5825 — Superconstant word-RAM time for prefix-\(U_1\)
+
+The prefix-U-one problem maintains a fixed-length bit sequence under substitutions and returns the AND of any requested prefix. The conjecture rules out a deterministic data structure with linear preprocessing and constant worst-case time for both operations. Its machine has logarithmic-size words and explicitly charged arithmetic, bit operations and memory accesses. Amortized constant time, expected constant time and stronger predecessor queries are separate questions. A resolution would settle a basic dynamic set barrier underlying conditional classifications for regular word and tree languages.
+
+[Read in atlas](index.html#TCS-5825) · [Dynamic Membership for Regular Languages](https://doi.org/10.4230/LIPIcs.ICALP.2021.116) · [Dynamic data structures for parameterized string problems](https://arxiv.org/abs/2205.00441) · [Dynamic Membership for Regular Tree Languages](https://doi.org/10.4230/LIPIcs.MFCS.2025.8)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-7329 — Logarithmic fully retroactive priority queues
 
 Retroactivity permits inserting and deleting operations in the past. Each edit changes the queue state at later historical times. Queries must return the minimum at any chosen time. The target is logarithmic amortized operation time and linear history storage. A recent optimal result covers monotonic histories but not unrestricted priority queues.
@@ -2429,13 +2436,6 @@ Confluent persistence lets a subtree be copied between historical trie versions 
 
 [Read in atlas](index.html#TCS-7330) · [Confluently Persistent Tries for Efficient Version Control](https://erikdemaine.org/papers/ConfluentTries_Algorithmica/paper.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-5825 — Superconstant word-RAM lower bounds for prefix-U1
-
-The prefix-U1 problem maintains a sequence over a small monoid while supporting updates and prefix-product queries. Its queries capture whether a nonneutral element occurs within a specified prefix, relating the task to finding a minimum position. The conjecture rules out a data structure with constant time per operation in the stated logarithmic-word RAM model. The source emphasizes that ordinary cell-probe arguments do not establish the desired obstacle. A lower bound would isolate computational work inside a word operation as a genuine limitation in dynamic regular-language membership.
-
-[Read in atlas](index.html#TCS-5825) · [Dynamic Membership for Regular Languages](https://doi.org/10.4230/LIPIcs.ICALP.2021.116)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Dynamic algorithms (17)
 
@@ -3995,7 +3995,7 @@ Some CSPs lie in NP even when their templates are infinite or structurally gener
 [Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Automated reasoning, rewriting and unification (14)
+## Automated reasoning, rewriting and unification (15)
 
 ### TCS-6562 — Word equations with linear length constraints
 
@@ -4013,10 +4013,10 @@ Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6650 — Deterministic polynomial-time equivalence testing for d-DNNFs
 
-A deterministic decomposable negation-normal-form circuit represents a Boolean function using variable-disjoint conjunctions and mutually exclusive disjunctions. The proposal asks for a deterministic polynomial-time algorithm deciding whether two such circuits represent exactly the same function. Agreement must hold on every assignment, even when the circuits use very different internal decompositions. An efficient equivalence test would support checking whether a compiled knowledge representation preserves the intended meaning after transformation. The target concerns comparing two existing representations; the saved proposal treats efficient complementation and constructing new representations as separate operations that should not be assumed available.
+The problem asks whether two explicit d-DNNF circuits can be tested for exact Boolean equivalence in deterministic polynomial time. Decomposability requires disjoint variable sets at conjunctions, while determinism requires mutually exclusive inputs at disjunctions. The circuits may use unrelated internal decompositions and need not share a variable tree. Randomized polynomial-time equivalence testing is known, but its possibility of error does not satisfy this target. A resolution would clarify the cost of comparing and verifying succinct compiled Boolean representations.
 
-[Read in atlas](index.html#TCS-6650) · [Research reference · arXiv 2605.12378](https://arxiv.org/html/2605.12378v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6650) · [Proof Systems Based on Structured Circuits](https://arxiv.org/abs/2605.12378) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819) · [Testing Equivalence Probabilistically](https://users.cecs.anu.edu.au/~jinbo/02-d123.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6644 — Decidability of termination for one-rule string rewriting
 
@@ -4024,6 +4024,13 @@ A one-rule string system repeatedly replaces one fixed substring by another. The
 
 [Read in atlas](index.html#TCS-6644) · [Decidability of Termination of Grid String Rewriting Rules](https://doi.org/10.1137/S009753979833297X) · [RTA Open Problem 21: Termination of one linear rule](https://www.cs.tau.ac.il/~nachum/rtaloop/problems/21.html) · [String Rewriting Systems: Brief Introduction and Sample of Open Problems](https://arxiv.org/abs/2608.19397)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-7194 — Singly exponential shortest solutions of word equations
+
+A word equation asks for consistent substitutions of finite strings that make two concatenations identical. The conjecture says that every satisfiable equation of size n has some solution whose variable images have length at most two to a fixed polynomial in n. The bound must hold uniformly over all finite alphabets and arbitrarily many variable occurrences, with empty substitutions allowed. Known compression results make this length conjecture sufficient for NP membership of general word-equation satisfiability. Doubly exponential bounds and newer results for restricted equation families do not meet the universal single-exponential target.
+
+[Read in atlas](index.html#TCS-7194) · [Application of Lempel-Ziv Encodings to the Solution of Word Equations](https://ii.uni.wroc.pl/~aje/WordEq2015/papers/PlandowskiRytter.pdf) · [Recompression: a simple and powerful technique for word equations](https://arxiv.org/abs/1203.3705) · [An Improved Version of Hmelevskii’s Theorem on Three-Variable Word Equations](https://doi.org/10.4230/LIPIcs.STACS.2026.77)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0163 — Complexity of satisfiable word equations
 
@@ -4046,12 +4053,12 @@ The scattered-subsequence relation allows a word to be obtained by deleting lett
 [Read in atlas](index.html#TCS-0114) · [Automata Exchange](https://automata.exchange/24.13-satisfiability-of-string-constraints-with-subsequence-relation/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0306 — Efficient negation of d-DNNFs
+### TCS-0306 — Polynomial-time complementation of d-DNNFs
 
-Deterministic decomposable negation normal form is a circuit representation supporting useful counting and reasoning operations. Decomposability separates variables at conjunctions, while determinism separates satisfying cases at disjunctions. The question asks whether negating such a representation can always be done efficiently within the same class. A small representation of a set need not directly describe its complement. The project studies whether this compilation language is robust under a basic logical operation or can suffer a substantial representational blowup.
+The problem asks for a uniform deterministic polynomial-time algorithm that complements any given d-DNNF circuit. Its output must remain decomposable and deterministic and agree with the Boolean complement on every assignment. The time bound includes constructing and writing a complete circuit over the original variables. A polynomial-size complement may conceivably exist without a known efficient construction, so that separate existence question is not the whole target. Known lower bounds for structured representations leave this general circuit operation unresolved.
 
-[Read in atlas](index.html#TCS-0306) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#ptime-complementation-of-d-dnnf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0306) · [List of open questions: PTIME complementation of d-DNNF](https://a3nm.net/work/research/questions/#ptime-complementation-of-d-dnnf) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819) · [Structured d-DNNF Is Not Closed under Negation](https://doi.org/10.24963/ijcai.2024/398) · [On the Complexity of Language Membership for Probabilistic Words](https://doi.org/10.4230/LIPIcs.STACS.2026.5)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1595 — Decidability of fifth-order \(\beta\)-matching
 
