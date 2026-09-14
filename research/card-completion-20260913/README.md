@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 147 completed, 466 pending and one out of active scope. The live counts
+checkpoint 150 completed, 463 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 591 detailed active cards and 466 pending active reviews in the queue.
+there are 594 detailed active cards and 463 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -139,3 +139,12 @@ TCS-1014 checks the September 2026 published two-sided-expander result against
 the constant-output-gap target. At this checkpoint 147 entries are completed,
 466 remain pending and one is outside the active scope: 96 reviews since the
 renewed request. There are 1,057 active cards and 591 detailed active cards.
+
+
+The next three completed reviews are TCS-6660, TCS-6576 and TCS-1004.
+They specify randomized same-problem kernelization with full encoding bounds,
+the all-horizon asymptotic Euclidean chasing ratio, and deterministic relative
+DNF counting with fully polynomial reciprocal-accuracy dependence. The running
+checkpoint is now 150 completed entries, 463 pending and one out of active
+scope, with 1,057 active cards and 594 detailed active cards. Of these reviews,
+99 were completed after the renewed request.
