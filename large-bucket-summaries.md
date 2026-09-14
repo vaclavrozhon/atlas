@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+405 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (70)
@@ -944,10 +944,10 @@ Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-5773 — Skolem problem
 
-The Skolem problem asks whether an integer linear recurrence ever has a zero term. Its order, coefficients and initial values form a finite binary input, with no restriction to simple or non-degenerate sequences. The classical structural theorem about zero sets does not provide an unconditional decision procedure for every recurrence. The reviewed July 2026 results establish stronger low-order bounds and a general conditional decidability theorem, leaving the unrestricted unconditional target unresolved. The completed card preserves the original identifier and source while spelling out the exact discrete recurrence model.
+The Skolem problem asks whether one terminating algorithm can decide if any given integer linear recurrence ever has a zero term. The input lists its order, coefficients and initial values in binary, with no restriction on order or repeated characteristic roots and no upper bound on the index. Every single term can be computed, but a decision procedure must also finish when the infinite sequence has no zero. The question is a basic exact reachability problem in linear dynamics with connections to program verification and automata. A complete Lean proof must establish decidability or undecidability for all inputs; conditional termination, low-order algorithms and density-one index sets do not settle that target.
 
-[Read in atlas](index.html#TCS-5773) · [Skolem Meets Schanuel](https://doi.org/10.4230/LIPIcs.MFCS.2022.20) · [On the Complexity of the Skolem Problem at Low Orders](https://arxiv.org/abs/2507.11234v3) · [Conjectural Decidability of the Skolem Problem](https://arxiv.org/abs/2607.15510)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5773) · [Skolem Meets Schanuel](https://doi.org/10.4230/LIPIcs.MFCS.2022.20) · [On the Complexity of the Skolem Problem at Low Orders](https://arxiv.org/abs/2507.11234v3) · [Conjectural Decidability of the Skolem Problem](https://arxiv.org/abs/2607.15510v1) · [A Survey of the Skolem and Positivity Problems for Linear Recurrence Sequences](https://people.mpi-sws.org/~joel/publications/skolem_and_positivity_survey26.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6568 — Mean-payoff games in polynomial time
 
@@ -1588,7 +1588,7 @@ The nuclear norm of a matrix is the sum of its singular values and measures a di
 [Read in atlas](index.html#TCS-7010) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Optimization and numerical computation (18)
+## Optimization and numerical computation (20)
 
 ### TCS-0008 — Strongly polynomial linear programming
 
@@ -1603,6 +1603,13 @@ A semidefinite feasibility instance asks whether some real assignment makes an a
 
 [Read in atlas](index.html#TCS-6574) · [An exact duality theory for semidefinite programming and its complexity implications](https://link.springer.com/article/10.1007/BF02614433) · [On the Turing Model Complexity of Interior Point Methods for Semidefinite Programming](https://epubs.siam.org/doi/10.1137/15M103114X) · [Exact algorithms for semidefinite programs with degenerate feasible set](https://www.sciencedirect.com/science/article/pii/S0747717120301176) · [How Do Exponential Size Solutions Arise in Semidefinite Programming?](https://epubs.siam.org/doi/10.1137/21M1434945) · [A combinatorial approach to Ramana’s exact dual for semidefinite programming](https://arxiv.org/abs/2510.07271) · [Hesse’s Redemption: Efficient Convex Polynomial Programming](https://arxiv.org/abs/2511.03440)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7227 — Conforti–Cornuéjols conjecture
+
+A clutter is a finite family of sets with no redundant containing member. Its packing property requires unweighted packing–covering equality in every deletion and contraction minor. The conjecture asks whether this already implies equality for every nonnegative integer capacity vector. Weighted packings may repeat members within those capacities. Recent source results cover finite ground-set sizes and restricted families, while retaining the general question.
+
+[Read in atlas](index.html#TCS-7227) · [Combinatorial Optimization: Polyhedra and Efficiency](https://homepages.cwi.nl/~lex/co/) · [Testing the max-flow min-cut property and the replication conjecture](https://arxiv.org/abs/2606.16543v2) · [Equality of ordinary and symbolic powers and the Conforti–Cornuéjols conjecture for (n−2)-uniform clutters](https://arxiv.org/abs/2510.15864v2)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6585 — Nearly linear-time solution of general sparse linear systems
 
@@ -1630,6 +1637,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Komlós asks whether every collection of real vectors of Euclidean norm at most one can be assigned signs so that every coordinate of their sum is bounded by one universal constant. The dimensions and entries are arbitrary, and the same complete choice of signs must control all coordinates simultaneously. The positive answer requires some finite constant, without determining the best one or giving an efficient algorithm. Such a theorem would imply the Beck–Fiala discrepancy bound and strengthen rounding and optimization guarantees. A complete Lean proof must establish the universal bound or unbounded discrepancy; the 10 September 2026 preprint claims the full positive bound, but this review has not independently verified its proof.
 
 [Read in atlas](index.html#TCS-7314) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [An Algorithm for Komlós Conjecture Matching Banaszczyk’s Bound](https://doi.org/10.1137/17M1126795) · [An Exposition of the \(\widetilde O((\log n)^{1/4})\) Bound for the Komlós Problem](https://arxiv.org/abs/2608.28452v1) · [A \((\log n)^{1/4}\) Bound for the Komlós Problem](https://arxiv.org/abs/2609.08885v1) · [Algorithms for Standard-Form ILP Problems via Komlós’ Discrepancy Setting](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.25) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
+Existing status: `uncertain` · Summary written: 2026-09-14
+
+### TCS-7315 — Beck–Fiala conjecture
+
+The Beck–Fiala conjecture asks whether bounded participation of each element in a set system guarantees a coloring with square-root imbalance in every set. If each element belongs to at most t sets, one complete assignment of signs must achieve imbalance at most a universal constant times the square root of t. The constant must work for every number of elements and sets, with no lower restriction on t or requirement for an efficient algorithm. The question is a central sparsity principle for simultaneous rounding and is implied by the more general Komlós conjecture. A complete Lean proof must establish the universal bound or unbounded normalized discrepancy; a 10 September 2026 preprint claims the full positive bound, with its proof unverified in this review.
+
+[Read in atlas](index.html#TCS-7315) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [Online Beck–Fiala Down to Logarithmic Sparsity](https://arxiv.org/abs/2607.14238v1) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
 Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-0491 — Log-squared query complexity for fixed-dimensional Tarski
@@ -1720,10 +1734,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6523 — Kannan–Lovász–Simonovits conjecture
 
-The KLS conjecture concerns log-concave probability distributions normalized to have mean zero and identity covariance. It asks whether every sufficiently regular function has variance bounded by a universal constant times its average squared gradient. That constant must work in every dimension and for every such distribution. Geometrically, this would exclude narrow bottlenecks that covariance normalization fails to reveal. The question connects high-dimensional convex geometry with the mixing of sampling algorithms, and control of particular observables alone does not settle it.
+The KLS conjecture asks for a universal Poincaré inequality for every log-concave probability distribution with zero mean and identity covariance. Every locally Lipschitz function of finite variance and gradient energy must have its variance bounded by that energy times one constant independent of the dimension and distribution. The target includes uniform distributions on convex bodies and requires no symmetry, independence or positive curvature assumption. Its equivalent expansion principle connects high-dimensional geometry and concentration with the analysis of sampling algorithms. A complete Lean proof must establish the universal bound or its unbounded-counterexample negation; radial, quadratic and dimension-dependent improvements do not settle the full target.
 
-[Read in atlas](index.html#TCS-6523) · [The KLS Conjecture (problem 30)](https://randomstrasse101.math.ethz.ch/posts/KLSConjecture/) · [The Kannan–Lovász–Simonovits Conjecture](https://faculty.cc.gatech.edu/~vempala/papers/kls_survey.pdf) · [Bourgain’s slicing problem and KLS isoperimetry up to polylog](https://arxiv.org/abs/2203.15551) · [Logarithmic bounds for isoperimetry and slices of convex sets](https://www.weizmann.ac.il/math/klartag/sites/math.klartag/files/uploads/root_log.pdf) · [Thin-shell bounds via parallel coupling](https://arxiv.org/abs/2507.15495v2) · [The KLS constant is \(O(\log ^{1/4} n)\)](https://arxiv.org/abs/2607.24164v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6523) · [The KLS Conjecture (problem 30)](https://randomstrasse101.math.ethz.ch/posts/KLSConjecture/) · [The Kannan–Lovász–Simonovits Conjecture](https://faculty.cc.gatech.edu/~vempala/papers/kls_survey.pdf) · [Bourgain’s slicing problem and KLS isoperimetry up to polylog](https://arxiv.org/abs/2203.15551v2) · [Logarithmic bounds for isoperimetry and slices of convex sets](https://www.weizmann.ac.il/math/klartag/sites/math.klartag/files/uploads/root_log.pdf) · [Thin-shell bounds via parallel coupling](https://arxiv.org/abs/2507.15495v2) · [Digesting the proof of the sharp thin-shell inequality](https://arxiv.org/abs/2607.23307v1) · [The KLS constant is \(O((\log n)^{1/4})\)](https://arxiv.org/abs/2607.24164v1) · [Hit-and-Run Mixes as Fast as the Ball Walk](https://arxiv.org/abs/2608.13487v2)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6525 — Gupta–Newman–Rabinovich–Sinclair conjecture
 
