@@ -47,8 +47,8 @@ is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. An additional individual audit of the developed active companion TCS-7260
 extended the queue to 615 entries. A fresh active-only census subsequently added
 299 already developed cards that still needed an individual quality and source
-audit, increasing the queue to 914 entries. At the latest checkpoint, 216 are
-completed, 697 pending and one outside active scope. The live counts
+audit, increasing the queue to 914 entries. At the latest checkpoint, 224 are
+completed, 689 pending and one outside active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -452,3 +452,32 @@ combined-workspace publication and `node tests/math.cjs` for all 1,055 cards
 and 16,381 mathematical expressions. Published version:
 `8e9f60788f9b38e408f9`. Concurrent community-feedback work is preserved in the
 combined publication and is not automatically credited as individual review.
+
+Four further individual audits complete TCS-7315, TCS-6523, TCS-5773 and
+TCS-6682. Beck–Fiala now specifies full binary-matrix signing, universal
+constants, its unbounded-discrepancy negation and the ranges of recent
+partial results; the 10 September full-target proof claim is marked uncertain
+pending independent verification. KLS fixes the isotropic log-concave measure,
+function class, variance and gradient conventions, and distinguishes Cheeger
+and Poincaré normalizations and recent thin-shell and quadratic-function
+results from the full conjecture. Skolem specifies a uniform total decider,
+exact finite input syntax, zero-index and degenerate recurrence conventions,
+and the scopes of corrected low-order, density-one and conditional results.
+Reed now has full Lean acceptance, precise finite graph parameters and the
+exact ceiling, with corrected clique-blowup and strict recolouring-threshold
+context. All four preserve assessed importance and categories.
+
+Checkpoint 224 has 1,055 active cards: 366 individually completed/reviewed and
+689 pending. The queue contains 224 completed records (213 active and 11
+subsequently archived), 689 pending and one outside active scope. The other
+153 reviewed active cards are counted separately. There have been 173
+completions since the renewed request. The active-output hash audit matches
+all 213 completed records and skips all 11 inactive bodies. The overall pass
+remains incomplete. Concurrent feedback work remains separate and is retained
+in combined-workspace publication.
+
+Validation for checkpoint 224: `make check` passed, followed by combined
+workspace publication and `node tests/math.cjs` for all 1,055 active cards and
+16,551 mathematical expressions. Published version: `393f22252d7b8e34a040`.
+The snapshot retains the concurrent community-feedback changes; subsequent
+independent card edits are not credited as this pass’s completed reviews.
