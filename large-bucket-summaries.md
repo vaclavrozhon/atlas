@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-401 five-sentence working summaries, based on saved source material.
+402 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (70)
@@ -488,12 +488,12 @@ SAT asks whether a Boolean formula has a satisfying assignment. The selected que
 [Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6979 — Independence of P versus NP
+### TCS-6979 — Independence of P versus NP from ZFC
 
-P versus NP asks whether every efficiently verifiable decision problem can also be solved efficiently. The independence question concerns the possibility that a chosen mathematical axiom system proves neither equality nor inequality. This is a question about formal provability, distinct from proposing either an algorithm or a complexity lower bound. Any precise claim must name the axiom system and the assumptions made about its consistency or soundness. Investigating independence could identify limitations of the available foundations or proof methods, without treating the difficulty of existing approaches as evidence that independence must hold.
+P versus NP asks whether efficiently verifiable decisions can always be made efficiently. This card asks specifically whether ZFC proves neither the usual arithmetic statement P = NP nor its negation. It defines that statement through polynomial-time deterministic satisfiability and allows all finite ZFC proofs. Results for restricted theories and oracle machines do not establish the asserted independence from full ZFC. The question has a definite yes/no target once the axioms are fixed, and a positive answer would also imply their consistency.
 
-[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ## Algorithms (26)
 
@@ -1166,7 +1166,7 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Distributed, parallel and sublinear algorithms (59)
+## Distributed, parallel and sublinear algorithms (60)
 
 ### TCS-6553 — P versus NC
 
@@ -1321,6 +1321,13 @@ Triangle detection asks a distributed network to report whether any three vertic
 
 [Read in atlas](index.html#TCS-2997) · [Distributed Subgraph Finding — ADGA 2025](https://adga-workshop.org/2025/keren.pdf) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802) · [Near-optimal Distributed Triangle Enumeration via Expander Decompositions](https://doi.org/10.1145/3446330)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7376 — Polylogarithmic-space streaming Euclidean MST estimation
+
+Points arrive one at a time in Euclidean space, and the goal is to estimate the cost of connecting them by a minimum spanning tree. The algorithm gets one insertion-only pass and may keep only memory polynomial in the dimension and the logarithmic input parameters. It should return a constant-factor estimate with probability at least two thirds for every input order. The cited paper leaves a gap between its sublinear-space constant-factor result and this smaller memory budget. The question asks how compactly one can summarize global geometric connectivity, without requiring the summary to output the tree itself.
+
+[Read in atlas](index.html#TCS-7376) · [Community proposal: Streaming Euclidean MST to constant factor in space polylogarithmic in the number of points](https://github.com/vaclavrozhon/atlas/issues/2) · [Streaming Euclidean MST to a Constant Factor](https://doi.org/10.1145/3564246.3585168)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0984 — Optimal measurements and near-linear decoding for universal ℓ₂/ℓ₁ sparse recovery
 
