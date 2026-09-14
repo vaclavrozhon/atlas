@@ -478,7 +478,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 | 6 | [Exact Euclidean SVP in single-exponential time and polynomial space](index.html#TCS-6619) | 95 |
 | 7 | [Vinogradov’s least quadratic nonresidue conjecture](index.html#TCS-6620) | 94 |
 | 8 | [Exact Euclidean SVP in BQP](index.html#TCS-7169) | 94 |
-| 9 | [Standard-assumption hardness for cryptographic-factor SVP](index.html#TCS-0658) | 92 |
+| 9 | [Quantum-ETH hardness of cryptographic-factor GapSVP](index.html#TCS-0658) | 92 |
 | 10 | [Deterministic polynomial-time construction of a prime of a given bit length](index.html#TCS-7265) | 91 |
 
 ## 19. Coding and information theory (small)

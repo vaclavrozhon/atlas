@@ -2523,12 +2523,12 @@ A changing graph must keep a proper integer color on every edge. The target allo
 [Read in atlas](index.html#TCS-0536) · [Graph Algorithms: Distributed Meets Dynamic (Dagstuhl Seminar 24471): An Open Problem in Dynamic Edge Coloring](https://doi.org/10.4230/DagRep.14.11.92) · [An Open Problem in Dynamic Edge Coloring](https://martin-costa.github.io/martincosta.com/files/Dynamic_Edge_Coloring_Open_Problem.pdf) · [Beyond Vizing Chains: Improved Recourse in Dynamic Edge Coloring](https://arxiv.org/abs/2602.09497) · [Deterministic Dynamic Edge Colouring](https://doi.org/10.1137/1.9781611978971.43)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0545 — Reducing weighted matching to unweighted matching
+### TCS-0545 — Low-loss deterministic reduction from weighted to unweighted dynamic matching
 
-Weighted matching maximizes total selected edge weight, whereas unweighted matching maximizes the number of selected edges. The saved entry asks about reducing the former to the latter in a dynamic setting. A useful reduction must preserve solution quality while also controlling how one original update changes the auxiliary instances. Such a transfer could reuse fast unweighted data structures for richer allocation objectives. The source label does not specify exact versus approximate matching, weight ranges, or permitted update blowup, so the intended reduction guarantee remains to be formalized.
+The question asks for a reusable conversion from dynamic unweighted matching to dynamic weighted matching on general graphs. An input algorithm with approximation ratio alpha should yield one with ratio alpha times one minus the chosen accuracy. The selected variant preserves determinism and transfers both worst-case and amortized update guarantees when the input algorithm provides them. The overhead may depend on accuracy but should be only polylogarithmic in graph size and weight range, apart from the stated auxiliary graph enlargement. A recent general-graph conversion works for near-optimal input algorithms, leaving the arbitrary-ratio target unresolved.
 
-[Read in atlas](index.html#TCS-0545) · [Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0545) · [Dynamic Graph Algorithms (Dagstuhl Seminar 22461): Reducing weighted matching to unweighted matching](https://doi.org/10.4230/DagRep.12.11.45) · [A Framework for Dynamic Matching in Weighted Graphs](https://doi.org/10.1145/3406325.3451113) · [From Unweighted to Weighted Dynamic Matching in Non-Bipartite Graphs: A Low-Loss Reduction](https://doi.org/10.1137/1.9781611978971.10)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0387 — Logarithmic fully dynamic planar nearest neighbors
 
@@ -2809,10 +2809,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-1116 — Optimal universal approximation factor for EFX
 
-Approximate EFX weakens the comparison between an agent's own bundle and another bundle after a single good is removed. The saved survey question asks for the best multiplicative factor guaranteed for every instance. This quantifies how close one can always come to a demanding fairness criterion even without settling exact EFX existence. A sharp factor would give both a robust allocation target and a measure of the remaining fairness gap. The historical note does not reproduce the valuation class or zero-value convention, so the approximation constant must be attached to those assumptions.
+The target is the best multiplicative EFX fairness factor that every finite additive-goods instance admits. Every good must be allocated, and the comparison removes any good that the potentially envious agent values positively. There is no bound on the number of agents and no computational-time restriction on choosing the allocation. Known universal guarantees reach the golden-ratio factor, while stronger results impose instance restrictions or allow removal of more goods. The benchmark asks for a Lean-certified numerical answer within one hundredth, which need not decide exact EFX existence.
 
-[Read in atlas](index.html#TCS-1116) · [Fair Division of Indivisible Goods: A Survey](https://www.cs.toronto.edu/~nisarg/teaching/2556s22/papers/fair-division-survey.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1116) · [Fair Division of Indivisible Goods: A Survey](https://arxiv.org/abs/2202.07551) · [Multiple Birds with One Stone: Beating 1/2 for EFX and GMMS via Envy Cycle Elimination](https://doi.org/10.1016/j.tcs.2020.07.006) · [Pushing the Frontier on Approximate EFX Allocations](https://arxiv.org/abs/2406.12413) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7203 — Bounded protocols for connected envy-free proportional cake cutting
 
@@ -3385,12 +3385,12 @@ Can a quantum computer find an exactly shortest nonzero lattice vector in time p
 [Read in atlas](index.html#TCS-7169) · [The Shortest Vector in a Lattice is Hard to Approximate to within Some Constant](https://doi.org/10.1137/S0097539700373039) · [Improved Classical and Quantum Algorithms for the Shortest Vector Problem via Bounded Distance Decoding](https://ir.cwi.nl/pub/35122/35122.pdf) · [Solving the Shortest Vector Problem in \(2^{0.6039n}\) Time via Mid-point Hessian](https://arxiv.org/abs/2608.02478v2) · [One Discrete Gaussian Sample in \(2^{n/2+o(n)}\) Time](https://arxiv.org/abs/2608.03220v1) · [A Polynomial-Time Quantum Algorithm for the Dihedral Coset Problem](https://eprint.iacr.org/2026/1591) · [The ePrint:\(2026/1591\) Quantum Algorithm Does Not Solve DCP](https://eprint.iacr.org/2026/1693)
 Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-0658 — Standard-assumption hardness for cryptographic-factor SVP
+### TCS-0658 — Quantum-ETH hardness of cryptographic-factor GapSVP
 
-Approximate SVP seeks a lattice vector within a specified factor of the shortest nonzero length. The recorded question asks for hardness at factors relevant to cryptographic reductions under standard complexity assumptions. Hardness for exact or very accurate approximation need not persist when a much longer vector is an acceptable answer. A result in the intended regime would strengthen the theoretical basis for lattice-based computational assumptions. The saved title does not state the factor or permitted assumption, so the desired theorem must choose those parameters rather than invoke cryptographic relevance as a numerical specification.
+The target is a conditional quantum lower bound for the Euclidean gap version of the shortest vector problem. The approximation gap grows as dimension to the power three halves plus a fixed positive increment. The card explicitly chooses the quantum exponential-time hypothesis for classical 3-SAT as its starting assumption. It asks to exclude every bounded-error uniform quantum algorithm whose running time is polynomial in the full binary input length. Recent constant-factor or different-norm hardness results do not establish this cryptographically relevant approximation regime.
 
-[Read in atlas](index.html#TCS-0658) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0658) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Quantum Meets the Minimum Circuit Size Problem](https://eccc.weizmann.ac.il/report/2021/116/revision/1/) · [Deterministic Hardness of Approximation of Unique-SVP and GapSVP in \(\ell_p\) Norms for \(p>2\)](https://doi.org/10.1145/3798129.3800803) · [NP-hardness of SVP in Euclidean Space](https://arxiv.org/abs/2603.27398)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0659 — Stronger worst-case reductions to SIS and LWE
 
