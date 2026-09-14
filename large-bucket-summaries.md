@@ -42,10 +42,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6532 — Strictness of the polynomial hierarchy
 
-The polynomial hierarchy adds successive alternating blocks of efficiently bounded existential and universal choices. Its first levels already include polynomial-time computation and ordinary NP verification. The question asks whether every additional fixed level strictly increases computational power. Equality of neighboring levels would collapse all higher finite levels as well. The project studies whether increasingly nested candidate-and-challenge reasoning creates an endless hierarchy of difficulty, a stronger issue than separating P from NP at the first step.
+The polynomial hierarchy classifies decision languages by a fixed number of alternating existential and universal blocks. Each block chooses polynomially many bits, followed by a uniform polynomial-time check. The question asks whether every added block strictly increases the class of expressible languages. Equality of any neighboring levels would make the entire hierarchy stabilize at a finite level. Known oracle separations and conditional collapses reveal consequences and barriers while leaving this unrelativized conjecture unresolved.
 
 [Read in atlas](index.html#TCS-6532) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Polynomial-Time Hierarchy](https://research.ibm.com/publications/the-polynomial-time-hierarchy) · [The Polynomial Hierarchy, Random Oracles, and Boolean Circuits](https://www.cs.columbia.edu/~rocco/Public/sigact15.pdf) · [An Average-Case Depth Hierarchy Theorem for Boolean Circuits](https://arxiv.org/abs/1504.03398) · [Upper and Lower Bounds for the Linear Ordering Principle](https://eccc.weizmann.ac.il/report/2025/142/)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0021 — NP versus P/poly
 

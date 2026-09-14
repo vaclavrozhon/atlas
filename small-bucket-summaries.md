@@ -135,10 +135,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6601 — Superpolynomial Extended Frege lower bounds
 
-Extended Frege proves propositional tautologies while allowing reusable names for intermediate formulas. The question asks whether some tautologies require proofs larger than every polynomial in their encoded statement length. Reusable definitions can express shared computations compactly, defeating lower bounds based only on expanding formulas. An unconditional result would be a major limitation on a powerful, efficiently checkable proof language. The saved review emphasizes that proof size differs from proof-search time and that a lower bound for this particular system would not alone prove \(\mathrm{NP}\ne \mathrm{coNP}\).
+Extended Frege is a classical propositional proof system that can introduce reusable names for previously specified formulas. The question asks whether no single polynomial bounds the shortest proof of every tautology by its statement length. The target counts the full encoded proof and allows arbitrary depth and reuse of earlier lines. Its negation would give short proofs for every tautology without necessarily making them easy to find. Recent conditional, algebraic and intuitionistic results do not supply the unrestricted classical lower bound.
 
-[Read in atlas](index.html#TCS-6601) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Towards \(\mathrm{P}\ne \mathrm{NP}\) from Extended Frege lower bounds](https://arxiv.org/abs/2312.08163) · [SNARGs for NP from Unprovability of Mathematical Theorems](https://eccc.weizmann.ac.il/report/2026/098/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6601) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Towards \(\mathrm{P}\ne \mathrm{NP}\) from Extended Frege lower bounds](https://arxiv.org/abs/2312.08163) · [SNARGs for NP from Unprovability of Mathematical Theorems](https://eccc.weizmann.ac.il/report/2026/098/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/) · [Author correction to The Relative Efficiency of Propositional Proof Systems](https://www.cs.utoronto.ca/~sacook/) · [Exponential Gaps Between Intuitionistic Linear Extended Frege Systems](https://arxiv.org/abs/2609.00422v1)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6663 — Frege versus Extended Frege
 
@@ -559,10 +559,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6595 — Strong Exponential Time Hypothesis
 
-The Strong Exponential Time Hypothesis concerns exact satisfiability of Boolean formulas with bounded clause width. It asserts that no fixed positive saving over exhaustive search's exponent works for every fixed width. Faster algorithms for small widths remain compatible with the hypothesis because their savings may vanish as width grows. The statement underlies precise conditional running-time barriers for many polynomial-time problems. The saved review fixes deterministic algorithms and emphasizes that neither a randomized improvement for 3-SAT nor ordinary \(\mathrm{P}\ne \mathrm{NP}\) settles these stronger all-width quantifiers.
+SETH asks whether the optimal deterministic exponential rates for fixed-width satisfiability approach one as the allowed width grows. Every proposed constant saving from exhaustive search must fail at some fixed width. To refute it, one saving must work at every fixed width, although the algorithms and polynomial factors may vary with that width. Faster algorithms for width three, including recent randomized ones, do not meet that requirement. The hypothesis underlies many precise conditional lower bounds, including problems whose algorithms already run in polynomial time.
 
 [Read in atlas](index.html#TCS-6595) · [On the Complexity of k-SAT](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2001_jcss.pdf) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [On some fine-grained questions in algorithms and complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [A Better Analysis For PPSZ For 3-SAT](https://arxiv.org/abs/2607.10697v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6510 — Truly subcubic APSP
 
@@ -1046,17 +1046,17 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
-A k-clique is a set of k graph vertices with every possible edge between them. The question asks whether exact detection admits time \(f(k)n^{c}\) with a computable f and an exponent c independent of k. Enumerating vertex subsets gives polynomial time for each fixed k, but its exponent grows with the requested clique. An algorithm of the required form would establish \(\mathrm{FPT}=\mathrm{W}[1]\) and change the interpretation of many parameterized hardness reductions. The saved review distinguishes this unconditional question from stronger lower bounds that assume ETH.
+A k-clique is a set of k graph vertices joined by every possible edge. The question asks for one exact deterministic algorithm whose input-size exponent is constant while a computable multiplier absorbs all dependence on k. Polynomial time separately for each fixed k does not establish that uniform bound. Clique completeness makes the question equivalent to FPT equalling W[1]. Conditional lower bounds and recent fixed-k or approximation results explain the conjecture’s significance without deciding it.
 
 [Read in atlas](index.html#TCS-6592) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [On \(\mathrm{W}(1)\)-Hardness as Evidence for Intractability](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2018.73) · [Constant Approximating k-Clique is \(\mathrm{W}(1)\)-hard](https://arxiv.org/abs/2102.04769) · [Simple Combinatorial Construction of the \(k^{o(1)}\)-Lower Bound for Approximating the Parameterized k-Clique](https://arxiv.org/abs/2304.07516) · [Faster Combinatorial k-Clique Algorithms](https://weizmann.elsevierpure.com/en/publications/faster-combinatorial-k-clique-algorithms-2/)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6593 — Exponential Time Hypothesis
 
-The deterministic Exponential Time Hypothesis concerns exact satisfiability of formulas with at most three literals per clause. It asks whether the infimum of achievable exponential rates in the number of variables is strictly positive. This rules out arbitrarily small constant exponents, even when each improvement uses a different algorithm. Carefully controlled reductions would then transfer exponential lower bounds to many other computational problems. The saved review stresses that NP-completeness alone supplies no such quantitative barrier and that randomized variants have different quantifiers.
+ETH asks whether the optimal deterministic exponential rate for 3-SAT is strictly positive. The exponential parameter is the number of distinct variables, while polynomial factors account for the complete encoded input. One positive rate must obstruct every algorithm, and refutation permits different algorithms for arbitrarily small positive rates. Known exponential-time algorithms provide upper bounds but no positive lower bound on the optimum. The hypothesis supports quantitative lower bounds throughout exact and parameterized algorithms without being established by those conditional consequences.
 
 [Read in atlas](index.html#TCS-6593) · [On the Complexity of k-SAT](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2001_jcss.pdf) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [Exact Complexity and Satisfiability](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2013_ipec.pdf) · [Chain, Generalization of Covering Code, and Deterministic Algorithm for k-SAT](https://arxiv.org/abs/1804.07901) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6594 — Set Cover conjecture
 
@@ -3352,10 +3352,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6617 — Integer factorization in randomized polynomial time
 
-Integer factorization recovers the prime factors and multiplicities whose product is a given positive integer. The reviewed question asks whether one classical randomized algorithm can do this in time polynomial in the input's bit length. Multiplication and verification are efficient, but discovering factors remains a different computational task from testing primality. A polynomial algorithm would transform computational number theory and undermine corresponding factoring-based hardness assumptions. The saved review distinguishes subexponential classical methods and polynomial-time quantum factoring from the requested worst-case classical guarantee on every input.
+Integer factorization recovers the ordered primes and positive multiplicities whose product is a given positive integer. The question asks for one classical randomized algorithm taking polynomial time in the number of input bits on every random sequence. Its full factor list must be correct with probability at least two thirds separately on every positive input. Efficient primality testing and verification do not resolve the task of finding the factors. Known quantum algorithms, heuristic sieve estimates and improved deterministic subroutines each leave a different gap to this target.
 
 [Read in atlas](index.html#TCS-6617) · [A Survey of Techniques Used in Algebraic and Number Theoretic Algorithms](https://www.csa.iisc.ac.in/~chandan/research/survey_CNT.pdf) · [PRIMES is in P](https://annals.math.princeton.edu/2004/160-2/p12) · [Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer](https://arxiv.org/abs/quant-ph/9508027) · [A log-log speedup for exponent one-fifth deterministic integer factorisation](https://arxiv.org/abs/2105.11105) · [Deterministic methods for finding elements of large multiplicative order](https://arxiv.org/abs/2601.11131v2)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6618 — Prime-field discrete logarithms in randomized polynomial time
 
