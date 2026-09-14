@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-602 five-sentence working summaries, based on saved source material.
+601 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -177,10 +177,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0024 — Frege lower bounds from circuit hardness
 
-Circuit lower bounds show that certain Boolean functions cannot be computed by small circuits. The saved question asks how such hardness might be turned into lower bounds for Frege proofs. A proof is a sequence of deductions about a tautology, whose Boolean value is always true. Consequently, circuit hardness must be connected to the structure of reasoning rather than applied directly to the conclusion's truth function. The inherited label does not name the circuit class, hard function, or transfer theorem, so it remains a specific methodological challenge rather than an established implication.
+Some major lower-bound questions concern Boolean circuits, while others concern the size of propositional proofs. This card asks whether superpolynomial circuit hardness for an NP language forces superpolynomial Frege proof size. The premise allows fully nonuniform circuits, and the conclusion concerns ordinary unrestricted-depth Frege. A fixed complete proof calculus and explicit size conventions make both sides precise. Known connections for weaker systems, additional assumptions or different algebraic models do not settle this implication.
 
-[Read in atlas](index.html#TCS-0024) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0024) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Towards P ≠ NP from Extended Frege Lower Bounds](https://eccc.weizmann.ac.il/report/2023/199/) · [Quasi-polynomial Frege Simulation of IPS beyond Noncommutativity](https://eccc.weizmann.ac.il/report/2026/166/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1099 — Separating levels of bounded arithmetic
 
@@ -322,7 +322,7 @@ Linear resolution restricts how successive resolution steps may depend on earlie
 [Read in atlas](index.html#TCS-6771) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Communication complexity and Boolean function analysis (34)
+## Communication complexity and Boolean function analysis (33)
 
 ### TCS-6603 — Log-rank conjecture
 
@@ -379,13 +379,6 @@ Two parties must evaluate a Boolean function when each holds one part of the inp
 
 [Read in atlas](index.html#TCS-6450) · [Quantum–Classical Equivalence for AND-Functions](https://eccc.weizmann.ac.il/report/2026/013/)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-1043 — Superlogarithmic clique-versus-independent-set communication
-
-In the clique-versus-independent-set communication problem, the parties receive different structured subsets of a common graph. The source asks for a superlogarithmic communication lower bound in its specified model. The clash between a clique and an independent set sharply limits their possible overlap, yet finding the relevant interaction may still require communication. This makes the problem a focused test of whether graph structure can force more information exchange than basic logarithmic protocols suggest. The saved index does not retain the graph family, promise, or protocol conventions, which must be restored before selecting a valid hard instance.
-
-[Read in atlas](index.html#TCS-1043) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6705 — Sharp low-degree Fourier weight of halfspaces
 
@@ -622,17 +615,17 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-0557 — Truly subquadratic algorithms for 3SUM
 
-3SUM asks whether three input numbers sum to zero under the source's distinctness conventions. The recorded target is an algorithm with a fixed polynomial saving over quadratic time. Sorting and pair-search methods give a natural quadratic benchmark, while smaller logarithmic savings do not meet this threshold. A truly subquadratic algorithm would alter a widely used source of conditional geometric and algorithmic lower bounds. The saved title does not specify integer versus real inputs or the machine model, so those details must be fixed before an alleged improvement is compared with the intended conjecture.
+3SUM asks whether a value in one integer list is the sum of values from two other lists. The target is a fixed polynomial improvement over quadratic running time on a precisely specified word RAM. The selected variant allows every fixed polynomial integer universe and requires a common exponent saving. Randomization may change the running time but must never produce an incorrect answer. Known logarithmic savings and faster queries after preprocessing do not meet the from-scratch target.
 
-[Read in atlas](index.html#TCS-0557) · [The Open Problems Project](https://topp.openproblem.net/p11)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0557) · [The Open Problems Project: 3SUM Hard Problems](https://topp.openproblem.net/p11) · [Higher Lower Bounds from the 3SUM Conjecture](https://arxiv.org/abs/1407.6756) · [Preprocessed 3SUM for Unknown Universes with Subquadratic Space](https://arxiv.org/abs/2602.11363)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-6599 — Hitting Set Conjecture
+### TCS-6599 — Hitting Set conjecture
 
-This Hitting Set decision problem receives two families of subsets of a logarithmic-size universe. It asks whether one set from the first family intersects every set in the second. The conjecture excludes a uniform fixed exponent saving over quadratic time as the universe's logarithmic constant grows. Its existential–universal structure provides a useful foundation for fine-grained reductions beyond finding one disjoint pair. The saved proposal permits bounded-error randomized word-RAM algorithms, and a speedup for one small universe constant would not settle the quantification over all such constants.
+Two lists contain subsets of a logarithmic-size universe. The task is to find whether one supplied set in the first list intersects every set in the second. The conjecture rules out a single fixed polynomial improvement over quadratic time across all constant multiples of logarithmic dimension. The selected model permits randomization with bounded error and counts all word-RAM computation. Its existential–universal structure makes it useful for graph-radius and quantified-ordering lower bounds.
 
-[Read in atlas](index.html#TCS-6599) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.IPEC.2021.3)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6599) · [The Fine-Grained Complexity of Multi-Dimensional Ordering Properties](https://doi.org/10.4230/LIPIcs.IPEC.2021.3) · [Approximation and Fixed Parameter Subquadratic Algorithms for Radius and Diameter in Sparse Graphs](https://theory.stanford.edu/~virgi/dirRad.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7347 — Directed unweighted APSP below \(n^{5/2}\)
 
@@ -785,10 +778,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1005 — Unconditional subexponential simulation of BPP
 
-Randomized polynomial-time decision algorithms can be simulated deterministically by enumerating all their random choices. The saved question asks for an unconditional simulation in quasipolynomial or subexponential time. This relaxes the ambitious \(\mathrm{P}=\mathrm{BPP}\) target while still seeking a major saving over straightforward exhaustive enumeration. Even the weaker simulation would constrain how much computational power polynomially many random bits can provide. The source note does not fix its precise subexponential convention, and conditional simulations based on unproved hardness assumptions would not answer the unconditional version recorded here.
+BPP contains decision problems solved efficiently using random bits with bounded error on every input. The question asks whether all of them have exact deterministic simulations in the class SUBEXP. Here SUBEXP requires a simulation in time two to the n-to-epsilon power for every fixed positive epsilon. The simulator may depend on the chosen exponent, but it must work on every input without advice or assumptions. Known general brute-force simulations take larger exponential time, while stronger derandomization theorems rely on unproved hardness.
 
-[Read in atlas](index.html#TCS-1005) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1005) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1018 — Optimal generators for hardness-to-randomness transformations
 
@@ -1065,12 +1058,12 @@ The deterministic Exponential Time Hypothesis concerns exact satisfiability of f
 [Read in atlas](index.html#TCS-6593) · [On the Complexity of k-SAT](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2001_jcss.pdf) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [Exact Complexity and Satisfiability](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2013_ipec.pdf) · [Chain, Generalization of Covering Code, and Deterministic Algorithm for k-SAT](https://arxiv.org/abs/1804.07901) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6594 — Set Cover Conjecture
+### TCS-6594 — Set Cover conjecture
 
-Set Cover asks for a small collection of available sets whose union contains the entire universe. The saved conjecture considers sets of bounded size d and measures exponential time against the universe size n. It asks whether every improvement from base two fails for some fixed choice of d. This would identify exhaustive subset-style computation as a fundamental limit even across bounded-set-size instances. The quantifier allowing d to depend on the proposed improvement is essential, while the saved formulation does not spell out the decision threshold conventions.
+Set Cover asks whether a few supplied sets can cover a given universe. The conjecture concerns exact algorithms when each available set has a fixed maximum size. It says that no constant improvement over exponential base two works across all such size bounds. The target allows bounded-error randomization and polynomial factors that depend on the fixed bound. Recent results show that a major conjecture about tensor rank would refute SCC, but neither side is settled unconditionally.
 
-[Read in atlas](index.html#TCS-6594) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.34)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6594) · [Fundamental Problems on Bounded-Treewidth Graphs: The Real Source of Hardness](https://doi.org/10.4230/LIPIcs.ICALP.2024.34) · [On Problems as Hard as CNF-SAT](https://arxiv.org/abs/1112.2275) · [The Asymptotic Rank Conjecture and the Set Cover Conjecture Are Not Both True](https://arxiv.org/abs/2310.11926) · [A Stronger Connection between the Asymptotic Rank Conjecture and the Set Cover Conjecture](https://arxiv.org/abs/2311.02774)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7241 — FPT approximation of twin-width
 

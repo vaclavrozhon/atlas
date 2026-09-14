@@ -2401,12 +2401,19 @@ A distributed point function gives three servers compact shares of a vector supp
 [Read in atlas](index.html#TCS-2732) · [Information-Theoretic Distributed Point Functions](https://doi.org/10.4230/LIPIcs.ITC.2022.17) · [Efficient Information-Theoretic Distributed Point Function with General Output Groups](https://eprint.iacr.org/2023/625) · [Distributed Point Functions and Function Secret Sharing](https://arxiv.org/abs/2607.27696)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1138 — Polynomial-time computationally sound NP verification of #SAT
+### TCS-5013 — Sublinear communication for perfectly secure two-party computation
 
-Counting satisfying assignments is harder to certify directly than showing that a single satisfying assignment exists. This project asks for a polynomial-time verifier for a claimed #SAT answer in the model called computationally sound NP by the source. Soundness is required against computationally bounded attempts to produce false proofs rather than against every possible proof string. That distinction allows the question to go beyond ordinary NP verification without asserting that #SAT has standard short certificates. A construction would expand the range of efficiently checkable counting claims and connect computational soundness with the source's broader study of derandomization.
+Two parties want to compute a Boolean circuit while keeping each input perfectly private. A trusted dealer can distribute correlated randomness before either input is supplied. The question asks whether polynomial setup and computation can give online communication sublinear in the circuit size, apart from the input-length cost. Such savings are known for layered circuits, while completely optimal communication can require exponential setup. The unresolved target covers arbitrary circuits with perfect passive privacy and shared outputs.
 
-[Read in atlas](index.html#TCS-1138) · [New ways of studying the \(\mathrm{BPP} = \mathrm{P}\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5013) · [Exponential Correlated Randomness Is Necessary in Communication-Optimal Perfectly Secure Two-Party Computation](https://doi.org/10.4230/LIPIcs.ITC.2023.18) · [A Note on the Communication Complexity of Multiparty Computation in the Correlated Randomness Model](https://eprint.iacr.org/2018/465) · [Correlated Pseudorandomness in Secure Computation](https://geoffroycouteau.github.io/assets/pdf/hdr.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-1138 — Polynomial-time computationally sound verification of \(\#\mathrm{SAT}\)
+
+The task is to check the exact number of satisfying assignments to a Boolean formula in polynomial time. An exponential-time honest prover supplies a short proof to a fully deterministic verifier. Even adversaries running in any polynomial in the honest prover’s time must almost never find a false counting claim that the verifier accepts. A 2025 theorem gives such verification for polynomial-space claims under strong hardness assumptions. This card asks whether the specified counting-verification system exists without those unproved assumptions.
+
+[Read in atlas](index.html#TCS-1138) · [New ways of studying the BPP = P conjecture](https://eccc.weizmann.ac.il/report/2023/094/) · [Fiat-Shamir in the Plain Model from Derandomization (Or: Do Efficient Algorithms Believe that NP = PSPACE?)](https://eccc.weizmann.ac.il/report/2024/116/)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-4754 — Unconditional zero knowledge for gap circuit complexity
 
@@ -2414,13 +2421,6 @@ The input is a complete truth table promised to have either a small or a much la
 
 [Read in atlas](index.html#TCS-4754) · [A Relativization Perspective on Meta-Complexity](https://doi.org/10.4230/LIPIcs.STACS.2022.54) · [Robustness of Average-Case Meta-Complexity via Pseudorandomness](https://doi.org/10.1145/3519935.3520051) · [One-Way Functions and Zero Knowledge](https://doi.org/10.1137/24M1689971)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5013 — Sublinear-communication secure computation with polynomial setup
-
-Pre-distributed correlated randomness can reduce how much two parties need to communicate during secure computation. The selected problem asks whether communication can be sublinear in the circuit size while both running time and the correlated-randomness supply stay polynomial in the input length. The source proves strong setup lower bounds for protocols that push online communication all the way to its optimum. Those extreme-case lower bounds leave room between ordinary circuit-size communication and full communication optimality. Understanding that intermediate regime would identify whether practical preprocessing can buy a substantial communication saving under perfect security.
-
-[Read in atlas](index.html#TCS-5013) · [Exponential Correlated Randomness Is Necessary in Communication-Optimal Perfectly Secure Two-Party Computation](https://doi.org/10.4230/LIPIcs.ITC.2023.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5015 — Foundations of quantum cryptography from EFI pairs
 

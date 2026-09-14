@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-763 records have an editorial importance assessment; 295 remain provisional.
+763 records have an editorial importance assessment; 294 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -144,7 +144,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 39; importance 
 
 ## 9. Cryptography (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance assessed: 25; provisional: 6.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance assessed: 26; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 34; importance assessed: 23; provisional: 11.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance assessed: 22; provisional: 11.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -224,8 +224,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 34; importance 
 | 6 | [Aanderaa–Karp–Rosenberg conjecture](index.html#TCS-7219) | 94 |
 | 7 | [Real Grothendieck constant](index.html#TCS-7352) | 94 |
 | 8 | [Polynomial relation between classical and quantum communication](index.html#TCS-6450) | 91 |
-| 9 | [Superlogarithmic clique-versus-independent-set communication](index.html#TCS-1043) | 86 |
-| 10 | [Sharp low-degree Fourier weight of halfspaces](index.html#TCS-6705) | 84 |
+| 9 | [Sharp low-degree Fourier weight of halfspaces](index.html#TCS-6705) | 84 |
+| 10 | [Removing low-influence directions from convex sets](index.html#TCS-2664) | 83 |
 
 ## 4. Fine-grained complexity (small)
 
@@ -242,7 +242,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 | 7 | [Online matrix–vector multiplication conjecture](index.html#TCS-6503) | 94 |
 | 8 | [Min-Plus Convolution Hypothesis](index.html#TCS-6598) | 94 |
 | 9 | [Truly subquadratic algorithms for 3SUM](index.html#TCS-0557) | 93 |
-| 10 | [Hitting Set Conjecture](index.html#TCS-6599) | 93 |
+| 10 | [Hitting Set conjecture](index.html#TCS-6599) | 93 |
 
 ## 5. Pseudorandomness and derandomization (small)
 
@@ -270,7 +270,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 44; importance 
 | 1 | [FPT versus \\(\\mathrm{W}\[1\]\\)](index.html#TCS-6592) | 99 |
 | 2 | [Exponential Time Hypothesis](index.html#TCS-6593) | 98 |
 | 3 | [Breaking the \\(2^{n}\\) barrier for weighted TSP](index.html#TCS-7233) | 96 |
-| 4 | [Set Cover Conjecture](index.html#TCS-6594) | 94 |
+| 4 | [Set Cover conjecture](index.html#TCS-6594) | 94 |
 | 5 | [FPT approximation of twin-width](index.html#TCS-7241) | 94 |
 | 6 | [Polynomial kernel for Edge Multiway Cut](index.html#TCS-6660) | 93 |
 | 7 | [Subset Sum below the meet-in-the-middle exponent](index.html#TCS-4790) | 91 |
