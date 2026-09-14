@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-772 records have an editorial importance assessment; 284 remain provisional.
+780 records have an editorial importance assessment; 275 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 76; importance assessed: 47; provisional: 29.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 75; importance assessed: 55; provisional: 20.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |

@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+402 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (72)
+## Computational complexity (71)
 
 ### TCS-0001 — P versus NP
 
@@ -103,6 +103,13 @@ Directed reachability asks whether a path leads from a specified source to a spe
 [Read in atlas](index.html#TCS-0004) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Relationships between nondeterministic and deterministic tape complexities](https://doi.org/10.1016/S0022-0000(70)80006-X) · [Nondeterministic Space is Closed under Complementation](https://doi.org/10.1137/0217058) · [Undirected Connectivity in Log-Space](https://omereingold.wordpress.com/wp-content/uploads/2014/10/sl.pdf) · [When Connectivity Is Hard, Random Walks Are Easy with Non-determinism](https://doi.org/10.1145/3717823.3718303) · [Reachability in graphs having linear 2-arboricity two is NL-hard](https://doi.org/10.1016/j.ipl.2025.106611)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-4988 — Existence of TFNP-complete problems
+
+TFNP contains search problems with polynomially bounded, efficiently verifiable answers guaranteed to exist for every binary input. The question asks whether one problem in this class is complete for all the others under deterministic polynomial-time many-one search reductions. Each reduction makes one transformed instance and must decode every valid returned answer correctly. The complete relation is fixed universally, while the reduction and its polynomial bounds may vary with the source problem. Known subclass completeness and oracle results clarify the structure without settling this general existence question.
+
+[Read in atlas](index.html#TCS-4988) · [An Oracle with no UP-Complete Sets, but \(\mathrm{NP}=\mathrm{PSPACE}\)](https://doi.org/10.4230/LIPIcs.MFCS.2024.50) · [Incompleteness in the finite domain](https://users.math.cas.cz/~pudlak/inco.pdf) · [Hierarchies within TFNP: building blocks and collapses](https://eccc.weizmann.ac.il/report/2025/123/revision/1/download/)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-7363 — \(\exists\mathbb{R}\) versus \(\mathrm{NP}\)
 
 Existential real formulas ask whether polynomial constraints have a real solution. The input is a finite binary description of the constraints. The class contains NP and is contained in PSPACE. The question asks whether it is exactly NP. An oracle separation or a rational-coordinate obstruction alone does not answer that class comparison.
@@ -131,6 +138,13 @@ EXP contains problems solvable in deterministic exponential time. The question a
 [Read in atlas](index.html#TCS-0020) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6091 — Exponential depth-three \(\mathrm{AC}^{0}\) lower bounds for E
+
+The question asks for one language decidable in deterministic time exponential in input length but requiring exponential-size depth-three Boolean circuits. The circuits use arbitrary-fan-in AND and OR gates with input negations, sharing and either top-gate orientation. A fixed positive lower-bound exponent must hold at infinitely many lengths for the same E language. There is no uniformity requirement on the competing circuits and no restriction on bottom fan-in or literal polarity. Recent exponential results for monotone circuits with bounded bottom fan-in do not establish this unrestricted lower bound.
+
+[Read in atlas](index.html#TCS-6091) · [NP-hardness of Minimum Circuit Size Problem for OR-AND-MOD Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.5) · [Optimal Monotone Depth-Three Circuit Lower Bounds for Majority](https://arxiv.org/abs/2601.04072v2)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-1056 — Majority outside constant-depth modular circuits
 
 Majority returns one when at least half of its input bits are one. ACC⁰ circuits combine Boolean operations and modular-counting gates using constant depth and polynomial size. The question asks whether every fixed choice of modulus and depth fails to compute majority within polynomial size. Known results for prime moduli or additional circuit restrictions do not settle the full composite-modulus question. A separation would show that this shallow modular model cannot express a basic threshold operation efficiently.
@@ -151,6 +165,13 @@ A threshold gate decides whether a weighted sum of Boolean inputs reaches a spec
 
 [Read in atlas](index.html#TCS-1054) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Toward Super-Polynomial Size Lower Bounds for Depth-Two Threshold Circuits](https://arxiv.org/abs/1805.10698)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-5593 — Black-Box Hypothesis
+
+The Black-Box Hypothesis compares access to a Boolean circuit’s code with access to its input-output behavior. It concerns total semantic properties that a uniform randomized polynomial-time algorithm decides correctly on every circuit representation. The proposed black-box algorithm receives unary input length and circuit-size bounds and may make adaptive evaluations of the function. Its total running time, including queries, must be polynomial in those bounds with error at most one third on each input. Known restricted-model results and promise-property counterexamples do not settle this general hypothesis.
+
+[Read in atlas](index.html#TCS-5593) · [Does Looking Inside a Circuit Help?](https://doi.org/10.4230/LIPIcs.MFCS.2017.1) · [Black-Box Hypotheses and Lower Bounds](https://doi.org/10.4230/LIPIcs.MFCS.2021.29)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6168 — Does NP-hardness of MCSP imply circuit lower bounds for EXP?
 
@@ -180,11 +201,39 @@ The selected KRW variant asks whether minimum formula size under block compositi
 [Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Super-logarithmic Depth Lower Bounds via the Direct Sum in Communication Complexity](https://doi.org/10.1007/BF01206317) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6285 — Closure of UL under complement
+
+UL contains languages decided with logarithmic work space and at most one accepting computation path per input. The question asks whether the complement of every such language also has an unambiguous logarithmic-space decider. The original and complement machines are uniform, exact and have no oracle or nonuniform advice. Ordinary nondeterministic logspace is closed under complement, but its complementing procedures need not preserve unambiguity. A resolution would clarify both the structure of small-space complexity classes and the use of unambiguous subroutines in graph algorithms.
+
+[Read in atlas](index.html#TCS-6285) · [Depth-First Search in Directed Planar Graphs, Revisited](https://doi.org/10.4230/LIPIcs.MFCS.2021.7) · [Nondeterministic Space is Closed under Complementation](https://doi.org/10.1137/0217058) · [Parameterizing the Complexity of Finding Long Paths in DAGs](https://doi.org/10.4230/LIPIcs.MFCS.2026.73)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-3886 — \(\exists\!\cdot\!\mathrm{BPP}\) versus MA
+
+The question asks whether existential quantification over an ordinary BPP language has exactly the power of Merlin–Arthur verification. Both settings use a polynomial-size witness chosen before a uniform randomized polynomial-time check. Existential BPP additionally requires a bounded-error gap for every input-witness pair, even for unsuccessful witnesses on yes-instances. Equality permits changing the verifier, so one verifier with intermediate probabilities is not a counterexample. An oracle separation is known, while the ordinary class equality remains the source’s unresolved target.
+
+[Read in atlas](index.html#TCS-3886) · [Quantum Generalizations of the Polynomial Hierarchy with Applications to QMA(2)](https://doi.org/10.4230/LIPIcs.MFCS.2018.58) · [An Oracle Builder’s Toolkit](https://lance.fortnow.com/papers/files/obt.pdf)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-4746 — Effective enumeration of BPP
+
+The problem asks for a computable list of randomized polynomial-time algorithms covering every language in BPP. Each listed algorithm must have the required error gap on every input, but the list may repeat languages and omit alternative implementations. The enumerator itself has no efficiency requirement, and the listed programs may have different polynomial time bounds that need not be supplied effectively. Recognizing all bounded-error program codes is a different task from finding a representative family with complete language coverage. Known arithmetical characterizations give useful enumerable subclasses, while a negative answer would separate BPP from deterministic polynomial time.
+
+[Read in atlas](index.html#TCS-4746) · [Enumerating Error Bounded Polytime Algorithms Through Arithmetical Theories](https://doi.org/10.4230/LIPIcs.CSL.2024.10) · [Enumerating Error Bounded Polytime Algorithms Through Arithmetical Theories](https://arxiv.org/abs/2311.15003)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-0019 — Polynomial formulas versus linear circuits
 
-The conjecture asks for Boolean functions with linear-size circuits but no polynomial-size formulas. Circuits may reuse intermediate results, while formulas have a tree structure and count repeated variable occurrences separately. The computational basis is binary AND and OR with unary negation, and correctness is exact on every input. The family is nonuniform, and exceeding each polynomial at arbitrarily large lengths is sufficient. Known nearly cubic gaps and recent composition results do not yet give the required superpolynomial separation.
+The conjecture asks for Boolean functions with linear-size circuits but no polynomial-size formulas. Circuits may reuse intermediate results, while formulas have a tree structure and count repeated variable occurrences separately. The computational basis is binary AND and OR with unary negation, and correctness is exact on every input. The nonuniform separation is equivalent to NC-one being strictly smaller than P/poly, and arbitrarily large violating lengths are sufficient. Known nearly cubic gaps and recent composition results do not yet give the required superpolynomial separation.
 
-[Read in atlas](index.html#TCS-0019) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26)
+[Read in atlas](index.html#TCS-0019) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#conciseness-gap-between-formulae-and-circuits)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6139 — Subexponential derandomization with two-way random-tape access
+
+This question concerns randomized logspace algorithms that can reread a fixed polynomial-length random tape in either direction. It asks whether every language they decide has a uniform exact deterministic algorithm whose worst-case runtime has an exponent sublinear in input length. The deterministic algorithm has no separate space restriction and receives no advice. The source’s simulation for restricted passes with advice and later conditional promise-search results do not provide this algorithm. The formulation explicitly separates persistent randomness from the one-way coin access used in ordinary BPL.
+
+[Read in atlas](index.html#TCS-6139) · [A Note on the Advice Complexity of Multipass Randomized Logspace](https://doi.org/10.4230/LIPIcs.MFCS.2016.31) · [Leakage-Resilient Hardness Equivalence to Logspace Derandomization](https://doi.org/10.4230/LIPIcs.MFCS.2024.83)
 Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6455 — Doubly efficient \(\mathrm{IP} = \mathrm{PSPACE}\) for the full time range
@@ -220,6 +269,13 @@ Existing status: `source_open` · Summary written: 2026-09-14
 The question asks for an explicit family that is harder for depth-three AND/OR circuits than the known square-root exponent scale. The circuits have top OR gates, allow negated inputs and unrestricted fan-in, and may share gates. Explicitness means a single polynomial-time verifier with polynomial-length certificates, following the book. The exponent must improve by an unbounded factor, so increasing a fixed coefficient does not suffice. Recent exponential bounds in more restricted depth-three models leave this general frontier unresolved.
 
 [Read in atlas](index.html#TCS-1053) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Optimal Monotone Depth-Three Circuit Lower Bounds for Majority](https://arxiv.org/abs/2601.04072) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank Under NSETH and Beyond](https://eccc.weizmann.ac.il/report/2025/038/revision/3/)
+Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-2029 — FBPP versus negligible-error FBPP
+
+The question compares two error requirements for randomized algorithms that may return any valid answer to a relation. FBPP here allows a unary precision parameter and running time polynomial in reciprocal error. The negligible-error class instead requires one algorithm with a fixed polynomial time bound and error eventually below every inverse polynomial. Relations may be partial and need not have an effective test for valid answers. The source proves noninclusion in the reverse direction, leaving this inclusion versus incomparability unresolved.
+
+[Read in atlas](index.html#TCS-2029) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1) · [A Qubit, a Coin, and an Advice String Walk Into a Relational Problem](https://arxiv.org/abs/2302.10332)
 Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0293 — Subquadratic deterministic simulation of nondeterministic space
@@ -299,13 +355,6 @@ A king in a tournament is a vertex that can reach every other vertex along a dir
 [Read in atlas](index.html#TCS-1602) · [Hardness of Finding Kings and Strong Kings](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.36)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2029 — FBPP versus negligible-error FBPP
-
-For a relation, an algorithm may output any answer satisfying the input-output specification rather than one uniquely determined value. This makes the precise convention for reducing error more consequential than it is for ordinary decision problems. The source compares FBPP with a version requiring negligible error and gives a relation separating the classes in one direction. The remaining question is whether an inclusion holds in the other direction or whether the two classes are incomparable. An answer would clarify which amplification intuitions remain valid when success means producing an arbitrary valid output.
-
-[Read in atlas](index.html#TCS-2029) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2215 — A real analogue of Toda’s theorem
 
 Toda's theorem in discrete complexity relates alternating quantifiers to counting power. This source asks for an analogous relationship among real-algebraic complexity classes. The proposed target is to contain fixed levels of alternating real quantification in an existential real theory enhanced with summation operators. The exact operator language matters because unrestricted real exponentiation would change the setting substantially. A positive result would organize several real-feasibility hierarchies under one strengthened existential framework and illuminate the role of counting-like operations over real computation.
@@ -355,25 +404,11 @@ Zero-knowledge protocols are usually framed around deciding whether a statement 
 [Read in atlas](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://doi.org/10.4230/LIPIcs.ICALP.2018.105)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3886 — \(\exists \cdot \mathrm{BPP}\) versus MA
-
-Merlin–Arthur verification combines a classical witness with an efficient randomized check. Applying an existential quantifier to an ordinary BPP language imposes an additional bounded-error condition on every witness-input pair. In an MA protocol, by contrast, unsuccessful witnesses on a yes-instance may have intermediate acceptance probabilities. This question asks whether those different promise conventions nevertheless define the same class. The distinction matters when building classical or quantum verification hierarchies, because moving quantifiers across probabilistic tests can silently strengthen the requirements on a verifier.
-
-[Read in atlas](index.html#TCS-3886) · [Quantum Generalizations of the Polynomial Hierarchy with Applications to \(\mathrm{QMA}(2)\)](https://doi.org/10.4230/LIPIcs.MFCS.2018.58)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4468 — Subcube partition complexity versus query complexity
 
 A subcube partition divides all Boolean inputs into monochromatic pieces, each specified by fixing some coordinates. Unlike a decision tree, the pieces need not arise from one sequential hierarchy of queries. The source separates this partition model from randomized decision trees and asks for the strongest possible gap between their complexities. Even the comparison with deterministic query complexity is included in the question. Determining the extremal separation would quantify how much harder it is to discover an input's certificate adaptively than merely to exhibit a globally consistent collection of certificates.
 
 [Read in atlas](index.html#TCS-4468) · [Separating Decision Tree Complexity from Subcube Partition Complexity](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.915)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4746 — Effective enumeration of BPP
-
-A randomized polynomial-time program belongs to BPP only if its answer is reliably biased toward correctness on every input. That semantic requirement is harder to recognize than a syntactic time bound. This problem asks whether there is an effective enumeration of algorithms covering exactly the languages in BPP. The cited work uses arithmetical theories to study how error guarantees can be expressed and justified. A successful characterization would connect feasible randomized computation with formal languages whose programs come with uniformly controlled error behavior.
-
-[Read in atlas](index.html#TCS-4746) · [Enumerating Error Bounded Polytime Algorithms Through Arithmetical Theories](https://doi.org/10.4230/LIPIcs.CSL.2024.10)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4786 — Complexity of Minimum Circuit Size
@@ -383,54 +418,12 @@ The minimum circuit size problem asks whether a truth table can be implemented b
 [Read in atlas](index.html#TCS-4786) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4988 — Existence of TFNP-complete problems
-
-TFNP consists of search problems with efficiently checkable solutions whose existence is guaranteed for every input. This project asks whether the entire class has a complete problem under the intended efficient search reductions. Such a problem would represent the difficulty of all total NP search tasks, rather than only a subclass with a particular existence principle. The source discusses oracle constructions and their connections with promise classes, which can expose barriers without settling the unrelativized question. A complete problem or a rigorous obstruction would reshape how total search problems are compared, including those studied as foundations for cryptography.
-
-[Read in atlas](index.html#TCS-4988) · [An Oracle with no UP-Complete Sets, but \(\mathrm{NP} = \mathrm{PSPACE}\)](https://doi.org/10.4230/LIPIcs.MFCS.2024.50)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5593 — Black-Box Hypothesis
-
-A property of Boolean functions can be tested either from a circuit description or by querying the function as a black box. The Black-Box Hypothesis says that efficient access to the circuit's internal representation does not help decide such semantic properties, given an appropriate circuit-size bound. The source studies what follows if this hypothesis fails. For several kinds of counterexample, it derives nontrivial circuit satisfiability algorithms. Resolving the hypothesis would clarify whether inspecting an implementation offers a fundamental computational advantage over observing its behavior, with consequences for major complexity separations.
-
-[Read in atlas](index.html#TCS-5593) · [Does Looking Inside a Circuit Help?](https://doi.org/10.4230/LIPIcs.MFCS.2017.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6006 — Complexity of ARRIVAL
 
 ARRIVAL describes a deterministic walk in a directed graph whose vertices alternate between two outgoing choices on successive visits. The decision task asks which designated destination the walk eventually reaches. The source notes efficiently verifiable certificates for either answer, placing the problem in NP intersect coNP. It improves exponential algorithms to a subexponential bound and gives a polynomial-time algorithm for almost acyclic graphs. The remaining project is to decide whether all instances can be solved in polynomial time without explicitly following a walk that may be exponentially long.
 
 [Read in atlas](index.html#TCS-6006) · [A Subexponential Algorithm for ARRIVAL](https://doi.org/10.4230/LIPIcs.ICALP.2021.69)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6091 — Exponential depth-three \(\mathrm{AC}^{0}\) lower bounds for E
-
-The class E contains decision problems solvable in deterministic time exponential with a linear exponent. The selected question asks whether some problem in E requires depth-three AC0 circuits of size \(2^{\Omega (n)}\). These circuits use AND, OR, and NOT gates but have only three layers of computation. The source raises this lower-bound target while proving NP-hardness for minimization in a different OR-AND-MOD circuit model. It explains that natural attempts to extend that hardness result to depth-three AC0 would also establish the strong uniform circuit lower bound.
-
-[Read in atlas](index.html#TCS-6091) · [NP-hardness of Minimum Circuit Size Problem for OR-AND-MOD Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6139 — Subexponential derandomization of multipass randomized logspace
-
-A randomized logspace machine has very little working memory, but its power also depends on how it accesses random bits. Allowing two-way access lets it revisit its random tape instead of consuming each bit once. The source asks whether this model can be simulated deterministically in subexponential time. Its results for machines making a controlled number of passes do not settle unrestricted two-way access. Understanding the difference would clarify how reusable randomness affects small-space computation and why conventional logspace derandomization techniques do not automatically apply.
-
-[Read in atlas](index.html#TCS-6139) · [A Note on the Advice Complexity of Multipass Randomized Logspace](https://doi.org/10.4230/LIPIcs.MFCS.2016.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6285 — Closure of UL under complement
-
-UL consists of logarithmic-space computations with at most one accepting computation on each input. The cited passage asks whether this unambiguous class is closed under complement. Closure would mean that rejecting instances also admit an equally economical unambiguous decision procedure. The paper encounters the issue while defining functions and composing algorithms for planar depth-first search. The project addresses a structural complexity question whose answer affects how safely unambiguous subroutines can replace ordinary nondeterministic reachability tests.
-
-[Read in atlas](index.html#TCS-6285) · [Depth-First Search in Directed Planar Graphs, Revisited](https://doi.org/10.4230/LIPIcs.MFCS.2021.7)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6712 — Nonuniform \(\mathrm{NC}^{1}\) versus P/poly
-
-A polynomial-size Boolean circuit represents an efficient nonuniform computation, but its longest chain of dependent gates can be large. The question asks whether every such computation can be reorganized into logarithmic depth while retaining polynomial size. Logarithmic depth would permit much greater parallelism without allowing an excessive number of gates. Counting arguments and restricted circuit lower bounds do not settle this comparison for unrestricted Boolean circuits. Resolving it would determine whether polynomial-size circuits and the nonuniform version of NC1 have the same expressive power.
-
-[Read in atlas](index.html#TCS-6712) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6714 — Nonuniform \(\mathrm{NC}^{1}\) perfect matching
 
