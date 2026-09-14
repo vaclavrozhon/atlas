@@ -517,3 +517,40 @@ expressions, version `b031d8f5e440b0e4a108`. All 221 completed active output
 hashes match; the 11 inactive card bodies were skipped. The two owned source
 reviews are committed with their own queue and ledger snapshot; the six
 concurrent completions remain preserved for their separate source commit.
+
+Deployment note for checkpoint 232: concurrent publication advanced the shared
+build before the Pages snapshot. The actual deployed and live-verified version
+was `463b6bec23bf6ba5a023`, Pages commit
+`f561c2282224ce1a64cf8f52264509336763f8a3`. It retained the combined updates.
+
+Two further owned audits complete TCS-7229 and TCS-6545. Both now specify
+uniform classical bit-machine conventions, independent probability spaces,
+eventual negligible security, full Lean acceptance and the actual negation of
+the one-way-function existence implication. Key agreement keeps arbitrary
+polynomial interaction and full-key indistinguishability; public-key encryption
+keeps the approved bit-message chosen-plaintext model and average correctness.
+The audits distinguish oracle-query bounds, restricted reductions and extra
+bounded-storage assumptions from the unrestricted targets.
+
+The follow-up PKE search found Li–Ni–Zan ePrint 2023/1260, which explicitly
+claims the full positive implication. Neither its proof nor a conclusive later
+assessment was verified. Both cards therefore have uncertain scientific
+status and remain active. A logged amendment corrects the initial key-agreement
+no-claim-found note. The PKE review also checks the corrected April 2009
+Barak–Mahmoody theorem and the May 2026 publication of the specific MinRank
+construction.
+
+The combined checkpoint 238 has 1,055 active cards: 380 individually completed
+or reviewed and 675 pending. The queue contains 238 completions (227 active,
+11 subsequently archived), 675 pending and one outside active scope. Ten
+concurrent random-card reviews are included in this combined accounting,
+separately from the owned source changes; the four added since checkpoint 232
+are TCS-6450, TCS-0811, TCS-4715 and TCS-4238. The other 153 reviewed active
+cards remain separately accounted for. The whole pass is still incomplete.
+
+Validation: `make check` passed for the two owned edits. Combined publication
+was repeated after the concurrent author repaired a formula delimiter in
+TCS-4238; the subsequent `node tests/math.cjs` passed all 1,055 active cards
+and 16,901 expressions. The published build is `81289a35b2eea279ca5b`.
+All 227 completed active output hashes match; the 11 inactive bodies were
+skipped. Concurrent source work is preserved for its separate commit.
