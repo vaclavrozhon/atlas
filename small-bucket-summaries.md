@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-602 five-sentence working summaries, based on saved source material.
+603 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1857,7 +1857,7 @@ The cover time is the expected number of random-walk steps needed to visit every
 [Read in atlas](index.html#TCS-6851) · [Reversible Markov Chains and Random Walks on Graphs](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch6.S8.html#SS3) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Cover times, blanket times, and majorizing measures](https://annals.math.princeton.edu/2012/175-3/p08) · [Deterministic approximation for the cover time of trees](https://cims.nyu.edu/~zeitouni/pdf/feigezeitouni3.pdf) · [A polynomial time approximation scheme for computing the supremum of Gaussian processes](https://arxiv.org/abs/1202.4970)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-## Counting and enumeration (15)
+## Counting and enumeration (16)
 
 ### TCS-6628 — FPRAS for counting perfect matchings
 
@@ -1865,6 +1865,13 @@ A perfect matching pairs every vertex of a graph with exactly one neighbor. The 
 
 [Read in atlas](index.html#TCS-6628) · [Approximating the Permanent](https://doi.org/10.1137/0218077) · [A Polynomial-Time Approximation Algorithm for the Permanent of a Matrix with Nonnegative Entries](https://faculty.cc.gatech.edu/~vigoda/Permanent.pdf) · [On Counting Perfect Matchings in General Graphs](https://arxiv.org/abs/1712.07504) · [Two-State Spin Systems with Negative Interactions](https://arxiv.org/abs/2309.04735) · [Faster FPRAS for the Permanent via Restricted Poincaré Inequalities and Coupled Flows](https://arxiv.org/abs/2608.26599)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7221 — FPRAS for #BIS
+
+The #BIS problem counts all independent vertex subsets of an arbitrary finite simple bipartite graph, including the empty set. The question asks for one uniform randomized bit algorithm with polynomial runtime in the complete input length and inverse requested relative accuracy, succeeding with probability at least three quarters on every instance. Acceptance requires a full Lean-checked construction with an every-random-tape runtime bound, or a proof excluding every such scheme without an unresolved extra assumption. The problem represents a central approximation class whose apparent intermediate complexity is not settled by hardness of exact counting. The checked2026 literature still leaves the total count open, while typical regular inputs, dense regular graphs and balanced or fixed-size counts have distinct known results.
+
+[Read in atlas](index.html#TCS-7221) · [A Fixed-Parameter Perspective on #BIS](https://link.springer.com/article/10.1007/s00453-019-00606-4) · [Counting Independent Sets and Colorings on Random Regular Bipartite Graphs](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.34) · [A Spectral Approach to Approximately Counting Independent Sets in Dense Bipartite Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.35) · [Computational Thresholds for Balanced and Fixed-Slice Independent Sets in Bipartite Graphs](https://arxiv.org/abs/2608.02503v1)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6629 — Deterministic FPTAS for the nonnegative permanent
 
