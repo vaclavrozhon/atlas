@@ -1901,19 +1901,19 @@ The mixed discriminant is a specified coefficient of the determinant of a linear
 [Read in atlas](index.html#TCS-7355) · [A polynomial time algorithm to approximate the mixed volume within a simply exponential factor](https://eccc.weizmann.ac.il/report/2007/037/revision/1/) · [On the Complexity of Constrained Determinantal Point Processes](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2017.36)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-3037 — Parity subgraph-counting dichotomy
+
+The problem asks which graph-pattern families make counting copies modulo two parameterized-hard. The proposed boundary is whether deleting a bounded number of pattern vertices always leaves only edges and isolated vertices. Every computable class on the unbounded side is conjectured equivalent to parity clique under deterministic fixed-parameter Turing reductions. Copies are ordinary unlabelled subgraphs, and the input pattern size is the parameter. The classification is known for hereditary classes and classes of trees, while the general class-wide assertion remains the target.
+
+[Read in atlas](index.html#TCS-3037) · [Modular Counting of Subgraphs: Matchings, Matching-Splittable Graphs, and Paths](https://doi.org/10.4230/LIPIcs.ESA.2021.34) · [Parameterised and Fine-Grained Subgraph Counting, Modulo 2](https://doi.org/10.1007/s00453-023-01178-0)
+Existing status: `source_open` · Summary written: 2026-09-14
+
 ### TCS-1004 — Deterministic relative counting for DNF
 
 A DNF formula describes a union of sets of Boolean assignments, one set for each conjunction. The question asks for deterministic relative approximation of the number of assignments in that union. One uniform algorithm must run in time polynomial in the explicit formula size and reciprocal error. The estimate must count assignments once despite overlapping terms and must be exactly zero for an unsatisfiable formula. Randomized schemes and deterministic algorithms for restricted formulas leave the general fully polynomial target unresolved in the checked sources.
 
 [Read in atlas](index.html#TCS-1004) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [A Note on Deterministic Approximate Counting for k-DNF](https://eccc.weizmann.ac.il/report/2002/069/) · [Pseudorandomness for read-k DNF formulas](https://www.cs.columbia.edu/~rocco/Public/read-k.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-3037 — Parity subgraph-counting dichotomy
-
-The source studies counting copies of graph patterns modulo two under parameterized complexity. It conjectures that any computable pattern class with unbounded matching-split number yields a parity-subgraph problem complete for parity-\(\mathrm{W}[1]\). The width condition is intended to identify when the pattern structure crosses from manageable cases into parameterized hardness. A proof would complete a structural classification for modular counting rather than just add one hard pattern family. The matching-split parameter, reduction notion, and subgraph-counting convention must be taken from the source, since ordinary exact counting and parity counting can behave differently.
-
-[Read in atlas](index.html#TCS-3037) · [Modular Counting of Subgraphs: Matchings, Matching-Splittable Graphs, and Paths](https://doi.org/10.4230/LIPIcs.ESA.2021.34)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3635 — Treewidth classification of approximate counting CSP
 
@@ -2502,26 +2502,26 @@ Directed edges arrive one at a time without creating a cycle. The algorithm main
 [Read in atlas](index.html#TCS-7339) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Incremental Strongly Connected Components with Predictions](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SWAT.2026.17)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-0543 — Dynamic Maximal Matching
+### TCS-0543 — Polylogarithmic dynamic maximal matching against adaptive updates
 
-A maximal matching cannot be enlarged by adding one more edge, even though it need not have maximum size. The saved question concerns maintaining such a matching as graph edges change. After deletion of a matched edge, newly unmatched vertices may require fast repair using their remaining neighbors. Sharper dynamic guarantees would improve a basic local allocation primitive used in many graph algorithms. The source label does not fix deterministic versus randomized computation, worst-case versus amortized time, or the target update bound, so those distinct frontiers remain unmerged.
+A graph changes through edge insertions and deletions while an explicit maximal matching must remain available. The next change may depend on the matching the algorithm has just produced. The question asks for an always-correct algorithm with polylogarithmic expected amortized update time against this adaptive feedback. Deterministic algorithms now achieve a square-root-scale amortized bound, resolving the older sublinear threshold. The much stronger polylogarithmic target remains distinct from constant-time results for update sequences fixed independently of the algorithm.
 
-[Read in atlas](index.html#TCS-0543) · [Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0543) · [Dynamic Graph Algorithms (Dagstuhl Seminar 22461): Dynamic Maximal Matching](https://doi.org/10.4230/DagRep.12.11.45) · [A Faster Deterministic Algorithm for Fully Dynamic Maximal Matching](https://arxiv.org/abs/2605.00797)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0541 — Dynamic Complexity of Low-Stretch Spanning Trees
+### TCS-0541 — Dynamic spanning trees with polylogarithmic average stretch
 
-A low-stretch spanning tree approximates graph connections by keeping tree distances relatively small. The saved question asks about the complexity of maintaining this structure dynamically. An update may alter both the available tree and the quality of many routes measured through it. Efficient maintenance could support dynamic graph algorithms that use tree representations to simplify more complicated network computations. The inherited label does not specify average versus maximum stretch, weights, or update guarantees, so no particular stretch-time tradeoff can be recovered from the topic alone.
+A changing unweighted graph must retain a spanning tree in each connected component. The quality measure is the average tree-path length between the endpoints of graph edges. The question asks for polylogarithmic expected quality with sublinear expected amortized work per edge insertion or deletion. The update sequence is fixed independently of the algorithm’s randomness, and disconnected intermediate graphs are covered. Existing subpolynomial-stretch forests and polylogarithmic-stretch metric embeddings leave different parts of this target unresolved.
 
-[Read in atlas](index.html#TCS-0541) · [Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0541) · [Dynamic Graph Algorithms (Dagstuhl Seminar 22461): Dynamic Complexity of Low-Stretch Spanning Trees](https://doi.org/10.4230/DagRep.12.11.45) · [Dynamic Low-Stretch Trees via Dynamic Low-Diameter Decompositions](https://arxiv.org/abs/1804.04928) · [Dynamic Maintenance of Low-Stretch Probabilistic Tree Embeddings with Applications](https://arxiv.org/abs/2004.10319)
+Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0536 — Dynamic edge coloring
+### TCS-0536 — Dynamic edge coloring with sublinear additive slack
 
-An edge coloring assigns colors so that edges meeting at a vertex receive different colors. The saved question asks how to maintain such a coloring when edges change. A new edge may force recoloring beyond its immediate endpoints if the current local color choices conflict. The dynamic challenge is to balance a small palette against update work and the number of changed colors. The source label does not preserve the degree assumptions or palette target, so the draft cannot infer whether the intended question concerns optimal coloring or a looser approximation.
+A changing graph must keep a proper integer color on every edge. The target allows only a power-sublinear additive number of colors above the maximum-degree bound, up to logarithmic factors. One uniform algorithm should maintain that coloring in polylogarithmic expected amortized time over all degree scales. The question remains meaningful even when updates are chosen independently of the algorithm’s randomness. Small recoloring counts and recent restricted-graph or subpolynomial-time results do not by themselves meet the stated total-work guarantee.
 
-[Read in atlas](index.html#TCS-0536) · [Graph Algorithms: Distributed Meets Dynamic](https://doi.org/10.4230/DagRep.14.11.92)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0536) · [Graph Algorithms: Distributed Meets Dynamic (Dagstuhl Seminar 24471): An Open Problem in Dynamic Edge Coloring](https://doi.org/10.4230/DagRep.14.11.92) · [An Open Problem in Dynamic Edge Coloring](https://martin-costa.github.io/martincosta.com/files/Dynamic_Edge_Coloring_Open_Problem.pdf) · [Beyond Vizing Chains: Improved Recourse in Dynamic Edge Coloring](https://arxiv.org/abs/2602.09497) · [Deterministic Dynamic Edge Colouring](https://doi.org/10.1137/1.9781611978971.43)
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0545 — Reducing weighted matching to unweighted matching
 

@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-769 records have an editorial importance assessment; 288 remain provisional.
+770 records have an editorial importance assessment; 287 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -347,7 +347,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 9; importance a
 
 ## 11. Counting and enumeration (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 11; provisional: 7.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 12; provisional: 6.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -359,8 +359,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 | 6 | [Output-polynomial hypergraph transversal enumeration](index.html#TCS-7112) | 92 |
 | 7 | [Fully polynomial randomized approximation of mixed discriminants](index.html#TCS-7355) | 90 |
 | 8 | [#BIS-easiness of Boolean log-supermodular counting CSPs](index.html#TCS-7320) | 89 |
-| 9 | [Deterministic relative counting for DNF](index.html#TCS-1004) | 84 |
-| 10 | [Parity subgraph-counting dichotomy](index.html#TCS-3037) | 50 |
+| 9 | [Parity subgraph-counting dichotomy](index.html#TCS-3037) | 87 |
+| 10 | [Deterministic relative counting for DNF](index.html#TCS-1004) | 84 |
 
 ## 12. Structural graph theory and graph algorithms (small)
 
@@ -410,8 +410,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 17; importance 
 | 6 | [Dynamic APSP with edge-linear updates](index.html#TCS-0478) | 90 |
 | 7 | [Worst-case logarithmic dynamic planar convex hulls](index.html#TCS-7326) | 85 |
 | 8 | [Near-linear incremental topological ordering](index.html#TCS-7339) | 85 |
-| 9 | [Dynamic Maximal Matching](index.html#TCS-0543) | 82 |
-| 10 | [Dynamic Complexity of Low-Stretch Spanning Trees](index.html#TCS-0541) | 78 |
+| 9 | [Polylogarithmic dynamic maximal matching against adaptive updates](index.html#TCS-0543) | 82 |
+| 10 | [Dynamic spanning trees with polylogarithmic average stretch](index.html#TCS-0541) | 78 |
 
 ## 15. String algorithms and computational biology (small)
 
