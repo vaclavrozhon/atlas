@@ -704,3 +704,25 @@ TCS-0652 added since checkpoint 257. make check, publication and the active
 formula check passed for this checkpoint. Checkpoint 257 was deployed and
 live-verified at a34d3b2c663110bfe8a5, published 2026-09-14T20:07:34+00:00,
 Pages commit 5e94e207f87329af478f26a5cd0dd1b80ac826e2.
+
+Checkpoint 265 completes TCS-6629, the deterministic nonnegative permanent
+FPTAS question. The target now specifies a single finite deterministic machine,
+full rational encodings, a universal polynomial bit clock, exact zero behavior,
+relative error and complete Lean acceptance. The review checked the 2019 Bethe
+comparison, the precise current versions of the August/September 2026 factor
+improvements, and the fixed density/weight assumptions in the new dense-matrix
+FPTAS. Recent proofs and any linked formalization were not independently
+verified. The former block-replication instructions and methodological hints
+were removed. No new partial guarantee was treated as the full FPTAS.
+
+The checkpoint 265 census was 1,052 active cards: 404 individually completed/
+reviewed and 648 pending. The queue included 265 completions and 14 inactive
+records; all completed active output hashes matched. Twenty-five concurrent
+individual reviews were included, with TCS-0469, TCS-0056 and TCS-6944 newly
+completed. The subsequent concurrent TCS-0761 review raises the total to 266
+completions, 405 completed/reviewed active cards and 647 pending, with 26
+concurrent individual reviews credited. Publication and the formula check passed
+for checkpoint 265: 1,052 cards and 17,671 expressions. The preceding full
+make check passed at checkpoint 261. That checkpoint was deployed and
+live-verified as a8e21ac4f81da82327b2, published 2026-09-14T20:19:35+00:00,
+Pages commit e06420b08cfe17610b850a54cd41f71b4132ac2a.
