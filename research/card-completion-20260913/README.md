@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 156 completed, 457 pending and one out of active scope. The live counts
+checkpoint 159 completed, 454 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 600 detailed active cards and 457 pending active reviews in the queue.
+there are 603 detailed active cards and 454 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -161,3 +161,14 @@ approximation question. The checkpoint has 156 completed entries, 457 pending
 and one outside active scope, with 1,057 active cards and 600 detailed active
 cards. There have been 105 individual completions since the renewed request.
 The completed active-card hash audit passed; inactive bodies were skipped.
+
+
+The following reviews complete TCS-6671, TCS-6620 and TCS-6672, preserving
+their assessed scores. Euler-tour counting now has a labelled-edge normalization
+and fully polynomial relative-accuracy guarantee. Vinogradov’s conjecture
+specifies the unconditional all-primes target and its quantifier-negation. The
+bounded-degree isomorphism tester uses two unknown input graphs, an explicit
+edge-edit distance and worst-case sublinear query accounting. The running
+checkpoint is 159 completed, 454 pending and one outside active scope, with
+1,057 active cards and 603 detailed active cards; 108 completions occurred
+after the renewed request.
