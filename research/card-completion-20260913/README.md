@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 123 completed, 490 pending and one out of active scope. The live counts
+checkpoint 132 completed, 481 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 568 detailed active cards and 490 pending active reviews in the queue.
+there are 577 detailed active cards and 481 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -107,3 +107,13 @@ TCS-0671 now specifies the agnostic rate-comparison question and records a
 matching August 2026 claimed refutation as uncertain. TCS-0683 specifies the
 source-grounded reconstruction target with explicitly documented bounded-data
 and computational-model choices, rather than conflating it with density learning.
+
+
+The next checkpoint completes TCS-1573, TCS-2732, TCS-3025, TCS-0029,
+TCS-0033, TCS-0027, TCS-0034, TCS-0861 and TCS-0862. In particular,
+TCS-0033 records the published exponential separation while retaining the
+broader extremal query-bound target. The quantum query/space card records the
+September 2026 label-symmetry restriction, and the unitary-synthesis card
+distinguishes restricted-query bounds from general polynomial-time synthesis.
+All nine remain active. At this checkpoint 81 individual reviews have been
+completed since the renewed request, in addition to the original 51.
