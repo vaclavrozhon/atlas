@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 166 completed, 447 pending and one out of active scope. The live counts
+checkpoint 173 completed, 440 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 610 detailed active cards and 447 pending active reviews in the queue.
+there are 617 detailed active cards and 440 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -196,3 +196,17 @@ with exact promise, encoding and quantum-computation conventions. All three
 scores were preserved. Counts are 166 completed, 447 pending and one outside
 active scope, with 1,057 active cards and 610 detailed active cards; 115 reviews
 were completed after the renewed request. The pass remains in progress.
+
+Seven additional reviews complete TCS-0672, TCS-1052, TCS-1053, TCS-1034,
+TCS-1035, TCS-1036 and TCS-1040. Identity testing now states the finite rational
+efficient-functional branch explicitly and requires the same distance in both
+bounds. The depth-three cards recover the original exponents, NP explicitness
+and gate-count convention; restricted 2026 results are separated from those
+targets. The four linear-circuit cards instead count wires, define each operation
+and depth convention, and preserve the quantitative gap questions. In particular,
+the 2017 polynomial XOR depth penalty resolves a narrower follow-up, not the
+maximal-order question. The nonlinear card retains arbitrary-fan-in Boolean
+gates and full-input correctness. All seven assessed scores were preserved.
+Counts are 173 completed, 440 pending and one outside active scope, with 1,057
+active and 617 detailed active cards; 122 completions followed the renewed
+request. Existing archived card bodies remain outside the review.
