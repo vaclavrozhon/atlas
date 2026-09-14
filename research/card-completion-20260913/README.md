@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 159 completed, 454 pending and one out of active scope. The live counts
+checkpoint 163 completed, 450 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 603 detailed active cards and 454 pending active reviews in the queue.
+there are 607 detailed active cards and 450 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -172,3 +172,15 @@ edge-edit distance and worst-case sublinear query accounting. The running
 checkpoint is 159 completed, 454 pending and one outside active scope, with
 1,057 active cards and 603 detailed active cards; 108 completions occurred
 after the renewed request.
+
+The next checkpoint completes TCS-3037 (parity subgraph dichotomy) with explicit
+deterministic FPT Turing reductions and the full 2024 hereditary/tree classification.
+TCS-0543 now targets the source’s explicit polylogarithmic dynamic maximal matching
+question, since its older sublinear threshold was solved in 2025 and improved in
+2026. TCS-0536 distinguishes total edge-coloring update work from recourse, fixes
+all-degree additive slack, and checks the May 2026 recourse results. TCS-0541
+defines expected average stretch for actual spanning forests and separates these
+from metric-tree embeddings. All three dynamic cards preserve their individual
+scores. This checkpoint has 163 completed, 450 pending and one outside active
+scope, with 1,057 active and 607 detailed active cards; 112 completions occurred
+after the renewed request. The archive’s existing card bodies were not read.
