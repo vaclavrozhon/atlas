@@ -49,10 +49,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0021 — NP versus P/poly
 
-Nonuniform Boolean circuits may choose a separate computational design for each input length. The question asks whether some language in NP requires more than polynomially many gates despite that freedom. A uniform running-time lower bound would not automatically establish this stronger claim. Counting shows that most functions have large circuits but does not supply the necessary NP language. The project seeks explicit hardness robust to arbitrary length-specific preprocessing and would connect circuit lower bounds to the structure of the polynomial hierarchy.
+A nonuniform Boolean circuit family may choose a completely different circuit for each input length without any computable construction rule. The question asks whether one fixed language in NP nevertheless exceeds every polynomial bound on the number of Boolean gates. The card specifies the verifier model, exact circuit evaluation and the required arbitrarily large violating lengths. Counting arguments produce hard truth tables but do not by themselves supply the required polynomially verifiable language. Karp–Lipton, natural proofs and newer restricted-circuit lower bounds explain the surrounding landscape while leaving the full NP versus P/poly target unresolved.
 
 [Read in atlas](index.html#TCS-0021) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Natural Proofs](https://doi.org/10.1006/jcss.1997.1494) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0002 — NP versus coNP
 
