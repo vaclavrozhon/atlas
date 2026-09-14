@@ -45,7 +45,7 @@ TCS-6578, TCS-6622, TCS-7177 and TCS-7330. All eight have now received individua
 reviews. TCS-5851 had already been deactivated by another workspace change and
 is recorded as out of the active scope; its inactive body was not reviewed as
 part of this census. The expanded queue therefore has 614 entries: at this
-checkpoint 140 completed, 473 pending and one out of active scope. The live counts
+checkpoint 147 completed, 466 pending and one out of active scope. The live counts
 in `queue.json` are authoritative after this checkpoint. This remains incomplete.
 
 `complete_review.py` records individually authored revisions after checking the
@@ -86,7 +86,7 @@ validates its content and immediately invokes the activity workflow.
 
 TCS-6529 was also completed and archived after matching the planar Earth Mover
 distortion target to the published STOC 2026 resolution. At this checkpoint
-there are 584 detailed active cards and 473 pending active reviews in the queue.
+there are 591 detailed active cards and 466 pending active reviews in the queue.
 
 The review continued on 14 September. The user reiterated that only active cards
 are in scope; no pre-existing archived card bodies are being reviewed. The helper
@@ -115,7 +115,7 @@ TCS-0033 records the published exponential separation while retaining the
 broader extremal query-bound target. The quantum query/space card records the
 September 2026 label-symmetry restriction, and the unitary-synthesis card
 distinguishes restricted-query bounds from general polynomial-time synthesis.
-All nine remain active. At this checkpoint 89 individual reviews have been
+All nine remain active. At that checkpoint 81 individual reviews had been
 completed since the renewed request, in addition to the original 51.
 
 The following checkpoint completes TCS-1138, TCS-5013, TCS-1043, TCS-1005,
@@ -127,3 +127,15 @@ exact subexponential class quantifiers, randomized algorithm conventions and
 the direction of circuit/proof-complexity implications. At this checkpoint
 there are 1,057 active cards, 584 detailed active cards and 473 pending queue
 entries; 89 reviews have been completed since the renewed request.
+
+
+The current checkpoint additionally completes TCS-3031, TCS-0136, TCS-1015,
+TCS-1016, TCS-1006, TCS-1018 and TCS-1014. The logic cards distinguish the full
+Coq calculus from a proved consistent restricted fragment, and integer-order
+register automata from dense-order models. The randomness cards recover exact
+seed, entropy, circuit and uniformity parameters. TCS-1006 retains the universal
+scalar-table question while recording the distinct July 2026 NC matching claim;
+TCS-1014 checks the September 2026 published two-sided-expander result against
+the constant-output-gap target. At this checkpoint 147 entries are completed,
+466 remain pending and one is outside the active scope: 96 reviews since the
+renewed request. There are 1,057 active cards and 591 detailed active cards.
