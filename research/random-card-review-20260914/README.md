@@ -48,7 +48,7 @@ completed, bringing this process's total to ten:
   grow, and the 2025 repeated-Bell-test theorem does not impose the same quantum
   resource bound. Individual importance: 77.
 
-All already assessed scores and category assignments were preserved. The five
+All already assessed scores and category assignments were preserved. The seven
 new importance assessments replaced provisional unassessed scores. Selection,
 input and final output hashes are recorded in `selection.json`; each canonical
 write checked both the pending queue state and selected input hash under the
@@ -94,3 +94,28 @@ The user's subsequent instruction is to continue until every active card is
 completed. These publications are checkpoints in that ongoing task, not a
 completion of the entire queue. Further selections continue to use random
 pending records, exact input hashes, and the shared publication lock.
+
+The fourth draw brings this process to eighteen completed reviews, including one
+newly resolved record preserved in the archive:
+
+- TCS-7257: the symmetric two-input circuit noise threshold, with explicit
+  reliability quantifiers and a distinction between independent gate failures
+  and correlated reused wire values. The known formula boundary and conditional
+  asymmetric circuit results are kept separate.
+- TCS-7373: the existing balanced dense binary NFA acceptance hypothesis, with
+  explicit matrix representation, RAM initialization and worst-case bounds over
+  random choices. The broader source hypothesis is not equated to this specialization.
+- TCS-3631: the general effective-logic existence question for logarithmic space
+  on unordered relational structures. CLogspace's known failure concerns that
+  candidate; 2026 string-query capture has a different domain. Individual importance: 86.
+- TCS-5127: the source's clique-valid graph agreement classification, with every
+  process count explicit. Theorem 8 and Corollary 9 of Rybicki–Verbitsky (June 2026)
+  supply the full characterization. The model, proof in Sections 4 and 5.1, and
+  official DISC 2026 acceptance were checked. The complete record was immediately
+  archived as resolved, retaining its original source excerpt and any comments.
+  Individual historical importance: 84; no Lean submission is certified.
+
+The first source commit is `e511c0e8`. Shared queue and ledger staging included
+only this process's completed records, preserving the parallel process's pending
+changes. Checkpoint four verifies seventeen retained active cards and the absence
+of the newly retired record from the live catalogue.
