@@ -194,3 +194,32 @@ Checkpoint six's source commit is `45c9836f`, including the pending archival
 activity entries from checkpoint five. There are eleven new individual
 importance assessments through checkpoint seven. No previously assessed score
 was raised, and no pre-existing inactive card was reopened for review.
+
+The eighth draw brings this process to thirty-four completed reviews and
+thirty-one retained active records:
+
+- TCS-6708: the universal Fourier Min-Entropy–Influence conjecture, with squared
+  Fourier masses, constant functions and empty coefficients explicit. The saved
+  book locator is corrected to background provenance; an explicit primary
+  conjecture statement anchors the target. The July 2026 constant lower bound
+  does not refute existence of a finite universal constant. Importance: 88.
+- TCS-6036: one tagged first-order truth problem retaining both restricted
+  elementary signatures from the source, including the larger signature with
+  unrestricted exponential. Exact syntax, zero extensions and unconditional
+  termination are specified. The 2025 survey still invokes Schanuel. Importance: 86.
+- TCS-6724: constant-factor makespan approximation on related machines with
+  precedence, with complete rational input and deterministic bit complexity.
+  Li's Theorem 1.3 corrects the historical upper bound to logarithmic divided by
+  iterated logarithmic; later structural hardness remains conditional.
+  Importance: 91.
+- TCS-6836: the book's explicit simultaneous unknown-misspecification regret
+  guarantee, with indexed arms, Gaussian noise, expected regret and uniform
+  logarithmic losses. Later nearby adaptation theorems are checked without
+  certifying that the complete conjectural bound remains open. Importance: 83.
+
+There are fifteen new individual importance assessments through this draw.
+Checkpoint seven's source commit is `13627d9a`. The parallel process introduced
+shared claim tokens during this draw; all four pending cards were reserved in
+that mechanism before editing, and successful completion released their claims.
+Random selection now excludes shared reservations as well as dirty files, with
+all remaining scores eligible when the preferred lower-score pool is exhausted.

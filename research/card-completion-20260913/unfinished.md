@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **642**.
+Pending active reviews: **638**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -64,7 +64,6 @@ Pending active reviews: **642**.
 | [TCS-5915](../../data/cards/TCS-5915.json) | Constructive simplicial models with univalent universes | Semantics, logic and verification | pool |
 | [TCS-5975](../../data/cards/TCS-5975.json) | Decidability of decisiveness in probabilistic transition systems | Semantics, logic and verification | pool |
 | [TCS-5987](../../data/cards/TCS-5987.json) | Decidability of weak bisimulation for normed BPA | Semantics, logic and verification | pool |
-| [TCS-6036](../../data/cards/TCS-6036.json) | Decidability of restricted elementary real functions | Semantics, logic and verification | pool |
 | [TCS-6245](../../data/cards/TCS-6245.json) | Exponential witness bounds for three-dimensional VAS | Semantics, logic and verification | pool |
 | [TCS-6359](../../data/cards/TCS-6359.json) | Decidability and completeness of concurrent Kleene algebra | Semantics, logic and verification | pool |
 | [TCS-7153](../../data/cards/TCS-7153.json) | Ultimate Positivity problem | Semantics, logic and verification | pool |
@@ -187,7 +186,6 @@ Pending active reviews: **642**.
 | [TCS-5272](../../data/cards/TCS-5272.json) | Multiparty Clique lower bounds in compression games | Communication complexity and Boolean function analysis | pool |
 | [TCS-5326](../../data/cards/TCS-5326.json) | Communication compression to information cost | Communication complexity and Boolean function analysis | pool |
 | [TCS-6707](../../data/cards/TCS-6707.json) | Randomized query complexity of recursive majority-of-three | Communication complexity and Boolean function analysis | pool |
-| [TCS-6708](../../data/cards/TCS-6708.json) | Fourier Min-Entropy–Influence conjecture | Communication complexity and Boolean function analysis | pool |
 | [TCS-6710](../../data/cards/TCS-6710.json) | Number-on-forehead Disjointness complexity | Communication complexity and Boolean function analysis | pool |
 | [TCS-6711](../../data/cards/TCS-6711.json) | Deterministic communication versus monochromatic partition size | Communication complexity and Boolean function analysis | pool |
 | [TCS-0562](../../data/cards/TCS-0562.json) | Refuting nondeterministic SETH | Fine-grained complexity | pool |
@@ -275,8 +273,6 @@ Pending active reviews: **642**.
 | [TCS-5252](../../data/cards/TCS-5252.json) | Action-set-dependent regret in bandit combinatorial optimization | Online algorithms | pool |
 | [TCS-5779](../../data/cards/TCS-5779.json) | Constant-factor online contention resolution for matroids | Online algorithms | pool |
 | [TCS-6078](../../data/cards/TCS-6078.json) | Pinwheel Packing in NP | Online algorithms | pool |
-| [TCS-6724](../../data/cards/TCS-6724.json) | Constant-factor related-machine precedence scheduling | Online algorithms | pool |
-| [TCS-6836](../../data/cards/TCS-6836.json) | Regret in misspecified linear bandits | Online algorithms | pool |
 | [TCS-6838](../../data/cards/TCS-6838.json) | Instance-optimal finite-time best-arm identification | Online algorithms | pool |
 | [TCS-6702](../../data/cards/TCS-6702.json) | Worst-case-to-average-case reductions within NP | Beyond worst-case and average-case analysis | pool |
 | [TCS-6703](../../data/cards/TCS-6703.json) | Optimal exponential-scale hardness amplification in NP | Beyond worst-case and average-case analysis | pool |
