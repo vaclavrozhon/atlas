@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **618**.
+Pending active reviews: **615**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -124,7 +124,6 @@ Pending active reviews: **618**.
 | [TCS-5793](../../data/cards/TCS-5793.json) | Pseudorandom functions from hardness of learning | Cryptography | pool |
 | [TCS-6692](../../data/cards/TCS-6692.json) | Linear-seed pseudorandom generators from one-way functions | Cryptography | pool |
 | [TCS-6871](../../data/cards/TCS-6871.json) | Fully homomorphic encryption from worst-case hardness | Cryptography | pool |
-| [TCS-6953](../../data/cards/TCS-6953.json) | Cryptographic primitives from worst-case or average-case hardness | Cryptography | pool |
 | [TCS-0860](../../data/cards/TCS-0860.json) | Complexity of Quantum Approximate Counting | Quantum computation | pool |
 | [TCS-1961](../../data/cards/TCS-1961.json) | One-way state generators versus EFI pairs | Quantum computation | pool |
 | [TCS-2229](../../data/cards/TCS-2229.json) | QMA versus \(\mathrm{QMA}(2)\) | Quantum computation | pool |
@@ -202,7 +201,6 @@ Pending active reviews: **618**.
 | [TCS-1133](../../data/cards/TCS-1133.json) | Sub-log-squared seeds for polynomial-size CNFs and DNFs | Pseudorandomness and derandomization | pool |
 | [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
 | [TCS-0854](../../data/cards/TCS-0854.json) | Promise-ZPP versus Promise-BPP derandomization | Pseudorandomness and derandomization | pool |
-| [TCS-1135](../../data/cards/TCS-1135.json) | Promise-AM derandomization via targeted hitting sets | Pseudorandomness and derandomization | pool |
 | [TCS-1137](../../data/cards/TCS-1137.json) | Derandomization from almost-everywhere uniform hardness | Pseudorandomness and derandomization | pool |
 | [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
 | [TCS-1008](../../data/cards/TCS-1008.json) | Bipartite vertex expanders with constant expansion loss | Pseudorandomness and derandomization | pool |
@@ -604,7 +602,6 @@ Pending active reviews: **618**.
 | [TCS-7348](../../data/cards/TCS-7348.json) | Single-exponential exact cut mimicking networks | Structural graph theory | existing_detailed_audit |
 | [TCS-7349](../../data/cards/TCS-7349.json) | Almost-linear-work parallel exact maximum flow | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-7350](../../data/cards/TCS-7350.json) | Near-linear output-sensitive Subset Sum | Algorithms & data structures | existing_detailed_audit |
-| [TCS-7351](../../data/cards/TCS-7351.json) | Linear-time exact inversion counting | Algorithms & data structures | existing_detailed_audit |
 | [TCS-7352](../../data/cards/TCS-7352.json) | Real Grothendieck constant | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-7353](../../data/cards/TCS-7353.json) | Optimal polynomial-time approximation ratio for Euclidean k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7354](../../data/cards/TCS-7354.json) | Optimal polynomial-time approximation ratio for metric k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |

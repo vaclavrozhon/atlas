@@ -292,3 +292,28 @@ forty-one retained active records and five resolved historical records:
 There are twenty-one new individual importance assessments through this draw.
 Checkpoint ten is committed as 6dd7d112 and verified live. Existing public
 comments and complete archived card content remain preserved.
+
+The twelfth draw brings this process to fifty completed reviews, with
+forty-four retained active records and six resolved historical records:
+
+- TCS-1135: the promise-AM versus promise-NP characterization by uniform
+  nondeterministic targeted hitting sets. The journal definition requires a
+  successful branch on every circuit and validity on every successful branch
+  for dense circuits. Corrected its publication date against Springer.
+- TCS-7351: exact deterministic linear-time inversion counting. The STOC 2025
+  Dictionary Matching hardness result supplies direct newer status evidence.
+- TCS-6953: the average-case-to-one-way branch of Wigderson's compound question.
+  The exact deterministic AvgP antecedent and standard all-length security
+  are distinguished from heuristic models and infinitely-often guarantees.
+  Individual importance: 94.
+- TCS-1009: near-lossless undirected vertex expanders under the explicitly
+  documented polynomial whole-graph construction interpretation. Archived
+  after matching the FOCS 2025 construction; stronger local-neighbor
+  explicitness is preserved as a distinct notion, without claiming it solved.
+
+There are twenty-two new individual importance assessments through this draw.
+Checkpoint eleven is committed as 8857028e and verified live.
+The random selector now calls the shared review_queue.reserve API directly;
+existing reservations were checked through require_claim. Completion continues
+to validate both ownership tokens and file hashes and to release claims through
+the shared helper. Reservation tokens are kept out of source checkpoints.
