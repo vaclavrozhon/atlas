@@ -246,3 +246,25 @@ thirty-five retained active records and three complete archived resolutions:
 There are seventeen new individual importance assessments through this draw.
 The original comments, assessed scores and category assignments remain intact.
 Checkpoint nine continues the all-card task; it is not a final queue completion.
+
+The tenth draw brings this process to forty-two completed reviews, with
+thirty-nine retained active records:
+
+- TCS-6768: simultaneous polynomial length and constant clause space in
+  resolution, with family-dependent constants and a possible larger output
+  space constant. Clause space, total space and tree-like bounds are kept
+  distinct. Individual importance: 84.
+- TCS-1061: the universal quadratic decision-tree-depth bound from block
+  sensitivity. The 2023 restricted-class results and February 2026 bounds on
+  tree size and block number concern different scopes or measures.
+- TCS-0494: the general BDD/FC conjecture, with positive query rewriting,
+  arbitrary arity and multi-atom heads. The original binary theorem assumes
+  single-head rules; the 2026 arXiv posting is the partial PODS 2025 result.
+- TCS-5520: unconditional NP-hardness of PosSLP under deterministic many-one
+  reductions, explicitly selected from the broader source direction and the
+  earlier concrete question. Conditional randomized hardness and polynomial
+  positivity variants are distinguished. Individual importance: 91.
+
+There are nineteen new individual importance assessments through this draw.
+Checkpoint nine is committed as 7063c9e1 and verified live. Further checkpoints
+continue the all-card review; existing comments remain preserved.

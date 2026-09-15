@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **629**.
+Pending active reviews: **625**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -31,7 +31,6 @@ Pending active reviews: **629**.
 | [TCS-0114](../../data/cards/TCS-0114.json) | Satisfiability of String Constraints with Subsequence relation | Automated reasoning and unification | top500 |
 | [TCS-0488](../../data/cards/TCS-0488.json) | Computability of entropic query-size bounds | Database theory and finite model theory | top500 |
 | [TCS-0487](../../data/cards/TCS-0487.json) | Complexity of polymatroid query-size bounds | Database theory and finite model theory | top500 |
-| [TCS-0494](../../data/cards/TCS-0494.json) | Finite controllability from bounded derivation | Database theory and finite model theory | top500 |
 | [TCS-0301](../../data/cards/TCS-0301.json) | Excluding one-sided randomized quasilinear-time log-space SAT | Computational complexity | pool |
 | [TCS-0303](../../data/cards/TCS-0303.json) | Stronger log-space time lower bounds for SAT | Computational complexity | pool |
 | [TCS-0297](../../data/cards/TCS-0297.json) | A counting characterization of P with NP access | Computational complexity | pool |
@@ -166,7 +165,6 @@ Pending active reviews: **629**.
 | [TCS-6764](../../data/cards/TCS-6764.json) | Quadratic resolution space for linear-size CNFs | Proof complexity | pool |
 | [TCS-6766](../../data/cards/TCS-6766.json) | Polynomial resolution length from logarithmic clause space | Proof complexity | pool |
 | [TCS-6767](../../data/cards/TCS-6767.json) | Resolution length–width tradeoffs | Proof complexity | pool |
-| [TCS-6768](../../data/cards/TCS-6768.json) | Simultaneous polynomial-length constant-space refutations | Proof complexity | pool |
 | [TCS-6770](../../data/cards/TCS-6770.json) | Cutting Planes versus polynomial-coefficient Cutting Planes | Proof complexity | pool |
 | [TCS-6771](../../data/cards/TCS-6771.json) | Linear versus general resolution | Proof complexity | pool |
 | [TCS-0220](../../data/cards/TCS-0220.json) | External Information and Amortized Expected Communication | Communication complexity and Boolean function analysis | pool |
@@ -176,7 +174,6 @@ Pending active reviews: **629**.
 | [TCS-0053](../../data/cards/TCS-0053.json) | Sign-representation | Communication complexity and Boolean function analysis | pool |
 | [TCS-0218](../../data/cards/TCS-0218.json) | Cryptogenography | Communication complexity and Boolean function analysis | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
-| [TCS-1061](../../data/cards/TCS-1061.json) | Quadratic decision-tree bounds from block sensitivity | Communication complexity and Boolean function analysis | pool |
 | [TCS-1540](../../data/cards/TCS-1540.json) | Influence lower bounds for noisy query complexity | Communication complexity and Boolean function analysis | pool |
 | [TCS-1845](../../data/cards/TCS-1845.json) | Complexity of truth-table decision-tree optimization | Communication complexity and Boolean function analysis | pool |
 | [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
@@ -323,7 +320,6 @@ Pending active reviews: **629**.
 | [TCS-4523](../../data/cards/TCS-4523.json) | Complexity of dimension expansion | Algebraic computation | pool |
 | [TCS-5240](../../data/cards/TCS-5240.json) | Transferring arithmetic hardness to constantly many variables | Algebraic computation | pool |
 | [TCS-5260](../../data/cards/TCS-5260.json) | Explicit rigid matrices over low-degree number fields | Algebraic computation | pool |
-| [TCS-5520](../../data/cards/TCS-5520.json) | Unconditional hardness of PosSLP | Algebraic computation | pool |
 | [TCS-5921](../../data/cards/TCS-5921.json) | Membership in \(2\times 2\) integer matrix semigroups | Algebraic computation | pool |
 | [TCS-6401](../../data/cards/TCS-6401.json) | Finiteness of automaton semigroups | Algebraic computation | pool |
 | [TCS-6493](../../data/cards/TCS-6493.json) | Complexity of tensor orbit-closure intersection | Algebraic computation | pool |
