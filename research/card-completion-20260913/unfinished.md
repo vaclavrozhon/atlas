@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **636**.
+Pending active reviews: **634**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -403,7 +403,6 @@ Pending active reviews: **636**.
 | [TCS-0015](../../data/cards/TCS-0015.json) | Superlinear Boolean circuit lower bounds | Computational complexity | existing_detailed_audit |
 | [TCS-0016](../../data/cards/TCS-0016.json) | Exponential circuit lower bounds for 3-SAT | Computational complexity | existing_detailed_audit |
 | [TCS-0022](../../data/cards/TCS-0022.json) | One-way functions from \(\mathrm{P} \ne  \mathrm{NP}\) | Cryptography | existing_detailed_audit |
-| [TCS-0025](../../data/cards/TCS-0025.json) | Superpolynomial lower bounds for unrestricted Frege proofs | Proof complexity | existing_detailed_audit |
 | [TCS-0026](../../data/cards/TCS-0026.json) | L versus BPL | Pseudorandomness and derandomization | existing_detailed_audit |
 | [TCS-0036](../../data/cards/TCS-0036.json) | BPP versus BQP | Quantum computation | existing_detailed_audit |
 | [TCS-0037](../../data/cards/TCS-0037.json) | NP outside BQP | Quantum computation | existing_detailed_audit |
@@ -518,7 +517,6 @@ Pending active reviews: **636**.
 | [TCS-6647](../../data/cards/TCS-6647.json) | Rigidity of the Turing degrees | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6648](../../data/cards/TCS-6648.json) | Kolmogorov–Loveland randomness versus Martin-Löf randomness | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6649](../../data/cards/TCS-6649.json) | Reversal of Hindman’s theorem to the \(\omega\)-jump | Computability and algorithmic information | existing_detailed_audit |
-| [TCS-6652](../../data/cards/TCS-6652.json) | Erdős–Hajnal conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-6653](../../data/cards/TCS-6653.json) | Gyárfás–Sumner conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-6654](../../data/cards/TCS-6654.json) | Seese’s conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-6657](../../data/cards/TCS-6657.json) | Computational threshold for tensor PCA | Beyond worst-case and average-case analysis | existing_detailed_audit |

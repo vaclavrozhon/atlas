@@ -822,3 +822,22 @@ review's ownership/hash/release path; the full make check passed. The preceding
 combined deployment was live-verified as 48b5ed741f8159a84dec, published
 2026-09-15T07:37:26+00:00, Pages commit
 4bed98731b284db33b0d44080b1647425c23756a.
+
+Checkpoint 283 completes TCS-0025 and TCS-6652. Unrestricted Frege now
+has complete proof-bit accounting and both Lean answer directions, with no
+extra uniform hard-family or line-size requirement. Its review distinguishes
+the April tree-like and bounded-depth results, the June algebraic lower bound
+and the September restricted-IPS upper bound. The Erdős–Hajnal review fixes
+finite graph domains and the all-exponents negation, removes methodological
+instructions, checks the recent special cases and marks the unverified revised
+full-solution claim as uncertain. The withdrawn older proof was not treated as
+a refutation of the revision.
+
+The combined working census is 1,052 active cards: 422 individually completed/
+reviewed and 630 pending, including the concurrent completions TCS-0594,
+TCS-3059, TCS-6898 and TCS-1011. There are 283 completed queue records,
+14 of them inactive; all 269 completed active output hashes match. Publication
+and the active formula check passed, covering 18,379 expressions. The preceding
+deployment was live-verified as 6110b063f40c559c1561, published
+2026-09-15T09:33:09+00:00, Pages commit
+1f9bbcdb61192cfcfa9790776f55fa77788891d0.
