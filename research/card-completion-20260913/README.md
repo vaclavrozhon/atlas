@@ -958,3 +958,22 @@ completed hashes match. Publication and active formula checks passed, covering
 19,151 expressions. The preceding connectivity deployment was live-verified as
 fb0a860b471119912bd2, published 2026-09-15T18:03:51+00:00, Pages commit
 386ae6ab6784af601de81bab2333116c10973784.
+
+Checkpoint 314 completes TCS-6568, the exact mean-payoff winner language.
+It retains the zero-threshold liminf target and adds full binary encoding,
+invalid-input behavior, history-dependent strategies, finite real liminf,
+and both complete Lean decision-complexity directions. The individual review
+checks positional certificates and primary pseudopolynomial bounds, preserves
+published ergodic smoothed-analysis hypotheses and universal-graph restrictions,
+and records the 2025 simplex correspondence's potentially exponential encoding
+size. The new March 2026 recursive algorithm explicitly leaves its improved
+runtime analysis open; it is now included with that limitation. The July 2026
+source's reduction uses its stated succinct graph-class representation.
+
+The combined census is 1,048 active cards: 449 individually completed/reviewed
+and 599 pending. The 314 completed queue records include 18 inactive records;
+all 296 active completed hashes match. Publication and active formula validation
+passed, covering 19,245 expressions. A concurrent Pages push rejected one local
+deployment attempt because another process advanced the branch; its resulting
+same-version publication was live-verified as a12fecc42ce2986c04c3, published
+2026-09-15T18:10:38+00:00. The rejected push did not alter or force the branch.

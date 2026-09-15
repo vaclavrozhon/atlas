@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **604**.
+Pending active reviews: **603**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -453,7 +453,6 @@ Pending active reviews: **604**.
 | [TCS-6552](../../data/cards/TCS-6552.json) | Noninteractive zero knowledge from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6562](../../data/cards/TCS-6562.json) | Word equations with linear length constraints | Automated reasoning and unification | existing_detailed_audit |
 | [TCS-6566](../../data/cards/TCS-6566.json) | Continuous Skolem problem | Semantics, logic and verification | existing_detailed_audit |
-| [TCS-6568](../../data/cards/TCS-6568.json) | Mean-payoff games in polynomial time | Semantics, logic and verification | existing_detailed_audit |
 | [TCS-6572](../../data/cards/TCS-6572.json) | Polynomial-time simplex pivot rule | Optimization and numerics | existing_detailed_audit |
 | [TCS-6573](../../data/cards/TCS-6573.json) | Polynomial Hirsch conjecture | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6574](../../data/cards/TCS-6574.json) | Exact semidefinite feasibility in polynomial time | Optimization and numerics | existing_detailed_audit |
