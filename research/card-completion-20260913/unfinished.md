@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **625**.
+Pending active reviews: **621**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -254,7 +254,6 @@ Pending active reviews: **625**.
 | [TCS-5407](../../data/cards/TCS-5407.json) | Optimal approximation for submodular maximization over a matroid | Approximation algorithms and hardness of approximation | pool |
 | [TCS-5544](../../data/cards/TCS-5544.json) | d-to-1 versus Unique Games conjectures | Approximation algorithms and hardness of approximation | pool |
 | [TCS-6309](../../data/cards/TCS-6309.json) | Constant-factor approximation for capacitated k-Median | Approximation algorithms and hardness of approximation | pool |
-| [TCS-6723](../../data/cards/TCS-6723.json) | Steiner Forest approximation below factor two | Approximation algorithms and hardness of approximation | pool |
 | [TCS-6757](../../data/cards/TCS-6757.json) | Min-CSP approximation at the SDP integrality gap | Approximation algorithms and hardness of approximation | pool |
 | [TCS-0935](../../data/cards/TCS-0935.json) | Unit-job precedence scheduling complexity | Online algorithms | pool |
 | [TCS-0711](../../data/cards/TCS-0711.json) | Model Selection for Contextual Bandits | Online algorithms | pool |
@@ -290,7 +289,6 @@ Pending active reviews: **625**.
 | [TCS-7143](../../data/cards/TCS-7143.json) | Bipartite circle pivot-minors from large rank-width | Structural graph theory | pool |
 | [TCS-7144](../../data/cards/TCS-7144.json) | Tree vertex-minors from large linear rank-width | Structural graph theory | pool |
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
-| [TCS-6477](../../data/cards/TCS-6477.json) | Deterministic subquadratic dynamic s–t reachability | Dynamic graph algorithms | pool |
 | [TCS-6928](../../data/cards/TCS-6928.json) | Linear-space representation from smallest string attractors | String algorithms and bioinformatics | pool |
 | [TCS-1115](../../data/cards/TCS-1115.json) | Polynomial-time EF1 and Pareto-optimal goods allocation | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-1109](../../data/cards/TCS-1109.json) | EF1 and Pareto optimality for additive mixed items | Algorithmic game theory, mechanism design and fair division | pool |
@@ -409,7 +407,6 @@ Pending active reviews: **625**.
 | [TCS-0478](../../data/cards/TCS-0478.json) | Dynamic APSP with edge-linear updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-0481](../../data/cards/TCS-0481.json) | Cubic min-plus circuit lower bounds for shortest paths | Algebraic computation | existing_detailed_audit |
 | [TCS-0482](../../data/cards/TCS-0482.json) | Linear-round convergence over stable semirings | Database theory and finite model theory | existing_detailed_audit |
-| [TCS-0491](../../data/cards/TCS-0491.json) | Log-squared query complexity for fixed-dimensional Tarski | Optimization and numerics | existing_detailed_audit |
 | [TCS-0492](../../data/cards/TCS-0492.json) | Conjunctive-query containment under bag semantics | Database theory and finite model theory | existing_detailed_audit |
 | [TCS-0506](../../data/cards/TCS-0506.json) | Private PAC sample complexity from VC and Littlestone dimensions | Differential privacy | existing_detailed_audit |
 | [TCS-0515](../../data/cards/TCS-0515.json) | Deterministic volume gap | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
@@ -620,7 +617,6 @@ Pending active reviews: **625**.
 | [TCS-7358](../../data/cards/TCS-7358.json) | Optimal polynomial-time approximation ratio for Steiner Tree | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7359](../../data/cards/TCS-7359.json) | Public-key quantum money from LWE alone | Cryptography | existing_detailed_audit |
 | [TCS-7360](../../data/cards/TCS-7360.json) | Polyloglogarithmic suffix-array access in compact space | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-7361](../../data/cards/TCS-7361.json) | Input-optimal construction of compact inverse suffix arrays | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7362](../../data/cards/TCS-7362.json) | Optimal top-k document retrieval in compact space | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7363](../../data/cards/TCS-7363.json) | \(\exists\mathbb{R}\) versus \(\mathrm{NP}\) | Computational complexity | existing_detailed_audit |
 | [TCS-7364](../../data/cards/TCS-7364.json) | Preprocessing exponent of binary jumbled indexing | String algorithms and bioinformatics | existing_detailed_audit |

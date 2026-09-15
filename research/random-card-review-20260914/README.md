@@ -268,3 +268,27 @@ thirty-nine retained active records:
 There are nineteen new individual importance assessments through this draw.
 Checkpoint nine is committed as 7063c9e1 and verified live. Further checkpoints
 continue the all-card review; existing comments remain preserved.
+
+The eleventh draw brings this process to forty-six completed reviews, with
+forty-one retained active records and five resolved historical records:
+
+- TCS-6477: deterministic subquadratic fully dynamic directed reachability.
+  The source answers its own quoted Open Problem 2 immediately and proves
+  the stronger exact-distance guarantee in Theorems 1.1 and 6.3.
+  Archived with the full reviewed record. Individual importance: 88.
+- TCS-6723: a fixed approximation saving below two for general Steiner Forest.
+  The FOCS 2025 breakthrough and Gupta–Traub STOC 2026 ratio 1.994 resolve
+  this original threshold question. Archived with full content and provenance.
+  Individual importance: 92.
+- TCS-0491: squared-logarithm deterministic query complexity in every fixed
+  dimension for Tarski fixed points. The March 2026 dimension-four result,
+  July 2025 dimension-dependent lower bound and September 2026 quantum
+  lower bound do not settle the full target.
+- TCS-7361: packed-input-optimal construction of a compact constant-query-time
+  inverse suffix array. Preserved the editorial endpoint and uncertain status;
+  the August 2026 theorem has slower construction, with a conditional
+  Dictionary Matching connection rather than an unconditional lower bound.
+
+There are twenty-one new individual importance assessments through this draw.
+Checkpoint ten is committed as 6dd7d112 and verified live. Existing public
+comments and complete archived card content remain preserved.
