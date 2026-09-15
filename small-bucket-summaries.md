@@ -182,6 +182,13 @@ Some major lower-bound questions concern Boolean circuits, while others concern 
 [Read in atlas](index.html#TCS-0024) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Towards P ≠ NP from Extended Frege Lower Bounds](https://eccc.weizmann.ac.il/report/2023/199/) · [Quasi-polynomial Frege Simulation of IPS beyond Noncommutativity](https://eccc.weizmann.ac.il/report/2026/166/)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6768 — Simultaneous polynomial-length constant-space refutations
+
+The question asks whether every fixed-width CNF family with constant-clause-space refutations also has refutations that are both polynomial-length and constant-clause-space. The same proof must meet both bounds, but its allowed constant space may exceed the original one. Space counts stored clauses regardless of their lengths, while proof length counts downloads and inferences. Known separate short-proof guarantees and results for constant total literal space do not provide the requested simultaneous clause-space bound. The later checked work still poses the question and proves only a polynomial lower bound for a restricted tree-like setting.
+
+[Read in atlas](index.html#TCS-6768) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Space Characterizations of Complexity Measures and Size-Space Trade-Offs in Propositional Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.100) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.006)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-1099 — Separating levels of bounded arithmetic
 
 The question asks whether two positive levels of Buss’s bounded-arithmetic hierarchy prove different sentences. Each level has the same basic arithmetic axioms but permits induction for a different class of bounded formulas. A solution may choose any two distinct positive levels and must prove an unconditional difference in their deductive strength. The full axiom list, formula grammar and induction scheme specify the theories without relying on an unstated standard model. Recent conditional separations do not provide the unconditional nonprovability witness required here.
@@ -301,13 +308,6 @@ Resolution length counts inference steps, while width measures the largest claus
 [Read in atlas](index.html#TCS-6767) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6768 — Simultaneous polynomial-length constant-space refutations
-
-A constant-space resolution refutation keeps only a bounded amount of the specified proof information at any moment. The saved question asks whether such formulas always have refutations that are also polynomial in length. The same derivation must satisfy both requirements, which is stronger than obtaining each bound separately. A positive result would rule out an unavoidable recomputation penalty for the most memory-frugal proofs. The source summary does not reproduce its space-measure convention, so that definition and the allowed constant dependence still need to accompany a complete formulation.
-
-[Read in atlas](index.html#TCS-6768) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6770 — Cutting Planes versus polynomial-coefficient Cutting Planes
 
 Cutting Planes reasons with integer linear inequalities, and its coefficients can encode large numerical information. The subsystem CP* restricts coefficients to the source's polynomial scale. The saved question asks whether unrestricted coefficients make the proof system strictly stronger. A separation would show that numerical magnitude provides an essential reasoning resource beyond the number of inequalities. The survey summary does not preserve whether strength is compared by proof size or efficient simulation, so the desired relation and coefficient bit-accounting remain necessary parts of the later statement.
@@ -333,10 +333,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6604 — Fourier Entropy–Influence conjecture
 
-A Boolean function has a Fourier expansion whose squared coefficients form a probability distribution. The Fourier Entropy–Influence conjecture bounds the entropy of that distribution by a universal constant times total influence. Intuitively, it asks whether small average sensitivity prevents Fourier weight from being spread across too many descriptions. The bound would connect the spectral complexity of a function with how often changing one input bit changes its value. The saved review distinguishes this classical conjecture from stronger coordinate-wise statements and quantum analogues, whose failures do not by themselves refute the stated Boolean inequality.
+A scalar Boolean function has a Fourier spectrum whose squared coefficients form a probability distribution on sets of input coordinates. The Fourier Entropy–Influence conjecture asks whether its Shannon entropy is at most a universal constant times the expected size of a spectral set. Every dimension and every Boolean function are included, with uniform inputs, base-two entropy and exactly normalized bit-flip influence. A complete Lean-checked answer must prove the universal bound or show that the ratio is unbounded over nonconstant Boolean functions. The conjecture would imply fixed-accuracy Fourier concentration for DNF formulas, while weaker coordinate-entropy estimates and quantum counterexamples leave its classical target unsettled.
 
-[Read in atlas](index.html#TCS-6604) · [The Fourier Entropy–Influence Conjecture for certain classes of Boolean functions](https://www.cs.cmu.edu/~jswright/papers/fei.pdf) · [A new bound for the Fourier-Entropy-Influence conjecture](https://arxiv.org/abs/2312.08271) · [Further evidence towards the Fourier Entropy-Influence conjecture](https://arxiv.org/abs/2606.00246) · [Dense Hamiltonians at the Parseval Limit: The Noncommutative BH Constant is Exponential and the Quantum FEI Conjecture is False](https://arxiv.org/abs/2608.01424)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6604) · [The Fourier Entropy–Influence Conjecture for certain classes of Boolean functions](https://www.cs.cmu.edu/~jswright/papers/fei.pdf) · [A new bound for the Fourier-Entropy-Influence conjecture](https://arxiv.org/abs/2312.08271) · [Further evidence towards the Fourier Entropy-Influence conjecture](https://arxiv.org/abs/2606.00246) · [Dense Hamiltonians at the Parseval Limit: The Noncommutative BH Constant is Exponential and the Quantum FEI Conjecture is False](https://arxiv.org/abs/2608.01424) · [A Note on the Entropy/Influence Conjecture](https://arxiv.org/abs/1105.2651) · [Strengthening Han’s Fourier Entropy-Influence Inequality via an Information-Theoretic Proof](https://arxiv.org/abs/2512.03117) · [Tightness of and counterexamples to several quantum estimates](https://arxiv.org/abs/2608.04411)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-6605 — Aaronson–Ambainis conjecture
 
@@ -459,10 +459,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1061 — Quadratic decision-tree bounds from block sensitivity
 
-Decision-tree complexity counts the input queries needed to compute a Boolean function in the worst case. Block sensitivity measures how many disjoint groups of bits can individually be flipped to change an output at one input. The source asks for a quadratic bound connecting the full adaptive query cost to that local combinatorial measure. Such a relation would show that local collections of sensitive changes largely control global decision complexity. The saved book question needs its exact quantifiers and conventions recovered, and a result involving ordinary sensitivity or a different exponent would address a related but distinct target.
+The target is a universal quadratic upper bound on deterministic decision-tree depth in terms of block sensitivity. A decision tree adaptively reads individual bits and must compute a total Boolean function correctly on every input. Block sensitivity counts disjoint blocks whose separate flips all change the value at one common input. The known general bound is cubic, while quadratic bounds hold for several restricted classes. The proposed constant must work for every function and dimension, and recent results on tree size or counts of minimal blocks do not settle this depth question.
 
-[Read in atlas](index.html#TCS-1061) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1061) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Decision Tree Complexity Versus Block Sensitivity and Degree](https://doi.org/10.4230/LIPIcs.FSTTCS.2023.27) · [Nearly Tight Bounds on the Block Number of Boolean Functions in Terms of Sensitivity](https://eccc.weizmann.ac.il/report/2026/010/)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1540 — Influence lower bounds for noisy query complexity
 
