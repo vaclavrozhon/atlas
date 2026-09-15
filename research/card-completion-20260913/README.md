@@ -858,3 +858,25 @@ passed, and completed active output hashes match. Checkpoint 283 was deployed
 and live-verified as 0d45cbd9d21acc4a1312, published
 2026-09-15T09:52:46+00:00, Pages commit
 f01edee623edfb7eda967271dc1922dae0043fc0.
+
+Checkpoint 289 completes TCS-6612, VP versus VBP over the complex numbers.
+The card fixes nonuniform polynomial families, semantic degree, circuit and
+branching-program encodings, coefficient accounting and both Lean answer
+directions. It distinguishes exact computation from border approximation,
+restricted multilinear lower bounds and the different symmetry/orbit-size
+classes of the 2026 separation. The current ECCC primer, original factor-closure
+paper, depth survey and recent primary sources were checked at their stated
+locators; the min-plus comparison used the current abstract only. No new proof
+was independently formalized or certified.
+
+At that checkpoint the census was 1,052 active cards: 428 individually completed/
+reviewed and 624 pending, including concurrent completions TCS-0494, TCS-1061
+and TCS-5520. Publication and the active formula check passed, covering 18,564
+expressions. The later combined census reached 295 completed queue records,
+16 inactive, with all 279 completed active output hashes matching. Its 1,050
+active cards comprise 432 completed/reviewed and 618 pending after concurrent
+reviews TCS-6477, TCS-6723, TCS-0491, TCS-7361, TCS-1135 and TCS-7351; the
+first two were individually resolved and archived by the parallel reviewer.
+The previous combined deployment was live-verified as 0e0ff836ab08b03d1381,
+published 2026-09-15T15:16:44+00:00, Pages commit
+82bf0b9e9a18e74a624c6d8df44e5e01517a3690.
