@@ -1982,10 +1982,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6652 — Erdős–Hajnal conjecture
 
-Forbidding one fixed induced graph excludes both its edge pattern and its nonedge pattern. The Erdős–Hajnal conjecture predicts that every graph with this restriction has a clique or independent set of polynomial size. The exponent may depend on the forbidden graph but must stay positive as the host graph grows. This would show that every proper hereditary restriction forces much stronger homogeneous structure than arbitrary graphs guarantee. The saved review records special-case advances and unvalidated full-solution claims separately, and a near-polynomial bound with a vanishing exponent does not establish the required fixed exponent.
+The Erdős–Hajnal conjecture predicts a polynomial-size clique or independent set whenever a graph excludes one fixed induced pattern. The positive exponent may depend on that entire forbidden pattern but must work for every size and every permitted host graph. An accepted answer proves this universal assertion or refutes it for one fixed forbidden graph with a complete Lean-checked proof. General bounds and recent special-case results still fall short of the universal guarantee recorded by the checked primary literature. A revised historical full-solution claim remains unverified here, so the card distinguishes that uncertainty from the precise mathematical target.
 
 [Read in atlas](index.html#TCS-6652) · [Ramsey-type theorems](https://mathweb.ucsd.edu/~asuk/erdos_hajnal.pdf) · [Induced subgraph density. I. A loglog step towards Erdős–Hajnal](https://arxiv.org/abs/2301.10147) · [Induced subgraph density. VII. The five-vertex path](https://arxiv.org/abs/2312.15333) · [Induced subgraph density. V. All paths approach Erdős–Hajnal](https://arxiv.org/abs/2307.15032) · [Erdős–Hajnal conjecture beyond five-vertex graphs](https://arxiv.org/abs/2606.06258) · [The Erdős–Hajnal Property for the six-vertex Graph with Edge Set \(\{ab,bc,cd,de,af,bf,df\}\)](https://arxiv.org/abs/2608.28551) · [Equivalence between Erdős–Hajnal and polynomial Rödl and Nikiforov conjectures](https://arxiv.org/abs/2403.08303) · [A Single-Exponential Erdős–Hajnal Bound for Graphs of Bounded VC-Dimension](https://arxiv.org/abs/2607.09049) · [On Induced Subgraphs of Finite Graphs not Containing Large Empty and Complete Subgraphs](https://arxiv.org/abs/1211.3876)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-6682 — Reed’s conjecture
 
