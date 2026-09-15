@@ -899,3 +899,25 @@ check passed, covering 18,719 expressions. The preceding combined deployment
 was live-verified as e7fc652b18d7cf23e197, published
 2026-09-15T17:12:50+00:00, Pages commit
 2b8cb4617923505c0d4debc6c862c91b6caabac4.
+
+Checkpoint 301 completes TCS-6638, the optimal approximation ratio for unrelated
+machine makespan. It retains the user-authorized numerical target and adds full
+binary encodings, deterministic bit complexity, zero-optimum handling and
+infimum quantifiers without attainment. The original journal's model and main
+bounds were visually checked, with rational/zero/forbidden-entry compatibility
+recorded separately in the audit. The card removes rounding walkthroughs, fixes
+the two-value exponent, keeps hardness assumptions explicit and distinguishes
+prediction budgets and the fair-mechanism result's optimal initial allocation.
+The latter was checked in its June 2026 revision; the full 2005 rounding proof
+was not retrieved and is not represented as reviewed.
+
+With concurrent TCS-1029 and TCS-0848, the census is 1,049 active cards: 437
+individually completed/reviewed and 612 pending. The 301 completed queue records
+include 17 inactive records; all 284 completed active output hashes match.
+Publication and the active formula check passed, covering 18,868 expressions.
+An earlier deployment attempt encountered bare-string source_formulation fields
+in the two concurrently completed cards; their owner corrected the metadata
+shape and ledger hashes without changing mathematical content. The retry
+succeeded and was live-verified as 86b3654cee038a0fb50c, published
+2026-09-15T17:23:02+00:00, Pages commit
+62982f7295786d0fb363901c8e8effbcae53ef7a.

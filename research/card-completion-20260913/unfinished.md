@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **615**.
+Pending active reviews: **614**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -492,7 +492,6 @@ Pending active reviews: **615**.
 | [TCS-6633](../../data/cards/TCS-6633.json) | Polynomial query complexity of exact envy-free cake cutting | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6636](../../data/cards/TCS-6636.json) | Bodirsky–Pinsker conjecture | Constraint satisfaction | existing_detailed_audit |
 | [TCS-6637](../../data/cards/TCS-6637.json) | Constant-colour polynomial-time colouring of 3-colourable graphs | Constraint satisfaction | existing_detailed_audit |
-| [TCS-6638](../../data/cards/TCS-6638.json) | Optimal approximation ratio for unrelated-machine makespan | Online algorithms | existing_detailed_audit |
 | [TCS-6639](../../data/cards/TCS-6639.json) | Constant-factor approximation for Santa Claus | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6640](../../data/cards/TCS-6640.json) | Constant additive error for one-dimensional bin packing | Online algorithms | existing_detailed_audit |
 | [TCS-6641](../../data/cards/TCS-6641.json) | Word problem for one-relation monoids | Algebraic computation | existing_detailed_audit |
