@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **634**.
+Pending active reviews: **630**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -103,7 +103,6 @@ Pending active reviews: **634**.
 | [TCS-0398](../../data/cards/TCS-0398.json) | Planar Euclidean Maximum TSP | Computational geometry and metric spaces | pool |
 | [TCS-0327](../../data/cards/TCS-0327.json) | Simple Polygonalizations | Computational geometry and metric spaces | pool |
 | [TCS-0409](../../data/cards/TCS-0409.json) | Minimum-Link Path in 2D | Computational geometry and metric spaces | pool |
-| [TCS-3059](../../data/cards/TCS-3059.json) | Freedman’s conjecture | Computational geometry and metric spaces | pool |
 | [TCS-5875](../../data/cards/TCS-5875.json) | Hausdorff distance between semialgebraic sets | Computational geometry and metric spaces | pool |
 | [TCS-6880](../../data/cards/TCS-6880.json) | Efficient constant-distortion cut-cone approximation | Computational geometry and metric spaces | pool |
 | [TCS-7006](../../data/cards/TCS-7006.json) | Optimal input-sparsity subspace embeddings | Computational geometry and metric spaces | pool |
@@ -337,7 +336,6 @@ Pending active reviews: **634**.
 | [TCS-6893](../../data/cards/TCS-6893.json) | Superpolynomial multilinear circuit lower bounds | Algebraic computation | pool |
 | [TCS-6895](../../data/cards/TCS-6895.json) | Explicit three-dimensional tensors of superlinear rank | Algebraic computation | pool |
 | [TCS-6897](../../data/cards/TCS-6897.json) | Permanent lower bounds from identity testing | Algebraic computation | pool |
-| [TCS-6898](../../data/cards/TCS-6898.json) | Derandomizing black-box depth-four PIT | Algebraic computation | pool |
 | [TCS-6903](../../data/cards/TCS-6903.json) | Derandomizing noncommutative PIT | Algebraic computation | pool |
 | [TCS-6914](../../data/cards/TCS-6914.json) | Multivariate polynomial factorization from PIT derandomization | Algebraic computation | pool |
 | [TCS-0659](../../data/cards/TCS-0659.json) | Stronger worst-case reductions to SIS and LWE | Lattices and computational number theory | pool |
@@ -356,7 +354,6 @@ Pending active reviews: **634**.
 | [TCS-1020](../../data/cards/TCS-1020.json) | Polynomial-length constant-query locally decodable codes | Coding and information theory | pool |
 | [TCS-0013](../../data/cards/TCS-0013.json) | Efficient explicit constant-rate tree codes | Coding and information theory | pool |
 | [TCS-1012](../../data/cards/TCS-1012.json) | Explicit efficiently decoded binary codes beyond Gilbert–Varshamov | Coding and information theory | pool |
-| [TCS-1011](../../data/cards/TCS-1011.json) | Full-length Reed–Solomon list decoding beyond Johnson | Coding and information theory | pool |
 | [TCS-0196](../../data/cards/TCS-0196.json) | Polyhedrality of linear-rank inequality cones | Coding and information theory | pool |
 | [TCS-0178](../../data/cards/TCS-0178.json) | Bounded-alphabet approximation of entropy-region faces | Coding and information theory | pool |
 | [TCS-0184](../../data/cards/TCS-0184.json) | Entropic matroid approximations approaching unit ratio | Coding and information theory | pool |
@@ -423,7 +420,6 @@ Pending active reviews: **634**.
 | [TCS-0519](../../data/cards/TCS-0519.json) | Bipartite maximal matching with polynomial-in-degree volume | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0522](../../data/cards/TCS-0522.json) | Quantum 3-coloring of cycles in \(o(\log * n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0524](../../data/cards/TCS-0524.json) | LOCAL coloring below square-root degree dependence | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-0594](../../data/cards/TCS-0594.json) | 3-colorability of diameter-two graphs | Structural graph theory | existing_detailed_audit |
 | [TCS-0611](../../data/cards/TCS-0611.json) | Bipartite Exact Matching: deterministic polynomial time | Structural graph theory | existing_detailed_audit |
 | [TCS-1010](../../data/cards/TCS-1010.json) | Optimal asymptotic binary rate–distance tradeoff | Coding and information theory | existing_detailed_audit |
 | [TCS-1033](../../data/cards/TCS-1033.json) | Polynomial testability versus distance estimation | Property testing and distribution learning | existing_detailed_audit |

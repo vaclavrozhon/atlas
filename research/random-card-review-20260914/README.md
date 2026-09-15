@@ -223,3 +223,26 @@ shared claim tokens during this draw; all four pending cards were reserved in
 that mechanism before editing, and successful completion released their claims.
 Random selection now excludes shared reservations as well as dirty files, with
 all remaining scores eligible when the preferred lower-score pool is exhausted.
+
+The ninth draw brings this process to thirty-eight completed reviews, with
+thirty-five retained active records and three complete archived resolutions:
+
+- TCS-0594: unrestricted diameter-two three-colorability, with explicit input,
+  uniform polynomial time, total-language convention and no solution hints.
+  The July 2026 four-cycle-free theorem does not cover the full domain.
+- TCS-3059: the universal lower-left anchored rectangle coverage constant,
+  with precise positive rectangles, degeneracies, infimum/supremum conventions,
+  and the authorized numerical 1/100 target. Freedman's exact conjecture is
+  retained separately; the 2013 proof announcement was withdrawn. Individual
+  importance: 82.
+- TCS-6898: uniform black-box depth-four PIT via polynomial-time hitting sets,
+  with explicit wire size, field-operation costs and supplied working-field
+  elements. The 2026 quadratic-factor and powering results have additional
+  restrictions. Individual importance: 94.
+- TCS-1011: full-length Reed–Solomon combinatorial list decoding beyond Johnson,
+  preserving strict agreement, degree floor, fixed constants and infinitely many
+  field sizes. The five-author 2025 journal capacity theorem requires puncturing.
+
+There are seventeen new individual importance assessments through this draw.
+The original comments, assessed scores and category assignments remain intact.
+Checkpoint nine continues the all-card task; it is not a final queue completion.
