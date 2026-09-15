@@ -317,3 +317,25 @@ The random selector now calls the shared review_queue.reserve API directly;
 existing reservations were checked through require_claim. Completion continues
 to validate both ownership tokens and file hashes and to release claims through
 the shared helper. Reservation tokens are kept out of source checkpoints.
+
+The thirteenth random draw brings this process to fifty-four completed reviews,
+with forty-eight retained active cards and six resolved historical records:
+
+- TCS-6501: constant-round randomized MIS with the complete unicast model,
+  uniformity, worst-case rounds and a global high-probability output guarantee.
+  Separated the 2025 method-specific limitations from general lower bounds.
+- TCS-7335: optimal randomized full-cost list-update ratio to absolute error
+  1/100. Verified the stronger 1.50084 theorem uses partial costs; retained
+  the checked full-cost 1.5–1.6 bounds.
+- TCS-5317: exact Euclidean covering-radius decision hardness, with rational
+  input bases, span-based radius and deterministic many-one reductions.
+  The 9 September 2026 proceedings paper explicitly retains the question.
+  Individual importance: 89.
+- TCS-0013: constant-alphabet, constant-distance tree codes with uniform
+  polynomial-time encoding and suffix-distance decoding. Checked the
+  actual May 2026 revised rate–immediacy paper and kept its extra property
+  outside the target.
+
+There are twenty-three new individual importance assessments through this draw.
+Checkpoint twelve is committed as c690f889 and verified live. All four new
+reservations used the shared review_queue.reserve API and completion helper.

@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **613**.
+Pending active reviews: **609**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -337,13 +337,11 @@ Pending active reviews: **613**.
 | [TCS-0661](../../data/cards/TCS-0661.json) | SVP hardness for fixed-rank module lattices | Lattices and computational number theory | pool |
 | [TCS-0657](../../data/cards/TCS-0657.json) | Smaller-factor coNP or coAM certificates for SVP | Lattices and computational number theory | pool |
 | [TCS-0653](../../data/cards/TCS-0653.json) | Explicit quantum exponential-time lower bounds for Euclidean SVP | Lattices and computational number theory | pool |
-| [TCS-5317](../../data/cards/TCS-5317.json) | NP-hardness of Euclidean covering radius | Lattices and computational number theory | pool |
 | [TCS-6861](../../data/cards/TCS-6861.json) | Classical reductions matching quantum LWE hardness | Lattices and computational number theory | pool |
 | [TCS-6863](../../data/cards/TCS-6863.json) | Algorithmic advantages of ideal-lattice structure | Lattices and computational number theory | pool |
 | [TCS-6864](../../data/cards/TCS-6864.json) | Classical worst-case reductions for ring-LWE | Lattices and computational number theory | pool |
 | [TCS-6868](../../data/cards/TCS-6868.json) | Worst-case and search-to-decision reductions for NTRU | Lattices and computational number theory | pool |
 | [TCS-1020](../../data/cards/TCS-1020.json) | Polynomial-length constant-query locally decodable codes | Coding and information theory | pool |
-| [TCS-0013](../../data/cards/TCS-0013.json) | Efficient explicit constant-rate tree codes | Coding and information theory | pool |
 | [TCS-1012](../../data/cards/TCS-1012.json) | Explicit efficiently decoded binary codes beyond Gilbert–Varshamov | Coding and information theory | pool |
 | [TCS-0196](../../data/cards/TCS-0196.json) | Polyhedrality of linear-rank inequality cones | Coding and information theory | pool |
 | [TCS-0178](../../data/cards/TCS-0178.json) | Bounded-alphabet approximation of entropy-region faces | Coding and information theory | pool |
@@ -425,7 +423,6 @@ Pending active reviews: **613**.
 | [TCS-6455](../../data/cards/TCS-6455.json) | Doubly efficient \(\mathrm{IP} = \mathrm{PSPACE}\) for the full time range | Computational complexity | existing_detailed_audit |
 | [TCS-6499](../../data/cards/TCS-6499.json) | Sublogarithmic distributed MIS | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6500](../../data/cards/TCS-6500.json) | Erdős girth conjecture | Structural graph theory | existing_detailed_audit |
-| [TCS-6501](../../data/cards/TCS-6501.json) | Constant-round MIS in the congested clique | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6503](../../data/cards/TCS-6503.json) | Online matrix–vector multiplication conjecture | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6505](../../data/cards/TCS-6505.json) | One-cycle versus two-cycles conjecture | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
@@ -584,7 +581,6 @@ Pending active reviews: **613**.
 | [TCS-7332](../../data/cards/TCS-7332.json) | Logarithmic Las Vegas dynamic connectivity | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7333](../../data/cards/TCS-7333.json) | Space-query exponent curve of 3SUM indexing | Data structures | existing_detailed_audit |
 | [TCS-7334](../../data/cards/TCS-7334.json) | Strong SetDisjointness conjecture | Data structures | existing_detailed_audit |
-| [TCS-7335](../../data/cards/TCS-7335.json) | Randomized competitive ratio of list update | Online algorithms | existing_detailed_audit |
 | [TCS-7336](../../data/cards/TCS-7336.json) | Common2 membership of FIFO queues | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-7337](../../data/cards/TCS-7337.json) | Register space of obstruction-free set agreement | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-7338](../../data/cards/TCS-7338.json) | Multiphase conjecture | Data structures | existing_detailed_audit |
