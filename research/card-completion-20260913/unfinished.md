@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **609**.
+Pending active reviews: **607**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -368,7 +368,6 @@ Pending active reviews: **609**.
 | [TCS-7124](../../data/cards/TCS-7124.json) | SNP definability of CSPs in NP | Constraint satisfaction | pool |
 | [TCS-1595](../../data/cards/TCS-1595.json) | Decidability of fifth-order \(\beta\)-matching | Automated reasoning and unification | pool |
 | [TCS-1992](../../data/cards/TCS-1992.json) | Decidability of Presburger arithmetic with primes | Automated reasoning and unification | pool |
-| [TCS-6016](../../data/cards/TCS-6016.json) | Satisfiability of weak MSO+U over infinite words | Automated reasoning and unification | pool |
 | [TCS-7125](../../data/cards/TCS-7125.json) | Two-sided distributive unification with a unit | Automated reasoning and unification | pool |
 | [TCS-7134](../../data/cards/TCS-7134.json) | Polynomial-time equivalence of free binary decision diagrams | Automated reasoning and unification | pool |
 | [TCS-0499](../../data/cards/TCS-0499.json) | Query evaluation with treewidth parameter | Database theory and finite model theory | pool |
@@ -461,7 +460,6 @@ Pending active reviews: **609**.
 | [TCS-6572](../../data/cards/TCS-6572.json) | Polynomial-time simplex pivot rule | Optimization and numerics | existing_detailed_audit |
 | [TCS-6573](../../data/cards/TCS-6573.json) | Polynomial Hirsch conjecture | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6574](../../data/cards/TCS-6574.json) | Exact semidefinite feasibility in polynomial time | Optimization and numerics | existing_detailed_audit |
-| [TCS-6575](../../data/cards/TCS-6575.json) | Deterministic competitiveness of k-server | Online algorithms | existing_detailed_audit |
 | [TCS-6580](../../data/cards/TCS-6580.json) | Information-theoretic classical verification of quantum computation | Quantum computation | existing_detailed_audit |
 | [TCS-6581](../../data/cards/TCS-6581.json) | Mansour’s conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6582](../../data/cards/TCS-6582.json) | Equivalence of deterministic higher-order recursion schemes | Automata and formal languages | existing_detailed_audit |

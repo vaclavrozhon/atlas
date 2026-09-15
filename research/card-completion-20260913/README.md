@@ -939,3 +939,22 @@ all 291 active completed output hashes match. Publication and active formula
 validation passed, covering 19,071 expressions. The preceding deployment was
 live-verified as d356a5212abf2a26bb07, published 2026-09-15T17:45:37+00:00,
 Pages commit 5385824f26eb549fdea09022796220319d3c59a7.
+
+Checkpoint 312 completes TCS-6575, the universal deterministic k-server ratio.
+The numerical function target and absolute 1/100 precision are preserved, with
+all metric/strategy/additive-constant quantifiers, legal move recursion, finite
+offline minimization, units and infimum nonattainment now explicit. The review
+removes algorithm-selection and potential-proof instructions. Primary classical
+models and bounds were checked, including visual inspection of the garbled-font
+1995 manuscript. It distinguishes the 2025 maximum-movement time objective and
+the 2026 randomized/advice-assisted computational results from the retained
+sum-of-distances deterministic model. The restricted tree theorem is supported
+by its primary abstract; its complete proof was not retrieved.
+
+Including concurrent completion and archival of TCS-6016, the combined census
+is 1,048 active cards: 447 individually completed/reviewed and 601 pending.
+The 312 completed queue records include 18 inactive records; all 294 active
+completed hashes match. Publication and active formula checks passed, covering
+19,151 expressions. The preceding connectivity deployment was live-verified as
+fb0a860b471119912bd2, published 2026-09-15T18:03:51+00:00, Pages commit
+386ae6ab6784af601de81bab2333116c10973784.
