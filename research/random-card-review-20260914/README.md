@@ -339,3 +339,24 @@ with forty-eight retained active cards and six resolved historical records:
 There are twenty-three new individual importance assessments through this draw.
 Checkpoint twelve is committed as c690f889 and verified live. All four new
 reservations used the shared review_queue.reserve API and completion helper.
+
+The fourteenth random draw brings this process to fifty-eight completed reviews,
+with fifty-one retained active cards and seven resolved historical records:
+
+- TCS-0519: deterministic degree-only polynomial volume for bipartite maximal
+  matching, with supplied coloring and stateless connected queries. Removed
+  algorithm recipes and retained the exact quantified resource question.
+- TCS-6016: corrected the imported weak-MSO+U title to the full-MSO+U question
+  actually selected from the 2012 introduction. Matched it to the unconditional
+  STACS 2016 undecidability result, read the direct satisfiability argument,
+  and archived the full record. Individual importance: 87.
+- TCS-6979: individually reviewed the existing full-ZFC specialization and
+  preserved the public comment and its solved response verbatim.
+  Individual importance: 92.
+- TCS-7006: recovered the exact oblivious-embedding row/sparsity conjecture
+  with arbitrary stated accuracy and failure parameters. The SODA 2026
+  sub-polylogarithmic losses do not settle it. Individual importance: 90.
+
+There are twenty-six new individual importance assessments through this draw.
+Checkpoint thirteen is committed as 9d30c1a0 and verified live. Reservations and
+completion continue through the shared queue API with token and hash checks.

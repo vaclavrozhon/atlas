@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **607**.
+Pending active reviews: **604**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -48,7 +48,6 @@ Pending active reviews: **607**.
 | [TCS-6716](../../data/cards/TCS-6716.json) | General versus monotone span programs | Computational complexity | pool |
 | [TCS-6832](../../data/cards/TCS-6832.json) | Separations among P, RP and NP | Computational complexity | pool |
 | [TCS-6977](../../data/cards/TCS-6977.json) | Super-near-linear SAT time lower bounds | Computational complexity | pool |
-| [TCS-6979](../../data/cards/TCS-6979.json) | Independence of P versus NP | Computational complexity | pool |
 | [TCS-5651](../../data/cards/TCS-5651.json) | Recognizing good-for-games and good-for-MDP automata | Automata and formal languages | pool |
 | [TCS-5732](../../data/cards/TCS-5732.json) | Regular separability of VASS reachability languages | Automata and formal languages | pool |
 | [TCS-5738](../../data/cards/TCS-5738.json) | Recognizable separability of automatic relations | Automata and formal languages | pool |
@@ -104,7 +103,6 @@ Pending active reviews: **607**.
 | [TCS-0409](../../data/cards/TCS-0409.json) | Minimum-Link Path in 2D | Computational geometry and metric spaces | pool |
 | [TCS-5875](../../data/cards/TCS-5875.json) | Hausdorff distance between semialgebraic sets | Computational geometry and metric spaces | pool |
 | [TCS-6880](../../data/cards/TCS-6880.json) | Efficient constant-distortion cut-cone approximation | Computational geometry and metric spaces | pool |
-| [TCS-7006](../../data/cards/TCS-7006.json) | Optimal input-sparsity subspace embeddings | Computational geometry and metric spaces | pool |
 | [TCS-3177](../../data/cards/TCS-3177.json) | Learning PH/poly from learning NP/poly | Learning theory | pool |
 | [TCS-3391](../../data/cards/TCS-3391.json) | Efficient learning of well-separated Gaussian mixtures | Learning theory | pool |
 | [TCS-4592](../../data/cards/TCS-4592.json) | Time complexity of Gaussian agnostic halfspace learning | Learning theory | pool |
@@ -404,7 +402,6 @@ Pending active reviews: **607**.
 | [TCS-0492](../../data/cards/TCS-0492.json) | Conjunctive-query containment under bag semantics | Database theory and finite model theory | existing_detailed_audit |
 | [TCS-0506](../../data/cards/TCS-0506.json) | Private PAC sample complexity from VC and Littlestone dimensions | Differential privacy | existing_detailed_audit |
 | [TCS-0515](../../data/cards/TCS-0515.json) | Deterministic volume gap | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-0519](../../data/cards/TCS-0519.json) | Bipartite maximal matching with polynomial-in-degree volume | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0522](../../data/cards/TCS-0522.json) | Quantum 3-coloring of cycles in \(o(\log * n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0524](../../data/cards/TCS-0524.json) | LOCAL coloring below square-root degree dependence | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0611](../../data/cards/TCS-0611.json) | Bipartite Exact Matching: deterministic polynomial time | Structural graph theory | existing_detailed_audit |
