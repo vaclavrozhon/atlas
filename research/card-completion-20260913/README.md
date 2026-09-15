@@ -841,3 +841,20 @@ and the active formula check passed, covering 18,379 expressions. The preceding
 deployment was live-verified as 6110b063f40c559c1561, published
 2026-09-15T09:33:09+00:00, Pages commit
 1f9bbcdb61192cfcfa9790776f55fa77788891d0.
+
+Checkpoint 285 completes TCS-6604, the classical Fourier Entropy–Influence
+conjecture. It now has exact spectrum and bit-flip conventions and full Lean
+acceptance in both directions. The review removes proof instructions, checks
+the accuracy dependence of the DNF consequence, restores the 2011 provenance
+of the coordinate-entropy bound, distinguishes online journal and revision dates,
+and verifies that both August counterexample papers concern different scalar or
+operator domains. The June separation results retain their model assumptions.
+No new preprint proof was independently certified.
+
+The working census, including concurrent TCS-6768, is 424 individually completed/
+reviewed active cards and 628 pending out of 1,052. The queue has 285 completed
+records, including 14 inactive records. Publication and the active formula check
+passed, and completed active output hashes match. Checkpoint 283 was deployed
+and live-verified as 0d45cbd9d21acc4a1312, published
+2026-09-15T09:52:46+00:00, Pages commit
+f01edee623edfb7eda967271dc1922dae0043fc0.

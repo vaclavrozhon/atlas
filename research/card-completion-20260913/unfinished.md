@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **630**.
+Pending active reviews: **629**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -486,7 +486,6 @@ Pending active reviews: **630**.
 | [TCS-6596](../../data/cards/TCS-6596.json) | Orthogonal Vectors Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6600](../../data/cards/TCS-6600.json) | Optimal explicit pseudorandom generators for read-once branching programs | Pseudorandomness and derandomization | existing_detailed_audit |
-| [TCS-6604](../../data/cards/TCS-6604.json) | Fourier Entropy–Influence conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6605](../../data/cards/TCS-6605.json) | Aaronson–Ambainis conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6607](../../data/cards/TCS-6607.json) | Capacity of the binary deletion channel | Coding and information theory | existing_detailed_audit |
 | [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
