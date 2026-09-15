@@ -20,7 +20,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top500: Sampling, Markov chains and mixing times has 9/10 places.
 - top500: Differential privacy has 7/10 places.
 - top500: Miscellaneous has 2/10 places.
-- top1000: Algorithms has 26/50 places.
+- top1000: Algorithms has 27/50 places.
 - top1000: Automata and formal languages has 33/50 places.
 - top1000: Semantics, logic and verification has 39/50 places.
 - top1000: Optimization and numerical computation has 24/50 places.
@@ -32,7 +32,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Sampling, Markov chains and mixing times has 9/20 places.
 - top1000: Counting and enumeration has 18/20 places.
 - top1000: Data structures has 18/20 places.
-- top1000: Dynamic algorithms has 17/20 places.
+- top1000: Dynamic algorithms has 16/20 places.
 - top1000: Property testing and distribution learning has 16/20 places.
 - top1000: Differential privacy has 7/20 places.
 - top1000: Constraint satisfaction has 19/20 places.

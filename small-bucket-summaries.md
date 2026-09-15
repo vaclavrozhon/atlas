@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-604 five-sentence working summaries, based on saved source material.
+603 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1107,12 +1107,19 @@ A graph with terminals is queried by choosing labels for the terminals and a met
 [Read in atlas](index.html#TCS-3480) · [On Quasipolynomial Multicut-Mimicking Networks and Kernelization of Multiway Cut Problems](https://doi.org/10.4230/LIPIcs.ICALP.2020.101) · [Quasipolynomial multicut-mimicking networks and kernelization of multiway cut problems — corrected full version](https://arxiv.org/abs/2002.08825v3) · [Quasipolynomial Multicut-mimicking Networks and Kernels for Multiway Cut Problems](https://doi.org/10.1145/3501304) · [Approximating Small Sparse Cuts](https://arxiv.org/abs/2403.08983)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-0787 — Lower Bounds for Computing Treewidth
+### TCS-7023 — Polynomial kernels for minor-free edge deletion
 
-Computing treewidth asks for the minimum possible width of a tree decomposition of an input graph. The saved problem focuses on lower bounds for this computational task rather than only constructing faster algorithms. Such bounds would distinguish difficulties inherent in finding an optimal decomposition from limitations of existing techniques. They also affect algorithms that rely on obtaining a decomposition as their first stage. The index does not state the graph restrictions, parameter, or complexity assumption, so it cannot yet support any particular claimed optimal exponent.
+The problem deletes at most k edges so that the remaining graph excludes every member of a fixed forbidden-minor family. It asks whether every such family permits a polynomial-time reduction to one equivalent instance of polynomial size in k. The input graph is arbitrary, and all vertices remain available during edge deletion. A general kernel would provide a broad preprocessing guarantee for structural graph repair beyond known fixed-parameter algorithms. The card restores the family quantifier and distinguishes vertex deletion, promised minor-free inputs and more general compressions.
 
-[Read in atlas](index.html#TCS-0787) · [Optimality and Tight Results in Parameterized Complexity](https://doi.org/10.4230/DagRep.4.11.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7023) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867v2) · [A survey of parameterized algorithms and the complexity of edge modification](https://fedorvf.github.io/articles/2023/2023e.pdf) · [Robust Contraction Decomposition for Minor-Free Graphs and Its Applications](https://drops.dagstuhl.de/storage/00lipics/lipics-vol334-icalp2025/html/LIPIcs.ICALP.2025.17/LIPIcs.ICALP.2025.17.html)
+Existing status: `source_open` · Summary written: 2026-09-15
+
+### TCS-0787 — ETH barrier to single-exponential treewidth computation
+
+Treewidth is the smallest maximum bag size minus one among tree decompositions of a graph. The target asks whether ETH rules out exact decision in single-exponential time in the requested width and polynomial time in graph size. The algorithm must handle every input without receiving a decomposition or a promise that the width threshold is met. Resolving the question would clarify the cost of discovering the structural information used by many parameterized algorithms. The new exponential lower bound in the number of vertices is recorded separately because it does not exclude the requested parameter dependence.
+
+[Read in atlas](index.html#TCS-0787) · [Optimality and Tight Results in Parameterized Complexity (Dagstuhl Seminar 14451)](https://doi.org/10.4230/DagRep.4.11.1) · [An Improved Parameterized Algorithm for Treewidth](https://arxiv.org/abs/2211.07154v2) · [Treewidth Inapproximability and Tight ETH Lower Bound](https://arxiv.org/abs/2406.11628v2) · [Treewidth Inapproximability and Tight ETH Lower Bound](https://doi.org/10.1145/3833387)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0734 — FPT Inapproximability Results Beyond Gap-ETH
 
@@ -1294,13 +1301,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 The edge-modification survey's Planar Deletion problem asks whether a small number of edges can be removed to obtain a planar graph. The saved question asks for a polynomial kernel in the modification budget. Such preprocessing would preserve whether the graph can be made planar while discarding material irrelevant to a small repair. The main structural issue is that nonplanarity can arise through large interacting configurations. The source inventory retains the 2020 question historically and does not itself establish whether later work has supplied the requested kernel.
 
 [Read in atlas](index.html#TCS-7022) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7023 — Polynomial kernels for H-minor-free Deletion
-
-H-minor-free edge deletion removes a bounded number of edges so the remaining graph excludes a fixed graph H as a minor. The survey asks whether this task admits a polynomial kernel. A positive result would give compact equivalent instances for a broad family of structural graph repairs. The difficult information to preserve concerns all possible minor models, which may overlap and spread across the graph. The saved question does not state restrictions on H or a kernel degree, and its dated survey origin must remain separate from a current-status review.
-
-[Read in atlas](index.html#TCS-7023) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7027 — Fixed-parameter tractability of Perfect Deletion
@@ -2444,7 +2444,7 @@ Confluent persistence lets a subtree be copied between historical trie versions 
 [Read in atlas](index.html#TCS-7330) · [Confluently Persistent Tries for Efficient Version Control](https://erikdemaine.org/papers/ConfluentTries_Algorithmica/paper.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Dynamic algorithms (17)
+## Dynamic algorithms (16)
 
 ### TCS-6625 — Deterministic fully dynamic connectivity with polylogarithmic worst-case updates
 
@@ -2536,13 +2536,6 @@ The structure maintains points in the Euclidean plane. Queries ask for an exact 
 
 [Read in atlas](index.html#TCS-0387) · [The Open Problems Project: Dynamic Planar Nearest Neighbors](https://topp.openproblem.net/p63) · [Incremental Planar Nearest Neighbor Queries with Optimal Query Time](https://arxiv.org/abs/2504.07366)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-0538 — Low-degree spanning trees
-
-Given a connected undirected graph, the goal is to find a spanning tree whose maximum vertex degree is as small as possible. The seminar asks for a near-linear-time algorithm achieving an \(O(1)\) multiplicative approximation to this optimum. It recalls the \(O(mn)\)-time algorithm of Fürer and Raghavachari, which achieves an additive error of at most one in maximum degree. The source also observes that allowing an \(O(\operatorname{polylog}(n))\) multiplicative factor opens several approaches to near-linear running time. Closing this gap would provide a much faster constant-factor approximation for constructing a connected backbone with bounded load at each vertex.
-
-[Read in atlas](index.html#TCS-0538) · [Graph Algorithms: Distributed Meets Dynamic](https://doi.org/10.4230/DagRep.14.11.92)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3331 — DynFO maintenance of red-predecessor parity
 
@@ -3012,12 +3005,12 @@ Must the discrete Fourier transform take order n log n exact arithmetic operatio
 [Read in atlas](index.html#TCS-7175) · [The Division Barrier: Optimal Bounds and Structural Limits in Toom-Cook Interpolation](https://epubs.siam.org/doi/10.1137/1.9781611978971.190) · [Lower Bounds on the Bounded Coefficient Complexity of Bilinear Maps](https://arxiv.org/abs/cs/0301016) · [A Lower Bound for Fourier Transform Computation in a Linear Model Over 2x2 Unitary Gates Using Matrix Entropy](https://arxiv.org/abs/1305.4745) · [Paraunitary Matrices, Entropy, Algebraic Condition Number and Fourier Computation](https://arxiv.org/abs/1609.03278v6)
 Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-6616 — Breaking the \(2^{n}\) barrier for exact permanent computation
+### TCS-6616 — Uniform exact permanent circuits below base two
 
-Exact permanent computation evaluates the unsigned sum of permutation products of a square matrix. The saved question asks for an arithmetic algorithm with running time O((2−epsilon)^n) for some fixed positive epsilon over characteristic zero. The target is an exponential-base improvement, not a polynomial factor saved from a two-to-the-n procedure. It probes whether the familiar inclusion-exclusion scale reflects a genuine obstacle in this canonical counting polynomial. The source formulation counts arithmetic operations, so coefficient bit complexity and approximate evaluation require separate treatment before comparing algorithms to this target.
+The permanent is the unsigned sum of permutation products of a square matrix. This card asks whether exact division-free rational circuits can beat exponential base two while being generated uniformly within the same exponential bound. The generated polynomial must work for every matrix over every characteristic-zero field, with bit costs for circuit construction separated from field-operation costs for evaluation. Checked recent results give conditional circuit improvements, finite-ring algorithms, bounded-entry bit-time savings or lower bounds for restricted formula classes. A complete Lean proof must establish the specified uniform circuit family with a fixed positive base saving or rule out every family meeting these conventions.
 
-[Read in atlas](index.html#TCS-6616) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.36)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6616) · [Kronecker Scaling of Tensors with Applications to Arithmetic Circuits and Algorithms](https://doi.org/10.4230/LIPIcs.ICALP.2026.36) · [Computing Permanents and Counting Hamiltonian Cycles by Listing Dissimilar Vectors](https://doi.org/10.4230/LIPIcs.ICALP.2019.25) · [Counting Perfect Matchings and Hamiltonian Cycles Faster](https://arxiv.org/abs/2309.15422v2) · [Ryser, Glynn, and the discrete Fourier transform: orthogonal schemes for the permanent](https://arxiv.org/abs/2607.09949v2)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0481 — Cubic min-plus circuit lower bounds for shortest paths
 

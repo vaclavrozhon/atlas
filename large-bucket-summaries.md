@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-406 five-sentence working summaries, based on saved source material.
+407 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -502,7 +502,7 @@ P versus NP asks whether efficiently verifiable decisions can always be made eff
 [Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-## Algorithms (26)
+## Algorithms (27)
 
 ### TCS-6537 — Expected linear-time integer sorting for every word length
 
@@ -629,6 +629,13 @@ An inversion is a pair of positions that appear in the wrong relative order in a
 
 [Read in atlas](index.html#TCS-7351) · [Counting Inversions, Offline Orthogonal Range Counting, and Related Problems](https://tmc.web.engr.illinois.edu/inv_7_7_09.pdf) · [Counting inversions adaptively](https://arxiv.org/abs/1503.01192)
 Existing status: `uncertain` · Summary written: 2026-09-13
+
+### TCS-0538 — Near-linear constant-factor minimum-degree spanning trees
+
+The input is one connected graph, and the output is a spanning tree with small maximum degree. The source asks whether a universal constant approximation can be constructed in near-linear time. This is a static algorithmic question, despite its inherited placement among dynamic graph problems. A July 2026 preprint states a stronger deterministic guarantee that would settle the target. The card records that reported resolution and the exact model while keeping independent proof verification separate.
+
+[Read in atlas](index.html#TCS-0538) · [Graph Algorithms: Distributed Meets Dynamic (Dagstuhl Seminar 24471)](https://drops.dagstuhl.de/storage/04dagstuhl-reports/volume14/issue11/24471/DagRep.14.11.92/DagRep.14.11.92.pdf) · [Additive One Approximation for Minimum Degree Spanning Tree: Breaking the O(mn) Time Barrier](https://doi.org/10.1145/3798129.3800832) · [Minimum Degree Spanning Tree: \((1+\varepsilon,1)\)-Approximation in Near-Linear Time](https://arxiv.org/abs/2607.11413v1) · [Research publications](https://www.ermiyafr.com/)
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-0809 — Strongly polynomial planar minimum-cost flow
 
@@ -1315,6 +1322,13 @@ A maximal matching is a collection of disjoint edges to which no further edge ca
 [Read in atlas](index.html#TCS-0519) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [Truly Tight-in-\(\Delta\) Bounds for Bipartite Maximal Matching and Variants](https://arxiv.org/abs/2002.08216v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6125 — Linear CONGEST lower bound with logarithmic LOCAL complexity
+
+An LCL specifies legal output labels by a finite list of constant-radius neighborhoods. The question asks for one problem that is solvable in logarithmic deterministic LOCAL time but needs linear randomized CONGEST time. Both models communicate along the same bounded-degree graph, while CONGEST restricts each message to logarithmically many bits. Such a result would isolate an extreme cost of bandwidth despite local verifiability of solutions. The card requires all connected inputs without additional promises and states the identifiers, private randomness and global error convention explicitly.
+
+[Read in atlas](index.html#TCS-6125) · [Locally Checkable Labelings with Small Messages](https://drops.dagstuhl.de/doi/10.4230/LIPIcs.DISC.2021.8) · [Locally Checkable Labelings with Small Messages](https://jukkasuomela.fi/doc/lcl-congest.pdf) · [It does not matter how you define locally checkable labelings](https://arxiv.org/abs/2602.18188) · [It does not matter how you define locally checkable labelings](https://jukkasuomela.fi/lcl-definitions/)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-0940 — Lifting CSP sketching resistance to sublinear streaming resistance
 
 Each fixed predicate family defines a maximum constraint-satisfaction problem. A nontrivial approximation beats the best constant lower bound on the optimum by a fixed amount. The conjecture lifts resistance to small mergeable sketches into resistance to all sublinear-space streaming algorithms. Both the algorithm model and the space threshold change in the implication. The 2026 LP-gap lower bounds are recorded without claiming a verified resolution of this exact lifting statement.
@@ -1559,13 +1573,6 @@ Weighted all-pairs shortest paths requires every vertex to learn exact distances
 
 [Read in atlas](index.html#TCS-6080) · [Quadratic and Near-Quadratic Lower Bounds for the CONGEST Model](https://doi.org/10.4230/LIPIcs.DISC.2017.10)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6125 — Exponential LOCAL–CONGEST separation for bounded-degree LCLs
-
-Locally checkable labeling problems have solutions whose validity can be inspected within neighborhoods of constant radius. The source asks for a bounded-degree graph problem solvable in \(O(\log  n) \mathrm{LOCAL}\) rounds but requiring \(\Omega (n) \mathrm{CONGEST}\) rounds. The two models differ only in message-size restrictions, so such a separation would isolate the cost of bandwidth. The paper already separates them by a smaller gap on general graphs while showing matching complexities on trees. A stronger example would demonstrate that even a locally verifiable task can require nearly global communication time when short messages replace unrestricted exchanges.
-
-[Read in atlas](index.html#TCS-6125) · [Locally Checkable Labelings with Small Messages](https://doi.org/10.4230/LIPIcs.DISC.2021.8)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6206 — Clique detection in CONGEST
 

@@ -7,7 +7,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | Group | Category | Top 100 | Top 500 | Legacy Top 1000 | Candidates |
 | --- | --- | ---: | ---: | ---: | ---: |
 | large 1 | Computational complexity | 5 | 25 | 50 | 74 |
-| large 2 | Algorithms | 5 | 25 | 50 | 26 |
+| large 2 | Algorithms | 5 | 25 | 50 | 27 |
 | large 3 | Automata and formal languages | 5 | 25 | 50 | 33 |
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 39 |
 | large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 59 |
@@ -29,7 +29,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 11 | Counting and enumeration | 2 | 10 | 20 | 18 |
 | small 12 | Structural graph theory and graph algorithms | 2 | 10 | 20 | 52 |
 | small 13 | Data structures | 2 | 10 | 20 | 18 |
-| small 14 | Dynamic algorithms | 2 | 10 | 20 | 17 |
+| small 14 | Dynamic algorithms | 2 | 10 | 20 | 16 |
 | small 15 | String algorithms and computational biology | 2 | 10 | 20 | 26 |
 | small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 23 |
 | small 17 | Algebraic computation | 2 | 10 | 20 | 64 |
