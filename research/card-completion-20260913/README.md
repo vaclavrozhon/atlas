@@ -977,3 +977,20 @@ passed, covering 19,245 expressions. A concurrent Pages push rejected one local
 deployment attempt because another process advanced the branch; its resulting
 same-version publication was live-verified as a12fecc42ce2986c04c3, published
 2026-09-15T18:10:38+00:00. The rejected push did not alter or force the branch.
+
+Checkpoint 331 includes the individual completion of TCS-0003, P versus BPP.
+Its total-language target now has exact finite fair-coin semantics, a worst-case
+polynomial clock on all random tapes, explicit uniform machine quantifiers,
+and both complete Lean answer directions. The inspected 2019 book numbering
+replaces the earlier edition reference. The May 2026 insensitivity theorem
+retains its hardness and structural assumptions. Lin's current July revision
+is recorded as a direct unverified separation claim, preserving uncertain
+status. Oracle/promise results are distinguished from the retained target;
+no construction walkthrough or weaker intermediate task is supplied.
+
+The concurrent census is 1,044 active cards: 462 completed/reviewed and 582
+pending. The queue has 331 completed records, 309 still active and 22 inactive;
+all active completed hashes match. Publication and active formula validation
+passed with 19,646 expressions. The preceding mean-payoff deployment was
+live-verified as f2fd10d437d5a2c8a7f5, published 2026-09-15T18:17:33+00:00,
+Pages commit bcd9c2ed28a23f1c5b396ced017685fccf8798ed.
