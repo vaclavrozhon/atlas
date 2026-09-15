@@ -167,3 +167,30 @@ archive activity entries are included in the next checkpoint commit; their full
 card records, archive index, queue and review ledger were already committed.
 There are nine new importance assessments through checkpoint six. Existing
 community comments remain intact.
+
+The seventh draw, continued on 15 September, brings this process to thirty
+completed reviews and twenty-seven retained active records:
+
+- TCS-0538: the static near-linear constant-factor minimum-degree spanning-tree
+  question. The July 2026 preprint reports a matching deterministic construction;
+  the card records reported resolution with uncertain proof-verification status.
+  Its inherited dynamic category mapping was corrected to Algorithms after the
+  full source question showed no update task. Assessed importance 66 was preserved.
+- TCS-0787: the source's explicit single-exponential treewidth question under
+  ETH, with an exact threshold-decision task. Bonnet's exponential lower bound
+  does not exclude single-exponential parameter dependence; its 2026 journal
+  publication is distinguished from a resolution of this question.
+- TCS-6125: one total bounded-degree LCL with logarithmic deterministic LOCAL
+  complexity and linear randomized CONGEST complexity. The full specification,
+  identifier conventions, global error and quantifiers are explicit. Individual
+  importance: 82.
+- TCS-7023: polynomial kernels for edge deletion to exclude a fixed family of
+  minors. The family quantifier, bit representation and same-problem kernel
+  output are restored. The published 2023 survey still asks the question;
+  2025 algorithms on already minor-free inputs address a different task.
+  Individual importance: 81.
+
+Checkpoint six's source commit is `45c9836f`, including the pending archival
+activity entries from checkpoint five. There are eleven new individual
+importance assessments through checkpoint seven. No previously assessed score
+was raised, and no pre-existing inactive card was reopened for review.
