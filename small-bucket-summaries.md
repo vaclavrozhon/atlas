@@ -156,10 +156,10 @@ Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0025 — Superpolynomial lower bounds for unrestricted Frege proofs
 
-Frege systems formalize propositional deduction through finitely specified rules and reusable intermediate lemmas. The question asks whether tautologies sometimes require proofs exceeding every polynomial in their own encoded length. It concerns the shortest possible derivation, not the time spent by any particular proof-search strategy. A lower bound would establish a substantial limitation on a familiar model of mathematical reasoning. The saved review notes that powerful counting arguments give short Frege proofs where weaker systems struggle, and that separating Frege alone would not establish \(\mathrm{NP}\ne \mathrm{coNP}\).
+Ordinary Frege is a fixed finite calculus for propositional reasoning that allows arbitrary intermediate formulas and unrestricted reuse of earlier deductions. The question asks whether every proposed polynomial bound fails to cover the shortest Frege proofs of some genuine tautologies. Both the conclusion and the entire proof are measured by explicit binary encodings, including repeated formulas and inference references. Known lower bounds with depth, tree or line-size restrictions and recent algebraic lower bounds do not settle the unrestricted comparison. A complete Lean proof must establish failure of every universal polynomial bound or prove one bound for all tautologies, without an additional proof-search or hard-family construction requirement.
 
-[Read in atlas](index.html#TCS-0025) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Polynomial Size Proofs of the Propositional Pigeonhole Principle](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/php_PolyFrege/FregePHP.pdf) · [Superpolynomial Length Lower Bounds for Tree-Like Semantic Proof Systems with Bounded Line Size](https://arxiv.org/abs/2604.28172) · [\(Res(\log )\) Proves Bounded-Depth Frege Lower Bounds](https://eccc.weizmann.ac.il/report/2026/055/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0025) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Polynomial Size Proofs of the Propositional Pigeonhole Principle](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/php_PolyFrege/FregePHP.pdf) · [Superpolynomial Length Lower Bounds for Tree-Like Semantic Proof Systems with Bounded Line Size](https://arxiv.org/abs/2604.28172) · [\(Res(\log )\) Proves Bounded-Depth Frege Lower Bounds](https://eccc.weizmann.ac.il/report/2026/055/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/) · [Quasi-polynomial Frege Simulation of IPS beyond Noncommutativity](https://eccc.weizmann.ac.il/report/2026/166/)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-7162 — Existence of p-optimal proof systems
 
@@ -2998,6 +2998,13 @@ Two finite groups are supplied by complete tables describing their multiplicatio
 [Read in atlas](index.html#TCS-6615) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2024.4)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6898 — Derandomizing black-box depth-four PIT
+
+The question asks for a deterministic polynomial-time construction of evaluation points that detect every nonzero polynomial computed by a size-bounded depth-four arithmetic circuit. The same generated set must work for every circuit of the given size without seeing its coefficients or gates. The model charges field operations and output length, and explicitly permits a sufficiently large working field. There is no constant bound on the top fan-in or bottom degree and no homogeneity or multilinearity assumption. Recent polynomial-time results impose fixed fan-in, quadratic factors or powering restrictions, while the general target remains unresolved in the checked literature.
+
+[Read in atlas](index.html#TCS-6898) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Deterministic Identity Testing Paradigms for Bounded Top-Fanin Depth-4 Circuits](https://doi.org/10.4230/LIPIcs.CCC.2021.11) · [Rank Bounds and Polynomial-Time PIT for \(\Sigma^k\Pi\Sigma\Pi^2\) Circuits](https://eccc.weizmann.ac.il/report/2026/084/download/) · [Polynomial Identity Testing and Reconstruction for Depth-4 Powering Circuits of High Degree](https://arxiv.org/abs/2602.20832)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-7175 — Unrestricted arithmetic lower bounds for the discrete Fourier transform
 
 Must the discrete Fourier transform take order n log n exact arithmetic operations when constants are unrestricted? The target covers every sufficiently large power-of-two input length and all straight-line programs in the stated model. The FFT achieves this cost by sharing intermediate computations. Known matching lower bounds impose coefficient, gate, storage or conditioning restrictions. Normalization, bit precision and quantum state transformations require care because their computational models differ.
@@ -3311,13 +3318,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Polynomial identity testing decides whether an arithmetic representation computes the zero polynomial. The source asks whether an efficient identity test for a circuit class implies that the permanent is hard for that same class. The desired implication would convert an algorithm for recognizing algebraic cancellation into a lower bound for a canonical counting polynomial. This is a focused hardness-versus-randomness question because the conclusion must concern the particular class being tested. The saved formulation leaves efficient testing and closure assumptions unspecified, and those hypotheses are essential before a general implication can be claimed.
 
 [Read in atlas](index.html#TCS-6897) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6898 — Derandomizing black-box depth-four PIT
-
-Black-box identity testing sees a polynomial only through evaluations rather than inspecting its circuit. The source asks for deterministic testing of polynomials represented by depth-four arithmetic circuits. A deterministic solution must choose evaluations that expose every nonzero polynomial in the promised class without relying on random sampling. The challenge therefore combines shallow-circuit structure with the need for a universally effective evaluation set. The saved 2010 note does not state the degree, field, or size parameters, so those conventions and the source's intended efficiency must be restored for a precise derandomization target.
-
-[Read in atlas](index.html#TCS-6898) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6903 — Derandomizing noncommutative PIT
@@ -3641,10 +3641,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1011 — Full-length Reed–Solomon list decoding beyond Johnson
 
-A full-length Reed–Solomon code evaluates low-degree polynomials at every field element in its prescribed evaluation set. The textbook asks whether these codes admit combinatorial list decoding beyond the stated Johnson-style square-root bound. The issue is whether every corrupted word has only a controlled number of nearby codewords. Improving this radius would clarify the inherent error tolerance of one of the central algebraic code families. A bound on list size is distinct from an efficient algorithm finding the list, and the saved note still requires the exact rate and radius regime.
+The question asks whether some infinite family of full-length Reed–Solomon codes has polynomially bounded lists beyond the Johnson threshold. The code evaluates every polynomial of degree at most a fixed fraction of the field size at every field element. One fixed pair of rate and agreement constants and one polynomial list bound must work for every received word along infinitely many field sizes. This is an information-theoretic existence question and does not demand an efficient decoding algorithm. Recent capacity theorems for randomly punctured codes and lower bounds for list recovery have different quantifiers or models and do not settle this target.
 
-[Read in atlas](index.html#TCS-1011) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1011) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Random Reed–Solomon Codes Achieve List-Decoding Capacity With Linear-Sized Alphabets](https://arxiv.org/abs/2304.09445) · [Near-Optimal List-Recovery of Linear Code Families](https://drops.dagstuhl.de/storage/00lipics/lipics-vol353-approx-random2025/LIPIcs.APPROX-RANDOM.2025.53/LIPIcs.APPROX-RANDOM.2025.53.pdf)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0196 — Polyhedrality of linear-rank inequality cones
 

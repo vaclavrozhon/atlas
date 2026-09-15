@@ -1893,6 +1893,13 @@ Deciding whether two triangulated three-manifolds are homeomorphic has algorithm
 [Read in atlas](index.html#TCS-0430) · [Triangulations in Geometry and Topology: Homeomorphism](https://doi.org/10.4230/DagRep.14.2.120) · [Algorithmic homeomorphism of 3-manifolds as a corollary of geometrization](https://doi.org/10.2140/pjm.2019.301.189) · [Some conditionally hard problems on links and 3-manifolds](https://arxiv.org/abs/1602.08427) · [Recognition of Seifert fibered spaces with boundary is in NP](https://doi.org/10.1007/s00208-024-02920-x) · [Computational Geometry: Treewidth of 3-Manifolds](https://doi.org/10.4230/DagRep.15.5.64)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-3059 — Lower-left anchored rectangle packing constant
+
+The target is the worst possible optimal coverage by rectangles anchored at their lower-left corners at arbitrary points of the unit square. Every finite point set must include the origin, and each point receives a positive-area rectangle with no interior overlap. The numerical answer must locate the universal coverage constant within one percentage point, with a complete Lean proof. Freedman’s exact half-coverage conjecture remains the source question and is stronger than satisfying this approximation criterion. The checked universal bounds are 39 and 50 percent, while the smaller upper bound in the 2021 paper concerns only its particular greedy algorithm.
+
+[Read in atlas](index.html#TCS-3059) · [On Greedily Packing Anchored Rectangles](https://doi.org/10.4230/LIPIcs.ICALP.2021.61) · [An Existential Proof of the Conjecture on Packing Anchored Rectangles](https://arxiv.org/abs/1310.8403) · [Matching and Packing Problems – Optimization Under Uncertainty in Theory and Practice](https://media-api.suub.uni-bremen.de/api/core/bitstreams/070d2aba-8991-4dd5-a008-1c348fdf8c8f/content)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-0416 — Polygon visibility graph recognition
 
 A polygon's visibility graph records which pairs of vertices can be joined by a segment lying inside the polygon. The source supplies both a candidate graph and a Hamiltonian cycle specifying the intended polygon boundary. It asks for an efficient decision procedure for whether a simple polygon realizes exactly that information. Choosing coordinates must satisfy visibility and obstruction requirements simultaneously. The problem tests whether a combinatorial record of sight lines contains enough accessible structure to reconstruct a genuine geometric environment.
@@ -1975,13 +1982,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A minimum-link path connects two locations among polygonal obstacles while using as few straight segments as possible. Its objective counts bends and segments rather than total Euclidean length. The source asks whether the planar problem admits a subquadratic algorithm. A short-distance path need not minimize links, so standard shortest-path techniques do not automatically achieve the target. The task would improve route simplification in environments where changing direction is costly even when travel along a straight segment is inexpensive.
 
 [Read in atlas](index.html#TCS-0409) · [The Open Problems Project](https://topp.openproblem.net/p22)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3059 — Freedman’s conjecture
-
-Place points in a unit square, including its lower-left corner. Each point may anchor the lower-left corner of an axis-aligned rectangle contained in the square, and the rectangles must not overlap. The conjecture asks whether rectangles can always cover at least half the square. The cited paper shows a limitation of a particular greedy packing approach and calls for different algorithms. The remaining challenge is to coordinate anchored rectangle choices globally so that wasted area never exceeds the proposed universal threshold.
-
-[Read in atlas](index.html#TCS-3059) · [On Greedily Packing Anchored Rectangles](https://doi.org/10.4230/LIPIcs.ICALP.2021.61)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4454 — Half-snowflake embeddings into Wasserstein p-space
