@@ -862,10 +862,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1135 — Promise-AM derandomization via targeted hitting sets
 
-Arthur–Merlin protocols combine public randomness with a prover who supplies information to help verify membership. The source asks for a characterization of promise-AM derandomization using targeted hitting sets. A hitting set guarantees that useful random choices are encountered, without necessarily reproducing their full distribution. Such a characterization could turn an interactive complexity question into a concrete combinatorial construction task. The saved entry does not define what the hitting set may target or how uniformly it is produced, and these restrictions determine whether the proposed equivalence has real algorithmic content.
+The question compares promise-Arthur–Merlin derandomization with the existence of targeted hitting sets. A generator receives a co-nondeterministic circuit and must hit its accepting ordinary inputs whenever they occupy at least half the domain. Nondeterministic generation must always have a successful branch, and every successful output must satisfy the required hitting guarantee. The source asks whether eliminating public randomness is equivalent to a uniform polynomial-time generator of this kind. The checked 2025 journal result establishes a weaker connection involving different time, advice and input-length guarantees.
 
-[Read in atlas](index.html#TCS-1135) · [New ways of studying the \(\mathrm{BPP} = \mathrm{P}\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1135) · [New ways of studying the \(\mathrm{BPP}=\mathrm P\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/) · [Instance-Wise Hardness and Refutation versus Derandomization for Arthur-Merlin Protocols](https://pages.cs.wisc.edu/~dieter/Papers/r-am-instance-wise-cc.pdf)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1137 — Derandomization from almost-everywhere uniform hardness
 

@@ -625,10 +625,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7351 — Linear-time exact inversion counting
 
-An inversion is a pair of positions that appear in the wrong relative order in a permutation. The task is to compute the exact total number of inversions. The question asks for deterministic linear time on a word RAM with logarithmic words. Linear approximation and faster algorithms for nearly sorted inputs do not give this exact worst-case guarantee. The current-status review is limited mainly to older primary evidence, and the card records that uncertainty.
+An inversion is a pair of permutation positions whose values appear in decreasing order. The task is to return the exact total number of such pairs as one integer. The question asks whether one deterministic program can do this in linear worst-case time on a word RAM with logarithmic words. Known approximation and adaptive algorithms do not provide that exact guarantee for every permutation. A STOC 2025 result links faster exact inversion counting to faster packed Dictionary Matching, giving the question broader algorithmic significance.
 
-[Read in atlas](index.html#TCS-7351) · [Counting Inversions, Offline Orthogonal Range Counting, and Related Problems](https://tmc.web.engr.illinois.edu/inv_7_7_09.pdf) · [Counting inversions adaptively](https://arxiv.org/abs/1503.01192)
-Existing status: `uncertain` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7351) · [Counting Inversions, Offline Orthogonal Range Counting, and Related Problems](https://tmc.web.engr.illinois.edu/inv_7_7_09.pdf) · [Counting Inversions Adaptively](https://arxiv.org/abs/1503.01192) · [On the Hardness Hierarchy for the \(O(n\sqrt{\log n})\) Complexity in the Word RAM](https://arxiv.org/abs/2503.21049)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0538 — Near-linear constant-factor minimum-degree spanning trees
 
