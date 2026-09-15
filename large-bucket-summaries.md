@@ -1653,12 +1653,12 @@ The Beck–Fiala conjecture asks whether bounded participation of each element i
 [Read in atlas](index.html#TCS-7315) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [Online Beck–Fiala Down to Logarithmic Sparsity](https://arxiv.org/abs/2607.14238v1) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
 Existing status: `uncertain` · Summary written: 2026-09-14
 
-### TCS-0491 — Log-squared query complexity for fixed-dimensional Tarski
+### TCS-0491 — Log-squared query complexity of fixed-dimensional Tarski fixed points
 
-A monotone function on a finite multidimensional grid is guaranteed to have a fixed point. The project asks whether one can find any such point using only a squared-logarithmic number of value queries in the grid side length. The dimension is fixed, and the multiplicative constant may depend arbitrarily on it. Incomparable grid points complicate the interval-discarding ideas that make one-dimensional search efficient. A positive answer would show that higher fixed dimensions need not increase the logarithmic query exponent, independently of the computation performed between queries.
+The input is oracle access to a monotone function on a finite grid of fixed dimension. Each query reveals one full function value, and any exact fixed point is acceptable. The question asks whether the worst-case deterministic query count is bounded by a squared logarithm of side length in every fixed dimension. A March 2026 result establishes that bound in dimension four while leaving the general fixed-dimension question unresolved. Resolving the target would clarify the information needed for monotone fixed-point search without also requiring fast internal computation.
 
-[Read in atlas](index.html#TCS-0491) · [Finite and Algorithmic Model Theory (Dagstuhl Seminar 22051)](https://doi.org/10.4230/DagRep.12.1.101) · [A Faster Algorithm for Finding Tarski Fixed Points](https://doi.org/10.1145/3524044) · [Tarski Lower Bounds from Multi-Dimensional Herringbones](https://arxiv.org/abs/2502.16679v2) · [The Mystery Deepens: On the Query Complexity of Tarski Fixed Points](https://arxiv.org/abs/2604.00268v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0491) · [Can the current bounds for computing a Tarski fixed point on a finite (grid) lattice be improved?](https://doi.org/10.4230/DagRep.12.1.101) · [Tarski Lower Bounds from Multi-Dimensional Herringbones](https://arxiv.org/abs/2502.16679) · [The Mystery Deepens: On the Query Complexity of Tarski Fixed Points](https://arxiv.org/abs/2604.00268) · [Quantum Query Complexity of Finding a Tarski Fixed Point on a High-Dimensional Grid](https://arxiv.org/abs/2609.03802)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-7298 — Constant-factor entrywise \(\ell_1\) rank-\(k\) approximation with variable \(k\)
 

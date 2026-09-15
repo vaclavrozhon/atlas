@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-603 five-sentence working summaries, based on saved source material.
+601 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1331,7 +1331,7 @@ Directed Edge Multicut deletes arcs so that each specified source can no longer 
 [Read in atlas](index.html#TCS-7036) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (25)
+## Approximation algorithms and inapproximability (24)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1486,13 +1486,6 @@ Capacitated k-median selects centers and assigns clients while limiting how many
 
 [Read in atlas](index.html#TCS-6309) · [Constant-Factor FPT Approximation for Capacitated k-Median](https://doi.org/10.4230/LIPIcs.ESA.2019.1)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6723 — Steiner Forest approximation below factor two
-
-Steiner forest buys a minimum-cost subgraph connecting every prescribed pair of terminals. The saved 2011 textbook question asks for an approximation factor strictly below two. Different required pairs may share purchased edges, so solving their paths separately can waste substantial cost. Beating two would sharpen a foundational guarantee for network construction with multiple connectivity obligations. This is a dated source question rather than a current-status audit, and a complete formulation still needs to fix the graph model and whether the improvement is a universal constant.
-
-[Read in atlas](index.html#TCS-6723) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6756 — Optimal general-domain CSP approximation under Unique Games hardness
 
@@ -2444,7 +2437,7 @@ Confluent persistence lets a subtree be copied between historical trie versions 
 [Read in atlas](index.html#TCS-7330) · [Confluently Persistent Tries for Efficient Version Control](https://erikdemaine.org/papers/ConfluentTries_Algorithmica/paper.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Dynamic algorithms (16)
+## Dynamic algorithms (15)
 
 ### TCS-6625 — Deterministic fully dynamic connectivity with polylogarithmic worst-case updates
 
@@ -2550,13 +2543,6 @@ The data structure maintains exact distances from a fixed source while weighted 
 
 [Read in atlas](index.html#TCS-5209) · [Deterministic Partially Dynamic Single Source Shortest Paths in Weighted Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2017.44) · [Deterministic Partially Dynamic Single Source Shortest Paths in Weighted Graphs — full version](https://arxiv.org/abs/1705.10097) · [Dynamic Approximate Shortest Paths and Beyond: Subquadratic and Worst-Case Update Time](https://arxiv.org/abs/1909.10850) · [Deterministic Fully Dynamic SSSP and More](https://doi.org/10.1109/FOCS57990.2023.00142)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-6477 — Deterministic subquadratic dynamic s–t reachability
-
-Dynamic s–t reachability asks whether a fixed target can be reached from a fixed source after directed edge updates. The saved question asks for a deterministic fully dynamic algorithm with subquadratic time. The ability to both insert and delete edges means reachability information can appear and disappear globally. A better bound would strengthen deterministic maintenance for one of the simplest directed graph queries. The excerpt does not state whether the time refers to updates, queries, or a combined convention, so the intended subquadratic target still needs the original model.
-
-[Read in atlas](index.html#TCS-6477) · [Deterministic Fully Dynamic SSSP and More](https://doi.org/10.1109/FOCS57990.2023.00142)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## String algorithms and computational biology (26)
 
@@ -2702,10 +2688,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7361 — Input-optimal construction of compact inverse suffix arrays
 
-The input is a binary text stored in packed machine words. The output must answer inverse suffix-array queries in constant time. All retained information must use linear bits. The question asks for construction time proportional to the number of input words. The newest cited construction has a square-root-logarithmic gap from that target.
+The input is a binary text packed into machine words. The desired static index must answer the exact lexicographic rank of any suffix in constant worst-case time. All retained information and query workspace must occupy a linear number of bits. The question asks whether deterministic construction can take time proportional to the number of packed input words. An August 2026 preprint has a square-root-logarithmic construction gap and a conditional connection to faster Dictionary Matching, while this stronger endpoint remains status-uncertain.
 
-[Read in atlas](index.html#TCS-7361) · [Constant-Time Inverse Suffix Array Queries in Compact Space and Sublinear-Time Construction of Suffix Array Indexes](https://arxiv.org/abs/2608.19123) · [Text Indexing and Searching in Sublinear Time](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2020.24)
-Existing status: `uncertain` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7361) · [Constant-Time Inverse Suffix Array Queries in Compact Space and Sublinear-Time Construction of Suffix Array Indexes](https://arxiv.org/abs/2608.19123) · [Text Indexing and Searching in Sublinear Time](https://doi.org/10.4230/LIPIcs.CPM.2020.24)
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-0468 — Linear-time LZ77 pattern matching
 
@@ -2930,10 +2916,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6612 — VP versus VBP over the complex numbers
 
-Arithmetic circuits allow intermediate polynomial computations to be reused freely, whereas branching programs represent sums of products along paths. The question asks whether these two models have equal power for polynomial-degree families over the complex numbers when polynomial size is allowed. A positive answer would make determinant-like computation universal for efficiently computed polynomials in this setting. The comparison concerns unrestricted branching programs, with no fixed variable order, width, or multilinearity promise. The obstacle is preserving a polynomial size bound when converting general sharing patterns into path-sum representations, rather than merely constructing some equivalent program.
+VP versus VBP asks whether every polynomial-degree family with small arithmetic circuits also has small algebraic branching programs over the complex numbers. The branching programs compute exact sums of affine-label products along paths, with all coefficients and variable occurrences included in the algebraic size. Both models are nonuniform and allow arbitrary complex constants, with no imposed symmetry, width or multilinearity restriction. A complete Lean-checked answer must establish the universal polynomial simulation or one circuit-easy family requiring superpolynomial branching-program size. The question would decide whether determinant-like computation captures general efficient algebraic computation, beyond the known quasipolynomial simulations and restricted-model results.
 
-[Read in atlas](index.html#TCS-6612) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/download/) · [Homogeneous Algebraic Complexity Theory and Algebraic Formulas](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.43) · [Factorization of Polynomials Given by Arithmetic Branching Programs](https://doi.org/10.1007/s00037-021-00215-0) · [Lower Bounds in Algebraic Complexity via Symmetry and Homomorphism Polynomials](https://arxiv.org/abs/2601.09343) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6612) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/download/) · [Homogeneous Algebraic Complexity Theory and Algebraic Formulas](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.43) · [Factorization of Polynomials Given by Arithmetic Branching Programs](https://doi.org/10.1007/s00037-021-00215-0) · [Lower Bounds in Algebraic Complexity via Symmetry and Homomorphism Polynomials](https://arxiv.org/abs/2601.09343) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/) · [Factorization of Polynomials Given By Arithmetic Branching Programs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2020.33)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0005 — VP versus VNP
 

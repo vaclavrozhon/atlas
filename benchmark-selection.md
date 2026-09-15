@@ -12,7 +12,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 487 | 13 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 816 | 184 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 815 | 185 |
 
 ## Unfilled places
 
@@ -32,7 +32,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Sampling, Markov chains and mixing times has 9/20 places.
 - top1000: Counting and enumeration has 18/20 places.
 - top1000: Data structures has 18/20 places.
-- top1000: Dynamic algorithms has 16/20 places.
+- top1000: Dynamic algorithms has 15/20 places.
 - top1000: Property testing and distribution learning has 16/20 places.
 - top1000: Differential privacy has 7/20 places.
 - top1000: Constraint satisfaction has 19/20 places.
