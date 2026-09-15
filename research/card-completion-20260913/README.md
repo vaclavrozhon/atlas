@@ -921,3 +921,21 @@ shape and ledger hashes without changing mathematical content. The retry
 succeeded and was live-verified as 86b3654cee038a0fb50c, published
 2026-09-15T17:23:02+00:00, Pages commit
 62982f7295786d0fb363901c8e8effbcae53ef7a.
+
+Checkpoint 308 completes TCS-6625, exact deterministic fully dynamic
+connectivity. The card now fixes finite uniform word-RAM semantics, initialization,
+all sequence lengths, persistent storage and both complete Lean answer directions.
+It removes algorithm and potential-derandomization instructions. Primary bounds
+were checked with their amortization, randomness and cell-width restrictions.
+A newer FOCS 2026 accepted-paper title was found and corroborated on an author
+page, but the inspected entries supplied neither a theorem nor manuscript link.
+The card remains active with uncertain current status; no deterministic theorem
+was inferred from the title. The balanced-cut application locator was corrected
+to Section 6.2, with an explicit ledger amendment.
+
+The combined census is 1,049 active cards: 444 individually completed/reviewed
+and 605 pending. The 308 completed queue records include 17 inactive records;
+all 291 active completed output hashes match. Publication and active formula
+validation passed, covering 19,071 expressions. The preceding deployment was
+live-verified as d356a5212abf2a26bb07, published 2026-09-15T17:45:37+00:00,
+Pages commit 5385824f26eb549fdea09022796220319d3c59a7.

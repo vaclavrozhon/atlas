@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **614**.
+Pending active reviews: **613**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -484,7 +484,6 @@ Pending active reviews: **614**.
 | [TCS-6619](../../data/cards/TCS-6619.json) | Exact Euclidean SVP in single-exponential time and polynomial space | Lattices and computational number theory | existing_detailed_audit |
 | [TCS-6621](../../data/cards/TCS-6621.json) | Rapid mixing of Glauber dynamics with \(\Delta +2\) colours | Randomized algorithms and sampling | existing_detailed_audit |
 | [TCS-6623](../../data/cards/TCS-6623.json) | Worst-case sample complexity of trace reconstruction | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-6625](../../data/cards/TCS-6625.json) | Deterministic fully dynamic connectivity with polylogarithmic worst-case updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6626](../../data/cards/TCS-6626.json) | Polylogarithmic worst-case updates for exact dynamic minimum spanning forests | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6627](../../data/cards/TCS-6627.json) | Fully dynamic near-optimal matching with polylogarithmic updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6630](../../data/cards/TCS-6630.json) | Effective classification of polynomially testable hereditary graph properties | Property testing and distribution learning | existing_detailed_audit |
