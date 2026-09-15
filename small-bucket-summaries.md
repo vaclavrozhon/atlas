@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-601 five-sentence working summaries, based on saved source material.
+600 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -746,7 +746,7 @@ SETH, the APSP hypothesis, and the 3SUM hypothesis assert precise barriers for t
 [Read in atlas](index.html#TCS-6950) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Pseudorandomness and derandomization (42)
+## Pseudorandomness and derandomization (41)
 
 ### TCS-0003 — P versus BPP
 
@@ -886,13 +886,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A bipartite vertex expander sends every sufficiently small set of left vertices to many distinct right neighbors. The textbook asks for explicit balanced constructions with expansion \(D- O(1)\), where D is the degree. This means only a constant amount of expansion is lost relative to the maximum D neighbors per vertex. Such graphs provide highly efficient spreading and sampling structures from bounded local connectivity. The saved note omits the range of sets that must expand and the explicitness requirement, so these must be restored before the additive-loss target becomes a complete construction specification.
 
 [Read in atlas](index.html#TCS-1008) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1009 — Near-lossless undirected constant-degree vertex expanders
-
-Undirected vertex expanders require small sets of vertices to reach many neighbors through constant-degree edges. The saved question seeks explicit expansion arbitrarily close to the degree D. An undirected edge participates in both endpoints' neighborhoods, creating dependencies absent from a freely designed bipartite incidence pattern. Near-lossless expansion would give exceptionally efficient combinatorial spreading with a symmetric local graph structure. The historical note does not specify whether neighborhoods include the original set or the admissible set sizes, and these conventions matter for interpreting the claimed proximity to D.
-
-[Read in atlas](index.html#TCS-1009) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1013 — Optimal-size highly unbalanced lossless expanders

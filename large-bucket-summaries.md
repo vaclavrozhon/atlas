@@ -2380,6 +2380,13 @@ Noninteractive zero knowledge lets a prover demonstrate an NP statement with one
 [Read in atlas](index.html#TCS-6552) · [Commitment Schemes and Zero-Knowledge Protocols (2011)](https://homepages.cwi.nl/~schaffne/courses/crypto/2014/papers/ComZK08.pdf) · [Noninteractive Zero Knowledge for NP from (Plain) Learning With Errors](https://web.eecs.umich.edu/~cpeikert/pubs/nizk-lwe.pdf) · [Batch Arguments to NIZKs from One-Way Functions](https://eprint.iacr.org/2023/1938) · [Black-Box Non-Interactive Zero Knowledge from Vector Trapdoor Hash](https://eprint.iacr.org/2024/1514) · [Fiat-Shamir in the Plain Model from Derandomization (Or: Do Efficient Algorithms Believe that \(\mathrm{NP} = \mathrm{PSPACE}\)?)](https://eccc.weizmann.ac.il/report/2024/116/) · [Non-Trivial Zero-Knowledge Implies One-Way Functions](https://arxiv.org/abs/2602.17651) · [Succinct Zero-Knowledge Proofs from One-Way Functions: The Blackbox Way](https://doi.org/10.1007/978-3-032-35424-2_6)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6953 — One-way functions from errorless average-case NP hardness
+
+This card selects the average-case-to-one-way-function branch of a broader question in Wigderson’s book. The hardness assumption concerns exact deterministic decision under an efficiently samplable distribution, with average polynomial time defined by a runtime moment. The conclusion requires a polynomial-time function that every uniform probabilistic inverter fails to invert with more than negligible probability at all sufficiently large lengths. Recent heuristic-hardness characterizations, infinitely-often security results and oracle separations use different guarantees. A resolution would clarify whether broad distributional hardness already forces the computational structure underlying classical one-wayness.
+
+[Read in atlas](index.html#TCS-6953) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Average-Case Complexity](https://arxiv.org/abs/cs/0606037v3) · [On Building Fine-Grained One-Way Functions from Strong Average-Case Hardness](https://doi.org/10.1007/s00145-024-09518-1) · [A Sharp Characterization of Pessiland](https://eccc.weizmann.ac.il/report/2026/052/) · [Quantum Pessiland](https://arxiv.org/abs/2608.29493)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-7359 — Public-key quantum money from LWE alone
 
 Public-key quantum money consists of a classical serial number and a reusable quantum note. Anyone can verify with the public key, but k honest notes must not enable production of k+1 accepted notes. This card fixes the decisional LWE parameters and asks for security under that assumption alone. Existing stronger-assumption constructions and restricted black-box barriers leave this implication unsettled. A complete answer must preserve both reusable correctness and security against polynomial-size quantum adversaries.
@@ -2483,13 +2490,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Unbounded fully homomorphic encryption supports arbitrarily deep permitted computations on ciphertexts. The source asks to base such a scheme solely on worst-case complexity assumptions. Some constructions require additional assumptions about encryptions of secret-key-related information to enable repeated refresh operations. Removing those extra premises would connect the security guarantee more directly to foundational hard problems. The saved 2016 note does not name the precise extra assumptions or compactness conventions, so its current status and exact target require separate review rather than treating any lattice-based FHE scheme as a resolution.
 
 [Read in atlas](index.html#TCS-6871) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6953 — Cryptographic primitives from worst-case or average-case hardness
-
-Cryptographic hardness must occur on instances that honest users can efficiently generate, rather than only on a difficult exceptional input. The cited question asks whether \(\mathrm{P} \ne  \mathrm{NP}\), or a suitable average-case separation between distributional classes, already implies one-way functions. It also asks about the stronger possibility of trapdoor functions, where secret information enables inversion that remains hard publicly. These targets add progressively more structure to a bare claim that efficient algorithms cannot solve everything. Establishing the implications would connect cryptographic foundations to broad complexity assumptions instead of relying on individual number-theoretic or algebraic candidates.
-
-[Read in atlas](index.html#TCS-6953) · [Mathematics and Computation](https://www.math.ias.edu/avi/book)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Quantum computation and information (54)
