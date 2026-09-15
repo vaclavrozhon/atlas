@@ -799,3 +799,26 @@ completed queue records are inactive; 153 previously individually reviewed activ
 cards are outside the queue. On 15 September the user requested a shared list for
 parallel processes. The reservation CLI and automatically refreshed unfinished
 inventory above implement that handoff without changing review states or counts.
+
+Checkpoint 277 completes TCS-6663 and TCS-6602. The Frege/EF comparison
+now fixes its full syntax, acyclic definitions and proof-bit accounting while
+retaining size-only simulation. Its context corrects the fixed-parameter scope
+of the Kneser–Lovász result and distinguishes the June rewriting theorem's
+short chains from an efficient chain constructor. The modular Frege card fixes
+a complete finite basis, source modular axioms, flattened line depth and full
+proof and construction encodings. It retains one uniform DNF family per prime
+across every fixed depth and makes both Lean answer directions explicit.
+The no-short-proof DNFs of ITCS 2026 still have unproved tautologicity in the
+checked version; parity-resolution depth bounds and restricted algebraic
+certificates were not promoted to unrestricted modular Frege results.
+
+The combined checkpoint includes the concurrent completed reviews TCS-6708,
+TCS-6036, TCS-6724 and TCS-6836, bringing the working count to 416 reviewed
+active cards and 636 pending out of 1,052 active cards. Publication and the
+formula check passed for this checkpoint, covering 18,155 expressions. The
+shared-queue implementation also passed five tests, including a six-process
+reservation race, stale-token rejection, active-only listing and the complete
+review's ownership/hash/release path; the full make check passed. The preceding
+combined deployment was live-verified as 48b5ed741f8159a84dec, published
+2026-09-15T07:37:26+00:00, Pages commit
+4bed98731b284db33b0d44080b1647425c23756a.

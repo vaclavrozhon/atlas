@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **638**.
+Pending active reviews: **636**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -491,7 +491,6 @@ Pending active reviews: **638**.
 | [TCS-6596](../../data/cards/TCS-6596.json) | Orthogonal Vectors Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6600](../../data/cards/TCS-6600.json) | Optimal explicit pseudorandom generators for read-once branching programs | Pseudorandomness and derandomization | existing_detailed_audit |
-| [TCS-6602](../../data/cards/TCS-6602.json) | Superpolynomial \(\mathrm{AC}^{0}[p]\)-Frege lower bounds | Proof complexity | existing_detailed_audit |
 | [TCS-6604](../../data/cards/TCS-6604.json) | Fourier Entropy–Influence conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6605](../../data/cards/TCS-6605.json) | Aaronson–Ambainis conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6607](../../data/cards/TCS-6607.json) | Capacity of the binary deletion channel | Coding and information theory | existing_detailed_audit |
@@ -526,7 +525,6 @@ Pending active reviews: **638**.
 | [TCS-6659](../../data/cards/TCS-6659.json) | Optimal polynomial-time approximation ratio for metric k-Median | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-6661](../../data/cards/TCS-6661.json) | Hyperclique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6662](../../data/cards/TCS-6662.json) | Optimal deterministic restricted-isometry matrices | Pseudorandomness and derandomization | existing_detailed_audit |
-| [TCS-6663](../../data/cards/TCS-6663.json) | Frege versus Extended Frege | Proof complexity | existing_detailed_audit |
 | [TCS-6664](../../data/cards/TCS-6664.json) | Maximum influence of polynomial threshold functions | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6670](../../data/cards/TCS-6670.json) | Polylogarithmic maintenance of the exact global minimum cut | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6674](../../data/cards/TCS-6674.json) | Randomized truthful unrelated-machine scheduling | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
