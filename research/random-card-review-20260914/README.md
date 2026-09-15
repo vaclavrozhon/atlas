@@ -48,8 +48,8 @@ completed, bringing this process's total to ten:
   grow, and the 2025 repeated-Bell-test theorem does not impose the same quantum
   resource bound. Individual importance: 77.
 
-All already assessed scores and category assignments were preserved. The seven
-new importance assessments replaced provisional unassessed scores. Selection,
+All already assessed scores and category assignments were preserved. New
+importance assessments replaced provisional unassessed scores. Selection,
 input and final output hashes are recorded in `selection.json`; each canonical
 write checked both the pending queue state and selected input hash under the
 shared lock. No collision or skipped hash check was needed.
@@ -143,3 +143,27 @@ three newly resolved records preserved in the archive:
 There are now eight new individual importance assessments across these draws.
 Checkpoint five checks nineteen retained active cards and all three deliberate
 retirements. The queue remains an ongoing joint task.
+
+The sixth draw brings this process to twenty-six completed reviews, with
+twenty-three retained active records:
+
+- TCS-0469: exact maximum independent set in the deterministic unicast congested
+  clique. The existing logarithmic-bandwidth specialization is preserved, with
+  complete message, output, termination and protocol-family conventions.
+- TCS-0056: the universal additive-goods maximin-share approximation constant,
+  with all agent/item counts, real nonnegative values and zero shares specified.
+  The source's grouped 7/9 attribution is corrected: Heidari et al. prove 10/13,
+  while Huang–Zhou's corrected September 2026 version states 7/9.
+- TCS-6944: the randomized Min-Weight k-Clique hypothesis with the source's
+  exact signed range bounded by n^(100k). Later weight-constant quantifiers are
+  kept distinct. Individual importance: 91.
+- TCS-0761: the deterministic LCS exponent function over all fixed alphabet-size
+  and string-count pairs. This uses the authorized quantitative broadening;
+  the source's fractional-exponent question is retained separately, with no
+  claim of equivalence. Infimum nonattainment and pointwise tolerance are explicit.
+
+The source commit for checkpoint five is `9b330f15`. The two corresponding
+archive activity entries are included in the next checkpoint commit; their full
+card records, archive index, queue and review ledger were already committed.
+There are nine new importance assessments through checkpoint six. Existing
+community comments remain intact.
