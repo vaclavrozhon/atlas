@@ -1366,10 +1366,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-6501 — Constant-round MIS in the congested clique
 
-A maximal independent set is independent and places every excluded vertex next to a selected one. In the congested clique, processors can send separate short messages directly to every other processor. The question asks whether a randomized algorithm can solve this task in a constant number of rounds on every input graph with high probability. Collecting all edges at one leader is too expensive, but the algorithm need not reconstruct the entire graph to choose a valid set. The target is to replace repeated sparsification and degree-reduction phases with a bounded amount of globally coordinated communication.
+A maximal independent set contains no adjacent selected vertices and gives every unselected vertex a selected neighbor. Each processor starts with its own incident input edges and can send separate short messages to every other processor. The target is a uniform randomized algorithm using a constant number of rounds on every graph. Its output must be globally correct with an arbitrarily requested fixed polynomially small failure probability. The checked literature gives constant rounds for restricted graph classes and for distance-two coverage, leaving the general MIS target unresolved.
 
-[Read in atlas](index.html#TCS-6501) · [When MIS and Maximal Matching are Easy in the Congested Clique](https://arxiv.org/abs/2502.21031) · [Improved Massively Parallel Computation Algorithms for MIS, Matching, and Vertex Cover](https://arxiv.org/abs/1802.08237) · [Time and Space Optimal Massively Parallel Algorithm for the 2-Ruling Set Problem](https://doi.org/10.4230/LIPIcs.DISC.2023.11)
-Existing status: `open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6501) · [When MIS and Maximal Matching are Easy in the Congested Clique](https://arxiv.org/abs/2502.21031) · [Improved Massively Parallel Computation Algorithms for MIS, Matching, and Vertex Cover](https://arxiv.org/abs/1802.08237v4) · [Time and Space Optimal Massively Parallel Algorithm for the 2-Ruling Set Problem](https://doi.org/10.4230/LIPIcs.DISC.2023.11)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0994 — Constant-pass weighted matching with O(n log n) bits
 

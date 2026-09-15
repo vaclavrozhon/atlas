@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-802 records have an editorial importance assessment; 247 remain provisional.
+803 records have an editorial importance assessment; 246 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -466,7 +466,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 64; importance 
 
 ## 18. Lattices and computational number theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 24; provisional: 5.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 25; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -511,7 +511,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 5 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
 | 6 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
 | 7 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
-| 8 | [Equivalence Testing with Conditional Samples](index.html#TCS-0841) | 72 |
+| 8 | [Query complexity of conditional equivalence testing](index.html#TCS-0841) | 72 |
 | 9 | [Query complexity of directed acyclicity testing with bidirectional access](index.html#TCS-0847) | 68 |
 | 10 | [Efficient characterization of instance-optimal identity testing](index.html#TCS-0672) | 65 |
 

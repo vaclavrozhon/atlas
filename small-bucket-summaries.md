@@ -1568,10 +1568,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7335 — Randomized competitive ratio of list update
 
-Accessing a list item costs its current position. The algorithm may rearrange the list under specified free-move and paid-swap rules. Performance is compared with an offline algorithm starting from the same order. The best randomized competitive ratio lies between 1.5 and 1.6 in the cited source. The numerical benchmark asks for a certified approximation of the optimal constant.
+An online list serves each request before seeing the next, and access costs the item’s position counted from one. The accessed item may move forward for free, while other adjacent exchanges cost one. Randomized performance is compared with an optimal offline schedule under the same rules and initial order. The checked full-cost bounds leave the optimal competitive factor between 1.5 and 1.6. The benchmark asks for a Lean-certified approximation of this factor to absolute error at most one hundredth.
 
-[Read in atlas](index.html#TCS-7335) · [List Update with Prediction](https://ojs.aaai.org/index.php/AAAI/article/download/33694/35849)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7335) · [List Update with Prediction](https://ojs.aaai.org/index.php/AAAI/article/download/33694/35849) · [A New Lower Bound for the List Update Problem in the Partial Cost Model](https://people.inf.ethz.ch/gaertner/subdir/texts/own_work/lowerb.pdf)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-6836 — Adaptive regret in misspecified linear bandits
 
@@ -3385,6 +3385,13 @@ SIS and LWE are average-case lattice-related problems used as foundations for cr
 [Read in atlas](index.html#TCS-0659) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-5317 — NP-hardness of Euclidean covering radius
+
+A lattice covering radius is the largest distance from a point in its span to the nearest lattice point. The input here is a rational basis and a positive rational threshold in the Euclidean norm. The exact decision problem accepts precisely when the covering radius is at most the threshold. The question asks whether satisfiability reduces to this decision problem by one deterministic polynomial-time map. A September 2026 paper proves hardness for sufficiently large norms while explicitly leaving the Euclidean case open.
+
+[Read in atlas](index.html#TCS-5317) · [Hardness of the Binary Covering Radius Problem in Large \(\ell_p\) Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-0656 — Reducing factoring or discrete logarithms to approximate SVP
 
 Factoring and discrete logarithms are central number-theoretic search problems with no known classical polynomial-time algorithms in their general regimes. The recorded question asks for reductions from one of these tasks to approximate SVP. A reduction would explain how a sufficiently good short-vector solver could recover factors or logarithms. Such a connection could link lattice hardness to longstanding assumptions outside lattice geometry. The saved title does not specify the approximation factor, dimension growth, or number field, so a lattice encoding alone is insufficient unless solving it preserves the claimed computational consequence.
@@ -3475,13 +3482,6 @@ The shortest-vector problem asks how short a nonzero lattice vector can be. This
 
 [Read in atlas](index.html#TCS-1170) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5317 — NP-hardness of Euclidean covering radius
-
-A lattice's covering radius is the farthest distance of any point from its nearest lattice point. The source studies the hardness of deciding and approximating this radius in different lp norms. The selected question emphasizes proving NP-hardness for the exact Euclidean case, where p equals two. The paper establishes approximation hardness for sufficiently large finite p, but those geometric constructions do not resolve the Euclidean target. A hardness proof would settle a basic classification question for one of the most natural lattice covering problems.
-
-[Read in atlas](index.html#TCS-5317) · [Hardness of the Binary Covering Radius Problem in Large \(l_{p}\) Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6861 — Classical reductions matching quantum LWE hardness
 
@@ -3606,10 +3606,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0013 — Efficient explicit constant-rate tree codes
 
-A tree code labels paths in a rooted tree so that diverging histories remain distinguishable along their future labels. The saved question asks for efficient explicit constructions with constant rate. Unlike an ordinary block code, the encoding must work as communication unfolds rather than after the entire message is known. Such objects support reliable interactive communication where later messages depend on earlier received information. The title-level record does not specify the alphabet, distance condition, or encoding and decoding efficiency, so those choices must be recovered before the desired tree-code construction is fully defined.
+A binary tree code assigns output labels to every possible input history as that history unfolds. After two histories first differ, their output suffixes must disagree on a fixed positive fraction of positions. A fixed output alphabet keeps the information rate bounded below by a positive constant. The requested uniform algorithms must encode efficiently and recover any received prefix satisfying the stated suffix-error promise. The checked 2026 literature still leaves this constant-rate construction open, and its new barrier concerns an additional restricted property.
 
-[Read in atlas](index.html#TCS-0013) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0013) · [Mathematics and Computation, draft of 27 March 2018](https://www.math.ias.edu/files/mathandcomp.pdf) · [Explicit Capacity Approaching Coding for Interactive Communication](https://www.math.ias.edu/~avi/PUBLICATIONS/GellsHaKoRoWi_Oct2018.pdf) · [The Rate-Immediacy Barrier in Explicit Tree Code Constructions](https://arxiv.org/abs/2504.09388v2)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1012 — Explicit efficiently decoded binary codes beyond Gilbert–Varshamov
 
@@ -3753,12 +3753,12 @@ Submodularity expresses diminishing returns for a real-valued function on all su
 [Read in atlas](index.html#TCS-0848) · [Problem 37: Testing Submodularity](https://sublinear.info/index.php?title=Open_Problems:37) · [Is Submodularity Testable?](https://theory.stanford.edu/~jvondrak/data/submod-testing-alg.pdf) · [Testing Real-Valued Modularity and Submodularity](https://www.ias.edu/sites/default/files/math/csdm/15-16/HatamiVondrak.pdf) · [Testing Submodularity and Other Properties of Valuation Functions](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2017.33) · [Testing k-Submodularity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2026.52)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-0841 — Equivalence Testing with Conditional Samples
+### TCS-0841 — Query complexity of conditional equivalence testing
 
-Distribution equivalence testing asks whether two unknown distributions are the same or sufficiently far apart. Conditional sampling allows the algorithm to request samples restricted to a selected subset of the domain. The source entry asks about the power of this stronger sampling model for equivalence testing. Adaptive conditioning can focus attention on rare discrepancies that ordinary samples may miss. The saved title does not define behavior on zero-probability conditioning sets, the distance metric, or the query target, so those model choices remain explicit prerequisites for a complete claim.
+Two unknown distributions must be distinguished as equal or separated by a fixed positive total variation distance. Each conditional query selects one distribution and a nonempty subset, then receives a fresh sample restricted to that subset. The target is matching constant-factor query bounds as the domain grows, allowing arbitrary adaptive queries and constants depending on the fixed proximity. The main gap was closed in 2024 up to iterated-logarithmic factors, which are not hidden by this card’s answer criterion. The result would pin down the remaining domain-size cost of comparing two unknown distributions under powerful conditional access.
 
-[Read in atlas](index.html#TCS-0841) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:87)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0841) · [Problem 87: Equivalence Testing with Conditional Samples](https://sublinear.info/87) · [A Chasm Between Identity and Equivalence Testing with Conditional Queries](https://theoryofcomputing.org/articles/v014a019/) · [Faster Algorithms for Testing under Conditional Sampling](https://proceedings.mlr.press/v40/Falahatgar15.html) · [Tight Lower Bound on Equivalence Testing in Conditional Sampling Model](https://epubs.siam.org/doi/10.1137/1.9781611977912.153) · [Interactive Proofs for Distribution Testing with Conditional Oracles](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.18)
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-0847 — Query complexity of directed acyclicity testing with bidirectional access
 
