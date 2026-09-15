@@ -142,10 +142,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6663 — Frege versus Extended Frege
 
-Extended Frege adds reusable formula definitions to ordinary Frege reasoning. The question asks whether every Extended Frege proof has an ordinary Frege proof of the same conclusion with only polynomially larger size. Expanding definitions directly can be exponentially expensive, but another Frege argument might avoid that expansion. The comparison tests whether sharing intermediate computations fundamentally increases propositional proof strength. The saved review asks only for existence of short translated proofs, carefully separating this size simulation from a polynomial-time procedure that actually finds them.
+Extended Frege permits named definitions that share intermediate formulas within an otherwise ordinary propositional proof. The question asks whether every such proof has an ordinary Frege proof of the same conclusion with only polynomially larger total encoded size. The statement fixes the formula syntax, inference rules, freshness conditions and binary accounting while allowing unrestricted depth and reuse of proof lines. Known finite-consistency characterizations, fixed-parameter combinatorial upper bounds and restricted algebraic simulations do not settle this universal comparison. A complete Lean proof must establish either one universal polynomial size bound or its logical negation, without imposing a polynomial-time procedure for finding translated proofs.
 
 [Read in atlas](index.html#TCS-6663) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Propositional Consistency Proofs](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/prop_consis/paper.pdf) · [Towards (Non-)Separations in Propositional Proof Complexity](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/Stanford_February2014/) · [Short Proofs of the Kneser–Lovász Coloring Principle](https://arxiv.org/abs/1505.05531) · [Extended Frege proofs, circuits and rewriting](https://arxiv.org/abs/2606.13367) · [Quasi-polynomial Frege Simulation of IPS beyond Noncommutativity](https://eccc.weizmann.ac.il/report/2026/166/)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-6602 — Superpolynomial \(\mathrm{AC}^{0}[p]\)-Frege lower bounds
 
@@ -380,6 +380,13 @@ Two parties must evaluate a Boolean function when each holds one part of the inp
 [Read in atlas](index.html#TCS-6450) · [Quantum–Classical Equivalence for AND-Functions](https://eccc.weizmann.ac.il/report/2026/013/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6708 — Fourier Min-Entropy–Influence conjecture
+
+The FMEI conjecture says that every Boolean function has a parity whose squared Fourier correlation is exponentially large in minus its total influence. Both influence and Fourier coefficients use the uniform distribution on the Boolean cube. One universal constant must cover every dimension and truth table, including constant and unbalanced functions. The conjecture is weaker than full Fourier entropy–influence and remains meaningful because of its connection to fundamental influence inequalities. Recent constructions force the universal constant to be at least four, while leaving the existence of any finite constant unresolved.
+
+[Read in atlas](index.html#TCS-6708) · [Analysis of Boolean Functions](https://arxiv.org/abs/2105.10386) · [Improved bounds on Fourier entropy and Min-entropy](https://eccc.weizmann.ac.il/report/2018/167/revision/1/download/) · [Improved Bounds on Fourier Entropy and Min-entropy](https://www.isical.ac.in/~sourav/papers/TOCT21.pdf) · [A Lower Bound on the Constant in the Fourier Min-Entropy/Influence Conjecture](https://eccc.weizmann.ac.il/report/2022/180/revision/1/download) · [A note on the FMEI of the Boolean functions in the Generalized Maiorana-McFarland construction](https://doi.org/10.1016/j.dam.2026.02.052) · [A New Bound for the Fourier-Entropy-Influence Conjecture](https://link.springer.com/article/10.1007/s00493-024-00133-z)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-6705 — Sharp low-degree Fourier weight of halfspaces
 
 A halfspace is the sign of a weighted sum of input bits and a threshold. Its degree-zero and degree-one Fourier coefficients measure its mean and coordinate correlations. The question asks whether their squared weight is always at least \(2/\pi\). Majority functions approach that proposed universal constant as dimension grows. The exact inequality is retained because a general algorithm for merely approximating the extremal constant is already known.
@@ -532,13 +539,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 Recursive majority-of-three repeatedly applies a three-input majority gate in a tree. The question asks for its asymptotic randomized decision-tree complexity as the recursion grows. An algorithm can adapt its next query to observed values and use randomness to avoid reading subtrees whose outcomes no longer matter. The task therefore offers a concrete test of how recursion, adaptivity, and randomization interact in evaluating a simple formula. The source's error requirement and cost convention must be retained, since expected query cost and worst-case bounded-error complexity need not have the same asymptotic answer.
 
 [Read in atlas](index.html#TCS-6707) · [Analysis of Boolean Functions (updated author edition)](https://arxiv.org/abs/2105.10386)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6708 — Fourier Min-Entropy–Influence conjecture
-
-The squared Fourier coefficients of a Boolean function distribute its spectral weight among subsets of variables. The conjecture asks whether at least one coefficient has weight \(\exp (- O(I))\), where I is total influence. It predicts that limited average sensitivity forces some noticeable spectral concentration, even without controlling the entropy of the whole spectrum. This provides a focused bridge between local bit-flip behavior and a globally detectable Fourier component. The universal constant and uniform-distribution conventions must come from the source, and this largest-coefficient claim should be distinguished from the stronger full Fourier entropy–influence inequality.
-
-[Read in atlas](index.html#TCS-6708) · [Analysis of Boolean Functions (updated author edition)](https://arxiv.org/abs/2105.10386)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6710 — Number-on-forehead Disjointness complexity
@@ -1559,6 +1559,13 @@ In randomized k-server, an online strategy moves k servers to serve sequential m
 [Read in atlas](index.html#TCS-7317) · [Randomized k-server in polynomial time](https://arxiv.org/abs/2605.01497) · [The Randomized k-Server Conjecture is False!](https://arxiv.org/abs/2211.05753)
 Existing status: `source_open` · Summary written: 2026-09-12
 
+### TCS-6724 — Constant-factor related-machine precedence scheduling
+
+The problem asks for a polynomial-time constant-factor approximation to the makespan of precedence-constrained jobs on machines with different speeds. Every job may use every machine, and its uninterrupted execution time is its processing requirement divided by the selected machine’s speed. The approximation factor must remain fixed as the number of machines and the range of speeds grow. The checked general upper bound grows logarithmically divided by an iterated logarithm, while known stronger hardness uses extra unproved hypotheses. A solution must cover arbitrary finite rational inputs in the explicitly stated deterministic bit model.
+
+[Read in atlas](index.html#TCS-6724) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/book.pdf) · [Scheduling to Minimize Total Weighted Completion Time via Time-Indexed Linear Programming Relaxations](https://arxiv.org/abs/1707.08039) · [On the Hardness of Scheduling With Non-Uniform Communication Delays](https://par.nsf.gov/servlets/purl/10342245) · [Communication-aware scheduling of precedence-constrained tasks on related machines](https://doi.org/10.1016/j.orl.2023.11.001) · [Communication-Aware Scheduling of Precedence-Constrained Tasks on Related Machines](https://arxiv.org/abs/2004.14639v1)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-5030 — Optimal randomized competitive ratio of weighted k-server
 
 Weighted k-server assigns a separate movement-cost multiplier to each server. All distinct locations are at unit distance, isolating uncertainty about which weight to move. The target is the optimal randomized competitive ratio as a function of the number of servers. It takes the worst case over finite metric sizes and arbitrary positive weights against oblivious requests. The recent \(\exp (O(k^{2}))\) upper bound removes the old doubly-exponential barrier but leaves a substantial gap above exponential lower bounds.
@@ -1579,6 +1586,13 @@ Accessing a list item costs its current position. The algorithm may rearrange th
 
 [Read in atlas](index.html#TCS-7335) · [List Update with Prediction](https://ojs.aaai.org/index.php/AAAI/article/download/33694/35849)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-6836 — Adaptive regret in misspecified linear bandits
+
+The question asks for one bandit policy that adapts to unknown error in a linear reward model. It must exploit accurate features while simultaneously obeying a uniform fallback bound when those features fit poorly. The model has finitely many indexed arms, independent Gaussian observation noise and a known feature matrix of arbitrary geometry. The displayed tradeoff comes from an explicit speculation in Bandit Algorithms, while later papers prove closely related partial guarantees. The formulation is now precise, but the current openness of the complete simultaneous bound remains uncertain.
+
+[Read in atlas](index.html#TCS-6836) · [Bandit Algorithms](https://tor-lattimore.com/downloads/book/book.pdf) · [Learning with Good Feature Representations in Bandits and in RL with a Generative Model](https://sites.ualberta.ca/~szepesva/papers/ICML2020_goodfeatures.pdf) · [Upper Confidence Bounds for Combining Stochastic Bandits](https://arxiv.org/abs/2012.13115v1) · [Dynamic Regret for Non-Stationary Linear Bandits via Misspecification Reductions](https://arxiv.org/abs/2607.02891v1)
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-0711 — Model Selection for Contextual Bandits
 
@@ -1677,20 +1691,6 @@ Bin packing assigns indivisible items of known sizes to bins of unit capacity. T
 
 [Read in atlas](index.html#TCS-6721) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/) · [A Logarithmic Additive Integrality Gap for Bin Packing](https://doi.org/10.1137/1.9781611974782.172)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6724 — Constant-factor related-machine precedence scheduling
-
-Related machines differ by speed, while each job's processing requirement scales consistently across machines. Precedence constraints additionally require some jobs to finish before others can start. The textbook asks for a constant-factor approximation for scheduling such dependent work. An algorithm must exploit faster machines without delaying the chains of jobs that unlock later parallelism. The saved summary does not name the objective or preemption convention, so it does not silently assume every related-machine precedence problem shares one constant-approximation target.
-
-[Read in atlas](index.html#TCS-6724) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6836 — Regret in misspecified linear bandits
-
-A misspecified linear bandit only approximately models rewards as inner products between actions and an unknown parameter. Small modeling errors can accumulate or be amplified when information is transferred between different actions. The source asks for optimal regret across misspecification levels, dimensions, and action-set geometries. It also emphasizes that worst-case results for one action set do not characterize every feasible action family. A sharper theory would identify when linear generalization remains useful, when independent exploration is preferable, and how geometry controls the transition between those behaviors.
-
-[Read in atlas](index.html#TCS-6836) · [Bandit Algorithms](https://banditalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6838 — Instance-optimal finite-time best-arm identification
 

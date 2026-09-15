@@ -998,6 +998,13 @@ The input describes a finite controlled stochastic process whose transitions occ
 [Read in atlas](index.html#TCS-7310) · [On Decidability of Time-Bounded Reachability in CTMDPs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.133)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-6036 — Decidability of restricted elementary real functions
+
+The problem asks whether exact first-order truth is decidable over the real field with exponential, sine and cosine restricted to the unit interval. It also includes the source’s extended language with unrestricted exponential, using a tag to make both signatures one decision problem. Inputs are finite sentences with only fixed primitive constants, while all quantified variables range over the standard real numbers. Known conditional results use Schanuel’s conjecture, and continuous-system invariant questions provide a computational motivation. A solution must give an unconditional total decision procedure for the joint truth set or prove that none exists.
+
+[Read in atlas](index.html#TCS-6036) · [Invariants for Continuous Linear Dynamical Systems](https://doi.org/10.4230/LIPIcs.ICALP.2020.107) · [Algorithmic Applications of Schanuel’s Conjecture](https://people.mpi-sws.org/~joel/publications/algorithmic-schanuel25.pdf) · [Turing meets Schanuel](https://doi.org/10.1016/j.apal.2015.10.003) · [Integration in finite terms and exponentially algebraic functions](https://arxiv.org/abs/2510.26248v1)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-0619 — TOWER-hard reachability with seven nonnegative counters
 
 A VASS combines finite control with nonnegative integer counters updated by fixed transition vectors. The question asks for TOWER-hard reachability using only seven counters and unary-encoded numbers. Seven counters capture the source’s request for any improvement below the known eight-counter bound, by padding unused coordinates. TOWER-hardness uses elementary-time reductions and is stronger than a collection of unrelated fixed-height exponential lower bounds. Recent lower bounds with extra signed counters concern a different computational model.
@@ -1136,13 +1143,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Basic Process Algebra describes recursive sequential processes with a stack-like arrangement of process variables. Weak bisimilarity compares their observable behavior while allowing silent transitions to be hidden. The question asks whether this equivalence is decidable even for normed BPA, where each process variable can eventually terminate. The source distinguishes this from branching bisimilarity, a finer equivalence for which decidability and complexity results are available in the normed setting. An answer would clarify whether arbitrary invisible computation can be handled effectively in one of the simplest infinite-state models of recursive behavior.
 
 [Read in atlas](index.html#TCS-5987) · [Two Lower Bounds for BPA](https://doi.org/10.4230/LIPIcs.CONCUR.2017.20)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6036 — Decidability of restricted elementary real functions
-
-First-order theories of the real numbers become more expressive when exponential and trigonometric functions are added. The selected question concerns decidability for restricted elementary functions, both with and without unrestricted exponentiation. Restricting sine and cosine to bounded intervals avoids the unrestricted oscillation that would immediately complicate logical descriptions. The source cites decidability conditional on Schanuel's conjecture and uses these theories to synthesize invariants of continuous linear systems. An unconditional decision procedure would remove a number-theoretic assumption from reasoning about these analytic descriptions and the safety properties they can certify.
-
-[Read in atlas](index.html#TCS-6036) · [Invariants for Continuous Linear Dynamical Systems](https://doi.org/10.4230/LIPIcs.ICALP.2020.107)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6245 — Exponential witness bounds for three-dimensional VAS

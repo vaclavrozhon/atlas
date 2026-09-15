@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-794 records have an editorial importance assessment; 258 remain provisional.
+798 records have an editorial importance assessment; 254 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -59,7 +59,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 33; importance 
 
 ## 4. Semantics, logic and verification (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 39; importance assessed: 25; provisional: 14.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 39; importance assessed: 26; provisional: 13.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance assessed: 22; provisional: 11.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance assessed: 23; provisional: 10.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -224,8 +224,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance 
 | 6 | [Aanderaa–Karp–Rosenberg conjecture](index.html#TCS-7219) | 94 |
 | 7 | [Real Grothendieck constant](index.html#TCS-7352) | 94 |
 | 8 | [Polynomial relation between classical and quantum communication](index.html#TCS-6450) | 91 |
-| 9 | [Sharp low-degree Fourier weight of halfspaces](index.html#TCS-6705) | 84 |
-| 10 | [Removing low-influence directions from convex sets](index.html#TCS-2664) | 83 |
+| 9 | [Fourier Min-Entropy–Influence conjecture](index.html#TCS-6708) | 88 |
+| 10 | [Sharp low-degree Fourier weight of halfspaces](index.html#TCS-6705) | 84 |
 
 ## 4. Fine-grained complexity (small)
 
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 20; provisional: 9.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 22; provisional: 7.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -309,8 +309,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 | 6 | [Minimax dimension dependence in bandit convex optimization](index.html#TCS-6577) | 94 |
 | 7 | [Matroid secretary conjecture](index.html#TCS-7316) | 94 |
 | 8 | [Randomized competitiveness of k-server](index.html#TCS-7317) | 93 |
-| 9 | [Minimax rate of sequential binary calibration](index.html#TCS-7319) | 89 |
-| 10 | [Optimal randomized competitive ratio of weighted k-server](index.html#TCS-5030) | 88 |
+| 9 | [Constant-factor related-machine precedence scheduling](index.html#TCS-6724) | 91 |
+| 10 | [Minimax rate of sequential binary calibration](index.html#TCS-7319) | 89 |
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
