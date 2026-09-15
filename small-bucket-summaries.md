@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-599 five-sentence working summaries, based on saved source material.
+596 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -387,6 +387,13 @@ The FMEI conjecture says that every Boolean function has a parity whose squared 
 [Read in atlas](index.html#TCS-6708) · [Analysis of Boolean Functions](https://arxiv.org/abs/2105.10386) · [Improved bounds on Fourier entropy and Min-entropy](https://eccc.weizmann.ac.il/report/2018/167/revision/1/download/) · [Improved Bounds on Fourier Entropy and Min-entropy](https://www.isical.ac.in/~sourav/papers/TOCT21.pdf) · [A Lower Bound on the Constant in the Fourier Min-Entropy/Influence Conjecture](https://eccc.weizmann.ac.il/report/2022/180/revision/1/download) · [A note on the FMEI of the Boolean functions in the Generalized Maiorana-McFarland construction](https://doi.org/10.1016/j.dam.2026.02.052) · [A New Bound for the Fourier-Entropy-Influence Conjecture](https://link.springer.com/article/10.1007/s00493-024-00133-z)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-5272 — Multiparty Clique lower bounds in compression games
+
+Alice sees a graph and a requested clique size, but her computation is limited to polynomial-size constant-depth Boolean circuits. She can exchange messages with polynomially many unrestricted helpers, each of whom sees only its own conversation. Alice must compute the correct final answer on every input. Communication cost sums the longest message from Alice in each round, and the question asks for a polynomial lower bound even under a growing round budget. The source shows that such a Clique lower bound would separate NP from nonuniform logarithmic-depth circuits.
+
+[Read in atlas](index.html#TCS-5272) · [Majority is Incompressible by \(\mathrm{AC}^{0}(p)\) Circuits](https://doi.org/10.4230/LIPIcs.CCC.2015.124)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-6705 — Sharp low-degree Fourier weight of halfspaces
 
 A halfspace is the sign of a weighted sum of input bits and a threshold. Its degree-zero and degree-one Fourier coefficients measure its mean and coordinate correlations. The question asks whether their squared weight is always at least \(2/\pi\). Majority functions approach that proposed universal constant as dimension grows. The exact inequality is retained because a general algorithm for merely approximating the extremal constant is already known.
@@ -512,13 +519,6 @@ Decision tree complexity measures the worst-case number of adaptive input querie
 
 [Read in atlas](index.html#TCS-5189) · [The Hardness of Decision Tree Complexity](https://doi.org/10.4230/LIPIcs.STACS.2025.66)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5272 — Multiparty Clique lower bounds in compression games
-
-A compression game lets computationally restricted players send information to a referee with unrestricted computation. The source studies constant-depth circuit restrictions and multiple rounds of interaction. The relevant conjecture proposes strong multiparty lower bounds for the Clique function. Such bounds would show that low communication cannot compensate for the players' limited computation. The project is significant because the source connects sufficiently strong compression-game hardness to separating NP from nonuniform logarithmic-depth circuits.
-
-[Read in atlas](index.html#TCS-5272) · [Majority is Incompressible by \(\mathrm{AC}^{0}(p)\) Circuits](https://doi.org/10.4230/LIPIcs.CCC.2015.124)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5326 — Communication compression to information cost
 
@@ -750,10 +750,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0003 — P versus BPP
 
-BPP contains decision problems solvable in polynomial time using random bits with bounded error on every input. The question asks whether every such problem also has a deterministic polynomial-time algorithm, giving \(\mathrm{P}=\mathrm{BPP}\). Trying every random tape removes error but generally takes exponential time. A positive answer would show that randomness changes algorithm design without enlarging this class of efficiently decidable problems. The saved review explains conditional routes through strong circuit lower bounds and distinguishes uniform algorithms from advice strings that merely exist for each input length.
+P contains total decision languages with a deterministic polynomial-time decider, while BPP allows fair random bits and error at most one third separately on every input. The randomized machine must obey one polynomial time bound on every random tape, and the deterministic decider must work correctly at every input length. The question is whether these classes are equal, allowing a different deterministic algorithm and a different polynomial exponent for each language. Nonuniform simulation and equality under strong circuit-hardness assumptions are established results, while recent insensitivity bounds retain additional hypotheses. A current preprint claims a full separation, but this review has not independently validated its proof and therefore retains uncertain status.
 
-[Read in atlas](index.html#TCS-0003) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [\(\mathrm{P}=\mathrm{BPP}\) unless E has sub-exponential circuits: Derandomizing the XOR Lemma](https://www.math.ias.edu/~avi/PUBLICATIONS/MYPAPERS/IW97/proc.pdf) · [Pseudorandomness Beating the Hybrid Argument for Insensitive Algorithms](https://eccc.weizmann.ac.il/report/2026/082/) · [Probabilistic Computers (and Hence Quantum Computers) Are Rigorously More Powerful Than Classical Deterministic Computers, and Derandomization](https://arxiv.org/abs/2308.09549v9)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0003) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [P=BPP if E Requires Exponential Circuits: Derandomizing the XOR Lemma](https://www.math.ias.edu/~avi/PUBLICATIONS/MYPAPERS/IW97/proc.pdf) · [Pseudorandomness Beating the Hybrid Argument for Insensitive Algorithms](https://eccc.weizmann.ac.il/report/2026/082/) · [Probabilistic Computers (and Hence Quantum Computers) Are Rigorously More Powerful Than Classical Deterministic Computers, and Derandomization](https://arxiv.org/abs/2308.09549v9)
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-6600 — Optimal explicit pseudorandom generators for read-once branching programs
 
@@ -2816,10 +2816,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1109 — EF1 and Pareto optimality for additive mixed items
 
-Mixed-item allocation permits items that an agent regards as beneficial or burdensome. The recorded question asks for EF1 together with Pareto optimality under additive utilities. Removing a good from another bundle and removing a chore from one's own bundle can affect envy in different ways. A general existence or computation result would extend a central fairness–efficiency pairing beyond all-goods settings. The source title does not specify the mixed EF1 convention or whether the target is existence versus efficient construction, so those choices must be kept explicit.
+Each participant may value an indivisible item positively, negatively or at zero. Every item must be assigned, and the participants have additive utilities and equal entitlements. EF1 permits eliminating each envy comparison by removing at most one item from one of the two bundles. The question is whether an allocation with this fairness guarantee can always also be Pareto optimal for at least three agents. Recent results settle pure chores and some alternative mixed-item fairness guarantees, but the checked 2026 sources do not resolve the unrestricted combination.
 
-[Read in atlas](index.html#TCS-1109) · [Mixed Fair Division: A Survey](https://arxiv.org/abs/2306.09564)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1109) · [Mixed Fair Division: A Survey](https://arxiv.org/abs/2306.09564v4) · [Existence of Fair and Efficient Allocation of Indivisible Chores](https://arxiv.org/abs/2507.09544v2) · [Introspectively Envy-Free and Efficient Allocation of Indivisible Mixed Manna](https://arxiv.org/abs/2509.18673v3) · [Weighted Fair Division of Indivisible Mixed Manna](https://arxiv.org/abs/2609.01580v2)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1108 — EF1 existence for arbitrary mixed-item utilities
 
@@ -3018,6 +3018,13 @@ The permanent is a canonical polynomial whose algebraic complexity captures a ma
 
 [Read in atlas](index.html#TCS-7269) · [P=?NP](https://eccc.weizmann.ac.il/report/2017/004/)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-6884 — Semantic versus syntactic multilinear circuits
+
+A multilinear polynomial uses each variable with exponent at most one in every nonzero monomial. Semantic multilinearity requires this property at every arithmetic-circuit gate after cancellation. Syntactic multilinearity instead requires the variable-occurrence sets entering each multiplication to be disjoint. The question asks whether one polynomial family over a fixed field can have polynomial semantic circuits but no polynomial syntactic circuits. Formulas admit size-preserving conversion, while the checked 2026 discussion retains the possibility of greater semantic power for circuits with shared outputs.
+
+[Read in atlas](index.html#TCS-6884) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1058 — Explicit rigidity at rank n over log log n
 
@@ -3248,13 +3255,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Multilinear circuits restrict intermediate polynomials to use each variable with exponent at most one. The question seeks a superpolynomial gap between such circuits and general arithmetic circuits computing the same multilinear outputs. General circuits may introduce higher powers that later cancel, so output multilinearity does not automatically make the restriction harmless. A separation would show a substantial computational benefit from leaving the multilinear world temporarily. The saved survey question does not preserve the candidate family or field assumptions, and it should be interpreted as the source's lower-bound target rather than a fresh status assessment.
 
 [Read in atlas](index.html#TCS-6883) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6884 — Semantic versus syntactic multilinear circuits
-
-Semantic multilinearity requires intermediate polynomials to be multilinear, while syntactic restrictions enforce this through the circuit's variable structure. The source asks whether the two notions can differ by a superpolynomial amount in circuit size. The issue is whether algebraic cancellation can maintain multilinearity more efficiently than a construction that guarantees it structurally. A separation would clarify how accurately syntactic multilinear models capture all computations with multilinear intermediates. The precise gate-level conventions are important and remain in the cited survey, since different definitions of semantic multilinearity could change the compared classes.
-
-[Read in atlas](index.html#TCS-6884) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6885 — Constant-overhead second differentiation of circuits
@@ -3706,17 +3706,17 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6630 — Effective classification of polynomially testable hereditary graph properties
 
-Induced-F-freeness excludes every graph in a finite family as an induced subgraph. The reviewed question asks for an algorithm deciding whether the property has a one-sided dense-graph tester using polynomially many sampled vertices in inverse accuracy. Rejection must expose an actual forbidden induced pattern, matching both edges and nonedges. An effective classification would distinguish families with efficient proximity testing across all graph sizes. The saved review explicitly marks algorithmic decidability of the classification as an editorial specialization and distinguishes dense edit distance from sparse or bounded-degree models.
+A finite family of forbidden induced graphs specifies a hereditary graph property. The question asks whether a total algorithm can decide from that family whether its canonical one-sided test has polynomial reciprocal-distance sample complexity. Every query is an adjacency check, while rejection must exhibit a forbidden pattern with both its edges and its nonedges. Known structural conditions and quantitative container equivalences do not give the total finite-input classifier required by this card. Algorithmic decidability is the inherited editorial specification, and its status is uncertain rather than attributed verbatim as a conjecture of the structural survey.
 
-[Read in atlas](index.html#TCS-6630) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [A Characterization of the (Natural) Graph Properties Testable with One-Sided Error](https://epubs.siam.org/doi/10.1137/06064888X) · [Removal Lemmas with Polynomial Bounds](https://arxiv.org/abs/1611.10315) · [Easily Testable Graph Properties](https://www.cambridge.org/core/product/identifier/S0963548314000765/type/journal_article) · [Efficient Removal without Efficient Regularity](https://arxiv.org/abs/1709.08159) · [A Quantitative Container Characterization of One-Sided Testability](https://eccc.weizmann.ac.il/report/2026/144/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6630) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [A Characterization of the (Natural) Graph Properties Testable with One-Sided Error](https://epubs.siam.org/doi/10.1137/06064888X) · [Removal Lemmas with Polynomial Bounds](https://arxiv.org/abs/1611.10315) · [Easily Testable Graph Properties](https://www.cambridge.org/core/product/identifier/S0963548314000765/type/journal_article) · [Efficient Removal without Efficient Regularity](https://www.math.tau.ac.il/~asafico/C4.pdf) · [A Quantitative Container Characterization of One-Sided Testability](https://eccc.weizmann.ac.il/report/2026/144/)
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-1033 — Polynomial testability versus distance estimation
 
-A dense-graph tester queries adjacencies to distinguish membership in a property from graphs far from it. A distance estimator instead approximates the minimum fraction of edge changes needed to reach that property. The question asks whether a query bound polynomial in inverse accuracy for testing always entails such a polynomial bound for estimation. Each algorithm is uniform and the query bound is independent of graph size, while local computation is unrestricted. This card isolates the polynomial implication in its title from the stronger quantitative conversion posed in the cited survey.
+A dense-graph tester distinguishes membership in a property from graphs that require many edge changes to satisfy it. A distance estimator must approximate that repair cost on every input, including graphs close to the property. The question asks whether a query bound polynomial in reciprocal accuracy for testing always entails a polynomial bound for estimation. The algorithms may use unlimited local computation, but must be uniform and obey query bounds independent of graph order. Known general conversions and positive special cases leave the polynomial-preservation target unresolved in the checked sources, and the stronger source question remains separately recorded.
 
-[Read in atlas](index.html#TCS-1033) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1033) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [Testing versus Estimation of Graph Properties](https://epubs.siam.org/doi/10.1137/060652324) · [Testing versus estimation of graph properties, revisited](https://onlinelibrary.wiley.com/doi/abs/10.1002/rsa.21221) · [On Efficient Distance Approximation for Graph Properties](https://arxiv.org/abs/2001.01452)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-6672 — Sublinear testing of bounded-degree graph isomorphism
 
@@ -3745,6 +3745,20 @@ A tester must distinguish constraint systems whose optimum satisfied fractions l
 
 [Read in atlas](index.html#TCS-5085) · [Unbounded-Width CSPs Are Untestable in a Sublinear Number of Queries](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.31) · [Near-Optimal Space Lower Bounds for Streaming CSPs](https://arxiv.org/abs/2604.01400v1)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-3906 — Sample complexity of symmetric Markov-chain identity testing
+
+The tester observes one trajectory from an unknown symmetric Markov chain and receives a complete known reference transition matrix. It must distinguish equality from positive spectral discrepancy for every uncontrolled starting state, without resets or chosen-state sampling. The target is matching joint dependence of the worst-case required trajectory length on the number of states and the proximity parameter. Later testing results remove hitting-time dependence under their stated irreducibility assumptions, but the checked bounds still leave a reciprocal-distance gap. The card preserves the full original symmetric model and distinguishes its transition discrepancy from stationary-distribution or matrix-norm testing.
+
+[Read in atlas](index.html#TCS-3906) · [Testing Symmetric Markov Chains From a Single Trajectory](https://proceedings.mlr.press/v75/daskalakis18a.html) · [Testing Symmetric Markov Chains Without Hitting](https://proceedings.mlr.press/v99/cherapanamjeri19a.html) · [Identity testing of reversible Markov chains](https://arxiv.org/abs/2105.06347) · [A Geometric Reduction Approach for Identity Testing of Reversible Markov Chains](https://arxiv.org/abs/2302.08059)
+Existing status: `source_open` · Summary written: 2026-09-15
+
+### TCS-5210 — Polylogarithmic-query pattern-freeness testing
+
+A permutation pattern specifies the strict relative order of values at increasing positions of a real-valued sequence. The question asks whether every fixed pattern has an adaptive one-sided tester using only a polylogarithmic number of queries in the sequence length. Distance is the fraction of entries that must change to remove all occurrences, and the query bound may depend arbitrarily on the fixed pattern and proximity. The checked general adaptive upper bound is subpolynomial but not polylogarithmic, while newer lower bounds on hypergrids concern a different domain. Resolving the conjecture would clarify how much adaptive observations can improve the testing of ordered obstructions.
+
+[Read in atlas](index.html#TCS-5210) · [Strongly Sublinear Algorithms for Testing Pattern Freeness](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2022.98) · [Strongly Sublinear Algorithms for Testing Pattern Freeness](https://theoretics.episciences.org/12865/pdf) · [Testing forbidden order-pattern properties on hypergrids](https://epubs.siam.org/doi/10.1137/1.9781611978971.114)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0848 — Polynomial-query submodularity testing
 
@@ -3781,13 +3795,6 @@ The conjecture concerns every Lipschitz real-valued function on a continuous uni
 [Read in atlas](index.html#TCS-2535) · [Directed Poincaré Inequalities and \(\mathrm{L}^{1}\) Monotonicity Testing of Lipschitz Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.61) · [Directed Isoperimetry and Monotonicity Testing: A Dynamical Approach](https://arxiv.org/abs/2404.17882) · [Analytic Property Testing: Directed Isoperimetry and Monotonicity](https://uwspace.uwaterloo.ca/items/e1f421e1-2f50-4ef9-af1e-45cdc345e24d)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3906 — Sample complexity of symmetric Markov-chain identity testing
-
-A symmetric Markov chain evolves through transition probabilities that are symmetric between states. The source asks for the optimal sample complexity of identity testing from a single trajectory. Consecutive observations are dependent, and rarely visited states may hide differences from the proposed chain. Sharp bounds would quantify how much of a dynamical process must be observed to verify its transition behavior. The saved question does not specify starting-state assumptions, distance between chains, or mixing promises, so these cannot be silently replaced by independent-sample testing conventions.
-
-[Read in atlas](index.html#TCS-3906) · [Testing Symmetric Markov Chains From a Single Trajectory](https://proceedings.mlr.press/v75/daskalakis18a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4259 — Optimal query cost of reducing testing adaptivity
 
 A property tester probes bits in batches and may choose later batches using previous answers. The source counts one more batch than the number of adaptive rounds. The target is the largest query budget needed after reducing the number of rounds, among properties testable with the original budget. Both the property and its proximity and error guarantees remain fixed during the reduction. The benchmark asks for matching bounds with constants independent of all three resource parameters.
@@ -3802,13 +3809,6 @@ Sublinear graph testing tries to infer a global property from a small number of 
 [Read in atlas](index.html#TCS-4376) · [Every Property of Outerplanar Graphs is Testable](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5210 — Polylogarithmic-query pattern-freeness testing
-
-Pattern-freeness testing asks whether a sequence or function avoids a specified ordered pattern or is far from doing so. The cited work studies strongly sublinear algorithms for this task. The saved conjecture proposes polylogarithmic query complexity in n whenever pattern size k is constant. Such a bound would make even large inputs testable through a very small number of observations. The excerpt does not identify the full domain, distance measure, or dependence on proximity and the pattern, so those factors cannot be suppressed into a universal bound without qualification.
-
-[Read in atlas](index.html#TCS-5210) · [Strongly Sublinear Algorithms for Testing Pattern Freeness](https://doi.org/10.4230/LIPIcs.ICALP.2022.98)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5443 — Polynomial-time learning of Gaussian mixtures
 
 Learning a Gaussian mixture seeks a distribution close to an unknown mixture in total variation distance, potentially without recovering uniquely identifiable component parameters. The source proves polynomial sample sufficiency under differential privacy but notes that its use of a nonconstructive cover does not yield a finite-time implementation. It also highlights the broader question of obtaining a learning algorithm whose running time is polynomial in both the number of components and the dimension, even without privacy. This separates statistical feasibility from computational feasibility for mixtures without the extra structural assumptions used by many efficient methods. Progress on that algorithmic problem would provide a foundation for making the private existence result constructive.
@@ -3816,7 +3816,7 @@ Learning a Gaussian mixture seeks a distribution close to an unknown mixture in 
 [Read in atlas](index.html#TCS-5443) · [Mixtures of Gaussians are Privately Learnable with a Polynomial Number of Samples](https://proceedings.mlr.press/v237/afzali24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Differential privacy (6)
+## Differential privacy (3)
 
 ### TCS-0506 — Private PAC sample complexity from VC and Littlestone dimensions
 
@@ -3832,33 +3832,12 @@ Continual counting releases prefix sums of a binary stream as its bits arrive. T
 [Read in atlas](index.html#TCS-6673) · [The Binary Tree Mechanism is Optimal for Approximate Differentially Private Continual Counting](https://arxiv.org/abs/2607.00876v2) · [The Price of Differential Privacy under Continual Observation](https://proceedings.mlr.press/v202/jain23b.html) · [Improved Error Bounds for Pure Differentially Private Continual Counting via Matrix Factorization](https://arxiv.org/abs/2607.08963) · [Costs of Arbitrary Real Matrix Factorizations for Pure-DP Continual Counting](https://arxiv.org/abs/2607.28703v2) · [A Near-Optimal Lower Bound for Prefix-Matrix Factorizations](https://arxiv.org/abs/2608.08238)
 Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-0510 — Cost of privacy in online learning
-
-Online classification requires predicting each arriving example before its correct label is revealed. The 2022 source asks whether imposing differential privacy changes which concept classes can be learned in the mistake-bound model. A mistake guarantee must control errors across the sequence, while privacy limits the influence of one participant's data on the released predictions. The tension is that information retained to improve future predictions can also reveal earlier examples. An equivalence would connect private and ordinary online learnability, but this historical entry still needs the source's precise privacy and sequence conventions before it becomes a complete card.
-
-[Read in atlas](index.html#TCS-0510) · [COLT / PMLR](https://proceedings.mlr.press/v178/open-problem-sanyal22a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0507 — Optimal regret for private stochastic online learning
 
-Stochastic decision-theoretic online learning repeatedly selects among K actions with different expected losses. The 2024 source asks for the optimal gap-dependent pseudo-regret under epsilon-differential privacy. Its nonprivate benchmark scales as \(\log (K)\) divided by the smallest positive gap between the best and competing actions. That gap measures how much statistical evidence is available for distinguishing good decisions from worse ones. Determining the private counterpart would isolate the additional cost of protecting individual observations, including whether it introduces a dependence on the number of rounds that the nonprivate benchmark avoids.
+A learner repeatedly chooses an action and then observes the losses of every action. The losses are independent draws from fixed unknown distributions, and one action has strictly smallest mean loss. The card asks for matching-order expected pseudo-regret under pure privacy protecting one entire round of observations. A published 2026 upper bound removes the time-horizon factor but leaves a logarithmic gap in the number of actions. A solution must identify the rate throughout the stated parameter domain and certify both achievable guarantees and unavoidable loss in Lean.
 
-[Read in atlas](index.html#TCS-0507) · [COLT / PMLR](https://proceedings.mlr.press/v247/hu24a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3312 — Polynomial-time private convex-hull point selection
-
-The geometric task is to output a point inside the convex hull of a private collection of points. The 2020 source asks whether this can be done in running time polynomial in both the number n of points and the ambient dimension d. Without privacy, choosing an input point already gives a convex-hull point, but that output can directly disclose an individual's record. The problem therefore combines a geometric feasibility condition with restrictions on how much any single input can influence the output. A polynomial-time solution would make private convex-hull methods more broadly usable, subject to the source's domain assumptions, sample requirement, and allowed failure probability.
-
-[Read in atlas](index.html#TCS-3312) · [How to Find a Point in the Convex Hull Privately](https://doi.org/10.4230/LIPIcs.SoCG.2020.52)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6825 — Computational versus statistical privacy in the curator model
-
-Computational differential privacy protects against efficient adversaries, whereas statistical differential privacy also protects against unbounded ones. The 2014 textbook asks whether that relaxation can improve achievable utility when one trusted curator holds the data. The issue is whether computational protection permits more informative outputs, beyond merely making an existing private mechanism faster. This would show that cryptographic assumptions can change the accuracy frontier even without distributing trust across several parties. A 2023 paper gives a conditional separation under strong cryptographic assumptions, so the textbook question is historical context rather than an unqualified assertion of present open status.
-
-[Read in atlas](index.html#TCS-6825) · [The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/privacybook.html) · [Towards Separating Computational and Statistical Differential Privacy (FOCS 2023)](https://doi.org/10.1109/FOCS57990.2023.00042)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0507) · [Open Problem: Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](https://proceedings.mlr.press/v247/hu24a.html) · [Improved Regret in Stochastic Decision-Theoretic Online Learning under Differential Privacy](https://proceedings.mlr.press/v313/wu26a.html) · [Near-Optimal Algorithms for Differentially Private Online Learning in a Stochastic Environment](https://arxiv.org/abs/2102.07929)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ## Constraint satisfaction (18)
 
@@ -3899,31 +3878,31 @@ Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-1978 — Search tractability of BLP-solvable promise CSPs
 
-The basic linear programming relaxation can solve the decision version of some promise CSPs. The source asks whether every such template also admits a polynomial-time search algorithm. A fractional solution certifies useful local consistency without directly assigning one legal target-domain value to each variable. A general constructive theorem would make this important relaxation sufficient for producing solutions as well as recognizing the promise gap. The saved question concerns genuinely promised instances, so difficulties rounding arbitrary instances accepted by the relaxation must not automatically be treated as a negative answer.
+A finite promise CSP asks for weakly satisfying assignments when a strongly satisfying assignment is promised. BLP can recognize the decision gap using compatible local probability distributions. The question asks whether every fixed template solved by that relaxation also has a deterministic polynomial-time search algorithm on the original promise. The algorithm may depend on the template and need not round every feasible point of the relaxation. A resolution would determine whether this major decision tractability criterion always yields efficient construction of promised solutions.
 
-[Read in atlas](index.html#TCS-1978) · [Promise and Infinite-Domain Constraint Satisfaction](https://doi.org/10.4230/LIPIcs.CSL.2024.41)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1978) · [Promise and Infinite-Domain Constraint Satisfaction](https://doi.org/10.4230/LIPIcs.CSL.2024.41) · [An invitation to the promise constraint satisfaction problem](https://arxiv.org/abs/2208.13538v1) · [Ineffectiveness for Search and Undecidability of PCSP Meta-Problems](https://arxiv.org/abs/2504.04639v4)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0441 — Characterizing CSP languages with linear non-redundancy
 
-A constraint language specifies which local relations may appear in its CSP instances. The recorded question asks which languages have linear non-redundancy. Non-redundancy concerns how much of an instance remains essential after logically unnecessary constraints are removed. A characterization could connect algebraic properties of the language with the possibility of compressing constraint systems. The saved workshop title does not define the size parameter or redundancy criterion, so the intended linear bound must be recovered before it can be equated with a sparsification theorem or a kernel-size guarantee.
+Non-redundancy measures how many constraints can remain individually essential in a formula. The question asks which finite languages always allow a subformula with linearly many constraints and the identical set of satisfying assignments. The number of variables is the size parameter, and the linear constant may depend on the language. The classification includes all finite domains and does not require an efficient algorithm to find the subformula. A solution would identify the structural boundary for compact exact descriptions of constraint systems.
 
-[Read in atlas](index.html#TCS-0441) · [PACS 2024 workshop](https://pacs2024.github.io/pacs2024-open-problems.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0441) · [PACS 2024: Workshop on Parameterized Algorithms and Constraint Satisfaction — Open problems](https://pacs2024.github.io/pacs2024-open-problems.pdf) · [On Redundancy in Constraint Satisfaction Problems](https://doi.org/10.4230/LIPIcs.CP.2022.11) · [Best-case and Worst-case Sparsifiability of Boolean CSPs](https://arxiv.org/abs/1809.06171) · [The Richness of CSP Non-redundancy](https://arxiv.org/abs/2507.07942v2) · [Super-linear Lower Bounds for CSP Non-Redundancy via Shrinking Instances](https://arxiv.org/abs/2605.19055v1) · [Classification of Non-Redundancy of Boolean Predicates of Arity 4](https://doi.org/10.4230/LIPIcs.CP.2026.8)
+Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-0504 — Uniform algorithms across tractable CSPs
+### TCS-0504 — Common polynomial exponent for tractable digraph CSPs
 
-Constraint satisfaction problems ask whether variables can be assigned values satisfying a fixed set of allowed relations. The source asks for a uniform polynomial-time algorithm covering the tractable cases. Uniformity would replace separate algorithms for individual templates by one procedure that handles their descriptions as part of its input. This tests whether a classification of tractable templates can be made algorithmically effective without hidden template-dependent costs. The saved record does not specify which template representation or tractability promise is allowed, so the source's exact uniformity requirement must be recovered before applying a nonuniform dichotomy theorem.
+Each fixed finite digraph defines a constraint satisfaction problem through graph homomorphisms. The question asks whether all polynomial-time cases can be solved with one common polynomial exponent. The algorithm and its multiplicative constant may still depend on the fixed target digraph. This is weaker than requiring one algorithm whose input includes an arbitrary target table. A resolution would determine whether qualitative fixed-template tractability admits a shared quantitative time bound.
 
-[Read in atlas](index.html#TCS-0504) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#uniform-ptime-algorithm-for-tractable-csps)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0504) · [List of open questions: Uniform PTIME algorithm for tractable CSPs](https://a3nm.net/work/research/questions/#uniform-ptime-algorithm-for-tractable-csps) · [A dichotomy theorem for nonuniform CSPs](https://arxiv.org/abs/1703.03021v2) · [A Proof of the CSP Dichotomy Conjecture](https://arxiv.org/abs/1704.01914v11) · [The Complexity of Finding Coset-Generating Polymorphisms and the Promise Metaproblem](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.169)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0444 — Polynomial kernels for Boolean MinCSP
 
-Boolean MinCSP seeks assignments violating as few constraints as possible. The workshop question asks for polynomial kernels in the intended parameterized setting. A kernel replaces an instance by an equivalent smaller one whose size depends only on the parameter. Understanding which languages permit this compression would refine the tractability landscape beyond merely having fixed-parameter algorithms. The title does not specify the constraint languages or parameter, so the number of allowed violations and any weighted or deletion interpretation must be stated before one uniform kernel claim is made.
+Boolean MinCSP asks whether an assignment can violate at most a specified number of constraints. The question seeks all finite Boolean languages admitting polynomial kernels in that violation budget. A kernel must run in polynomial time and output a same-problem instance with polynomially many parameter-dependent bits. Randomization is allowed, and the recorded complexity assumption may support lower bounds for the excluded languages. A classification would reveal which nearly feasible constraint systems admit efficient compression beyond their known fixed-parameter algorithms.
 
-[Read in atlas](index.html#TCS-0444) · [PACS 2024 workshop](https://pacs2024.github.io/pacs2024-open-problems.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0444) · [PACS 2024: Workshop on Parameterized Algorithms and Constraint Satisfaction — Open problems](https://pacs2024.github.io/pacs2024-open-problems.pdf) · [Flow-augmentation III: Complexity dichotomy for Boolean CSPs parameterized by the number of unsatisfied constraints](https://arxiv.org/abs/2207.07422v3) · [Representative Sets and Irrelevant Vertices: New Tools for Kernelization](https://doi.org/10.1145/3390887) · [Search-Space Reduction for Boolean MinCSPs via Essential Constraints](https://doi.org/10.4230/LIPIcs.SWAT.2026.22)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1173 — NP-intermediate \(\omega\)-categorical CSPs
 
@@ -4039,12 +4018,12 @@ Word unification solves equations between concatenations by substituting strings
 [Read in atlas](index.html#TCS-0171) · [RTA Open Problems](https://www.cs.tau.ac.il/~nachum/rtaloop/problems/92.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0114 — Satisfiability of String Constraints with Subsequence relation
+### TCS-0114 — Decidability of subsequence constraints with regular domains
 
-The scattered-subsequence relation allows a word to be obtained by deleting letters from another word without changing their order. This project studies systems requiring a variable's string to be a subsequence of a concatenation of variables. Each variable must additionally belong to a regular language specified by a regular expression. The question is whether existence of one substitution satisfying all subsequence and domain constraints is decidable. Cyclic dependencies between reused variables make this a richer consistency problem than checking subsequence membership for two fixed strings.
+Each variable denotes one finite word constrained to a specified regular language. A relational constraint requires that word to occur as a scattered subsequence of a concatenation of other assigned words. The question asks for total decidability over every fixed finite alphabet, allowing repeated variables and arbitrary dependency cycles. Known algorithms for acyclic systems and undecidability results with shuffle or transducers concern different input classes. A resolution would locate the decidability boundary of a basic language for relating incomplete and concatenated strings.
 
-[Read in atlas](index.html#TCS-0114) · [Automata Exchange](https://automata.exchange/24.13-satisfiability-of-string-constraints-with-subsequence-relation/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0114) · [Automata Exchange](https://automata.exchange/24.13-satisfiability-of-string-constraints-with-subsequence-relation/) · [Satisfiability of Context-Free String Constraints with Subword-Ordering and Transducers](https://drops.dagstuhl.de/storage/00lipics/lipics-vol289-stacs2024/LIPIcs.STACS.2024.5/LIPIcs.STACS.2024.5.pdf)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0306 — Polynomial-time complementation of d-DNNFs
 

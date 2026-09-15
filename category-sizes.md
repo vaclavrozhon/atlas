@@ -8,7 +8,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | --- | --- | ---: | ---: | ---: | ---: |
 | large 1 | Computational complexity | 5 | 25 | 50 | 74 |
 | large 2 | Algorithms | 5 | 25 | 50 | 27 |
-| large 3 | Automata and formal languages | 5 | 25 | 50 | 33 |
+| large 3 | Automata and formal languages | 5 | 25 | 50 | 32 |
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 39 |
 | large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 59 |
 | large 6 | Optimization and numerical computation | 5 | 25 | 50 | 24 |
@@ -36,12 +36,12 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 18 | Lattices and computational number theory | 2 | 10 | 20 | 29 |
 | small 19 | Coding and information theory | 2 | 10 | 20 | 28 |
 | small 20 | Property testing and distribution learning | 2 | 10 | 20 | 16 |
-| small 21 | Differential privacy | 2 | 10 | 20 | 7 |
+| small 21 | Differential privacy | 2 | 10 | 20 | 4 |
 | small 22 | Constraint satisfaction | 2 | 10 | 20 | 19 |
 | small 23 | Automated reasoning, rewriting and unification | 2 | 10 | 20 | 15 |
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 21 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 2 |
 
-Candidate pool: 1048. Inactive records: 6327 (excluded from active work).
+Candidate pool: 1044. Inactive records: 6331 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

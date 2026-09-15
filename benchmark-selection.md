@@ -11,17 +11,17 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 487 | 13 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 814 | 186 |
+| [Top 500](index.html?benchmark=top500) | 500 | 484 | 16 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 810 | 190 |
 
 ## Unfilled places
 
 - top500: Optimization and numerical computation has 24/25 places.
 - top500: Sampling, Markov chains and mixing times has 9/10 places.
-- top500: Differential privacy has 7/10 places.
+- top500: Differential privacy has 4/10 places.
 - top500: Miscellaneous has 2/10 places.
 - top1000: Algorithms has 27/50 places.
-- top1000: Automata and formal languages has 33/50 places.
+- top1000: Automata and formal languages has 32/50 places.
 - top1000: Semantics, logic and verification has 39/50 places.
 - top1000: Optimization and numerical computation has 24/50 places.
 - top1000: Geometry, topology and metric spaces has 41/50 places.
@@ -34,7 +34,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Data structures has 18/20 places.
 - top1000: Dynamic algorithms has 15/20 places.
 - top1000: Property testing and distribution learning has 16/20 places.
-- top1000: Differential privacy has 7/20 places.
+- top1000: Differential privacy has 4/20 places.
 - top1000: Constraint satisfaction has 19/20 places.
 - top1000: Automated reasoning, rewriting and unification has 15/20 places.
 - top1000: Miscellaneous has 2/20 places.
@@ -476,7 +476,7 @@ Previous prefix: TCS-6631, TCS-0506.
 | 1 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
-Candidates considered: TCS-6673, TCS-0506, TCS-0510, TCS-0507.
+Candidates considered: TCS-6673, TCS-0506, TCS-0507.
 
 ## Constraint satisfaction
 

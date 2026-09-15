@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-805 records have an editorial importance assessment; 243 remain provisional.
+809 records have an editorial importance assessment; 235 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -42,7 +42,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 27; importance 
 
 ## 3. Automata and formal languages (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 33; importance assessed: 25; provisional: 8.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 32; importance assessed: 26; provisional: 6.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance assessed: 23; provisional: 10.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance assessed: 24; provisional: 9.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -225,7 +225,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance 
 | 7 | [Real Grothendieck constant](index.html#TCS-7352) | 94 |
 | 8 | [Polynomial relation between classical and quantum communication](index.html#TCS-6450) | 91 |
 | 9 | [Fourier Min-Entropy–Influence conjecture](index.html#TCS-6708) | 88 |
-| 10 | [Sharp low-degree Fourier weight of halfspaces](index.html#TCS-6705) | 84 |
+| 10 | [Multiparty Clique lower bounds in compression games](index.html#TCS-5272) | 86 |
 
 ## 4. Fine-grained complexity (small)
 
@@ -449,7 +449,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance 
 
 ## 17. Algebraic computation (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 64; importance assessed: 42; provisional: 22.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 64; importance assessed: 43; provisional: 21.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -500,7 +500,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 20. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 12; provisional: 4.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 14; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -510,24 +510,21 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 4 | [Polynomial testing of induced four-cycle freeness](index.html#TCS-1030) | 88 |
 | 5 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
 | 6 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
-| 7 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
-| 8 | [Query complexity of conditional equivalence testing](index.html#TCS-0841) | 72 |
-| 9 | [Query complexity of directed acyclicity testing with bidirectional access](index.html#TCS-0847) | 68 |
-| 10 | [Efficient characterization of instance-optimal identity testing](index.html#TCS-0672) | 65 |
+| 7 | [Sample complexity of symmetric Markov-chain identity testing](index.html#TCS-3906) | 80 |
+| 8 | [Polylogarithmic-query pattern-freeness testing](index.html#TCS-5210) | 79 |
+| 9 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
+| 10 | [Query complexity of conditional equivalence testing](index.html#TCS-0841) | 72 |
 
 ## 21. Differential privacy (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 7; importance assessed: 5; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 4; importance assessed: 4; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) | 88 |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) | 94 |
 | 3 | [Polynomial-time private release of all marginals](index.html#TCS-7236) | 94 |
-| 4 | [Cost of privacy in online learning](index.html#TCS-0510) | 80 |
-| 5 | [Optimal regret for private stochastic online learning](index.html#TCS-0507) | 76 |
-| 6 | [Polynomial-time private convex-hull point selection](index.html#TCS-3312) | 50 |
-| 7 | [Computational versus statistical privacy in the curator model](index.html#TCS-6825) | 50 |
+| 4 | [Optimal regret for private stochastic online learning](index.html#TCS-0507) | 76 |
 
 ## 22. Constraint satisfaction (small)
 
@@ -543,7 +540,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance 
 | 6 | [Exact exponential-time equivalence for nonnegative Boolean Max-CSP](index.html#TCS-3585) | 85 |
 | 7 | [Search tractability of BLP-solvable promise CSPs](index.html#TCS-1978) | 83 |
 | 8 | [Characterizing CSP languages with linear non-redundancy](index.html#TCS-0441) | 76 |
-| 9 | [Uniform algorithms across tractable CSPs](index.html#TCS-0504) | 76 |
+| 9 | [Common polynomial exponent for tractable digraph CSPs](index.html#TCS-0504) | 76 |
 | 10 | [Polynomial kernels for Boolean MinCSP](index.html#TCS-0444) | 72 |
 
 ## 23. Automated reasoning, rewriting and unification (small)
@@ -560,7 +557,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 15; importance 
 | 6 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
 | 7 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
 | 8 | [Complexity of word unification](index.html#TCS-0171) | 87 |
-| 9 | [Satisfiability of String Constraints with Subsequence relation](index.html#TCS-0114) | 69 |
+| 9 | [Decidability of subsequence constraints with regular domains](index.html#TCS-0114) | 69 |
 | 10 | [Polynomial-time complementation of d-DNNFs](index.html#TCS-0306) | 69 |
 
 ## 24. Database theory and finite model theory (small)

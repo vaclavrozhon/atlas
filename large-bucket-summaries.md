@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-407 five-sentence working summaries, based on saved source material.
+406 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -693,7 +693,7 @@ A spanner keeps a subset of the original graph’s edges while approximately pre
 [Read in atlas](index.html#TCS-6784) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152) · [Spanners and emulators with sublinear distance errors](https://researchprofiles.ku.dk/en/publications/spanners-and-emulators-with-sublinear-distance-errors/) · [A Hierarchy of Lower Bounds for Sublinear Additive Spanners](https://doi.org/10.1137/16M1105815) · [Almost-Optimal Sublinear Additive Spanners](https://doi.org/10.1137/23M1581078)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Automata and formal languages (31)
+## Automata and formal languages (30)
 
 ### TCS-6558 — Maximum reset threshold of synchronizing automata
 
@@ -771,6 +771,13 @@ The problem measures the smallest deterministic automaton that distinguishes two
 
 [Read in atlas](index.html#TCS-0154) · [Automata Exchange](https://automata.exchange/19.04-separating-words-problem/) · [Separating Words with Automata in the Half-adversarial Case](https://arxiv.org/abs/2608.28385) · [An Elementary Proof of the \(\widetilde O(n^{1/3})\) Bound for Separating Words](https://arxiv.org/abs/2609.08191)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-5738 — Recognizable separability of automatic relations
+
+Binary automatic relations are recognized by finite automata reading padded pairs of words synchronously. The question asks whether it is undecidable to separate two such relations by a finite union of products of regular languages. The number of products is existentially chosen with no prescribed upper bound. Fixed-bound separation is already undecidable, but the unrestricted problem remains explicitly open in the checked later thesis. A resolution would clarify when synchronized infinite relations admit effective separation by finitely many independent regular tests.
+
+[Read in atlas](index.html#TCS-5738) · [Separating Automatic Relations](https://doi.org/10.4230/LIPIcs.MFCS.2023.17) · [Homomorphism Problems in Graph Databases and Automatic Structures](https://www.morvan.xyz/thesis/thesis-morvan-2025-05-22.pdf) · [A Dichotomy Theorem for Automatic Structures](https://arxiv.org/html/2602.18238v1)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0146 — Polynomial-time universality for unambiguous context-free grammars
 
@@ -861,20 +868,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Limited nondeterminism lets automata retain some branching while remaining suitable for composition with games or probabilistic systems. This project asks the exact complexity of recognizing good-for-games parity automata and good-for-MDPs Büchi automata. The former resolve choices from input history, while the latter preserve optimal satisfaction probabilities when combined with a Markov decision process. These are different semantic promises, so an algorithm for one does not establish the other. Sharper classifications would show the cost of checking that a compact specification supports the intended verification workflow.
 
 [Read in atlas](index.html#TCS-5651) · [Word Automata with Limited Nondeterminism (Invited Talk)](https://doi.org/10.4230/LIPIcs.CONCUR.2026.3)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5732 — Regular separability of VASS reachability languages
-
-A reachability language of a vector addition system with states consists of finite words labeling accepting counter runs. In the source's convention, acceptance requires a final control state with all counters zero. Regular separability asks whether a finite automaton can recognize a language containing one such language and disjoint from another. The cited paper identifies decidability for general finite-word VASS languages as a separate question from its positive result for Büchi VASS over infinite words. Solving it would determine when finite-state separators can effectively distinguish behaviors of two unbounded counter systems under exact reachability acceptance.
-
-[Read in atlas](index.html#TCS-5732) · [Regular Separability in Büchi VASS](https://doi.org/10.4230/LIPIcs.STACS.2023.9)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5738 — Recognizable separability of automatic relations
-
-Automatic relations on words are recognized by finite automata reading their components synchronously. The project asks whether two such relations can be separated by a recognizable relation, a finite union of products of regular languages. The conjecture predicts that deciding existence of any such separator is impossible. The source relates this task to regular colorability and distinguishes it from versions with a fixed color bound. Settling the unrestricted question would identify a limit of simplifying synchronized relational specifications into independently recognizable components.
-
-[Read in atlas](index.html#TCS-5738) · [Separating Automatic Relations](https://doi.org/10.4230/LIPIcs.MFCS.2023.17)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5863 — Decidability of stochastic resolvability for \(\omega\)-automata
