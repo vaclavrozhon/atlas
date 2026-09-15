@@ -39,6 +39,12 @@ make deploy     # build and push the reader to GitHub Pages
 Choose another port with `make serve PORT=8767`. After building, the reader also
 opens directly from [build/index.html](build/index.html).
 
+For the active card completion pass, use the
+[unfinished-card inventory](research/card-completion-20260913/unfinished.md) and
+[parallel review workflow](research/card-completion-20260913/README.md#parallel-review-workflow).
+Before starting a card in a shared checkout, reserve it with
+`python3 scripts/review_queue.py claim --worker YOUR_PROCESS_NAME`.
+
 ## Repository layout
 
 | Path | Contents |

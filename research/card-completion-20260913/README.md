@@ -14,11 +14,63 @@ review starts with the one unfinished Top 100 card, then the other 174 unfinishe
 Top 500 cards, then the remaining 431 cards.
 
 - [queue.json](queue.json) records individual progress and input/output hashes.
+- [unfinished.md](unfinished.md) lists all unfinished active cards for review.
 - [input-hashes.json](input-hashes.json) records the baseline of all canonical cards.
 - [reviews.jsonl](reviews.jsonl) records substantive editorial decisions, source
   passages checked and the limits of each status check. It contains no full-card
   backups; completed active content lives in `data/cards/`, with subsequently
   deactivated records preserved in `data/archive/cards/`.
+
+## Parallel review workflow
+
+All processes sharing **this checkout** use the same active-only queue. From the
+repository root, inspect the current state and atomically take one card:
+
+```sh
+python3 scripts/review_queue.py status
+python3 scripts/review_queue.py list --available
+python3 scripts/review_queue.py claim --worker review-2
+```
+
+`claim` returns JSON containing the card ID, path, current input hash and a unique
+`token`. Save that token. Optional `--id TCS-6663`, `--area "Proof complexity"`
+or `--priority top500` narrow the selection. Automatic selection preserves the
+existing queue order. `list --json` provides machine-readable rows and reservation
+owners. [unfinished.md](unfinished.md) is the readable inventory of all pending
+active reviews, including reserved ones; the CLI shows live availability.
+
+Reserve **before editing**. Perform the individual review described below, then
+call `complete_review.complete(...)` with `claim_token` set to the returned token.
+The helper requires the matching token for reserved cards, verifies the input
+hash, validates the revised card, records its review and removes the reservation.
+It also refreshes `unfinished.md`. Existing unreserved reviews can still finish
+through the helper, but new workers should always reserve first. If the input
+differs from the saved baseline, `baseline_changed` is true; inspect and reconcile
+the current card, then supply its checked hash as `expected_sha256` as before.
+Taking a card never changes its review state or counts it as complete.
+
+If stopping before completion, release the reservation with its token:
+
+```sh
+python3 scripts/review_queue.py release --id TCS-6663 --token TOKEN_FROM_CLAIM
+```
+
+Reservations persist until explicit release or successful completion; they do
+not expire during a long source review. A crashed worker leaves a visible
+reservation. After establishing that it has stopped, its saved token can release
+that reservation; an old token cannot release a subsequent worker's reservation.
+The local runtime file `.review-claims.json` is ignored by Git. Its reservation
+operations and completion use the same `.publish.lock`, so competing processes
+cannot take the same card through this workflow. Separate clones/worktrees do
+not share this lock: parallel reviewers must use the same checkout. Direct file
+edits cannot be prevented by this cooperative reservation mechanism.
+
+The canonical progress record remains `queue.json`; claims do not add a new
+review state. `python3 scripts/review_queue.py export` rebuilds `unfinished.md`
+after any older tool updates the queue. No command opens archived card bodies or
+promotes a card merely because it was reserved or its fields were populated.
+
+## Review standard and history
 
 Completion means a source-grounded, self-contained mathematical statement,
 definitions, an answer criterion requiring a Lean proof, substantive context and
@@ -726,3 +778,24 @@ for checkpoint 265: 1,052 cards and 17,671 expressions. The preceding full
 make check passed at checkpoint 261. That checkpoint was deployed and
 live-verified as a8e21ac4f81da82327b2, published 2026-09-14T20:19:35+00:00,
 Pages commit e06420b08cfe17610b850a54cd41f71b4132ac2a.
+
+Checkpoint 267 completes TCS-6616. The exact permanent question now has an
+explicit portable rational-coefficient uniform-circuit formulation, separately
+identified as an editorial model choice. It specifies full generator and circuit
+encodings, construction time, arithmetic size and a universal characteristic-zero
+identity. The review distinguishes finite-ring, integer bit-complexity, restricted
+formula and conditional tensor-rank results from this target. The current
+versions and theorem scopes of the ICALP 2019/2026 papers, Li's revised paper
+and the July 2026 Fourier preprint were checked without independently verifying
+their complete proofs. Its publication and active formula checks passed; the
+latter covered 1,052 cards and 17,927 expressions. The preceding checkpoint 266
+was live-verified at 0c402cc5daac7bdd8f75, published 2026-09-14T20:26:19+00:00,
+Pages commit c973b17936a6c87abb4d9d9a363afb64588cc813.
+
+The combined working census subsequently reached 271 queue completions after
+the concurrent individual reviews of TCS-0538, TCS-0787, TCS-6125 and TCS-7023.
+There are 1,052 active cards: 410 completed/reviewed and 642 pending. Fourteen
+completed queue records are inactive; 153 previously individually reviewed active
+cards are outside the queue. On 15 September the user requested a shared list for
+parallel processes. The reservation CLI and automatically refreshed unfinished
+inventory above implement that handoff without changing review states or counts.

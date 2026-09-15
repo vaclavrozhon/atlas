@@ -354,6 +354,13 @@ distinctions when applying broad pruning criteria.
 
 ## Authoring and publication
 
+For the ongoing individual completion pass, parallel processes in the same
+checkout must reserve a pending active card before starting its review with
+`python3 scripts/review_queue.py claim --worker PROCESS_NAME`. Use the returned
+token when recording completion. The [shared review workflow](../research/card-completion-20260913/README.md#parallel-review-workflow)
+defines reservations, release and the [unfinished-card inventory](../research/card-completion-20260913/unfinished.md).
+A reservation does not certify completion and does not replace source review.
+
 Cards have two editorial activity states, determined by directory placement:
 **active** in `data/cards/` and **inactive** in `data/archive/cards/`. Activity is
 separate from scientific `status`, evidence, importance and formulation review.

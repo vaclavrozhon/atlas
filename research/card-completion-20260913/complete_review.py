@@ -14,11 +14,12 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 from card_schema import reader_record
 from catalog_exports import atomic
 from publish import validate_record
+from review_queue import require_claim, finish_claim
 
 DATE = datetime.now(ZoneInfo('Europe/Prague')).date().isoformat()
 CRITERIA = json.loads((ROOT / 'data/criteria.json').read_text())
 
-def complete(identifier, fields, notes, sources, status_note, summary=None, expected_sha256=None, archive_reason=None):
+def complete(identifier, fields, notes, sources, status_note, summary=None, expected_sha256=None, archive_reason=None, claim_token=None):
     assert notes and sources and status_note, 'An individual review and checked sources are required.'
     retiring = fields.get('status') in {'resolved', 'excluded'}
     assert bool(archive_reason) == retiring, 'An inactive completion requires an explicit immediate archival reason.'
@@ -28,6 +29,7 @@ def complete(identifier, fields, notes, sources, status_note, summary=None, expe
         queue = json.loads((HERE / 'queue.json').read_text())
         row = next(r for r in queue['records'] if r['id'] == identifier)
         assert row['state'] == 'pending', identifier
+        require_claim(ROOT, identifier, claim_token)
         input_hash = hashlib.sha256(path.read_bytes()).hexdigest()
         assert input_hash == (expected_sha256 or row['input_sha256']), identifier
         card = json.loads(path.read_text())
@@ -70,6 +72,7 @@ def complete(identifier, fields, notes, sources, status_note, summary=None, expe
             ledger.write(json.dumps(dict(id=identifier, date=DATE, outcome='completed',
                 changes=notes, sources_checked=sources, status_review=status_note,
                 input_sha256=input_hash), ensure_ascii=False) + '\n')
+        finish_claim(ROOT, identifier, claim_token, queue)
         print(identifier, queue['counts'])
     if retiring:
         from archive_cards import change_activity
