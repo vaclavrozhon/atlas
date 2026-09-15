@@ -880,3 +880,22 @@ first two were individually resolved and archived by the parallel reviewer.
 The previous combined deployment was live-verified as 0e0ff836ab08b03d1381,
 published 2026-09-15T15:16:44+00:00, Pages commit
 82bf0b9e9a18e74a624c6d8df44e5e01517a3690.
+
+Checkpoint 298 completes TCS-6647, rigidity of the full Turing-degree order.
+The review fixes full oracle/quotient conventions and both Lean answer directions,
+removes construction suggestions, distinguishes global restrictions from local
+structures, and checks the precise cone, jump and representation results. It
+adds the 2018 local structural theorem and 2021 conditional genericity result
+without dropping its continuum-hypothesis assumption. Cooper's author-uploaded
+Theorem 1.1 was matched to the full negative answer, with the later primary
+survey's unverified-construction assessment preserved. Status is now uncertain;
+no proof or refutation of that construction was certified.
+
+Including concurrent TCS-6953 and the individually resolved/archived TCS-1009,
+the combined census is 1,049 active cards: 434 individually completed/reviewed
+and 615 pending. The 298 completed queue records include 17 inactive records;
+all 281 completed active output hashes match. Publication and the active formula
+check passed, covering 18,719 expressions. The preceding combined deployment
+was live-verified as e7fc652b18d7cf23e197, published
+2026-09-15T17:12:50+00:00, Pages commit
+2b8cb4617923505c0d4debc6c862c91b6caabac4.

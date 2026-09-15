@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **620**.
+Pending active reviews: **618**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -206,7 +206,6 @@ Pending active reviews: **620**.
 | [TCS-1137](../../data/cards/TCS-1137.json) | Derandomization from almost-everywhere uniform hardness | Pseudorandomness and derandomization | pool |
 | [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
 | [TCS-1008](../../data/cards/TCS-1008.json) | Bipartite vertex expanders with constant expansion loss | Pseudorandomness and derandomization | pool |
-| [TCS-1009](../../data/cards/TCS-1009.json) | Near-lossless undirected constant-degree vertex expanders | Pseudorandomness and derandomization | pool |
 | [TCS-1013](../../data/cards/TCS-1013.json) | Optimal-size highly unbalanced lossless expanders | Pseudorandomness and derandomization | pool |
 | [TCS-1124](../../data/cards/TCS-1124.json) | Optimal PRGs for high-dimensional combinatorial rectangles | Pseudorandomness and derandomization | pool |
 | [TCS-1122](../../data/cards/TCS-1122.json) | Nontrivial PRGs for logarithmic-degree binary polynomials | Pseudorandomness and derandomization | pool |
@@ -501,7 +500,6 @@ Pending active reviews: **620**.
 | [TCS-6641](../../data/cards/TCS-6641.json) | Word problem for one-relation monoids | Algebraic computation | existing_detailed_audit |
 | [TCS-6642](../../data/cards/TCS-6642.json) | Conjugacy problem for one-relator groups | Algebraic computation | existing_detailed_audit |
 | [TCS-6645](../../data/cards/TCS-6645.json) | Constant-delay conjunctive-query classification | Database theory and finite model theory | existing_detailed_audit |
-| [TCS-6647](../../data/cards/TCS-6647.json) | Rigidity of the Turing degrees | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6648](../../data/cards/TCS-6648.json) | Kolmogorov–Loveland randomness versus Martin-Löf randomness | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6649](../../data/cards/TCS-6649.json) | Reversal of Hindman’s theorem to the \(\omega\)-jump | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6653](../../data/cards/TCS-6653.json) | Gyárfás–Sumner conjecture | Structural graph theory | existing_detailed_audit |
