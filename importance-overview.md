@@ -510,7 +510,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 4 | [Characterizing polynomial-query dense graph properties](index.html#TCS-1030) | 88 |
 | 5 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
 | 6 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
-| 7 | [Testing Submodularity](index.html#TCS-0848) | 75 |
+| 7 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
 | 8 | [Equivalence Testing with Conditional Samples](index.html#TCS-0841) | 72 |
 | 9 | [Query complexity of directed acyclicity testing with bidirectional access](index.html#TCS-0847) | 68 |
 | 10 | [Efficient characterization of instance-optimal identity testing](index.html#TCS-0672) | 65 |

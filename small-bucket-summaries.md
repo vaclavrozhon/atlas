@@ -21,10 +21,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6647 — Rigidity of the Turing degrees
 
-Turing degrees identify sets of integers that compute one another and order them by relative computability. The rigidity question asks whether every order-preserving bijection of this entire partial order fixes every degree. A positive answer would mean that the order structure alone determines the identity of each degree. This is a basic structural question about how much information is encoded by the pattern of computational reducibility. The saved review permits arbitrary set-theoretic automorphisms, so excluding computable transformations or automorphisms induced by a special action on representatives is only a restricted result.
+Turing degrees identify oracle sets that compute one another, and their order compares relative computational power. The question asks whether every bijection of all degrees that preserves and reflects this order fixes every degree. The target allows arbitrary set-theoretic automorphisms and requires a complete Lean proof of rigidity or of a nontrivial global automorphism. Known jump, cone, representation and local-structure results impose substantial restrictions without settling the entire order. Cooper’s historical full-solution claim remains explicitly separated from verified partial results, and the card records uncertain status because its construction was reported as unverified.
 
-[Read in atlas](index.html#TCS-6647) · [Defining the Turing Jump](https://math.berkeley.edu/~slaman/papers/jump.pdf) · [Global Properties of the Turing Degrees and the Turing Jump](https://math.berkeley.edu/~slaman/papers/IMS_slaman.pdf) · [Permutations of the Integers Induce Only the Trivial Automorphism of the Turing Degrees](https://arxiv.org/abs/1603.00525)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6647) · [Defining the Turing Jump](https://math.berkeley.edu/~slaman/papers/jump.pdf) · [Global Properties of the Turing Degrees and the Turing Jump](https://math.berkeley.edu/~slaman/papers/IMS_slaman.pdf) · [Permutations of the Integers Induce Only the Trivial Automorphism of the Turing Degrees](https://arxiv.org/abs/1603.00525) · [The \(\Delta^0_2\) Turing Degrees: Automorphisms and Definability](https://people.math.wisc.edu/~soskova/preprints/autdef.pdf) · [Sets of Real Numbers Closed under Turing Equivalence: Applications to Fields, Orders and Automorphisms](https://arxiv.org/abs/2106.12660) · [Upper Cones as Automorphism Bases](https://www.researchgate.net/publication/266363562_Upper_Cones_As_Automorphism_Bases)
+Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-6685 — Busy Beaver \(\mathrm{BB}(6)\)
 
@@ -3734,10 +3734,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1029 — Sharp graph-removal bounds for fixed patterns
 
-A graph-removal statement links distance from excluding a fixed pattern to the number of copies of that pattern. The saved question asks for sharp quantitative bounds in this relationship. Such bounds control how likely random sampling is to discover a witness that a graph violates the property. Improving them would directly sharpen the accuracy dependence of associated testing algorithms. The title does not identify the pattern, induced versus ordinary copies, or the desired asymptotic precision, so it supports the quantitative direction without selecting a specific removal function.
+For each fixed connected graph pattern, the question asks how few ordinary copies a graph can contain while still being far from avoiding that pattern. Distance is the fraction of adjacency-matrix entries that must change, and each vertex subset supporting the pattern is counted once. The target is matching constant-factor bounds in both the graph order and the proximity parameter, with constants allowed to depend on the pattern. The removal lemma guarantees positive density at every fixed distance, but the general quantitative bounds remain widely separated. Sharp bounds would quantify the worst-case visibility of local violations and the sampling cost of detecting them.
 
-[Read in atlas](index.html#TCS-1029) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1029) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/PDF/pt-v3.pdf) · [A new proof of the graph removal lemma](https://arxiv.org/abs/1006.1300) · [Minimum degree and the graph removal lemma](https://arxiv.org/abs/2105.09194) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [Hypergraph removal with polynomial bounds](https://www.cambridge.org/core/journals/mathematical-proceedings-of-the-cambridge-philosophical-society/article/hypergraph-removal-with-polynomial-bounds/AA404A0C00FFA07E0E5C7CB03DBF1A6F)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-5085 — Query complexity of Max-CSP testing
 
@@ -3746,12 +3746,12 @@ A tester must distinguish constraint systems whose optimum satisfied fractions l
 [Read in atlas](index.html#TCS-5085) · [Unbounded-Width CSPs Are Untestable in a Sublinear Number of Queries](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.31) · [Near-Optimal Space Lower Bounds for Streaming CSPs](https://arxiv.org/abs/2604.01400v1)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0848 — Testing Submodularity
+### TCS-0848 — Polynomial-query submodularity testing
 
-A submodular set function has diminishing marginal gains as the set receiving a new element grows. The source entry asks about testing this property from limited access to function values. A tester must distinguish true submodularity from functions requiring substantial change to acquire it. Efficient testing would help identify when optimization techniques relying on diminishing returns are applicable. The saved label does not specify the domain representation, range, distance measure, or desired query bound, so no particular tester or lower-bound target is inferred.
+Submodularity expresses diminishing returns for a real-valued function on all subsets of a finite ground set. The question asks whether a polynomial number of exact value queries can test this property with one-sided error. Distance is the fraction of table entries that must change to obtain a submodular function, regardless of change magnitude. Known general upper and lower bounds leave the polynomial-query question unresolved, and constant-query norm-distance results concern a different task. A resolution would determine how efficiently an oracle’s global diminishing-returns structure can be checked from limited access.
 
-[Read in atlas](index.html#TCS-0848) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:37)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0848) · [Problem 37: Testing Submodularity](https://sublinear.info/index.php?title=Open_Problems:37) · [Is Submodularity Testable?](https://theory.stanford.edu/~jvondrak/data/submod-testing-alg.pdf) · [Testing Real-Valued Modularity and Submodularity](https://www.ias.edu/sites/default/files/math/csdm/15-16/HatamiVondrak.pdf) · [Testing Submodularity and Other Properties of Valuation Functions](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2017.33) · [Testing k-Submodularity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2026.52)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0841 — Equivalence Testing with Conditional Samples
 
