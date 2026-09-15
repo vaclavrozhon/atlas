@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-600 five-sentence working summaries, based on saved source material.
+599 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1498,10 +1498,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6575 — Deterministic competitiveness of k-server
 
-In k-server, requests arrive at points of a metric space and a server must move to each requested point. The target is the infimum universal deterministic competitive ratio as a function of k. The ratio is uniform over metric spaces, while the rule and fixed additive cost may depend on the metric and initial placement. The classical k-server conjecture proposes the value k and attainment of that guarantee. The Lean benchmark accepts a function within absolute error 0.01 for every positive integer k.
+Exactly k identical servers serve successive requests in a known metric space, paying the sum of movement distances. The target is the infimum competitive ratio uniform over all finite or infinite metrics, while each metric and initial placement may have its own online rule and fixed additive constant. A complete Lean answer must approximate this dimensionless function within absolute one hundredth for every positive server count, without assuming endpoint attainment. The known general bounds lie between k and two k minus one, with exact values one and two at the first two server counts. Circle and tree results, randomized algorithms, advice-assisted rules and time-optimal movement have separate guarantees and do not determine the full function.
 
-[Read in atlas](index.html#TCS-6575) · [Competitive Algorithms for Server Problems](https://www.cs.cmu.edu/~sleator/papers/server-problems.pdf) · [On the k-server conjecture](https://cgi.di.uoa.gr/~elias/papers/paper-kp95.html) · [An Optimal On-Line Algorithm for K Servers on Trees](https://epubs.siam.org/doi/10.1137/0220008) · [Deterministic 3-server on a circle and the limitation of canonical potentials](https://www.sciencedirect.com/science/article/abs/pii/S0304397524004614) · [The Randomized k-Server Conjecture Is False!](https://arxiv.org/abs/2211.05753) · [k-server-bench: Automating Potential Discovery for the k-Server Conjecture](https://arxiv.org/abs/2604.07240)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-6575) · [Competitive Algorithms for Server Problems](https://www.cs.cmu.edu/~sleator/papers/server-problems.pdf) · [On the k-server conjecture](https://cgi.di.uoa.gr/~elias/papers/paper-kp95.html) · [An Optimal On-Line Algorithm for K Servers on Trees](https://epubs.siam.org/doi/10.1137/0220008) · [Deterministic 3-server on a circle and the limitation of canonical potentials](https://arxiv.org/abs/2205.08103) · [The Randomized k-Server Conjecture Is False!](https://arxiv.org/abs/2211.05753) · [Time-Optimal k-Server](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ISAAC.2025.32) · [k-server-bench: Automating Potential Discovery for the k-Server Conjecture](https://arxiv.org/abs/2604.07240) · [Randomized k-Server in Polynomial Time](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.65)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-6638 — Optimal approximation ratio for unrelated-machine makespan
 
@@ -3988,7 +3988,7 @@ Some CSPs lie in NP even when their templates are infinite or structurally gener
 [Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Automated reasoning, rewriting and unification (15)
+## Automated reasoning, rewriting and unification (14)
 
 ### TCS-6562 — Word equations with linear length constraints
 
@@ -4073,13 +4073,6 @@ The input is an entire finite algebra specified by tables of its basic operation
 
 [Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66) · [Equations over finite algebras](https://www.algebra.uni-linz.ac.at/Slides/sl-aaa105-6.pdf)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6016 — Satisfiability of weak MSO+U over infinite words
-
-Weak monadic second-order logic quantifies over finite sets of positions, and the U extension adds an unbounding mechanism. The cited work studies this logic over infinite structures. The saved question asks whether satisfiability is decidable over infinite words. An answer would determine whether one can effectively recognize when a specification has any infinite sequential model. The excerpt does not reproduce the unbounding quantifier semantics or syntax restrictions, so the target remains attached to the source's precise logic rather than a broader unrestricted second-order language.
-
-[Read in atlas](index.html#TCS-6016) · [Weak MSO+U over infinite trees](https://doi.org/10.4230/LIPIcs.STACS.2012.648)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7125 — Two-sided distributive unification with a unit
 

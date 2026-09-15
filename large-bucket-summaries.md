@@ -152,6 +152,13 @@ A monotone graph property is invariant under vertex renaming and cannot be destr
 [Read in atlas](index.html#TCS-6743) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html) · [Complexity Measures and Decision Tree Complexity: A Survey](https://homepages.cwi.nl/~rdewolf/publ/qc/dectree.pdf) · [Instance Complexity and Unlabeled Certificates in the Decision Tree Model](https://www.wisdom.weizmann.ac.il/~naor/PAPERS/instance_complexity.pdf) · [Improved Lower Bounds on the Randomized Complexity of Graph Properties](https://www.cs.dartmouth.edu/~ac/Pubs/rsa-randglb.pdf) · [The Influence Lower Bound Via Query Elimination](https://theoryofcomputing.org/articles/v007a010/v007a010.pdf) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629v1) · [CS 860: Introduction — Graph Properties](https://cs.uwaterloo.ca/~eblais/cs860/w25/intro)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6979 — Independence of P versus NP from ZFC
+
+P versus NP asks whether efficiently verifiable decisions can always be made efficiently. This card fixes the usual arithmetic SAT formulation and asks whether ZFC proves neither it nor its negation. All finite proofs in full ZFC are allowed, without any limit on their length. Restricted-theory results and oracle computations do not settle this specified independence question. A positive answer would establish actual syntactic independence and would therefore also imply consistency of ZFC.
+
+[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-1056 — Majority outside constant-depth modular circuits
 
 Majority returns one when at least half of its input bits are one. ACC⁰ circuits combine Boolean operations and modular-counting gates using constant depth and polynomial size. The question asks whether every fixed choice of modulus and depth fails to compute majority within polynomial size. Known results for prime moduli or additional circuit restrictions do not settle the full composite-modulus question. A separation would show that this shallow modular model cannot express a basic threshold operation efficiently.
@@ -494,13 +501,6 @@ SAT asks whether a Boolean formula has a satisfying assignment. The selected que
 
 [Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6979 — Independence of P versus NP from ZFC
-
-P versus NP asks whether efficiently verifiable decisions can always be made efficiently. This card asks specifically whether ZFC proves neither the usual arithmetic statement P = NP nor its negation. It defines that statement through polynomial-time deterministic satisfiability and allows all finite ZFC proofs. Results for restricted theories and oracle machines do not establish the asserted independence from full ZFC. The question has a definite yes/no target once the axioms are fixed, and a positive answer would also imply their consistency.
-
-[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)
-Existing status: `source_open` · Summary written: 2026-09-14
 
 ## Algorithms (27)
 
@@ -1317,10 +1317,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0519 — Bipartite maximal matching with polynomial-in-degree volume
 
-A maximal matching is a collection of disjoint edges to which no further edge can be added. The question asks for a deterministic local-query algorithm on bipartite graphs whose inspected volume is polynomial in the maximum degree and independent of graph size. A proper two-coloring identifying the bipartition is supplied. Simulating a distributed proposal algorithm by exploring whole neighborhoods can incur an exponential dependence on degree. The project is to follow a much smaller dependency structure while ensuring that separately answered vertex queries describe the same matching.
+A maximal matching is a collection of disjoint edges to which no additional edge can be added. A vertex query may inspect the graph only by following ports from vertices it has already visited. The input supplies the two sides of the bipartite graph, and separate queries must describe one consistent matching. The question asks for one deterministic algorithm whose visited volume is polynomial in the degree bound and independent of graph size. The February 2026 primary list retains this question between known linear and superpolynomial degree-dependent bounds.
 
 [Read in atlas](index.html#TCS-0519) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [Truly Tight-in-\(\Delta\) Bounds for Bipartite Maximal Matching and Variants](https://arxiv.org/abs/2002.08216v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-6125 — Linear CONGEST lower bound with logarithmic LOCAL complexity
 
@@ -1816,6 +1816,13 @@ Klee’s measure problem asks for the volume covered by a union of axis-aligned 
 [Read in atlas](index.html#TCS-7184) · [Klee's measure problem made easy](https://doi.org/10.1109/FOCS.2013.51) · [Approximating Klee’s Measure Problem and a Lower Bound for Union Volume Estimation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2025.25) · [Near-Optimal Dynamic Data Structures for Maximum Depth and Klee’s Measure of Boxes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.34)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7006 — Optimal input-sparsity subspace embeddings
+
+An oblivious subspace embedding chooses a random linear map without knowing the subspace it must preserve. With high probability, the map must preserve the norms of all vectors in each fixed target subspace at once. The question asks for optimal output dimension together with a precise logarithmic-over-accuracy bound on nonzeros per column. These two parameters control compression quality and the arithmetic cost of applying the embedding to sparse data. The checked 2026 result approaches the target with remaining sub-polylogarithmic factors and does not settle the exact conjecture.
+
+[Read in atlas](index.html#TCS-7006) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357v3) · [Optimal Oblivious Subspace Embeddings with Near-Optimal Sparsity](https://doi.org/10.4230/LIPIcs.ICALP.2025.55) · [Optimal Subspace Embeddings: Resolving Nelson-Nguyen Conjecture Up to Sub-Polylogarithmic Factors](https://arxiv.org/abs/2508.14234v2)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-7182 — Simultaneous embedding with fixed edges for two graphs
 
 Two planar graphs share labeled vertices and possibly some edges. The question asks whether the existence of compatible planar drawings can be decided in polynomial time. Each shared vertex and edge must look identical in both drawings, while edges exclusive to different graphs may cross. The case with connected common graph is known to be efficiently solvable. The remaining target covers arbitrary common graphs and is distinct from straight-line or three-graph variants.
@@ -2010,13 +2017,6 @@ Existing status: `open` · Summary written: 2026-09-12
 The cut cone consists of nonnegative combinations of cut metrics and provides a geometric formulation of several graph-cut optimization problems. Direct membership testing is difficult, so the source asks for a tractable approximating cone. The preferred guarantee is constant distortion together with membership and separation algorithms polynomial in the dimension. A separation algorithm must either recognize membership or produce a hyperplane certifying exclusion. Such a cone could support efficient convex optimization for cut problems, while the source explicitly notes that its proposed negative-type-metric candidate does not achieve the desired constant-distortion guarantee.
 
 [Read in atlas](index.html#TCS-6880) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7006 — Optimal input-sparsity subspace embeddings
-
-A subspace embedding compresses a matrix while approximately preserving the Euclidean norm of every vector in its column space. The source conjectures an embedding dimension proportional to dimension plus logarithmic inverse failure probability, divided by accuracy squared. At the same time, multiplying by the embedding should take input-sparsity time with only the specified logarithmic and inverse-accuracy overhead. The two requirements must hold together, since a small sketch can still be expensive to construct. Such a construction would improve the foundational compression step used by fast regression and other numerical linear-algebra algorithms.
-
-[Read in atlas](index.html#TCS-7006) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Learning theory (38)
