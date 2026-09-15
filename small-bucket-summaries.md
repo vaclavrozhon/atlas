@@ -1505,10 +1505,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6638 — Optimal approximation ratio for unrelated-machine makespan
 
-Unrelated-machine scheduling allows each job to have a different processing time on every machine. The target is the infimum universal approximation ratio of deterministic polynomial-time algorithms in the stated model. Assigning every job to its favorite machine can create a severe load bottleneck. A better guarantee would improve a basic benchmark for scheduling heterogeneous work across heterogeneous resources. The numerical benchmark requires a Lean-certified value within absolute error 0.01, and conditional lower bounds retain their assumptions.
+Each job has a separately specified processing time on every eligible machine, and a schedule assigns every job without splitting it. The target is the infimum of universal approximation ratios achieved by finite deterministic programs running in polynomial time in the full binary input length. It requires a Lean-certified value within absolute error one hundredth, with both bounds and no implicit complexity assumption. Known factor-two upper bounds and conditional three-halves hardness leave a broad gap connected to fair allocation. Machine-count savings, prediction-assisted schedules and fair-mechanism existence results retain different quantifiers or inputs and do not determine this infimum.
 
-[Read in atlas](index.html#TCS-6638) · [Approximation Algorithms for Scheduling Unrelated Parallel Machines](https://ir.cwi.nl/pub/18055) · [An optimal rounding gives a better approximation for scheduling unrelated machines](https://www.sciencedirect.com/science/article/abs/pii/S0167637704000690) · [On the Configuration-LP for Scheduling on Unrelated Machines](https://arxiv.org/abs/1011.4957) · [Santa Claus meets Makespan and Matroids: Algorithms and Reductions](https://arxiv.org/abs/2307.08453) · [Learning-Augmented Approximation for Unrelated-Machines Makespan Scheduling](https://arxiv.org/abs/2606.13133)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-6638) · [Approximation Algorithms for Scheduling Unrelated Parallel Machines](https://ir.cwi.nl/pub/18055) · [An Optimal Rounding Gives a Better Approximation for Scheduling Unrelated Machines](https://www.sciencedirect.com/science/article/abs/pii/S0167637704000690) · [On the Configuration-LP for Scheduling on Unrelated Machines](https://arxiv.org/abs/1011.4957) · [Santa Claus Meets Makespan and Matroids: Algorithms and Reductions](https://arxiv.org/abs/2307.08453) · [Learning-Augmented Approximation for Unrelated-Machines Makespan Scheduling](https://arxiv.org/abs/2606.13133) · [Proportionally Fair Makespan Approximation](https://arxiv.org/abs/2412.08572)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-6676 — Optimal approximation ratio for precedence-constrained makespan
 
@@ -3725,12 +3725,12 @@ The tester sees two sparse graphs only by asking for individual neighbors. It mu
 [Read in atlas](index.html#TCS-6672) · [Open Problems in Property Testing of Graphs](https://eccc.weizmann.ac.il/report/2021/088/) · [Testing Isomorphism in the Bounded-Degree Graph Model](https://www.wisdom.weizmann.ac.il/~/oded/VO/iso.pdf) · [On Testing Isomorphism to a Fixed Graph in the Bounded-Degree Graph Model](https://www.wisdom.weizmann.ac.il/~/oded/COL3/bdg-iso-fixed.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1030 — Characterizing polynomial-query dense graph properties
+### TCS-1030 — Polynomial testing of induced four-cycle freeness
 
-Dense graph property testing samples a small portion of a graph to distinguish membership from substantial edit distance. The saved question asks which properties admit query complexity polynomial in inverse proximity. This quantitative distinction separates merely size-independent testers from testers whose accuracy cost remains moderate. A characterization would explain why some graph properties are efficiently observable from samples while others demand much larger samples. The inherited label does not state the permitted property family or error convention, so the draft does not assume that every hereditary property falls under one particular classification theorem.
+The question asks whether induced four-cycle freeness can be tested from a random sample whose size is polynomial in reciprocal proximity. An induced four-cycle has its four cycle edges and neither diagonal, and repairing the graph permits both edge additions and deletions. The canonical tester rejects when its sampled induced subgraph contains such a cycle and must reject every far graph with probability at least two thirds. An exponential removal bound is known, while the polynomial improvement remains explicitly conjectured in the checked 2025 source. This concrete target was selected with user authorization from the broader inherited classification question and would settle its remaining single-pattern case up to complementation.
 
-[Read in atlas](index.html#TCS-1030) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1030) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/PDF/pt-v3.pdf) · [Efficient Removal without Efficient Regularity](https://www.math.tau.ac.il/~asafico/C4.pdf) · [Easily Testable Graph Properties](https://www.cambridge.org/core/product/identifier/S0963548314000765/type/journal_article) · [A Quantitative Container Characterization of One-Sided Testability](https://eccc.weizmann.ac.il/report/2026/144/)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1029 — Sharp graph-removal bounds for fixed patterns
 

@@ -507,7 +507,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 1 | [Effective classification of polynomially testable hereditary graph properties](index.html#TCS-6630) | 95 |
 | 2 | [Polynomial testability versus distance estimation](index.html#TCS-1033) | 96 |
 | 3 | [Sublinear testing of bounded-degree graph isomorphism](index.html#TCS-6672) | 92 |
-| 4 | [Characterizing polynomial-query dense graph properties](index.html#TCS-1030) | 88 |
+| 4 | [Polynomial testing of induced four-cycle freeness](index.html#TCS-1030) | 88 |
 | 5 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
 | 6 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
 | 7 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
