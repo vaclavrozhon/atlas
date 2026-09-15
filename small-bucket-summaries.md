@@ -3019,6 +3019,13 @@ The permanent is the unsigned sum of permutation products of a square matrix. Th
 [Read in atlas](index.html#TCS-6616) · [Kronecker Scaling of Tensors with Applications to Arithmetic Circuits and Algorithms](https://doi.org/10.4230/LIPIcs.ICALP.2026.36) · [Computing Permanents and Counting Hamiltonian Cycles by Listing Dissimilar Vectors](https://doi.org/10.4230/LIPIcs.ICALP.2019.25) · [Counting Perfect Matchings and Hamiltonian Cycles Faster](https://arxiv.org/abs/2309.15422v2) · [Ryser, Glynn, and the discrete Fourier transform: orthogonal schemes for the permanent](https://arxiv.org/abs/2607.09949v2)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-5520 — NP-hardness of PosSLP
+
+The target is unconditional NP-hardness of deciding whether a succinctly represented integer is positive. The integer is produced by a straight-line program starting from one and using only addition, subtraction and multiplication. The required reduction must deterministically convert each 3-SAT instance to one such program in polynomial bit time. Known conditional consequences for randomized algorithms and unconditional hardness of polynomial variants do not supply this reduction. A complete answer would clarify the discrete complexity of exact sign testing without also requiring a proof that P and NP differ.
+
+[Read in atlas](index.html#TCS-5520) · [PosSLP and Sum of Squares](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.13) · [On the Hardness of PosSLP](https://goravjindal.github.io/assets/pdf/posslpsoda2024.pdf) · [Beyond Bits: An Introduction to Computation over the Reals](https://arxiv.org/abs/2603.29427)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-0481 — Cubic min-plus circuit lower bounds for shortest paths
 
 A min-plus circuit computes by a fixed network of minimum and addition gates. The question asks whether even one shortest-path distance in a complete nonnegatively weighted graph requires cubic circuit size. Ordinary graph algorithms can branch on comparisons and therefore need not translate into equally small circuits. Repeated relaxation provides a cubic upper bound, while dependence on all edge inputs gives only a weaker basic lower bound. The project seeks to understand how much sharing fixed tropical computations can achieve across competing paths.
@@ -3221,13 +3228,6 @@ Matrix rigidity measures how many entries must be changed before a matrix's rank
 
 [Read in atlas](index.html#TCS-5260) · [Fourier and Circulant Matrices Are Not Rigid](https://doi.org/10.4230/LIPIcs.CCC.2019.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5520 — Unconditional hardness of PosSLP
-
-PosSLP asks whether the integer produced by an arithmetic straight-line program is positive. The program can represent integers far too large to expand explicitly, so evaluating the sign is a succinct arithmetic problem. The source relates this task to divisibility, equality, order, and representations as sums of squares. The selected question asks for unconditional hardness results for PosSLP. Such results would clarify the intrinsic difficulty of exact numerical comparisons without depending on number-theoretic conjectures used in some of the paper's reductions.
-
-[Read in atlas](index.html#TCS-5520) · [PosSLP and Sum of Squares](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.13)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5739 — Collapse of rational recurrence systems to single recurrences
 
@@ -4181,12 +4181,12 @@ Polymatroid bounds replace entropy constraints by a collection of abstract submo
 [Read in atlas](index.html#TCS-0487) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0494 — Finite controllability from bounded derivation
+### TCS-0494 — BDD/FC conjecture
 
-Bounded derivation depth limits how far a rule-based reasoning process must unfold to answer the relevant queries. The source asks whether this property implies finite controllability. Finite controllability compares reasoning over all models with reasoning restricted to finite models, which is crucial when interpreting database constraints. The proposed implication would connect a bound on inference depth with the ability to find finite witnesses to failure. The saved label omits the rule and query classes and the precise boundedness convention, so those hypotheses must be restored before asserting a general model-theoretic theorem.
+The BDD/FC conjecture asks whether every finite existential rule set with bounded derivation depth is finitely controllable. Bounded derivation depth is expressed by a finite positive rewriting for each conjunctive query that works on every database. Finite controllability means that a query failing in some unrestricted model also fails in a finite model. The question allows arbitrary finite relational arities and several atoms in a rule head. The known binary theorem requires single-head rules, and the checked PODS 2025 result posted in 2026 leaves the general conjecture open.
 
-[Read in atlas](index.html#TCS-0494) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#does-bounded-derivation-depth-imply-finite-controllability)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0494) · [List of open questions: Does bounded derivation depth imply finite controllability?](https://a3nm.net/work/research/questions/#does-bounded-derivation-depth-imply-finite-controllability) · [On the BDD/FC Conjecture](https://arxiv.org/abs/1408.2081) · [No Cliques Allowed: The Next Step Towards BDD/FC Conjecture](https://inria.hal.science/hal-05273623v1/file/2025-pods-no-cliques-allowed.pdf) · [No Cliques Allowed: The Next Step Towards BDD/FC Conjecture](https://arxiv.org/abs/2603.09558)
+Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0499 — Query evaluation with treewidth parameter
 
