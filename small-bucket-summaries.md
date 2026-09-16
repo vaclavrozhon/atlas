@@ -2052,10 +2052,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6683 — Optimal bounds in the Excluded Grid Theorem
 
-The Excluded Grid Theorem guarantees a large grid minor when a graph has sufficiently large treewidth. The question asks for the optimal treewidth threshold forcing an r-by-r grid, including the correct logarithmic factors. Treewidth measures how difficult the graph is to decompose into small overlapping bags, while a grid supplies a concrete witness of large-scale complexity. Sharp bounds would quantify this foundational connection used throughout structural and algorithmic graph theory. The reviewed target concerns all graphs and grid side length, so bounds for an additional excluded-minor promise or suppressed polylogarithmic factors do not finish it.
+The excluded-grid threshold is the least treewidth that forces a square grid of a specified side length in every finite simple undirected graph. The question asks for its true asymptotic order up to universal constant factors, including logarithmic dependence. A complete answer needs a universal grid-forcing bound and grid-excluding examples of matching treewidth, certified in Lean. The known quadratic-logarithmic lower bound and exponent-nine upper bound leave a large gap in this fundamental structural theorem. Recent product-structure, fixed-minor, annotated-grid and disjoint-paths results refine related questions while leaving the all-graphs target open.
 
-[Read in atlas](index.html#TCS-6683) · [Graph minors. V. Excluding a planar graph](https://doi.org/10.1016/0095-8956(86)90030-4) · [Quickly Excluding a Planar Graph](https://www.sciencedirect.com/science/article/pii/S0095895684710732) · [Polynomial Bounds for the Grid-Minor Theorem](https://arxiv.org/abs/1305.6577) · [Towards \(Tight(er)\) Bounds for the Excluded Grid Theorem](https://arxiv.org/abs/1901.07944) · [The Grid-Minor Theorem Revisited](https://link.springer.com/article/10.1007/s00493-025-00168-w) · [Catching Rats in H-minor-free Graphs](https://arxiv.org/abs/2506.22857)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6683) · [Graph minors. V. Excluding a planar graph](https://doi.org/10.1016/0095-8956(86)90030-4) · [Quickly Excluding a Planar Graph](https://doi.org/10.1006/jctb.1994.1073) · [Polynomial Bounds for the Grid-Minor Theorem](https://arxiv.org/abs/1305.6577v5) · [Towards Tight(er) Bounds for the Excluded Grid Theorem](https://arxiv.org/abs/1901.07944) · [The Grid-Minor Theorem Revisited](https://link.springer.com/article/10.1007/s00493-025-00168-w) · [Catching Rats in \(H\)-minor-free Graphs](https://doi.org/10.1137/1.9781611978971.169) · [Quickly Excluding an Annotated Planar Graph](https://doi.org/10.4230/LIPIcs.ICALP.2026.99) · [Optimal Bounds for the \(k\)-Disjoint Paths Problem](https://arxiv.org/abs/2605.14902)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7251 — Caccetta–Häggkvist conjecture
 
@@ -2418,10 +2418,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5706 — Unified bound for binary search trees
 
-A search should be cheap when its key is close in rank to a recently requested key. The unified bound combines this spatial locality with temporal locality. The target requires a single online binary search tree. Known BST bounds include an extra logarithmic-logarithmic term per access. The cited source distinguishes an earlier disputed claim from an established solution.
+The unified bound makes an access inexpensive when its key is close in rank to a recently accessed key. This card uses the 2024 elapsed-access definition and asks for a single deterministic online binary search tree. The target is total cost within a constant factor of that bound plus one initialization allowance. The fixed program uses a constant number of logarithmic-bit fields and registers, and all local computation is charged. The checked 2024 and 2026 sources retain the BST question, while the older cache-splay claim and the newer heap result do not provide a verified resolution in this model.
 
-[Read in atlas](index.html#TCS-5706) · [The Group Access Bounds for Binary Search Trees](https://drops.dagstuhl.de/storage/00lipics/lipics-vol297-icalp2024/LIPIcs.ICALP.2024.38/LIPIcs.ICALP.2024.38.pdf)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-5706) · [The Group Access Bounds for Binary Search Trees](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.38) · [Combining Binary Search Trees](https://erikdemaine.org/papers/ComboBST_ICALP2013/) · [In pursuit of the dynamic optimality conjecture](https://arxiv.org/abs/1306.0207v1) · [Achieving the Unified Bound in the BST Model](https://www.diag.uniroma1.it/~demetres/events/ads11/abstracts/index.shtml) · [Sorting under Partial Information with Optimal Preprocessing Time via Unified Bound Heaps](https://arxiv.org/abs/2604.12653v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5825 — Superconstant word-RAM time for prefix-\(U_1\)
 
@@ -2658,12 +2658,12 @@ A grammar can compress a string by naming repeated pieces and assembling them th
 [Read in atlas](index.html#TCS-6513) · [The Smallest Grammar Problem](https://doi.org/10.1109/TIT.2005.850116) · [On the Complexity of the Smallest Grammar Problem over Fixed Alphabets](https://doi.org/10.1007/s00224-020-10013-w)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7297 — Optimal \(\ell\)\(_{1}\) distortion of edit distance
+### TCS-7297 — Optimal \(\ell_{1}\) distortion of binary edit distance
 
-Edit distance counts unit-cost insertions, deletions and substitutions between binary strings. An \(\ell\)\(_{1}\) embedding represents those distances by sums of coordinate differences, up to a common multiplicative distortion. The target is the smallest distortion as a function of string length, within constant factors. Embedding dimension and construction time are unrestricted. The earlier polylogarithmic-distortion question selects one possible growth regime of this extremal function.
+Binary edit distance counts unit-cost insertions, deletions and substitutions. One map of all length-n strings into a finite-dimensional l1 space must preserve every distance within a common multiplicative distortion. The dimension, real coordinates and computation needed to obtain the map are unrestricted. Verified bounds range from logarithmic distortion to the Ostrovsky–Rabani subpolynomial upper bound. The retained question asks for matching bounds within universal constant factors; recent distance algorithms and similarity-measure embeddings give different guarantees.
 
-[Read in atlas](index.html#TCS-7297) · [Low Distortion Embeddings for Edit Distance](https://doi.org/10.1145/1060590.1060623)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-7297) · [Low Distortion Embeddings for Edit Distance](https://web.cs.ucla.edu/~rafail/PUBLIC/68.pdf) · [Improved lower bounds for embeddings into L1](https://www.wisdom.weizmann.ac.il/~robi/papers/KR-EmbedLB-SODA06.pdf) · [Nonembeddability theorems via Fourier analysis](https://web.math.princeton.edu/~naor/homepage%20files/nonembed-final-new.pdf) · [Edit Distance in Near-Linear Time: it's a Constant Factor](https://arxiv.org/abs/2005.07678v2) · [Embeddings into Similarity Measures for Nearest Neighbor Search](https://doi.org/10.1109/FOCS63196.2025.00045)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7362 — Optimal top-k document retrieval in compact space
 
