@@ -133,10 +133,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7363 — \(\exists\mathbb{R}\) versus \(\mathrm{NP}\)
 
-Existential real formulas ask whether polynomial constraints have a real solution. The input is a finite binary description of the constraints. The class contains NP and is contained in PSPACE. The question asks whether it is exactly NP. An oracle separation or a rational-coordinate obstruction alone does not answer that class comparison.
+The existential theory of the reals asks whether a finite system of polynomial conditions has an exact real solution. Its input is a binary formula, with all coefficient and exponent bits counted in the running-time measure. The question is whether every yes-instance has a polynomial-length binary certificate checked in ordinary polynomial time. Known containments, oracle results and real-valued proof systems leave that discrete-certificate question unresolved in the checked sources. A complete answer must establish or refute ETR membership in NP without restricting possible certificate representations.
 
-[Read in atlas](index.html#TCS-7363) · [The Existential Theory of the Reals as a Complexity Class: A Compendium](https://arxiv.org/abs/2407.18006) · [Some structural complexity results for \(\exists\mathbb R\)](https://arxiv.org/abs/2502.00680)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7363) · [The Existential Theory of the Reals as a Complexity Class: A Compendium](https://arxiv.org/abs/2407.18006) · [Some structural complexity results for \(\exists\mathbb R\)](https://arxiv.org/abs/2502.00680) · [Beyond Bits: An Introduction to Computation over the Reals](https://arxiv.org/abs/2603.29427) · [Probabilistically checkable proofs for the Existential Theory of the Reals](https://arxiv.org/abs/2605.23517)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6681 — DNF versus d-DNNF succinctness
 
@@ -1212,10 +1212,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-6507 — Work-efficient parallel directed reachability
 
-A parallel reachability algorithm must identify every vertex reachable from a source in a directed graph. The target combines nearly linear total work in the input size with polylogarithmic depth, using randomization and high-probability correctness. Ordinary graph search does little work but can expose a long sequence of dependent frontiers. Highly parallel transitive-closure methods may perform far more work than this one-source task requires. The question is whether shortcuts or another representation can remove long dependencies while accounting for the cost of constructing all auxiliary information.
+Given a directed graph and a source, the task is to mark exactly all vertices reachable from that source. The question asks for a uniform randomized CREW parallel algorithm with nearly linear total work in the input size and polylogarithmic depth on every input. Correctness of the complete output and both resource bounds must hold together with high probability for each fixed graph. The 2026 density improvement retains polynomial depth, while the August polylogarithmic-depth result measures work by a potentially quadratic transitive closure. A complete Lean proof must decide whether the two desired resource guarantees can be achieved simultaneously in the specified model.
 
-[Read in atlas](index.html#TCS-6507) · [Parallel Reachability and Shortest Paths on Non-Sparse Digraphs: Near-Linear Work and Sub-Square-Root Depth](https://doi.org/10.4230/LIPIcs.ICALP.2026.15) · [Parallel Reachability in Almost Linear Work and Square Root Depth](https://arxiv.org/abs/1905.08841) · [Õ(1)-Depth Parallel Reachability Faster than Transitive Closure](https://arxiv.org/abs/2608.13231)
-Existing status: `open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6507) · [Parallel Reachability in Almost Linear Work and Square Root Depth](https://arxiv.org/abs/1905.08841v4) · [Parallel Reachability and Shortest Paths on Non-Sparse Digraphs: Near-Linear Work and Sub-Square-Root Depth](https://doi.org/10.4230/LIPIcs.ICALP.2026.15) · [Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth, full version](https://arxiv.org/abs/2605.03892v1) · [\(\widetilde O(1)\)-Depth Parallel Reachability Faster than Transitive Closure](https://arxiv.org/abs/2608.13231v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7172 — Depth-first search in NC
 
@@ -1273,6 +1273,13 @@ The VOLUME model measures how many graph vertices an adaptive local algorithm in
 [Read in atlas](index.html#TCS-0515) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [The randomized local computation complexity of the Lovász local lemma](https://arxiv.org/abs/2103.16251v2) · [The Landscape of Distributed Complexities on Trees and Beyond](https://arxiv.org/abs/2202.04724v2) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [New Complexity Classes in Locally Checkable Labeling for Local Computation Algorithms](https://arxiv.org/abs/2607.09626v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-5795 — One-pass semi-streaming depth-first search
+
+The input is an arbitrary-order stream of edges of a connected undirected graph. The task is to output any DFS spanning tree in one pass using nearly linear bit memory. The tree must place the endpoints of every graph edge in an ancestor relationship, beyond ordinary connectivity. The original paper gives many-pass tradeoffs, while practical one-pass observations apply only to evaluated or special inputs. Current status remains uncertain because a later introductory lower-bound assertion was not substantiated by its cited results.
+
+[Read in atlas](index.html#TCS-5795) · [Streaming Complexity of Spanning Tree Computation](https://doi.org/10.4230/LIPIcs.STACS.2020.34) · [Engineering Semi-streaming DFS algorithms](https://arxiv.org/abs/2406.03922) · [Constructing Long Paths in Graph Streams](https://doi.org/10.4230/LIPIcs.ESA.2025.22) · [Sublinear Algorithms for \((\Delta+1)\) Vertex Coloring](https://arxiv.org/abs/1807.08886) · [Independent Sets in Vertex-Arrival Streams](https://doi.org/10.4230/LIPIcs.ICALP.2019.45)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-5797 — Local certificate size versus verification radius
 
 Local certification assigns a short proof string to every vertex so that a global graph property can be checked from nearby information. The selected model has no identifiers or input labels, and certificate bounds must hold uniformly over all finite graphs. For each initial bit budget and verification radius, the target is the largest minimum certificate size among properties certifiable within that budget at radius one. The source asks whether certificate size always scales inversely with radius; this card explicitly asks for the full underlying worst-case function. Determining the function would quantify when greater local visibility can replace stored proof information, with a Lean-certified error of at most one hundredth of a bit at every parameter pair.
@@ -1293,6 +1300,13 @@ A local nonnegative cost φ defines a dissimilarity by summing over correspondin
 
 [Read in atlas](index.html#TCS-0986) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:5) · [Streaming Space Complexity of Nearly All Functions of One Variable on Frequency Vectors](https://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/bcwy16.pdf) · [The Andoni–Krauthgamer–Razenshteyn Characterization of Sketchable Norms Fails for Sketchable Metrics](https://arxiv.org/abs/1810.04321)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-6080 — Linear-round weighted APSP in CONGEST
+
+Every node in a weighted network must learn its exact distance to every other node. Messages are limited to logarithmically many bits per edge and round, with communication only along the input network. The target is a uniform randomized algorithm using a truly linear number of rounds and succeeding globally with constant probability. A linear lower bound and a randomized near-linear upper bound are known, leaving factors hidden by polylogarithmic notation. A complete answer must prove the literal linear bound or rule it out in this same model.
+
+[Read in atlas](index.html#TCS-6080) · [Quadratic and Near-Quadratic Lower Bounds for the CONGEST Model](https://doi.org/10.4230/LIPIcs.DISC.2017.10) · [Distributed Exact Weighted All-Pairs Shortest Paths in Near-Linear Time](https://arxiv.org/abs/1811.03337) · [Message Optimality and Message-Time Trade-offs for APSP and Beyond](https://arxiv.org/abs/2504.21781)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0469 — Maximum independent set in the congested clique
 
@@ -1538,20 +1552,6 @@ Turnstile streaming algorithms process positive and negative updates to an under
 
 [Read in atlas](index.html#TCS-5427) · [New Characterizations in Turnstile Streams with Applications](https://doi.org/10.4230/LIPIcs.CCC.2016.20)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5795 — One-pass semi-streaming depth-first search
-
-Depth-first-search tree construction is easy when a streaming algorithm can retain the complete graph. The semi-streaming restriction instead allows only \(\widetilde{O}\)\((n)\) memory for an n-vertex graph, potentially requiring repeated edge scans. The source asks whether more than one pass is inherently necessary to construct a DFS tree in this space regime. Its cited algorithms have pass counts depending on the height of the produced tree, leaving a large gap between simple upper bounds and the sought impossibility result. Resolving the one-pass question would determine whether the nested dependencies of depth-first search force repeated access under near-linear storage.
-
-[Read in atlas](index.html#TCS-5795) · [Streaming Complexity of Spanning Tree Computation](https://doi.org/10.4230/LIPIcs.STACS.2020.34)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6080 — Linear-round weighted APSP in CONGEST
-
-Weighted all-pairs shortest paths requires every vertex to learn exact distances to all others in an edge-weighted network. The 2017 source asks whether this can be done in a linear number of CONGEST communication rounds. Straightforward repeated distance propagation is slower, while subquadratic algorithms suggest room for improvement. The paper also shows that a standard two-party communication framework cannot establish a superlinear lower bound for this task. The question therefore seeks either an algorithm coordinating many weighted searches within linear time or a different explanation of why their shared communication demands prevent it.
-
-[Read in atlas](index.html#TCS-6080) · [Quadratic and Near-Quadratic Lower Bounds for the CONGEST Model](https://doi.org/10.4230/LIPIcs.DISC.2017.10)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6206 — Clique detection in CONGEST
 

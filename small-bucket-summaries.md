@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-607 five-sentence working summaries, based on saved source material.
+606 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1128,6 +1128,13 @@ A polynomial compression replaces an instance by a short string for a possibly d
 [Read in atlas](index.html#TCS-6734) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [Kernelization: Theory of Parameterized Preprocessing](https://fedorvf.github.io/BookKer/book_kernels.pdf) · [Abusing the Tutte Matrix: An Algebraic Instance Compression for the K-set-cycle Problem](https://doi.org/10.4230/LIPIcs.STACS.2013.341) · [Preprocessing Complexity for Some Graph Problems Parameterized by Structural Parameters](https://arxiv.org/abs/2306.12655v1) · [Boundaried Kernelization via Representative Sets](https://doi.org/10.4230/LIPIcs.IPEC.2025.6)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
+### TCS-4289 — \(\mathrm{W}[2]\)-hardness of bounded-VC-dimension Hitting Set
+
+Hitting Set asks whether at most k elements can intersect every set in an explicitly supplied finite set system. The question is whether some fixed bound on the system's VC dimension still permits W[2]-hardness when only k is the parameter. Hardness means one uniform deterministic fixed-parameter many-one reduction from unrestricted Hitting Set, with every output satisfying that fixed VC bound. The 2016 source proves W[1]-hardness even when primal and dual dimensions are both two, but leaves the stronger W[2] classification open. The bounded review through September 2026 found related hardness and approximation results but no verified resolution of this question.
+
+[Read in atlas](index.html#TCS-4289) · [Hitting Set for Hypergraphs of Low VC-dimension](https://doi.org/10.4230/LIPIcs.ESA.2016.23) · [The PACE 2025 Parameterized Algorithms and Computational Experiments Challenge: Dominating Set and Hitting Set](https://doi.org/10.4230/LIPIcs.IPEC.2025.32) · [The Parameterized Complexity of Independent Set and More when Excluding a Half-Graph, Co-Matching, or Matching](https://arxiv.org/abs/2602.07606v1) · [Fixed Budget vs. Covering Target: The Partial Set Cover Boundary for Bounded VC-Dimension](https://arxiv.org/abs/2608.03801v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3480 — Polynomial exact metric sparsifiers with a crossing-edge budget
 
 A graph with terminals is queried by choosing labels for the terminals and a metric on the labels. The goal is a small retained edge set that supports an optimal extension for every such query. Only labelings with at most p crossing edges are compared, and the retained set must have size polynomial in p plus the number of terminals. The original claimed quasipolynomial metric-sparsifier result was explicitly retracted in the corrected paper. Ordinary multicut sparsifiers preserve a different collection of values and do not settle this universal metric question.
@@ -1239,13 +1246,6 @@ Independent Set asks whether a graph contains k pairwise nonadjacent vertices. S
 
 [Read in atlas](index.html#TCS-3917) · [Parameterized Complexity of Independent Set in H-Free Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2018.17) · [Parameterized Complexity of Independent Set in H-Free Graphs](https://doi.org/10.1007/s00453-020-00730-6) · [When Maximum Stable Set Can Be Solved in FPT Time](https://doi.org/10.4230/LIPIcs.ISAAC.2019.49)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-4289 — \(\mathrm{W}[2]\)-hardness of bounded-VC-dimension Hitting Set
-
-Hitting Set asks for a small collection of elements that intersects every set in an input set system. Bounding the system's VC-dimension limits its shattering complexity and supports strong approximation results, but does not automatically make exact optimization tractable. The source asks whether Hitting Set remains \(\mathrm{W}[2]\)-hard even when the VC-dimension is bounded by a constant. Here the parameter is the size of the requested hitting set, so the target is a stronger parameterized hardness classification within a structurally restricted family. An answer would sharpen the distinction between low-dimensional sampling structure and the difficulty of finding an exact small transversal.
-
-[Read in atlas](index.html#TCS-4289) · [Hitting Set for Hypergraphs of Low VC-dimension](https://doi.org/10.4230/LIPIcs.ESA.2016.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4440 — Expected FPT delay from small-witness decision
 
@@ -2770,7 +2770,7 @@ A string attractor is a set of positions intersecting an occurrence of every dis
 [Read in atlas](index.html#TCS-6928) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (23)
+## Game theory, social choice and fair division (22)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -2876,13 +2876,6 @@ Agents divide a finite set of indivisible items, and each agent may assign an ar
 
 [Read in atlas](index.html#TCS-1108) · [Mixed Fair Division: A Survey](https://arxiv.org/abs/2306.09564) · [Approximately Envy-free and Equitable Allocations of Indivisible Items for Non-monotone Valuations](https://doi.org/10.1609/aaai.v40i20.38712)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-1119 — Existence of pairwise maximin-share allocations
-
-Pairwise maximin-share fairness compares an agent's bundle with what they could guarantee by repartitioning it together with another agent's bundle. The survey asks whether allocations satisfying all these pairwise requirements always exist. Each pair induces its own two-way fairness benchmark, and the resulting comparisons can conflict across pairs. Universal existence would provide a strong local form of fairness tied to each agent's own valuation. The saved note does not state the valuation assumptions or complete allocation convention, so those conditions are necessary before asserting a theorem for all indivisible-goods instances.
-
-[Read in atlas](index.html#TCS-1119) · [Fair Division of Indivisible Goods: A Survey](https://www.cs.toronto.edu/~nisarg/teaching/2556s22/papers/fair-division-survey.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0073 — Polynomial-time mixed equilibria in coordination polymatrix games
 
@@ -3585,10 +3578,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6607 — Capacity of the binary deletion channel
 
-The binary deletion channel independently removes transmitted bits and hides their original positions. The question asks for capacity as a function of deletion probability, measured per input bit. Missing alignment makes this harder than an erasure channel that marks where losses occurred. Matching achievable rates and converse bounds would quantify the fundamental cost of synchronization uncertainty. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
+The binary deletion channel independently removes input bits while hiding their original positions. Its operational capacity is the supremum of reliable transmission rates in bits per input bit for each fixed deletion probability. This benchmark asks for a function within absolute error 0.01 throughout the entire real interval from zero to one, with a complete Lean proof. The user deliberately retains a formalization task because a known uniform finite-block estimate already guarantees unrestricted approximation at that accuracy. The exact curve remains a separate scientific open problem, and recent claimed numerical and high-deletion bounds do not determine it.
 
-[Read in atlas](index.html#TCS-6607) · [An Overview of Capacity Results for Synchronization Channels](https://arxiv.org/abs/1910.07199) · [Optimal Coding for the Binary Deletion Channel With Small Deletion Probability](https://ykanoria.github.io/Deletion_paper.pdf) · [Improved Upper and Lower Bounds on the Capacity of the Binary Deletion Channel](https://arxiv.org/abs/2305.07156) · [Improved Capacity Upper Bounds for the Deletion Channel using a Parallelized Blahut-Arimoto Algorithm](https://arxiv.org/abs/2604.05867) · [A Certified Multi-Run Capacity Lower Bound for the Binary Deletion Channel at \(d = 1/2\)](https://zenodo.org/records/21780666)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-6607) · [An Overview of Capacity Results for Synchronization Channels](https://arxiv.org/abs/1910.07199) · [A new bound on the capacity of the binary deletion channel with high deletion probabilities](https://marco-dalai.unibs.it/pub/D_ISIT_2011.pdf) · [Optimal Coding for the Binary Deletion Channel With Small Deletion Probability](https://ykanoria.github.io/Deletion_paper.pdf) · [Improved Upper and Lower Bounds on the Capacity of the Binary Deletion Channel](https://arxiv.org/abs/2305.07156) · [Improved Capacity Upper Bounds for the Deletion Channel using a Parallelized Blahut-Arimoto Algorithm](https://arxiv.org/abs/2604.05867) · [A Certified Multi-Run Capacity Lower Bound for the Binary Deletion Channel at \(d = 1/2\)](https://zenodo.org/records/21780666) · [A New Upper Bound on the Binary Deletion Channel Capacity](https://arxiv.org/abs/2609.13351) · [Binary deletion channel quarter-bound formalization and verification records](https://github.com/factoreminv/bdc)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7267 — Binary codes beyond the Gilbert–Varshamov bound
 
