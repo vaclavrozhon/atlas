@@ -222,6 +222,13 @@ The question concerns a fixed machine that prints all digits of a real number wi
 [Read in atlas](index.html#TCS-7159) · [On the computational complexity of algebraic numbers: the Hartmanis–Stearns problem revisited](https://arxiv.org/abs/1601.02771) · [Time-Restricted Sequence Generation](https://people.csail.mit.edu/meyer/time-restricted-sequence-generation-jcss.pdf) · [On Transcendence of Numbers Related to Sturmian and Arnoux-Rauzy Words](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.144) · [Computing the base-b representation of quadratic irrationals using automata](https://doi.org/10.1016/j.tcs.2026.115843)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-0298 — UNSAT multi-prover proofs with efficient SAT-oracle provers
+
+The actual source asks for interactive proofs of unsatisfiability, with several noncommunicating classical provers. Honest provers must run in randomized polynomial time with SAT-oracle access, while the verifier is polynomial-time and has no oracle. Soundness must hold against all computationally unbounded classical cheating strategies. The target is tied to checking a purported SAT solver and remains distinct from ordinary interactive proofs with unrestricted honest provers. The imported SAT label lost a complement bar; the card restores UNSAT and records the correction explicitly.
+
+[Read in atlas](index.html#TCS-0298) · [Worlds to Die Harder For: Open Oracle Questions for the 21st Century](https://www.cs.umd.edu/~gasarch/open/oracles.pdf) · [On the Power of Randomized Reductions and the Checkability of SAT](https://www.irif.fr/~dxiao/docs/satcheck.pdf) · [Range avoidance, Arthur-Merlin, and TFNP](https://eccc.weizmann.ac.il/report/2025/210/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0301 — Excluding one-sided randomized quasilinear-time log-space SAT
 
 The input is an arbitrary explicitly written satisfiability instance. A candidate algorithm may use fresh random bits, logarithmic working memory and time n times a fixed polynomial in log n. It must never accept an unsatisfiable formula and must accept each satisfiable formula with constant probability. Both resource bounds hold for the same machine on every sequence of random choices. The target is an unconditional lower bound against every such algorithm; known opposite-error and larger-class results do not settle it.
@@ -234,6 +241,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 The question asks whether all fixed levels of alternating real quantification reduce to one strengthened existential theory. That target theory permits nested sums over Boolean dummy variables inside arithmetic terms. Its real variables must remain explicitly listed, and it has no compact product binder. The reductions operate on finite binary descriptions and may have a different polynomial bound for each fixed alternation level. A positive answer would supply the specific counting-versus-alternation principle proposed in the 2024 source, distinct from earlier topological Toda analogues.
 
 [Read in atlas](index.html#TCS-2215) · [The Existential Theory of the Reals with Summation Operators](https://doi.org/10.4230/LIPIcs.ISAAC.2024.13) · [Beyond the Existential Theory of the Reals](https://doi.org/10.1007/s00224-023-10151-x) · [Polynomial Hierarchy, Betti Numbers, and a Real Analogue of Toda’s Theorem](https://arxiv.org/abs/0812.1200v3)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-2333 — Downward self-reducibility of PLS-complete problems
+
+The target asks whether every PLS-complete total search relation can be solved using only shorter instances of itself. Shorter means fewer bits in the full input encoding, and the reduction must work for every valid solution oracle. The original paper proves the property for a canonical complete problem and places downward self-reducible total NP search in PLS. A SODA 2026 result proves that the universal statement holds exactly when every PLS problem is solvable in polynomial time. Its conditional negative result is recorded as progress; the card retains the unconditional yes/no question.
+
+[Read in atlas](index.html#TCS-2333) · [Downward Self-Reducibility in TFNP](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2023.67) · [Downward self-reducibility in the total function polynomial hierarchy](https://doi.org/10.1137/1.9781611978971.185) · [Downward self-reducibility in the total function polynomial hierarchy — full manuscript](https://eccc.weizmann.ac.il/report/2025/121/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6714 — Nonuniform \(\mathrm{NC}^{1}\) perfect matching
@@ -256,6 +270,13 @@ The selected KRW variant asks whether minimum formula size under block compositi
 
 [Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Super-logarithmic Depth Lower Bounds via the Direct Sum in Communication Complexity](https://doi.org/10.1007/BF01206317) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-0297 — A counting characterization of P with NP access
+
+The target asks for one #P counting function whose polynomial-time oracle power is exactly P with an NP oracle. The count is an exact nonnegative integer returned in binary, and oracle queries may be adaptive. The same function must allow SAT decisions while itself being computable using SAT queries. Complete counting can already capture the whole polynomial hierarchy, so choosing a weaker count is a substantive requirement. The question concerns ordinary complexity classes, separately from the source’s request for a relativized counterexample.
+
+[Read in atlas](index.html#TCS-0297) · [Worlds to Die Harder For: Open Oracle Questions for the 21st Century](https://www.cs.umd.edu/~gasarch/open/oracles.pdf) · [A Simple Proof of Toda’s Theorem](https://theoryofcomputing.org/articles/v005a007/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0303 — Improving the log-space SAT time exponent beyond 2 cos(π/7)
 
@@ -403,27 +424,6 @@ The question asks whether some zero-one matrices are arbitrarily more costly to 
 
 [Read in atlas](index.html#TCS-1036) · [Complexity of Linear Boolean Operators](https://doi.org/10.1561/0400000063) · [Separating OR, SUM, and XOR Circuits](https://doi.org/10.1016/j.jcss.2016.01.001)
 Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-0297 — A counting characterization of P with NP access
-
-A counting function in #P returns the number of accepting witnesses for an efficiently checkable relation. The question asks whether some such function gives a polynomial-time oracle machine exactly the power of polynomial time with an NP oracle. Ordinary complete counting functions provide substantially more apparent information than mere existence tests. The target therefore requires a specially controlled counting task. The project seeks a numerical oracle capturing NP access without unintentionally granting the full power of general witness counting.
-
-[Read in atlas](index.html#TCS-0297) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0298 — SAT multi-prover proofs using efficient SAT-oracle provers
-
-Multi-prover interactive proofs let a verifier question several provers that cannot coordinate their answers during the protocol. The source asks for such a proof system for SAT whose honest provers run in randomized polynomial time with SAT-oracle access. Unrestricted provers do not meet this efficiency requirement. The question is tied to whether SAT programs can be checked through suitable oracle interactions. The project seeks a verification protocol whose participants need no computational power beyond the problem they are supposed to certify.
-
-[Read in atlas](index.html#TCS-0298) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2333 — Downward self-reducibility of PLS-complete problems
-
-A search problem is downward self-reducible if solutions can be computed efficiently using an oracle only on strictly smaller instances. PLS contains total search problems whose solutions can be found through a finite process of improving a locally evaluated objective. The source proves downward self-reducibility for familiar PLS-complete problems and places downward self-reducible total search in PLS. It asks whether every PLS-complete problem enjoys this recursive property. The issue is that general completeness reductions need not preserve input length, so self-reducibility cannot simply be transferred through an arbitrary reduction.
-
-[Read in atlas](index.html#TCS-2333) · [Downward Self-Reducibility in TFNP](https://doi.org/10.4230/LIPIcs.ITCS.2023.67)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2425 — Closure of SZK under truth-table reductions
 
