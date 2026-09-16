@@ -387,6 +387,13 @@ The FMEI conjecture says that every Boolean function has a parity whose squared 
 [Read in atlas](index.html#TCS-6708) · [Analysis of Boolean Functions](https://arxiv.org/abs/2105.10386) · [Improved bounds on Fourier entropy and Min-entropy](https://eccc.weizmann.ac.il/report/2018/167/revision/1/download/) · [Improved Bounds on Fourier Entropy and Min-entropy](https://www.isical.ac.in/~sourav/papers/TOCT21.pdf) · [A Lower Bound on the Constant in the Fourier Min-Entropy/Influence Conjecture](https://eccc.weizmann.ac.il/report/2022/180/revision/1/download) · [A note on the FMEI of the Boolean functions in the Generalized Maiorana-McFarland construction](https://doi.org/10.1016/j.dam.2026.02.052) · [A New Bound for the Fourier-Entropy-Influence Conjecture](https://link.springer.com/article/10.1007/s00493-024-00133-z)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-6710 — Number-on-forehead disjointness complexity
+
+Each of k players sees all input sets except the one assigned to that player. The goal is to decide whether the intersection of all sets is empty using public randomized communication. The card asks for matching bounds in both universe size and player count, with absolute constant factors. Protocols may interact arbitrarily, and their cost is the maximum total number of broadcast bits. The regime with at least logarithmically many players is understood, but it does not determine the answer for all smaller player counts.
+
+[Read in atlas](index.html#TCS-6710) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Communication Lower Bounds Using Directional Derivatives](https://eccc.weizmann.ac.il/report/2013/005/) · [Inner Product and Set Disjointness: Beyond Logarithmically Many Parties](https://web.cs.ucla.edu/~sherstov/pdf/ip-disj-beyond-logn.pdf) · [Deterministic Lifting Theorems for One-Way Number-on-Forehead Communication](https://eccc.weizmann.ac.il/report/2025/073/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-5272 — Multiparty Clique lower bounds in compression games
 
 Alice sees a graph and a requested clique size, but her computation is limited to polynomial-size constant-depth Boolean circuits. She can exchange messages with polynomially many unrestricted helpers, each of whom sees only its own conversation. Alice must compute the correct final answer on every input. Communication cost sums the longest message from Alice in each round, and the question asks for a polynomial lower bound even under a growing round budget. The source shows that such a Clique lower bound would separate NP from nonuniform logarithmic-depth circuits.
@@ -427,6 +434,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 Given the complete truth table of a Boolean function, the task is to compute the minimum worst-case depth of a decision tree evaluating it. The known sequential upper bound is polynomial in the table length but has an exponent larger than one. This card asks for the infimum deterministic time exponent in a fixed finite-word random-access model, allowing different uniform algorithms for different candidate exponents. That exponent separates the cost of optimizing query depth from the query depth itself and from parallel complexity. An accepted answer must give a real approximation within 1/100 and a complete Lean proof, without assuming that an algorithm attains the infimum.
 
 [Read in atlas](index.html#TCS-1845) · [The Hardness of Decision Tree Complexity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2025.66) · [The hardness of decision tree complexity](https://eccc.weizmann.ac.il/report/2024/034/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-4771 — Two-sided versus one-sided randomized communication
+
+Two parties want to compute a total Boolean function using little communication. The question asks whether every efficient two-sided randomized protocol can be replaced by deterministic adaptive queries to one-sided randomized tests. Oracle answers are exact, and each query is charged the communication needed by its one-sided-error protocol. The total communication and query cost may grow polynomially in the logarithm of the input length. Known constant-query hierarchy separations and partial-function results do not resolve this total-function equality.
+
+[Read in atlas](index.html#TCS-4771) · [Nondeterministic and Randomized Boolean Hierarchies in Communication Complexity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.92) · [Pseudodeterminism and \(\mathrm{MA}\ne\mathrm{NP}^{\mathrm{BPP}}\) in Communication Complexity](https://arxiv.org/abs/2608.26425v1) · [Constant-Cost Communication is not Reducible to k-Hamming Distance](https://arxiv.org/abs/2407.20204v2)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1047 — Formula size versus partition complexity
@@ -506,13 +520,6 @@ A Boolean function has a Fourier expansion in parity characters. Its sparsity co
 [Read in atlas](index.html#TCS-3153) · [Tight Chang’s-Lemma-Type Bounds for Boolean Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2021.10) · [Fourier Sparsity and Dimension](https://theoryofcomputing.org/articles/v015a011/) · [Spectral Norm, Economical Sieve, and Linear Invariance Testing of Boolean Functions](https://doi.org/10.4230/LIPIcs.STACS.2026.30)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-4771 — Two-sided versus one-sided randomized communication
-
-Randomized communication protocols may err on both outcomes, whereas one-sided-error protocols have a stronger correctness guarantee on one side. This question asks whether efficient two-sided-error communication for total functions can be reproduced using deterministic access to one-sided-error communication oracles. The source studies hierarchies formed by restricting the number of such oracle queries. Totality is essential because allowing promised inputs can change the separations. A characterization would explain whether general randomized interaction is assembled from simpler one-sided tests or possesses additional communication power.
-
-[Read in atlas](index.html#TCS-4771) · [Nondeterministic and Randomized Boolean Hierarchies in Communication Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2020.92)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5189 — Approximating decision-tree complexity
 
 Decision tree complexity measures the worst-case number of adaptive input queries needed to compute a function. The cited source asks about the complexity of approximating this quantity. An algorithm assessing complexity must reason about the best possible querying strategy, rather than simply execute one given tree. Approximation could provide useful estimates of intrinsic query cost even when exact optimization is difficult. The saved question does not fix the input representation or the permitted factor, so those choices are necessary before one can compare algorithms and hardness results meaningfully.
@@ -526,13 +533,6 @@ Alice and Bob must jointly compute a total Boolean function of their private inp
 
 [Read in atlas](index.html#TCS-5892) · [Lifting Theorems for Equality](https://doi.org/10.4230/LIPIcs.STACS.2019.50) · [Efficient Communication Using Partial Information](https://eccc.weizmann.ac.il/report/2010/083/) · [Zero-error information equals amortized communication complexity](https://arxiv.org/abs/2608.04141)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-6710 — Number-on-forehead Disjointness complexity
-
-Number-on-forehead communication gives each player access to all input blocks except the one associated with that player. The source asks for tight randomized communication bounds for set disjointness in this multiparty model. Overlapping knowledge makes the problem structurally different from the ordinary two-party split-input version. Matching bounds would clarify how the number of players affects the cost of detecting a common intersection. The saved note does not retain the player-count regime, error convention, or target precision, so the full book formulation is needed before proposing an asymptotic expression.
-
-[Read in atlas](index.html#TCS-6710) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Fine-grained complexity (26)
 
@@ -648,12 +648,12 @@ Orthogonal Vectors asks whether two lists of Boolean vectors contain a pair with
 [Read in atlas](index.html#TCS-5422) · [Superlinear Lower Bounds Based on ETH](https://doi.org/10.4230/LIPIcs.STACS.2022.55) · [Effective Guessing Has Unlikely Consequences](https://doi.org/10.1007/s00224-023-10119-x) · [The Orthogonal Vectors Conjecture and Non-Uniform Circuit Lower Bounds](https://eccc.weizmann.ac.il/report/2024/142/) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489v1) · [Faster Algorithms for \(k\)-Orthogonal Vectors in Low Dimension](https://doi.org/10.4230/LIPIcs.ICALP.2026.85)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0562 — Refuting nondeterministic SETH
+### TCS-0562 — Nondeterministic Strong Exponential Time Hypothesis
 
-Nondeterministic SETH strengthens a satisfiability-based time barrier by allowing a nondeterministic form of computation in its formulation. The recorded question asks how to refute that hypothesis. A nondeterministic certificate can change the cost of establishing an unsatisfiability-type conclusion relative to ordinary deterministic search. A refutation would illuminate barriers to proving some fine-grained reductions from standard satisfiability assumptions. The saved title does not reproduce the exact complement convention or time quantifiers, so those definitions must be recovered before one particular nondeterministic algorithm is claimed to meet the target.
+NSETH asks whether certifying unsatisfiability remains close to exhaustive search even with nondeterministic choices. The requested refutation needs one positive saving in the exponent for every fixed clause width. Each unsatisfiable formula must have an accepting branch, while every branch on a satisfiable formula must reject. The running-time guarantee applies to every branch of a uniform machine and includes polynomial input-processing overhead. Known randomized-verifier protocols and conditional circuit lower bounds do not settle this exact nondeterministic question.
 
-[Read in atlas](index.html#TCS-0562) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/finegrain.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0562) · [Some Open Problems in Fine-Grained Complexity](https://www.cs.umd.edu/~gasarch/open/finegrain.pdf) · [Nondeterministic Extensions of the Strong Exponential Time Hypothesis and Consequences for Non-reducibility](https://people.csail.mit.edu/virgi/6.1420/papers/nseth.pdf) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2026.28)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0560 — Fine-grained reductions from Hitting Set to 3SUM
 
