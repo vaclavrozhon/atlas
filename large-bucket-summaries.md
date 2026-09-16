@@ -427,10 +427,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0310 — Polynomial-time weighted falsifiability of unambiguous DNFs
 
-An unambiguous DNF has mutually disjoint satisfying terms, making some counting tasks straightforward. The question instead asks for a falsifying assignment with sufficiently large total variable weight. Weights and the threshold are binary encoded. Knowing how many assignments falsify the formula does not reveal whether one reaches the desired score. The project tests whether the strong disjointness promise still helps when every term must be defeated simultaneously while optimizing an additive objective over the complement.
+The question asks whether an unambiguous DNF has a falsifying assignment whose additive integer score meets a threshold. Every weight is encoded in binary, and the requested deterministic running time is polynomial in the entire bit representation. Unambiguity makes the satisfying regions disjoint and ordinary falsifiability easy. Unary-weight algorithms and hardness for exact-score equality leave the binary threshold question unsettled in the checked sources. A complete answer must establish or refute polynomial-time decidability with the stated representation and guarantee.
 
 [Read in atlas](index.html#TCS-0310) · [Is this problem on unambiguous DNFs hard?](https://cstheory.stackexchange.com/questions/53733/is-this-problem-on-unambiguous-dnfs-hard) · [Representation, Provenance, and Explanations in Database Theory and Logic (Dagstuhl Seminar 24032)](https://doi.org/10.4230/DagRep.14.1.49) · [List of open questions: Weighted falsifiability for unambiguous DNFs](https://a3nm.net/work/research/questions/#weighted-falsifiability-for-unambiguous-dnfs)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1035 — Cost of restricting linear circuits to depth two
 
