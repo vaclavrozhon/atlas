@@ -1244,3 +1244,7 @@ The concurrent census is 1,031 active cards: 630 reviewed and 401 pending. The q
 Checkpoint 519. Individually completed TCS-6685: exact user-approved BB(6) witness, full transition semantics, verified final-step convention, 2026 BB5 proof scope and dated September holdouts.
 
 The concurrent census is 1,031 active cards: 636 reviewed and 395 pending. The queue has 519 completed records, 484 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,161 formulas.
+
+Checkpoint 523. Individually completed TCS-6683: optimal excluded-grid asymptotics, exact threshold convention, full Lean acceptance and scope checks of 2026 structural advances.
+
+The concurrent census is 1,031 active cards: 640 reviewed and 391 pending. The queue has 523 completed records, 488 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,296 formulas.
