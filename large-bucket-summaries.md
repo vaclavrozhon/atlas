@@ -1420,6 +1420,13 @@ The longest increasing subsequence of a sequence is its largest order-preserving
 [Read in atlas](index.html#TCS-0969) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:44)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-0849 — Two-stage group testing with arithmetic progressions
+
+A hidden set of at most k positions must be identified by noiseless yes/no tests. Every first-stage pool must be an arithmetic progression fixed before any answers are seen. After receiving those answers, the scheme may query only O(k) individual positions in one final stage. The question asks whether O(k log n) first-stage tests suffice for every hidden set, improving the bound reported in the 2009 source by one logarithmic factor. The restriction models regularly spaced queries motivated by pattern matching, and unrestricted pooling results do not settle it.
+
+[Read in atlas](index.html#TCS-0849) · [Problem 33: Group Testing](https://sublinear.info/index.php?title=Open_Problems:33) · [Optimal Two-Stage Algorithms for Group Testing Problems](https://doi.org/10.1137/S0097539703428002)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0980 — Random Walks
 
 The task is to simulate a long random walk on a graph presented as an edge stream. The source asks whether nearly linear memory can reduce the number of passes to a polylogarithmic function of graph size and walk length. It also asks for the complexity of approximating the walk's endpoint distribution and identifying its most likely vertices. These tasks may require less information than producing every step of the trajectory. A resolution would clarify how effectively repeated scans can substitute for direct access to the transition choices of a large graph.
@@ -1453,13 +1460,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Group testing identifies a small set of special items by querying whether selected pools contain any of them. A non-adaptive strategy chooses all pools before observing any answers. The saved question concerns the cost of achieving identification under that restriction. Determining the best constructions would clarify how much one loses by requiring tests to run simultaneously. The inherited label does not state whether answers are noisy, whether recovery is exact, or the number of special items, so the intended tradeoff among tests and error remains unspecified.
 
 [Read in atlas](index.html#TCS-0836) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:95)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0849 — Group Testing
-
-Group testing combines several items into one query to learn whether the pool contains a relevant item. The saved entry asks about the information and computation required to recover the hidden set. Pooling can dramatically reduce testing effort when few items are relevant, but overlapping answers must still identify them unambiguously. Sharper bounds would guide how efficiently one can learn sparse hidden structure. The source label does not specify adaptive versus fixed tests, noise, or recovery guarantees, so this working summary does not choose one of the many inequivalent testing models.
-
-[Read in atlas](index.html#TCS-0849) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:33)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1588 — Characterizing robustly computable predicates and functions
