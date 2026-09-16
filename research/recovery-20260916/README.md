@@ -51,6 +51,27 @@ Completed in this continuation:
   recent special-family results.
 - TCS-6573: polynomial edge diameter of general pointed polyhedra, distinguishing
   the 2026 circuit upper bound and July coherent-monotone-path lower bound.
+- TCS-7242: PL recognition of the four-sphere among closed combinatorial
+  four-manifolds, including the exact finite input and undecidability alternative.
+- TCS-0318: the full planar k-set function up to constant factors, with strict
+  separation and the correct indexing of the known upper and lower bounds.
+- TCS-0990: constant-factor planar Earth Mover Distance in one insertion pass
+  and polylogarithmic bit space.
+- TCS-6528: polynomial-time unknot recognition, retaining uncertain status
+  while recording the unverified September 2026 preprint claim precisely.
+- TCS-1125: constant-error, sub-log-squared seeds for standard-order width-four
+  branching programs, distinguishing recent weighted-generator results.
+- TCS-1133: constant-error, sub-log-squared seeds in every polynomial CNF/DNF
+  size regime, with unrestricted variable reuse.
+- TCS-1124: the exact dimension, alphabet and error dependence in optimal
+  combinatorial-rectangle generators.
+- TCS-1122: logarithmic-degree binary polynomial tests, with the user's
+  explicit one-bit-saving and constant-error convention.
+
+The six scope answers received during this continuation are preserved in
+[current-user-decisions.json](current-user-decisions.json). They authorize the
+word-equation merge and settle the graph-query, directed-reachability,
+Lovász–Schrijver, cut-cone and logarithmic-degree generator conventions.
 
 For TCS-5275, the published Theorem 2.10 supplies a concrete witness with
 k = 40, c = 20 and m = t^3: formula size O(t^33), variable count O(t^24),
@@ -92,3 +113,10 @@ on all active cards, and the desktop/mobile reader checks in tests/pages.cjs.
 Each completion is validated and locally published. The live queue and
 unfinished inventory remain authoritative; this checkpoint does not mark the
 entire task complete.
+
+After twenty-one completions the queue contains 665 completed records,
+249 pending records and one outside active scope. Of 1,019 active cards,
+770 have completed individual reviews. The offline publication checks and
+desktop/mobile reader checks passed after completion twenty; the formula check
+covered 32,518 expressions at that checkpoint. Local publication after
+completion twenty-one is 3ce330c4c952990b9552.

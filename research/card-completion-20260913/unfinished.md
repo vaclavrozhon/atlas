@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **257**.
+Pending active reviews: **249**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -20,7 +20,6 @@ Pending active reviews: **257**.
 | [TCS-5427](../../data/cards/TCS-5427.json) | Characterizing multipass turnstile streaming | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-6206](../../data/cards/TCS-6206.json) | Clique detection in CONGEST | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-6380](../../data/cards/TCS-6380.json) | Load-optimal parallel natural joins | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-0990](../../data/cards/TCS-0990.json) | Estimating Earth-Mover Distance | Computational geometry and metric spaces | pool |
 | [TCS-6880](../../data/cards/TCS-6880.json) | Efficient constant-distortion cut-cone approximation | Computational geometry and metric spaces | pool |
 | [TCS-5015](../../data/cards/TCS-5015.json) | Foundations of quantum cryptography from EFI pairs | Cryptography | pool |
 | [TCS-5793](../../data/cards/TCS-5793.json) | Pseudorandom functions from hardness of learning | Cryptography | pool |
@@ -58,15 +57,11 @@ Pending active reviews: **257**.
 | [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
 | [TCS-6949](../../data/cards/TCS-6949.json) | Exhaustive-search lower bounds for Circuit-SAT | Fine-grained complexity | pool |
 | [TCS-6950](../../data/cards/TCS-6950.json) | Disjunction of SETH, APSP and 3SUM hypotheses | Fine-grained complexity | pool |
-| [TCS-1125](../../data/cards/TCS-1125.json) | Sub-log-squared seeds for width-four ordered branching programs | Pseudorandomness and derandomization | pool |
-| [TCS-1133](../../data/cards/TCS-1133.json) | Sub-log-squared seeds for polynomial-size CNFs and DNFs | Pseudorandomness and derandomization | pool |
 | [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
 | [TCS-0854](../../data/cards/TCS-0854.json) | Promise-ZPP versus Promise-BPP derandomization | Pseudorandomness and derandomization | pool |
 | [TCS-1137](../../data/cards/TCS-1137.json) | Derandomization from almost-everywhere uniform hardness | Pseudorandomness and derandomization | pool |
 | [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
 | [TCS-1008](../../data/cards/TCS-1008.json) | Bipartite vertex expanders with constant expansion loss | Pseudorandomness and derandomization | pool |
-| [TCS-1124](../../data/cards/TCS-1124.json) | Optimal PRGs for high-dimensional combinatorial rectangles | Pseudorandomness and derandomization | pool |
-| [TCS-1122](../../data/cards/TCS-1122.json) | Nontrivial PRGs for logarithmic-degree binary polynomials | Pseudorandomness and derandomization | pool |
 | [TCS-1956](../../data/cards/TCS-1956.json) | Super-bits from demi-bits | Pseudorandomness and derandomization | pool |
 | [TCS-2201](../../data/cards/TCS-2201.json) | Non-malleable extractors from standard extractors | Pseudorandomness and derandomization | pool |
 | [TCS-3958](../../data/cards/TCS-3958.json) | Pseudorandom generators for superlinear-size depth-two threshold circuits | Pseudorandomness and derandomization | pool |
@@ -170,7 +165,6 @@ Pending active reviews: **257**.
 | [TCS-4995](../../data/cards/TCS-4995.json) | Entropic width versus submodular width | Database theory and finite model theory | pool |
 | [TCS-6157](../../data/cards/TCS-6157.json) | Determinacy and rewriting of regular path queries | Database theory and finite model theory | pool |
 | [TCS-7128](../../data/cards/TCS-7128.json) | Unconditional constant-delay query-enumeration lower bounds | Database theory and finite model theory | pool |
-| [TCS-0318](../../data/cards/TCS-0318.json) | Planar k-set extremal function | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-0466](../../data/cards/TCS-0466.json) | Certifying Karp–Rabin fingerprints | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-0468](../../data/cards/TCS-0468.json) | Linear-time LZ77 pattern matching | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-0470](../../data/cards/TCS-0470.json) | Grammar random access in \(O(g \log  g)\) bits | String algorithms and bioinformatics | existing_detailed_audit |
@@ -193,7 +187,6 @@ Pending active reviews: **257**.
 | [TCS-6508](../../data/cards/TCS-6508.json) | Deque conjecture | Data structures | existing_detailed_audit |
 | [TCS-6511](../../data/cards/TCS-6511.json) | Deterministic Exact Matching | Structural graph theory | existing_detailed_audit |
 | [TCS-6513](../../data/cards/TCS-6513.json) | Constant-factor approximation of the smallest grammar | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-6528](../../data/cards/TCS-6528.json) | Unknot recognition in polynomial time | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6539](../../data/cards/TCS-6539.json) | Almost-linear triangle detection | Structural graph theory | existing_detailed_audit |
 | [TCS-6546](../../data/cards/TCS-6546.json) | One-way permutations from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6548](../../data/cards/TCS-6548.json) | Chosen-ciphertext security from ordinary public-key encryption | Cryptography | existing_detailed_audit |
@@ -215,7 +208,6 @@ Pending active reviews: **257**.
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |
-| [TCS-7242](../../data/cards/TCS-7242.json) | Decidability of PL four-sphere recognition | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-7249](../../data/cards/TCS-7249.json) | Berge–Fulkerson conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7250](../../data/cards/TCS-7250.json) | Barnette’s conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7252](../../data/cards/TCS-7252.json) | Triangle covering-to-packing ratio | Structural graph theory | existing_detailed_audit |
