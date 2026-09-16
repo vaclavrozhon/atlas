@@ -571,6 +571,13 @@ The input is a directed graph with arbitrary exact real edge weights and no nega
 [Read in atlas](index.html#TCS-6510) · [Subcubic Equivalences Between Path, Matrix, and Triangle Problems](https://people.csail.mit.edu/virgi/tria-mmult-jv.pdf) · [Faster all-pairs shortest paths via circuit complexity](https://arxiv.org/abs/1312.6680v2) · [All-Pairs Shortest Paths with Few Weights per Node](https://arxiv.org/abs/2506.20017) · [Node-Weighted Triangles: Faster and Simpler](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.10) · [Warm-Starting All-Pairs Shortest Paths with Predictions](https://arxiv.org/abs/2607.00857) · [The Limits of Black-Box Reductions for All-Pairs Triangle Detection](https://arxiv.org/abs/2608.19092)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6935 — Randomized Strong Exponential Time Hypothesis
+
+Randomized SETH asks whether every fixed positive saving in the exhaustive-search exponent fails at some fixed clause width. Inputs are arbitrary explicitly encoded \(k\)-CNF formulas, with the number of variables in the exponent and a polynomial factor in input length. The developed formulation uses uniform fair-coin Turing machines, error at most \(1/3\) on every input, and worst-case time over random bits. A refutation needs one positive exponent saving valid for every fixed width, although its algorithm and polynomial factor may depend on that width. The standard BPTIME model is explicitly sourced separately from the survey’s RAM convention, and recent fixed-width SAT improvements do not settle the hypothesis.
+
+[Read in atlas](index.html#TCS-6935) · [On some fine-grained questions in algorithms and complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [On Problems as Hard as CNF-SAT](https://arxiv.org/abs/1112.2275v3) · [Local Proofs Approaching the Witness Length](https://eccc.weizmann.ac.il/report/2019/127/revision/2/download/) · [A Better Analysis For PPSZ For 3-SAT](https://arxiv.org/abs/2607.10697v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6937 — Randomized APSP hypothesis for polynomial integer weights
 
 All-pairs shortest paths asks for the exact distance between every ordered pair of vertices in a directed graph. The graph has polynomially bounded signed integer edge weights and no negative-weight cycle. The hypothesis says that for every fixed improvement over the cubic exponent, some polynomial weight bound rules out every randomized algorithm with that running time. Computation uses logarithmic-size machine words, and the whole distance matrix must be correct with probability at least two thirds on every input. Known general algorithms save a subpolynomial factor, while recent restricted algorithms and conditional equivalences do not settle this hypothesis.
@@ -695,13 +702,6 @@ Existing status: `source_open` · Summary written: 2026-09-14
 Subgraph isomorphism has general algorithms whose exponent depends on the pattern's treewidth. The source exhibits patterns for which that dependence is conditionally optimal. It asks for a classification of maximally hard pattern families and, conversely, whether some unbounded-treewidth families admit sublinear-in-treewidth exponents. Known clique-like exceptions show that treewidth alone need not determine the exact exponent. The project seeks finer structural invariants explaining when a pattern supports algorithmic shortcuts and when it forces the full generic search complexity.
 
 [Read in atlas](index.html#TCS-6025) · [Current Algorithms for Detecting Subgraphs of Bounded Treewidth Are Probably Optimal](https://doi.org/10.4230/LIPIcs.ICALP.2021.40)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6935 — Randomized Strong Exponential Time Hypothesis
-
-Randomized SETH asks whether bounded-width satisfiability resists every uniform fixed saving in the exhaustive-search exponent. For each positive \(\varepsilon\), the conjecture requires some fixed width k with no randomized \(O(2^{(1- \varepsilon )n})\) algorithm. The width may grow as the demanded saving shrinks, so fast algorithms at individual small widths remain compatible. This randomized version supports lower bounds that must exclude randomized algorithms for their target tasks. The saved textbook note does not spell out error and polynomial input-length factors, and deterministic SETH alone cannot silently supply the stronger randomized exclusion.
-
-[Read in atlas](index.html#TCS-6935) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6942 — Hitting Set hardness from Orthogonal Vectors
@@ -1342,10 +1342,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0006 — Unique Games Conjecture
 
-A Unique Games instance assigns labels to vertices, with each edge specifying a permutation relating its endpoint labels. The conjecture asks whether almost satisfiable instances are NP-hard to distinguish from instances with very small optimum value. Although perfect satisfiability can be checked by propagating labels, a small allowance for violated constraints changes the challenge. The conjecture would explain approximation thresholds for many constraint satisfaction problems through semidefinite programming. The saved review emphasizes that hardness with completeness one half does not establish the required completeness arbitrarily close to one.
+A Unique Games instance consists of explicitly listed vertices and permutation constraints between pairs of labels. UGC asks for NP-hardness of distinguishing almost completely satisfiable instances from those with arbitrarily small optimum value. The alphabet and deterministic reduction may depend on the fixed gap parameters, but must be independent of the growing input formula. A complete Lean proof must establish the full reduction statement or its negation over every alphabet and polynomial-time candidate reduction. The September 2026 perfect-completeness 4-to-1 claim and the known half-completeness Unique Games theorem do not establish this near-one-completeness permutation-constraint conjecture.
 
-[Read in atlas](index.html#TCS-0006) · [On the Unique Games Conjecture](https://cs.nyu.edu/~khot/papers/UGCSurvey.pdf) · [Optimal Algorithms and Inapproximability Results for Every CSP?](https://www.cs.cornell.edu/~abrahao/tdg/papers/p245.pdf) · [Subexponential Algorithms for Unique Games and Related Problems](https://www.boazbarak.org/Papers/ssesubexp.pdf) · [On the Proof of the 2-to-2 Games Conjecture](https://cs.nyu.edu/~khot/PCP-Spring-20/2-to-2-Exposition.pdf) · [Towards a Proof of the 2-to-1 Games Conjecture](https://theoryofcomputing.org/articles/v021a011/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0006) · [On the Unique Games Conjecture](https://cs.nyu.edu/~khot/papers/UGCSurvey.pdf) · [Optimal Algorithms and Inapproximability Results for Every CSP?](https://www.cs.cornell.edu/~abrahao/tdg/papers/p245.pdf) · [Subexponential Algorithms for Unique Games and Related Problems](https://www.boazbarak.org/Papers/ssesubexp.pdf) · [On the Proof of the 2-to-2 Games Conjecture](https://cs.nyu.edu/~khot/PCP-Spring-20/2-to-2-Exposition.pdf) · [Towards a Proof of the 2-to-1 Games Conjecture?](https://theoryofcomputing.org/articles/v021a011/) · [Tolerant Testing for Unique Games](https://arxiv.org/abs/2605.17760) · [On the Hardness of 4-to-1 Games with Perfect Completeness](https://eccc.weizmann.ac.il/report/2026/179/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6588 — Polylogarithmic approximation for Directed Steiner Tree
 
