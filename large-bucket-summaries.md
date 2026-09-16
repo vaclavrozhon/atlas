@@ -1879,6 +1879,13 @@ Each planar grid subset must be compressed independently before the other input 
 [Read in atlas](index.html#TCS-0973) · [Sketching Earth Mover Distance](https://sublinear.info/index.php?title=Open_Problems:49) · [Efficient Sketches for Earth-Mover Distance, with Applications](https://www.mit.edu/~andoni/papers/emdStream.pdf) · [Sketching and Embedding are Equivalent for Norms](https://arxiv.org/abs/1411.2577v3) · [Lower Estimates for L₁-Distortion of Transportation Cost Spaces](https://doi.org/10.1145/3798129.3800785)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-0327 — Counting simple polygonalizations
+
+A simple polygonalization connects all points of a planar set into one noncrossing closed polygon. The question asks whether its exact number can be computed in deterministic polynomial time from binary rational coordinates. Starting-point changes and reverse traversals count as the same polygon, and collinear input points are allowed. Subexponential counting in general position and output-polynomial enumeration are known, but neither gives a polynomial-time exact count for every input. The problem tests whether geometric noncrossing structure can make a large family of Hamiltonian cycles efficiently countable.
+
+[Read in atlas](index.html#TCS-0327) · [The Open Problems Project, Problem 16: Simple Polygonalizations](https://topp.openproblem.net/p16) · [Peeling and Nibbling the Cactus: Subexponential-Time Algorithms for Counting Triangulations and Related Problems](https://doi.org/10.4230/LIPIcs.SoCG.2016.52) · [Non-crossing Hamiltonian Paths and Cycles in Output-Polynomial Time](https://doi.org/10.1007/s00453-024-01255-y)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0417 — Near-quadratic Voronoi complexity of lines in three dimensions
 
 Each point in three-dimensional space has a set of nearest input lines. Connected regions with the same nearest-line set form the diagram’s cells. The question counts cells of all dimensions. The proposed bound is arbitrarily close to quadratic. The Euclidean metric and the specified nondegeneracy convention are essential parts of this formulation.
@@ -1968,13 +1975,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The maximum Euclidean traveling-salesman problem seeks the longest tour through a planar point set. Every point must be visited once before the tour closes, but long connections are rewarded rather than penalized. The source asks for the complexity of finding the exact optimum in the plane. Algorithms for polyhedral distance functions and hardness in higher-dimensional Euclidean space do not determine this intermediate case. The problem tests how the geometry of the distance function affects a familiar combinatorial optimization task.
 
 [Read in atlas](index.html#TCS-0398) · [The Open Problems Project](https://topp.openproblem.net/p49)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0327 — Simple Polygonalizations
-
-A simple polygonalization orders a given planar point set around a polygon without crossing its edges. The source asks whether the total number of such polygons can be computed in polynomial time. Finding one polygon is much easier than accounting for every valid cyclic ordering. The counting question is also related to generating a uniformly random polygon on the same vertices. A sharp algorithmic classification would clarify whether geometric noncrossing structure can overcome the large combinatorial space of candidate tours.
-
-[Read in atlas](index.html#TCS-0327) · [The Open Problems Project](https://topp.openproblem.net/p16)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0409 — Minimum-Link Path in 2D

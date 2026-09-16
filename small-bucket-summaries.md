@@ -2148,6 +2148,13 @@ Triangle covering deletes edges to eliminate every triangle, while triangle pack
 [Read in atlas](index.html#TCS-7252) · [Triangle packing versus triangle edge transversal](https://www.openproblemgarden.org/op/triangle_packing_vs_triangle_edge_transversal) · [On Tuza’s conjecture in dense graphs](https://doi.org/10.1016/j.dam.2025.06.049) · [Tuza's conjecture for graphs of maximum degree at most seven](https://arxiv.org/abs/2608.06538)
 Existing status: `source_open` · Summary written: 2026-09-12
 
+### TCS-1206 — Sparsification conjecture
+
+Monadic stability means that no fixed first-order formula defines arbitrarily long orders in graphs of the class after arbitrary unary coloring. The Sparsification Conjecture asks whether every such class can be obtained from a nowhere dense graph class by one fixed first-order transduction. The transduction uses finitely many unary colors and vertex and edge formulas, while the sparse source class excludes a sufficiently large clique as a shallow minor at every fixed radius. A resolution would decide whether this logical restriction on possibly dense graphs has an exact explanation through uniform sparse representations, beyond the restricted and almost nowhere dense cases already known. A complete Lean answer must prove the representation for every monadically stable class or exhibit one such class that defeats every nowhere dense source class and every allowed transduction.
+
+[Read in atlas](index.html#TCS-1206) · [Weakly-Sparse and Strongly Flip-Flat Classes of Graphs Are Uniformly Almost-Wide](https://doi.org/10.4230/LIPIcs.CSL.2026.41) · [First-Order Transductions of Graphs (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2021.2) · [Graph classes through the lens of logic](https://arxiv.org/abs/2501.04166v1) · [Existential Positive Transductions of Sparse Graphs](https://doi.org/10.4230/LIPIcs.LICS.2026.67) · [Efficient reversal of transductions of sparse graph classes](https://arxiv.org/abs/2601.14906v1) · [Neighborhood Complexity and Radius-1 Merge-Width in Monadically Dependent Graph Classes](https://arxiv.org/abs/2607.10941v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6511 — Deterministic Exact Matching
 
 Exact Matching adds a prescribed red-edge count to the ordinary perfect matching problem. Given red and blue edges, an algorithm must decide whether some perfect matching contains exactly the requested number of red edges. The target is deterministic polynomial time on general graphs. Knowing the smallest and largest achievable counts is insufficient because intermediate counts can be absent. The problem isolates how to enforce an exact combinatorial constraint while avoiding the random algebraic choices used by existing approaches.
@@ -2279,13 +2286,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 A fat graph minor models vertices and edges by connected pieces that remain separated except at prescribed incidences. The source asks whether excluding a fixed such pattern forces balanced separators coverable by roughly a square-root number of bounded-radius balls. A related version assumes exclusion of an induced minor. The separator may contain many vertices, so its economical description is metric coverage rather than cardinality alone. The conjecture seeks a usable separator theorem from coarse geometric restrictions that are weaker than ordinary excluded-minor structure.
 
 [Read in atlas](index.html#TCS-0315) · [Metric Sketching and Dynamic Algorithms for Geometric and Topological Graphs](https://doi.org/10.4230/DagRep.15.5.134)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1206 — Structural nowhere density of monadically stable graph classes
-
-Monadic stability restricts the order patterns that can be defined in graph classes after adding unary labels. The source conjectures that every such class is structurally nowhere dense. The conclusion would represent these potentially dense graphs through a controlled logical transformation of a sparse class. This could explain why stable graph classes support decomposition and model-checking techniques reminiscent of sparse graphs. The exact transformation and effectiveness conventions are absent from the excerpt, so the source's definitions must be retained before treating the conjecture as ordinary nowhere-denseness of the original graphs.
-
-[Read in atlas](index.html#TCS-1206) · [Weakly-Sparse and Strongly Flip-Flat Classes of Graphs Are Uniformly Almost-Wide](https://doi.org/10.4230/LIPIcs.CSL.2026.41)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1246 — Well-quasi-ordering Eulerian digraphs by weak immersion
@@ -2970,6 +2970,13 @@ An ordinary one-relation monoid identifies words using one fixed reversible lite
 [Read in atlas](index.html#TCS-6641) · [The word problem for one-relation monoids: a survey](https://link.springer.com/article/10.1007/s00233-021-10216-8) · [Correction to: The word problem for one-relation monoids: a survey](https://link.springer.com/article/10.1007/s00233-022-10310-5) · [On the Dehn functions of a class of monadic one-relation monoids](https://arxiv.org/abs/2210.16123) · [The word problem for two-generator one-relator inverse monoids](https://arxiv.org/abs/2608.04650) · [Membership problems for positive one-relator groups and one-relation monoids](https://doi.org/10.4153/S0008414X24000798) · [Undecidability of the Diophantine problem for one-relator groups and one-relation monoids](https://arxiv.org/abs/2608.01983v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6888 — Superpolynomial arithmetic formula lower bounds
+
+The question asks whether the permanent requires arithmetic expression trees larger than every fixed polynomial bound. The trees compute formal polynomials over the complex numbers using addition and multiplication with arbitrary constants and unrestricted cancellations. This is the explicitly selected standard separation between polynomial-size formulas and VNP, represented by the permanent through its completeness theorem. Known bounds for restricted models and the inspected recent polynomial lower-bound claim do not establish the required unrestricted superpolynomial separation. A complete Lean answer must rule out every polynomial formula bound or prove that one polynomial bound suffices in every dimension.
+
+[Read in atlas](index.html#TCS-6888) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Multi-Quadratic Sum-Of-Squares Lower Bounds Imply \(\mathrm{VNC}^{1}\ne\mathrm{VNP}\)](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.113) · [Low-Depth Algebraic Circuit Lower Bounds over Any Field](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2024.31) · [Ten Advances in Mathematics and Theoretical Computer Science, Chapter 5: Circuit and Formula Lower Bounds for the Permanent](https://cdn.openai.com/pdf/ten-proofs-oai.pdf) · [On the Tension Between Full-Rankness and Self-Reducibility for Set-Multilinear Polynomials](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2026.69)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6614 — Deterministic polynomial-time factorization over finite fields
 
 The input is a densely represented univariate polynomial over a finite field whose representation is explicitly supplied. The task is to output all irreducible factors and their multiplicities deterministically in time polynomial in the degree and the logarithm of the field size. This is an exact derandomization question for a central computer-algebra subroutine. The complexity bound must work uniformly across characteristics and extension degrees, with field arithmetic and output writing charged in bit operations. A method relying on randomness, unproved number-theoretic assumptions, or precomputed field-specific advice would leave the stated challenge unresolved.
@@ -3297,13 +3304,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 An arithmetic circuit compactly represents a polynomial, and its second partial derivatives form a collection of related outputs. The question asks whether all of those derivatives can be computed with only constant-factor circuit overhead. It tests how far shared differentiation computations can avoid repeating essentially the same algebra across many output pairs. The result would sharpen the relationship between evaluating a function and obtaining its second-order information. The source's size accounting and output conventions are indispensable here, because the number of derivatives itself grows quadratically with the number of variables.
 
 [Read in atlas](index.html#TCS-6885) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6888 — Superpolynomial arithmetic formula lower bounds
-
-Arithmetic formulas represent polynomial computations by trees, so every intermediate expression used twice must be copied. The source asks for an explicit family requiring superpolynomial formula size. The challenge is to rule out all small expression trees, including those using arbitrary cancellation rather than a visibly natural computation. Such a result would expose a basic limit of algebraic computation before tackling the greater sharing power of circuits. The saved survey lead needs its field and explicitness conventions restored, and restricted formula lower bounds must be distinguished from the unrestricted target being requested.
-
-[Read in atlas](index.html#TCS-6888) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6890 — Superpolynomial noncommutative circuit lower bounds

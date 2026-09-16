@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-909 records have an editorial importance assessment; 116 remain provisional.
+911 records have an editorial importance assessment; 114 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -364,7 +364,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 
 ## 12. Structural graph theory and graph algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 52; importance assessed: 44; provisional: 8.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 52; importance assessed: 45; provisional: 7.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -449,7 +449,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 22; importance 
 
 ## 17. Algebraic computation (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 62; importance assessed: 46; provisional: 16.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 62; importance assessed: 47; provisional: 15.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -460,9 +460,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 62; importance 
 | 5 | [VP versus VNP](index.html#TCS-0005) | 96 |
 | 6 | [Polynomial-size arithmetic formulas for the determinant](index.html#TCS-6613) | 96 |
 | 7 | [Word problem for one-relation monoids](index.html#TCS-6641) | 96 |
-| 8 | [Deterministic polynomial-time factorization over finite fields](index.html#TCS-6614) | 95 |
-| 9 | [Conjugacy problem for one-relator groups](index.html#TCS-6642) | 95 |
-| 10 | [Isomorphism problem for one-relator groups](index.html#TCS-6677) | 95 |
+| 8 | [Superpolynomial arithmetic formula lower bounds](index.html#TCS-6888) | 96 |
+| 9 | [Deterministic polynomial-time factorization over finite fields](index.html#TCS-6614) | 95 |
+| 10 | [Conjugacy problem for one-relator groups](index.html#TCS-6642) | 95 |
 
 ## 18. Lattices and computational number theory (small)
 
