@@ -771,10 +771,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6662 — Optimal deterministic restricted-isometry matrices
 
-A restricted-isometry matrix approximately preserves the Euclidean length of every sparse vector. The reviewed question asks for deterministic polynomial-time construction with \(O(s \log (eN/s))\) rows and fixed distortion. Random matrices achieve this row order, but a usable deterministic construction must control every sparse support simultaneously. Optimal explicit matrices would provide guaranteed measurement designs for compressed sensing without random setup choices. The saved review identifies the limitations of pairwise coherence analyses and notes that reduced randomness or success on typical signals does not establish the requested all-signal guarantee.
+A restricted-isometry matrix approximately preserves squared Euclidean norms of every vector with at most a specified number of nonzero coordinates. The question asks for one deterministic algorithm producing an explicit rational matrix with \(O(s\ln(eN/s))\) rows and distortion \(1/3\). Its bit running time and complete output length must be polynomial in the ambient dimension, with constants common to every dimension and sparsity. A complete Lean proof must establish the algorithm, its resource bounds and the simultaneous guarantee for all real sparse vectors, or prove unconditional nonexistence in the fixed model. Random optimal matrices, reduced random seeds and coherence-based constructions for restricted parameter families do not meet this uniform deterministic guarantee.
 
-[Read in atlas](index.html#TCS-6662) · [Doubly transitive equiangular tight frames that contain regular simplices](https://www.sciencedirect.com/science/article/pii/S0024379525003143) · [The road to deterministic matrices with the restricted isometry property](https://www.math.ucdavis.edu/~strohmer/courses/270/road_to_rip.pdf) · [Explicit constructions of RIP matrices and related problems](https://arxiv.org/abs/1008.4535) · [Satisfying the restricted isometry property with the optimal number of rows and slightly less randomness](https://arxiv.org/abs/2311.07889)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6662) · [Doubly transitive equiangular tight frames that contain regular simplices](https://www.sciencedirect.com/science/article/pii/S0024379525003143) · [The road to deterministic matrices with the restricted isometry property](https://www.math.ucdavis.edu/~strohmer/courses/270/road_to_rip.pdf) · [Explicit constructions of RIP matrices and related problems](https://arxiv.org/abs/1008.4535) · [Satisfying the restricted isometry property with the optimal number of rows and slightly less randomness](https://arxiv.org/abs/2311.07889) · [Compressed sensing matrices from orthogonal spaces over finite fields of odd characteristic](https://arxiv.org/abs/2608.23062)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6699 — AM versus NP
 
@@ -2232,6 +2232,13 @@ Delete each edge of a graph in turn, erase vertex labels and collect the resulti
 [Read in atlas](index.html#TCS-7217) · [Reconstruction of Small Graphs and Digraphs](https://arxiv.org/abs/2102.01942) · [A combinatorial K-theory perspective on the Edge Reconstruction Conjecture in graph theory](https://arxiv.org/abs/2402.14986v2) · [The Class Edge-Reconstruction Number of a Maximal Planar Graph Is One or Two](https://arxiv.org/abs/2609.02389v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-1246 — Well-quasi-ordering Eulerian digraphs by weak immersion
+
+An Eulerian digraph is a finite directed multigraph with equal incoming and outgoing arc counts at every vertex, allowing loops, parallel arcs and disconnected components. A weak immersion represents vertices injectively and arcs by arc-disjoint directed trails, which may meet at vertices and pass through other represented vertices. The conjecture says that every infinite sequence of these digraphs contains an earlier graph weakly immersed in a later graph. The inspected 2026 results establish restricted width and degree cases, while a general proof announcement has not been verified in the available sources. A complete Lean answer must prove the unrestricted sequence statement or give one infinite sequence with no qualifying earlier-to-later pair.
+
+[Read in atlas](index.html#TCS-1246) · [Well-Quasi-Ordering Eulerian Digraphs: Bounded Carving Width](https://doi.org/10.4230/LIPIcs.ICALP.2026.51) · [Well-Quasi-Ordering Eulerian Digraphs: Bounded Carving Width — full version](https://arxiv.org/abs/2605.07468v1) · [Well-Quasi-Ordering Eulerian Digraphs Embeddable in Surfaces by Strong Immersion](https://arxiv.org/abs/2509.26260v1) · [Well-quasi-ordering Eulerian directed graphs by (strong) immersion — author seminar abstract](https://dimag.ibs.re.kr/event/2026-03-10/)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-7289 — Lovász conjecture
 
 A graph is vertex-transitive when an adjacency-preserving permutation can send any vertex to any other vertex. The Lovász conjecture asks whether every finite nonempty connected vertex-transitive simple undirected graph has a path that visits each vertex exactly once. The path need not return to its starting vertex, and the statement includes graphs outside the Cayley-graph setting without requiring an efficient path-finding algorithm. A resolution would decide whether connectedness and vertex symmetry alone force a spanning path, beyond known long-cycle guarantees and restricted Hamiltonicity results. A complete Lean answer must prove the path exists for every graph in the stated class or prove that one graph in the class has no such path.
@@ -2307,13 +2314,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 A fat graph minor models vertices and edges by connected pieces that remain separated except at prescribed incidences. The source asks whether excluding a fixed such pattern forces balanced separators coverable by roughly a square-root number of bounded-radius balls. A related version assumes exclusion of an induced minor. The separator may contain many vertices, so its economical description is metric coverage rather than cardinality alone. The conjecture seeks a usable separator theorem from coarse geometric restrictions that are weaker than ordinary excluded-minor structure.
 
 [Read in atlas](index.html#TCS-0315) · [Metric Sketching and Dynamic Algorithms for Geometric and Topological Graphs](https://doi.org/10.4230/DagRep.15.5.134)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1246 — Well-quasi-ordering Eulerian digraphs by weak immersion
-
-An Eulerian digraph balances incoming and outgoing edges at each vertex. Weak immersion represents another digraph by vertices and edge-disjoint directed routes, allowing routes to pass through represented vertices. The conjecture says every infinite sequence of Eulerian digraphs contains an earlier graph weakly immersed in a later one. The source proves related results under additional width restrictions. Removing those restrictions would yield a broad structural ordering theorem and support finite-obstruction approaches to properties preserved by weak immersion.
-
-[Read in atlas](index.html#TCS-1246) · [Well-Quasi-Ordering Eulerian Digraphs: Bounded Carving Width](https://doi.org/10.4230/LIPIcs.ICALP.2026.51)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1639 — Linear neighborhood complexity of hereditary small graph classes
