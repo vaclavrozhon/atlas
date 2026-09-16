@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **542**.
+Pending active reviews: **541**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -295,7 +295,6 @@ Pending active reviews: **542**.
 | [TCS-0651](../../data/cards/TCS-0651.json) | Deterministic NP-hardness reductions for Euclidean SVP | Lattices and computational number theory | pool |
 | [TCS-0655](../../data/cards/TCS-0655.json) | Polynomial-factor SVP hardness from standard assumptions | Lattices and computational number theory | pool |
 | [TCS-0648](../../data/cards/TCS-0648.json) | Constant-gap hardness of unique SVP | Lattices and computational number theory | pool |
-| [TCS-0661](../../data/cards/TCS-0661.json) | SVP hardness for fixed-rank module lattices | Lattices and computational number theory | pool |
 | [TCS-0657](../../data/cards/TCS-0657.json) | Smaller-factor coNP or coAM certificates for SVP | Lattices and computational number theory | pool |
 | [TCS-0653](../../data/cards/TCS-0653.json) | Explicit quantum exponential-time lower bounds for Euclidean SVP | Lattices and computational number theory | pool |
 | [TCS-6861](../../data/cards/TCS-6861.json) | Classical reductions matching quantum LWE hardness | Lattices and computational number theory | pool |

@@ -61,3 +61,5 @@ new communication claims. The full ITCS 2021 source confirms that efficient
 players belong to its separate partial-function result, rather than its imported
 background question. TCS-1649 was also refreshed after reading the complete
 relevant theorem/model passages in the extended BVASS paper.
+
+The lattice follow-up also completed TCS-0661. The inherited SIGACT Question 4.9 permits some fixed module rank and some ring family; the selected full formulation uses cyclotomic rings with the canonical Euclidean norm and deterministic many-one hardness. [Liu–Feng–Pan, 2609.01469v1](https://arxiv.org/abs/2609.01469), submitted 1 September, claims a matching rank-two prime-conductor result. The full model, Theorem 1.1, Corollary 1.2 and the stated reduction/verification conclusions were read; the complete new proof was not independently certified. The card is uncertain. This additional item predates the recent-list window and was found through the adjacent lattice literature.
