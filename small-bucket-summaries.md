@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-606 five-sentence working summaries, based on saved source material.
+607 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -131,7 +131,7 @@ The Mandelbrot set consists of complex parameters for which repeatedly applying 
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Proof complexity (27)
+## Proof complexity (28)
 
 ### TCS-6601 — Superpolynomial Extended Frege lower bounds
 
@@ -167,6 +167,13 @@ Does one propositional proof system efficiently translate proofs from every othe
 
 [Read in atlas](index.html#TCS-7162) · [Propositional proof systems, the consistency of first-order theories and the complexity of computations](https://doi.org/10.2307/2274765) · [The SPARSE-Relativization Framework and Applications to Optimal Proof Systems](https://arxiv.org/abs/2602.02294) · [Recursive Jump Operators and Optimal Proof Systems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.88)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7273 — Complete disjoint NP pairs
+
+A disjoint NP pair consists of two nonoverlapping sets of binary strings, each with polynomially checkable certificates. The question asks whether one such pair can receive every other pair through a single total deterministic polynomial-time function. That function must map each source side to its corresponding target side, while its behavior outside the source promise is unrestricted apart from total polynomial time. Pudlák conjectures nonexistence and relates the question to the strength of propositional proof systems. The checked results through July 2026 include oracle separations but do not resolve the unrelativized existence target.
+
+[Read in atlas](index.html#TCS-7273) · [Incompleteness in the finite domain](https://arxiv.org/abs/1601.01487v2) · [P-Optimal Proof Systems for Each NP-Set but no Complete Disjoint NP-Pairs Relative to an Oracle](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2019.47) · [Recursive Jump Operators and Optimal Proof Systems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.88)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7163 — Effective polynomial simulation of Extended Frege by Resolution
 
@@ -2185,10 +2192,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7245 — Constant-factor treewidth preservation by subcubic subgraphs
 
-Every graph is asked to contain a subgraph of maximum degree three with comparable treewidth. Comparable means losing only a universal constant factor. The subgraph can delete edges and vertices but cannot contract edges or introduce new ones. Known general degree-three sparsifiers lose a polylogarithmic factor in treewidth. A constant-factor theorem would make bounded-degree structure a universal witness of large treewidth.
+The question asks whether every finite graph contains a subgraph with maximum degree at most three and treewidth within a universal constant factor of the original. The subgraph may delete vertices and edges but cannot contract edges or add new ones. It need not be induced, connected or spanning, and no size or construction-time bound is required. The checked general theorem preserves treewidth up to a polylogarithmic factor, leaving the constant-factor target unresolved in the cited sources. A positive answer would show that bounded-degree subgraphs universally preserve the scale of treewidth, even in graphs of high degree.
 
-[Read in atlas](index.html#TCS-7245) · [Degree-3 Treewidth Sparsifiers](https://home.ttic.edu/~cjulia/papers/treewidth-sparsifiers-SODA.pdf) · [Sparse induced subgraphs of large treewidth](https://www.sciencedirect.com/science/article/pii/S009589562500019X) · [List of open questions: Linear treewidth and pathwidth sparsifiers](https://a3nm.net/work/research/questions/#linear-treewidth-and-pathwidth-sparsifiers)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7245) · [Degree-3 Treewidth Sparsifiers](https://home.ttic.edu/~cjulia/papers/treewidth-sparsifiers-SODA.pdf) · [Degree-3 Treewidth Sparsifiers: full preprint](https://arxiv.org/abs/1410.1016v1) · [Sparse induced subgraphs of large treewidth](https://doi.org/10.1016/j.jctb.2025.03.002) · [Sparse Induced Subgraphs of Large Treewidth: preprint](https://arxiv.org/abs/2405.13797v1) · [Finding subgraphs with high treewidth and constant degree](https://cstheory.stackexchange.com/questions/38937/finding-subgraphs-with-high-treewidth-and-constant-degree) · [List of open questions: Linear treewidth and pathwidth sparsifiers](https://a3nm.net/work/research/questions/#linear-treewidth-and-pathwidth-sparsifiers)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7263 — Linear-time directed shortest paths with nonnegative real weights
 
@@ -4225,10 +4232,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0505 — Uniform reliability of homomorphism-closed queries
 
-Reliability asks how likely a structure retains a desired property after random choices determine which facts or edges survive. The source studies this task for homomorphism-closed queries in a uniform setting. The question seeks a complexity classification connecting the logical form of the property with probability computation. Such a classification would explain when a robust structural condition remains tractable under uncertainty. The saved label does not specify the uniform probability convention, query representation, or exact-versus-approximate output, so those choices must be restored before applying results for arbitrary independent probabilities.
+Fix a Boolean query that remains true whenever its input database maps homomorphically to another database. Uniform reliability counts exactly how many subsets of an input database's facts satisfy that fixed query. Equivalently, each fact is retained independently with probability one half, and the resulting probability is rescaled to an integer count. The conjectured boundary is a finite union of conjunctive queries with tractable weighted evaluation; every other query should yield a #P-hard counting problem. Known results cover several query classes, including all unbounded queries of maximum arity two, while the full arbitrary-arity dichotomy remains unverified by this bounded review.
 
-[Read in atlas](index.html#TCS-0505) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#complexity-of-uniform-reliability-for-homomorphism-closed-queries)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0505) · [List of open questions: Complexity of uniform reliability for homomorphism-closed queries](https://a3nm.net/work/research/questions/#complexity-of-uniform-reliability-for-homomorphism-closed-queries) · [Uniform Reliability for Unbounded Homomorphism-Closed Graph Queries](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICDT.2023.14) · [The Dichotomy of Probabilistic Inference for Unions of Conjunctive Queries](https://homes.cs.washington.edu/~suciu/jacm-dichotomy.pdf) · [Uniform Reliability of Self-Join-Free Conjunctive Queries](https://lmcs.episciences.org/10288/pdf) · [When is Shapley Value Computation a Matter of Counting?](https://www.labri.fr/perso/meghyn/papers/BieFigLaf-PODS24.pdf) · [Approximating Queries on Probabilistic Graphs](https://arxiv.org/abs/2309.13287v8)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1251 — Output-sensitive evaluation of cyclic queries
 
