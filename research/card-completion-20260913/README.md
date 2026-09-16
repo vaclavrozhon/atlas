@@ -1047,3 +1047,22 @@ hashes match. Publication and formula validation passed for 20,570 expressions.
 The preceding quantum publication was live-verified as 6b4bb67fa78fe57bf728,
 published 2026-09-16T01:49:11+00:00, Pages commit
 328bc269eff7f39adbb7b9d062b0399a917b67dc.
+
+Checkpoint 364 includes TCS-6572, the polynomial-time simplex pivot question.
+The review retains supplied-basis deterministic total bit time, defines legal
+positive-reduced-cost ratio-test pivots including degeneracy, and makes terminal
+basis certification and all charged helper/history computation explicit. It adds
+the full Lean criterion, the current August ranking version and the distinction
+between memory states, matrix-entry counts and binary input length. The April
+shortest-monotone-path hardness result is scoped to shortest paths; neither it,
+local antistalling, smoothed guarantees nor nonlinear active-set lower bounds
+settles the retained unrestricted question.
+
+The concurrent census is 1,042 active cards: 492 completed/reviewed and 550
+pending. The queue has 364 completed records, 340 active and 24 inactive,
+plus 152 active cards outside the queue; all active completed hashes match.
+Publication passed at 1,043 active cards before another process retired a card;
+the subsequent formula check passed on all 1,042 active cards and 20,838 formulas.
+The preceding LP deployment was live-verified as e05b5289554899663ac6,
+published 2026-09-16T02:00:12+00:00, Pages commit
+701e93140ce3b0c64e8e40e910d46766ee45eb65.

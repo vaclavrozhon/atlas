@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **590**.
+Pending active reviews: **583**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -18,10 +18,7 @@ Pending active reviews: **590**.
 | [TCS-1029](../../data/cards/TCS-1029.json) | Sharp graph-removal bounds for fixed patterns | Property testing and distribution learning | top500 |
 | [TCS-0848](../../data/cards/TCS-0848.json) | Testing Submodularity | Property testing and distribution learning | top500 |
 | [TCS-0841](../../data/cards/TCS-0841.json) | Equivalence Testing with Conditional Samples | Property testing and distribution learning | top500 |
-| [TCS-0510](../../data/cards/TCS-0510.json) | Cost of privacy in online learning | Differential privacy | top500 |
 | [TCS-0507](../../data/cards/TCS-0507.json) | Optimal regret for private stochastic online learning | Differential privacy | top500 |
-| [TCS-3312](../../data/cards/TCS-3312.json) | Polynomial-time private convex-hull point selection | Differential privacy | top500 |
-| [TCS-6825](../../data/cards/TCS-6825.json) | Computational versus statistical privacy in the curator model | Differential privacy | top500 |
 | [TCS-1978](../../data/cards/TCS-1978.json) | Search tractability of BLP-solvable promise CSPs | Constraint satisfaction | top500 |
 | [TCS-0441](../../data/cards/TCS-0441.json) | Characterizing CSP languages with linear non-redundancy | Constraint satisfaction | top500 |
 | [TCS-0504](../../data/cards/TCS-0504.json) | Uniform algorithms across tractable CSPs | Constraint satisfaction | top500 |
@@ -49,7 +46,6 @@ Pending active reviews: **590**.
 | [TCS-6832](../../data/cards/TCS-6832.json) | Separations among P, RP and NP | Computational complexity | pool |
 | [TCS-6977](../../data/cards/TCS-6977.json) | Super-near-linear SAT time lower bounds | Computational complexity | pool |
 | [TCS-5651](../../data/cards/TCS-5651.json) | Recognizing good-for-games and good-for-MDP automata | Automata and formal languages | pool |
-| [TCS-5732](../../data/cards/TCS-5732.json) | Regular separability of VASS reachability languages | Automata and formal languages | pool |
 | [TCS-5738](../../data/cards/TCS-5738.json) | Recognizable separability of automatic relations | Automata and formal languages | pool |
 | [TCS-5863](../../data/cards/TCS-5863.json) | Decidability of stochastic resolvability for \(\omega\)-automata | Automata and formal languages | pool |
 | [TCS-5904](../../data/cards/TCS-5904.json) | Equivalence of discounted-sum automata | Automata and formal languages | pool |
@@ -105,7 +101,6 @@ Pending active reviews: **590**.
 | [TCS-3177](../../data/cards/TCS-3177.json) | Learning PH/poly from learning NP/poly | Learning theory | pool |
 | [TCS-3391](../../data/cards/TCS-3391.json) | Efficient learning of well-separated Gaussian mixtures | Learning theory | pool |
 | [TCS-4592](../../data/cards/TCS-4592.json) | Time complexity of Gaussian agnostic halfspace learning | Learning theory | pool |
-| [TCS-4672](../../data/cards/TCS-4672.json) | Price of bandit information in multiclass learning | Learning theory | pool |
 | [TCS-4792](../../data/cards/TCS-4792.json) | Multiclass sample compression from binary compression | Learning theory | pool |
 | [TCS-5031](../../data/cards/TCS-5031.json) | Littlestone-dimension regret bounds for unrestricted classes | Learning theory | pool |
 | [TCS-5061](../../data/cards/TCS-5061.json) | Computable PAC learning versus effective sample bounds | Learning theory | pool |
@@ -239,7 +234,6 @@ Pending active reviews: **590**.
 | [TCS-7022](../../data/cards/TCS-7022.json) | Polynomial kernels for Planar Deletion | Parameterized and exact algorithms | pool |
 | [TCS-7027](../../data/cards/TCS-7027.json) | Fixed-parameter tractability of Perfect Deletion | Parameterized and exact algorithms | pool |
 | [TCS-7033](../../data/cards/TCS-7033.json) | Polynomial kernels for directed feedback sets | Parameterized and exact algorithms | pool |
-| [TCS-7036](../../data/cards/TCS-7036.json) | Parameterized complexity of three-pair Directed Edge Multicut | Parameterized and exact algorithms | pool |
 | [TCS-6591](../../data/cards/TCS-6591.json) | Constant-factor approximation for Directed Feedback Vertex Set | Approximation algorithms and hardness of approximation | pool |
 | [TCS-0088](../../data/cards/TCS-0088.json) | Optimal approximation of Max Di-Cut | Approximation algorithms and hardness of approximation | pool |
 | [TCS-5407](../../data/cards/TCS-5407.json) | Optimal approximation for submodular maximization over a matroid | Approximation algorithms and hardness of approximation | pool |
@@ -441,7 +435,6 @@ Pending active reviews: **590**.
 | [TCS-6552](../../data/cards/TCS-6552.json) | Noninteractive zero knowledge from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6562](../../data/cards/TCS-6562.json) | Word equations with linear length constraints | Automated reasoning and unification | existing_detailed_audit |
 | [TCS-6566](../../data/cards/TCS-6566.json) | Continuous Skolem problem | Semantics, logic and verification | existing_detailed_audit |
-| [TCS-6572](../../data/cards/TCS-6572.json) | Polynomial-time simplex pivot rule | Optimization and numerics | existing_detailed_audit |
 | [TCS-6573](../../data/cards/TCS-6573.json) | Polynomial Hirsch conjecture | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6574](../../data/cards/TCS-6574.json) | Exact semidefinite feasibility in polynomial time | Optimization and numerics | existing_detailed_audit |
 | [TCS-6580](../../data/cards/TCS-6580.json) | Information-theoretic classical verification of quantum computation | Quantum computation | existing_detailed_audit |
