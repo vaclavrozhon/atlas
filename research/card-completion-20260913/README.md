@@ -1102,3 +1102,19 @@ formula checks passed on the preceding 1,039-card snapshot, covering 21,391
 formulas. The preceding minimax deployment was live-verified as
 602351f3bd82715f4013, published 2026-09-16T02:12:39+00:00, Pages commit
 c008c9e8146ae86fef8498f8e02047ce406a646b.
+
+Checkpoint 395 includes TCS-6600, optimal ordinary generators for ordered
+read-once branching programs. The review specifies one uniform program,
+seed-length and bit-output modes, binary parameter encodings, charged work
+tapes and worst-case time, followed by a full Lean existence/negation criterion.
+The current audit includes the September RANDOM proceedings and the newly
+published width-three hitting-set preprint. Weighted outputs, hitting guarantees,
+permutation transitions and time-only explicitness remain separate from the
+retained target. Construction and seed-enumeration walkthroughs were removed.
+
+The concurrent census is 1,038 active cards: 519 completed/reviewed and 519
+pending. The queue has 395 completed records, 367 active and 28 inactive, plus
+152 active cards outside it; all active completed hashes match. Publication and
+formula checks passed on 1,038 cards, covering 21,736 formulas. The preceding
+L-versus-BPL snapshot was pushed to Pages as a1d74ac606733a9830a1, commit
+a84e51134f7ead084e032335de45843269ca416a; the deployment command succeeded.
