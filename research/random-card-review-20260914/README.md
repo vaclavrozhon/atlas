@@ -742,3 +742,31 @@ formulations are disclosed and carry uncertain scientific status. All source
 provenance and comments are preserved. Checkpoint thirty-one was committed as
 42816d7f and verified on live successor 5a1c98b680765effcea7, which retained all
 114 reviewed active contents and twelve retirements with matching reader assets.
+
+Checkpoint thirty-three brings this process to 140 completed reviews:
+128 retained active cards, twelve retirements and 60 new importance assessments.
+
+- TCS-1013: recovered uniform explicit lossless unbalanced expanders, with the
+  exact source-sized-set promise, degree bound and right-side size target.
+- TCS-6771: specified no-restart linear resolution and its polynomial simulation
+  question, repairing the restart convention that would trivialize the question.
+- TCS-7022: retained exact polynomial bit kernels for Planar Edge Deletion,
+  distinguishing FPT algorithms and vertex-deletion approximation kernels.
+- TCS-0184: recovered the integer entropic-polymatroid blow-up approximation,
+  distinguishing exact entropy from almost-entropic closure and fixed alphabets.
+- TCS-6935: specified randomized SETH with one width for each exponent saving,
+  worst-case clocks and the complete common-saving negation.
+- TCS-6493: selected the source-posed NP-intersect-coAM question for tensor orbit
+  closure intersection, explicitly narrowing the source's broader complexity question.
+- TCS-6888: specialized the generic formula lower-bound question to permanent over
+  the complex numbers, separating polynomial bounds from VF versus VNP.
+- TCS-1206: retained the Sparsification Conjecture, with exact noncopying
+  transductions, arbitrary graph classes and the complete representation negation.
+
+TCS-6493 is a disclosed editorial scope choice, not user approval; its optional
+scope question had no answer at completion. Source provenance and comments are
+preserved. TCS-4185 and TCS-7148 remain reserved with unresolved formulation
+choices and are not counted as completed. New independent claims continue through
+the shared infrastructure. Checkpoint thirty-two was committed as d43b1b9e and
+verified live at version 262d5efb204001665774, with all 120 active reviewed cards
+matching exactly and twelve retired cards absent.
