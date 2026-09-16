@@ -1559,6 +1559,13 @@ Independent random element values arrive one at a time in a fixed known order. T
 [Read in atlas](index.html#TCS-5221) · [An Improved Lower Bound for Matroid Intersection Prophet Inequalities](https://doi.org/10.4230/LIPIcs.ITCS.2023.95) · [Online Stochastic Matching](https://simons.berkeley.edu/sites/default/files/2025-06/Sublinear%20Algorithms%20Open%20Problems%20Summer%202024.pdf)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-1241 — Sublogarithmic competitiveness for online metric TSP
+
+Points arrive with distances to earlier points and must immediately be inserted into an evolving order. Each insertion preserves the relative order of all previous arrivals, but there is no fixed array capacity or computational resource bound. The final cost is the sum of distances between consecutive points, compared with the best offline ordering. The question asks whether a deterministic algorithm can guarantee a competitive ratio smaller than logarithmic by an asymptotic factor on every metric input. This would isolate how much performance is lost through irreversible ordering alone, beyond the additional losses caused by limited storage.
+
+[Read in atlas](index.html#TCS-1241) · [Online Metric TSP: Beyond the \(\sqrt{n}\) Barrier](https://doi.org/10.4230/LIPIcs.ICALP.2026.18) · [Online Sorting and Online TSP: Randomized, Stochastic, and High-Dimensional](https://doi.org/10.4230/LIPIcs.ESA.2024.5) · [Online Metric TSP: Beyond the \(\sqrt{n}\) Barrier](https://arxiv.org/abs/2608.07369v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0935 — Unit-job precedence scheduling complexity
 
 Unit-job precedence scheduling assigns equal-duration tasks to machines while respecting a partial order of dependencies. The source asks about the computational complexity of this restricted scheduling setting. Equal durations remove numerical variability but leave the problem of choosing which available jobs to run together. A classification would show how much difficulty arises from precedence structure alone. The saved label does not preserve the number of machines, time-horizon objective, or restrictions on the dependency graph, so it cannot be read as one universal hardness or tractability claim.
@@ -1620,13 +1627,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Online local learning predicts labels for small groups of items while competing with a single global labeling of the whole universe. Finding the globally best explanation can be computationally hard, even when each individual prediction concerns only a few variables. The source asks how generally efficient local prediction can avoid that global inference difficulty. Its model reveals a subset on each round and evaluates the learner's proposed labeling through a local payoff. A sharp regret guarantee would show when coherent performance can be achieved through local decisions without explicitly recovering the latent global structure.
 
 [Read in atlas](index.html#TCS-0716) · [COLT / PMLR](https://proceedings.mlr.press/v35/christiano14.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1241 — Sublogarithmic competitiveness for online metric TSP
-
-In online metric traveling salesperson problems, arriving points must be inserted into an evolving tour while preserving earlier ordering decisions. An array formulation also limits how much unused space is available for future insertions. The extracted question asks whether the classical logarithmic competitive ratio can be improved even when this space restriction is removed. Thus the obstacle persists beyond tight array capacity and concerns the underlying irreversible tour construction. A better guarantee would establish that online geometric ordering can approach the offline tour more closely than the long-standing insertion bound suggests.
-
-[Read in atlas](index.html#TCS-1241) · [Online Metric TSP: Beyond the \(\sqrt{n}\) Barrier](https://doi.org/10.4230/LIPIcs.ICALP.2026.18)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1529 — One forecaster with the optimal regret rate for every proper loss
@@ -1866,6 +1866,13 @@ An Euler tour traverses every edge of an undirected graph exactly once and retur
 [Read in atlas](index.html#TCS-6671) · [Euler-tours of low-height toroidal grids](https://sites.cs.st-andrews.ac.uk/scm2024/abstracts.html) · [The Complexity of Counting Eulerian Tours in 4-regular Graphs](https://www.cs.rochester.edu/~stefanko/Publications-new/J25.pdf) · [Sampling and counting notes (Mixingbook)](https://www.math.cmu.edu/~af1p/Mixingbook.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6821 — FP = #P from \(\mathrm{P} = \mathrm{NP}\)
+
+The question asks whether P = NP forces exact polynomial-time computation of every #P witness count. Each counting function has its own uniform deterministic machine, and its exact value must be output in binary. Finding one witness or approximating an exponential count to inverse-polynomial relative accuracy does not give its exact value. The literal negative answer would require P = NP together with a counting function outside numerical FP. A 2026 preprint claims the implication, but a directly checked internal defect prevents this review from accepting it as a resolution.
+
+[Read in atlas](index.html#TCS-6821) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/book.pdf) · [P ?= NP](https://www.scottaaronson.com/papers/pnp.pdf) · [Topological Collapse: P = NP Implies #P = FP via Solution-Space Homology](https://arxiv.org/abs/2603.22211v1)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-7112 — Output-polynomial hypergraph transversal enumeration
 
 A transversal meets every edge of a hypergraph and is minimal if removing any selected vertex destroys that property. The required algorithm lists all such sets exactly once and detects when enumeration is finished. Its total time must be polynomial in the combined input and complete output length. The output may be exponentially large, and no separate bound on delay is requested. A 2026 lower bound excludes a particular practical algorithm while leaving the existence of a general output-polynomial algorithm open.
@@ -1922,19 +1929,12 @@ A fixed-width CNF formula has a finite number of satisfying assignments. Decisio
 [Read in atlas](index.html#TCS-4671) · [An Approximation Algorithm for #k-SAT](https://doi.org/10.4230/LIPIcs.STACS.2012.78) · [Exploiting Independent Subformulas: A Faster Approximation Scheme for #k-SAT](https://doi.org/10.1016/j.ipl.2013.02.013) · [Fine-Grained Reductions from Approximate Counting to Decision](https://doi.org/10.1145/3442352)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-6821 — FP = #P from \(\mathrm{P} = \mathrm{NP}\)
-
-The hypothesis \(\mathrm{P}=\mathrm{NP}\) would make existence of efficiently verifiable witnesses decidable in polynomial time. This question asks whether that hypothesis also forces exact polynomial-time computation of every #P counting function. The gap is that deciding whether a witness exists does not directly determine how many witnesses there are. Resolving the implication would clarify how much additional power exact counting can retain after decision complexity collapses. The source's standard uniform function-computation conventions must be preserved, and a method that enumerates all witnesses can still take exponential time despite a fast existence test.
-
-[Read in atlas](index.html#TCS-6821) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-7082 — OutputP versus IncP
 
-OutputP permits total enumeration time polynomial in the input and complete output size. IncP additionally requires the initial portions of the output to arrive within incremental polynomial time. The source asks for a natural problem separating these classes and suggests a domination problem involving \(K_{t}\)-free structure. A separation would demonstrate that good total throughput can coexist with an unavoidable long wait for early answers. The candidate's precise domination condition and any assumed complexity hypothesis remain in the source, so the working summary preserves the class distinction without declaring the proposed example established.
+The source asks for a natural enumeration problem with polynomial total time but no incremental polynomial-time algorithm. OutputP measures the complete output, while IncP also controls the time to produce each initial segment. Bare separation of these classes is equivalent to the existence of a total polynomially verifiable search problem with no polynomial-time selector. Minimal dominating sets in graphs excluding a fixed clique have the required total-time upper bound and are suggested only as a candidate. The naturalness requirement and precise lower-bound criterion remain unspecified, so the card stays pending.
 
-[Read in atlas](index.html#TCS-7082) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7082) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [On The Complexity of Enumeration](https://arxiv.org/abs/1703.01928v2) · [Enumerating minimal dominating sets in K_t-free graphs and variants](https://arxiv.org/abs/1810.00789v3)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7084 — Time–space separations in polynomial enumeration
 

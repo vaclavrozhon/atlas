@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-401 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -693,7 +693,7 @@ A spanner keeps a subset of the original graph’s edges while approximately pre
 [Read in atlas](index.html#TCS-6784) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152) · [Spanners and emulators with sublinear distance errors](https://researchprofiles.ku.dk/en/publications/spanners-and-emulators-with-sublinear-distance-errors/) · [A Hierarchy of Lower Bounds for Sublinear Additive Spanners](https://doi.org/10.1137/16M1105815) · [Almost-Optimal Sublinear Additive Spanners](https://doi.org/10.1137/23M1581078)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Automata and formal languages (29)
+## Automata and formal languages (31)
 
 ### TCS-6558 — Maximum reset threshold of synchronizing automata
 
@@ -751,6 +751,13 @@ An unambiguous context-free grammar has at most one parse tree for every generat
 [Read in atlas](index.html#TCS-0164) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#equivalence-of-unambiguous-context-free-grammars)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-7309 — Decidability with two parametric clocks and arbitrarily many integer parameters
+
+A discrete-time parametric timed automaton compares integer-valued clocks with constants and with unknown nonnegative integer parameters. The question asks whether some fixed assignment of all parameters allows a finite run to a designated target location. Only two clocks may be compared with parameters, but both the number of parameters and the number of other clocks are unrestricted. The one-parameter case is EXPSPACE-complete, while nearby real-time infinite-word results do not settle this arbitrary-parameter reachability question. A resolution would close the central two-parametric-clock gap between known decidable and undecidable timing models.
+
+[Read in atlas](index.html#TCS-7309) · [Reachability in Two-Parametric Timed Automata with one Parameter is EXPSPACE-Complete](https://link.springer.com/article/10.1007/s00224-023-10121-3) · [Reachability in Two-Parametric Timed Automata with One Parameter Is EXPSPACE-Complete](https://drops.dagstuhl.de/storage/00lipics/lipics-vol187-stacs2021/LIPIcs.STACS.2021.36/LIPIcs.STACS.2021.36.pdf) · [On Decidability Timed Automata with 2 Parametric Clocks](https://arxiv.org/abs/2503.04374v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-5959 — Complexity of the Game of Life limit set
 
 The limit set of Conway’s Game of Life contains the configurations that have predecessor histories of every finite length. The question asks whether recognizing finite patterns occurring in that set is complete for the co-computably-enumerable languages. The pattern is finite, but its surroundings are arbitrary configurations of the infinite plane and are not required to be blank. The source proves polynomial-space hardness and nonsoficity, neither of which settles the stronger computability-theoretic completeness target. A resolution would determine whether this canonical cellular automaton attains the general complexity upper bound for limit-set pattern languages.
@@ -785,6 +792,13 @@ A primitive word is nonempty and is not a power of any shorter nonempty word. Th
 
 [Read in atlas](index.html#TCS-0167) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#context-freeness-of-primitive-words) · [On the Complexity of Language Membership for Probabilistic Words](https://doi.org/10.4230/LIPIcs.STACS.2026.5)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-7261 — Linear-time minimization of deterministic finite automata
+
+A deterministic finite automaton can be minimized by merging reachable states that accept exactly the same continuation words. The question asks whether every complete automaton over any fixed alphabet of at least two letters can be minimized in deterministic linear worst-case word-RAM time. The output must be an explicit smallest automaton recognizing exactly the original language, and all preprocessing and output work count. Classical algorithms take O(n log n) time, while known logarithmic-factor lower bounds concern partition refinement rather than every algorithm in the stated model. A resolution would determine whether the extra logarithmic cost reflects the general problem or the structure of its classical algorithms.
+
+[Read in atlas](index.html#TCS-7261) · [Minimization of Symbolic Automata](https://cseweb.ucsd.edu/~ldantoni/papers/popl14.pdf) · [Lowerbounds for Bisimulation by Partition Refinement](https://doi.org/10.46298/lmcs-19(2:10)2023) · [Description and analysis of a bottom-up DFA minimization algorithm](https://doi.org/10.1016/j.ipl.2008.01.003)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5863 — Decidability of stochastic resolvability for \(\omega\)-automata
 
@@ -1585,10 +1599,10 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6574 — Exact semidefinite feasibility in polynomial time
 
-A semidefinite feasibility instance asks whether some real assignment makes an affine combination of rational symmetric matrices positive semidefinite. The target is an exact yes-or-no decision in polynomial time in the ordinary bit model. Numerical approximation does not settle this question because an infeasible affine space can approach the positive semidefinite cone arbitrarily closely. Feasible rational inputs can also require irrational or very large witnesses. The challenge is to decide arbitrary degenerate instances efficiently without adding regularity assumptions that make approximation algorithms easier to analyze.
+The input is a fully listed rational affine symmetric matrix whose dimension and number of real variables are both unbounded. The target is a deterministic polynomial bit-time decision of whether some real substitution makes the matrix positive semidefinite. Singular feasible points, irrational-only feasible parameters, unbounded sets and infeasible instances at zero distance from the cone are included. Known approximation and exact-duality results retain assumptions or model distinctions, and the September 2026 source still states the unrestricted exact complexity as open. A complete Lean proof must establish one polynomial-time decider or exclude all such deciders; it need not output a feasible point or optimization value.
 
-[Read in atlas](index.html#TCS-6574) · [An exact duality theory for semidefinite programming and its complexity implications](https://link.springer.com/article/10.1007/BF02614433) · [On the Turing Model Complexity of Interior Point Methods for Semidefinite Programming](https://epubs.siam.org/doi/10.1137/15M103114X) · [Exact algorithms for semidefinite programs with degenerate feasible set](https://www.sciencedirect.com/science/article/pii/S0747717120301176) · [How Do Exponential Size Solutions Arise in Semidefinite Programming?](https://epubs.siam.org/doi/10.1137/21M1434945) · [A combinatorial approach to Ramana’s exact dual for semidefinite programming](https://arxiv.org/abs/2510.07271) · [Hesse’s Redemption: Efficient Convex Polynomial Programming](https://arxiv.org/abs/2511.03440)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6574) · [An exact duality theory for semidefinite programming and its complexity implications](https://link.springer.com/article/10.1007/BF02614433) · [On the Turing model complexity of interior point methods for semidefinite programming](https://arxiv.org/abs/1507.03549v2) · [Exact algorithms for semidefinite programs with degenerate feasible set](https://arxiv.org/abs/1802.02834v2) · [How do exponential size solutions arise in semidefinite programming?](https://arxiv.org/abs/2103.00041v2) · [A combinatorial approach to Ramana’s exact dual for semidefinite programming](https://arxiv.org/abs/2510.07271v1) · [Hesse’s Redemption: Efficient Convex Polynomial Programming](https://arxiv.org/abs/2511.03440v1) · [Further analysis and extension of the higher-order Newton method of Ahmadi, Chaudhry, and Zhang](https://arxiv.org/abs/2609.01001v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7227 — Conforti–Cornuéjols conjecture
 
@@ -2056,6 +2070,13 @@ One threshold is efficiently learnable from labeled examples, but the target her
 [Read in atlas](index.html#TCS-7293) · [The Intersection of Two Halfspaces Has High Threshold Degree](https://web.cs.ucla.edu/~sherstov/pdf/hshs.pdf) · [Improved Hardness Results for Learning Intersections of Halfspaces](https://theoretics.episciences.org/18105) · [Learning Functions of Halfspaces](https://arxiv.org/abs/2603.08700v2)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5902 — PAC learning of finite automata under the uniform distribution
+
+The card asks whether every finite automaton can be learned efficiently from uniformly sampled words labeled only by acceptance. The learner knows the word length, alphabet and state bound and may return any efficient predictor. It must achieve every requested accuracy and confidence using polynomial time without membership queries or state information. A published local-pseudorandom-generator assumption rules out even weak improper learning on uniform binary words, and a 2026 source retains that premise. The completed card records this conditional negative answer while preserving the original unconditional question and its exact Lean decision criterion.
+
+[Read in atlas](index.html#TCS-5902) · [Approximate Learning of Limit-Average Automata](https://doi.org/10.4230/LIPIcs.CONCUR.2019.17) · [From Local Pseudorandom Generators to Hardness of Learning](https://proceedings.mlr.press/v134/daniely21a.html) · [On the Hardness of Learning Regular Expressions](https://proceedings.mlr.press/v313/attias26a.html) · [Learning a Random DFA from Uniform Strings and State Information](https://www.cs.yale.edu/homes/dongqu/alt15.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-2336 — Optimal multiclass regret versus Littlestone dimension
 
 An online learner predicts a label distribution and then sees the correct label on each round. Regret compares its expected cumulative mistakes with the best fixed hypothesis on the same sequence. The card asks for the worst minimax regret among all classes of Littlestone dimension at most d, including infinite label spaces. The general upper and lower bounds differ by a square-root logarithm, while the sharper finite-label theorem needs an extra regularity condition. A complete Lean answer must give matching universal bounds on the two-parameter regret function under the unrestricted model.
@@ -2236,13 +2257,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A Gaussian graphical model encodes conditional dependencies through the nonzero entries of the inverse covariance matrix. The motivating question asks whether its underlying sparse graph can be recovered with the information-theoretically optimal sample count by a polynomial-time algorithm. The source's DICE procedure settles the sample-complexity component using only graph size, maximum degree, and minimum normalized edge strength in its bound. Its search cost still has an exponent depending on the degree, so the paper separately asks for computationally efficient sample-optimal recovery in general. This record therefore combines a statistical question answered in the source with a remaining algorithmic efficiency direction.
 
 [Read in atlas](index.html#TCS-5119) · [Information Theoretic Optimal Learning of Gaussian Graphical Models](https://proceedings.mlr.press/v125/misra20a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5902 — PAC learning of finite automata under the uniform distribution
-
-Learning a deterministic finite automaton from examples means producing a hypothesis that predicts its acceptance behavior. The cited question asks whether this can be done efficiently in the probably approximately correct framework under the specified uniform distribution. The learner should achieve low error with high confidence from randomly sampled labeled words. Results allowing membership and equivalence queries provide stronger information and therefore do not settle this sampling-only target. An answer would clarify whether a simple data distribution removes the computational obstacles to learning arbitrary finite-state languages.
-
-[Read in atlas](index.html#TCS-5902) · [Approximate Learning of Limit-Average Automata](https://doi.org/10.4230/LIPIcs.CONCUR.2019.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Cryptography (29)
