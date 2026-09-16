@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-923 records have an editorial importance assessment; 96 remain provisional.
+923 records have an editorial importance assessment; 95 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -195,7 +195,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 
 ## 2. Proof complexity (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance assessed: 25; provisional: 1.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance assessed: 26; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -545,7 +545,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance 
 
 ## 23. Automated reasoning, rewriting and unification (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 15; importance assessed: 15; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 14; importance assessed: 14; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -556,9 +556,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 15; importance 
 | 5 | [Greedy CDCL without restarts versus resolution](index.html#TCS-7239) | 94 |
 | 6 | [Decidability of termination for one-rule string rewriting](index.html#TCS-6644) | 93 |
 | 7 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
-| 8 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
-| 9 | [Complexity of word unification](index.html#TCS-0171) | 87 |
-| 10 | [Decidability of fifth-order \\(\\beta\\)-matching](index.html#TCS-1595) | 87 |
+| 8 | [NP membership of word-equation satisfiability](index.html#TCS-0163) | 87 |
+| 9 | [Decidability of fifth-order \\(\\beta\\)-matching](index.html#TCS-1595) | 87 |
+| 10 | [Polynomial-time equivalence of free binary decision diagrams](index.html#TCS-7134) | 87 |
 
 ## 24. Database theory and finite model theory (small)
 

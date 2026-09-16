@@ -38,10 +38,10 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 20 | Property testing and distribution learning | 2 | 10 | 20 | 16 |
 | small 21 | Differential privacy | 2 | 10 | 20 | 4 |
 | small 22 | Constraint satisfaction | 2 | 10 | 20 | 19 |
-| small 23 | Automated reasoning, rewriting and unification | 2 | 10 | 20 | 15 |
+| small 23 | Automated reasoning, rewriting and unification | 2 | 10 | 20 | 14 |
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 21 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 2 |
 
-Candidate pool: 1019. Inactive records: 6356 (excluded from active work).
+Candidate pool: 1018. Inactive records: 6357 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

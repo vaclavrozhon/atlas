@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-607 five-sentence working summaries, based on saved source material.
+606 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -238,6 +238,13 @@ Cutting Planes refutes Boolean formulas by deriving contradictions from integer 
 [Read in atlas](index.html#TCS-6770) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Proof Complexity and SAT Solving](https://doi.org/10.3233/FAIA200990) · [Cutting planes, connectivity, and threshold logic](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/cuttingplanes/paper.pdf) · [Lifting with Simple Gadgets and Applications to Circuit and Proof Complexity](https://eccc.weizmann.ac.il/report/2019/186/) · [Superpolynomial Length Lower Bounds for Tree-Like Semantic Proof Systems with Bounded Line Size](https://eccc.weizmann.ac.il/report/2026/078/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-5114 — Lovász–Schrijver simulation of Cutting Planes
+
+The question asks whether every Cutting Planes refutation has a polynomially longer Lovász–Schrijver refutation. Both systems start from the same real linear inequalities over Boolean variables. Length counts proof lines, with real coefficients unrestricted and earlier lines freely reusable. The reverse simulation is known to fail, and the failure of tree-like LS simulation does not settle the general DAG case. The user selected an existence theorem for short proofs, without requiring an efficient proof-conversion algorithm.
+
+[Read in atlas](index.html#TCS-5114) · [Representations of Monotone Boolean Functions by Linear Programs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2017.3) · [Representations of Monotone Boolean Functions by Linear Programs](https://users.math.cas.cz/~pudlak/monotoneLP.pdf) · [Exponential Lower Bounds and Integrality Gaps for Tree-Like Lovász–Schrijver Procedures](https://www.cs.toronto.edu/~toni/Papers/matrix-cut.pdf) · [A Hereditary Property of Cutting Plane Procedures](https://arxiv.org/abs/2609.02038v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-1099 — Separating levels of bounded arithmetic
 
 The question asks whether two positive levels of Buss’s bounded-arithmetic hierarchy prove different sentences. Each level has the same basic arithmetic axioms but permits induction for a different class of bounded formulas. A solution may choose any two distinct positive levels and must prove an unconditional difference in their deductive strength. The full axiom list, formula grammar and induction scheme specify the theories without relying on an unstated standard model. Recent conditional separations do not provide the unconditional nonprovability witness required here.
@@ -273,12 +280,12 @@ Resolution width is the largest clause used in a refutation, and length counts i
 [Read in atlas](index.html#TCS-6767) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Narrow Proofs May Be Maximally Long](https://jakobnordstrom.se/docs/publications/LargeNarrowProofs_ToCL.pdf) · [A Tradeoff Between Length and Width in Resolution](https://www.theoryofcomputing.org/articles/v012a005/) · [Supercritical Size-Width Tree-Like Resolution Trade-Offs for Graph Isomorphism](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.18) · [Truly Supercritical Trade-Offs for Resolution, Cutting Planes, Monotone Circuits, and Weisfeiler–Leman](https://jakobnordstrom.se/docs/publications/TrulySupercriticalTrade-offs_STOC.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0071 — \(\mathrm{NC}^{0}\) proof systems
+### TCS-0071 — \(\mathrm{NC}^{0}\) proof systems for directed reachability
 
-A propositional proof system maps proof strings to valid statements and must represent every statement in its target language. The saved entry studies systems computed by \(\mathrm{NC}^{0}\) circuit families. In this model, each output bit depends on only a constant number of input bits, imposing a severe local restriction. Characterizing what such systems can express would test how little computation proof verification or proof generation can use. The inherited label does not identify the target language or completeness convention, so the precise existence or separation question still needs its source formulation.
+The target language consists of directed adjacency matrices with a path from vertex one to the last vertex. An NC⁰ proof system must generate exactly these matrices from arbitrary input bit strings. Each output edge depends on only constantly many proof bits, with one constant depth bound for all graph sizes. Such generators are known for undirected reachability and for directed unreachability. The selected directed-reachability existence question remains unresolved in the sources checked by this review.
 
-[Read in atlas](index.html#TCS-0071) · [Circuits, Logic and Games](https://doi.org/10.4230/DagRep.5.9.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0071) · [Circuits, Logic and Games: Proof systems computed by NC⁰ circuit families](https://drops.dagstuhl.de/entities/document/10.4230/DagRep.5.9.105) · [Small Depth Proof Systems](https://people.iith.ac.in/karteek/assets/pdf/SmallDepthProofSystems.pdf) · [Small Depth Proof Systems](https://eccc.weizmann.ac.il/report/2013/102/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-2889 — Short tree-like resolution from small proof space
 
@@ -293,13 +300,6 @@ The premise asks for one efficient learner for all Boolean circuits when it may 
 
 [Read in atlas](index.html#TCS-4982) · [Learning Algorithms Versus Automatability of Frege Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.101) · [Learning algorithms versus automatability of Frege systems — full author version](https://arxiv.org/abs/2111.10626) · [On Basing Lower-Bounds for Learning on Worst-Case Assumptions](https://www.wisdom.weizmann.ac.il/~bennyap/pubs/ABX08Full.pdf) · [Pseudorandomness and the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2020.68) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34) · [Learning algorithms versus automatability of Frege systems — journal version](https://doi.org/10.1142/S0219061325500023)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-5114 — Lovász–Schrijver versus cutting planes
-
-Lovász–Schrijver and cutting-planes systems are two ways to prove infeasibility through inequalities. The source asks whether the LS system polynomially simulates cutting planes. A simulation must translate every proof into an LS proof with size bounded by a polynomial in the original proof size. This would show that the two inequality-based reasoning frameworks are closer in strength than their different inference rules suggest. The source's version of LS and coefficient encoding must be retained, since changing those conventions can alter proof size and invalidate an otherwise plausible comparison.
-
-[Read in atlas](index.html#TCS-5114) · [Representations of Monotone Boolean Functions by Linear Programs](https://doi.org/10.4230/LIPIcs.CCC.2017.3)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5292 — Optimal proof systems outside NP
 
@@ -4030,7 +4030,7 @@ The historical source asks which NP constraint satisfaction problems have an exa
 [Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [On the Computational Power of Extensional ESO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.LICS.2026.20)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Automated reasoning, rewriting and unification (15)
+## Automated reasoning, rewriting and unification (14)
 
 ### TCS-6562 — Word equations with linear length constraints
 
@@ -4081,19 +4081,12 @@ A word equation asks for consistent substitutions of finite strings that make tw
 [Read in atlas](index.html#TCS-7194) · [Application of Lempel-Ziv Encodings to the Solution of Word Equations](https://ii.uni.wroc.pl/~aje/WordEq2015/papers/PlandowskiRytter.pdf) · [Recompression: a simple and powerful technique for word equations](https://arxiv.org/abs/1203.3705) · [An Improved Version of Hmelevskii’s Theorem on Three-Variable Word Equations](https://doi.org/10.4230/LIPIcs.STACS.2026.77)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0163 — Complexity of satisfiable word equations
+### TCS-0163 — NP membership of word-equation satisfiability
 
-A word equation equates two sequences containing letters and variables that stand for finite strings. Satisfiability asks whether a consistent substitution makes the two resulting strings identical. The project seeks the computational complexity of this decision problem, sharpening the gap between NP-hardness and polynomial-space algorithms recorded in the sources. Substituted strings can be much larger than the equation, so an efficient algorithm must reason about their structure implicitly. Understanding this cost would clarify the algorithmic difficulty of one of the simplest exact string-solving tasks.
+A word equation asks whether replacing each variable by a finite word can make its two sides identical. The selected target is whether satisfiability of unrestricted plain word equations belongs to NP. A positive answer needs polynomial-size certificates and one polynomial-time verifier, without prescribing how a solution is represented. The problem is NP-hard and has a nondeterministic linear-space algorithm, while a 2026 source still lists NP membership as open. The overlapping word-unification card is merged here, with its original record retained in the archive.
 
-[Read in atlas](index.html#TCS-0163) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#complexity-of-word-equation-satisfiability)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0171 — Complexity of word unification
-
-Word unification solves equations between concatenations by substituting strings for variables. The saved question asks for the exact computational complexity of deciding whether such substitutions exist. Even a short equation can have solutions whose direct representations are long. A sharp classification would clarify the algorithmic cost of a basic constraint language used in symbolic reasoning. The inherited label does not specify constants, empty-word allowances, or additional constraints, so the draft does not conflate unconstrained word equations with stronger regular-constrained or arithmetic variants.
-
-[Read in atlas](index.html#TCS-0171) · [RTA Open Problems](https://www.cs.tau.ac.il/~nachum/rtaloop/problems/92.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0163) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#complexity-of-word-equation-satisfiability) · [Hardness Results for Constant-Free Pattern Languages and Word Equations](https://doi.org/10.4230/LIPIcs.ICALP.2020.140) · [An Improved Version of Hmelevskii’s Theorem on Three-Variable Word Equations](https://doi.org/10.4230/LIPIcs.STACS.2026.77) · [Solving Word Equations (And Other Unification Problems) by Recompression (Invited Talk)](https://doi.org/10.4230/LIPIcs.CSL.2020.3) · [RTA Open Problem 92: Complexity of word unification](https://www.cs.tau.ac.il/~nachum/rtaloop/problems/92.html) · [Word Equations in Nondeterministic Linear Space](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2017.95) · [Algebraic Circuits Over Sum and Shift and Existential Presburger Arithmetic with Divisibility](https://arxiv.org/abs/2606.14167v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1595 — Decidability of fifth-order \(\beta\)-matching
 

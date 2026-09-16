@@ -12,7 +12,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 484 | 16 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 804 | 196 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 803 | 197 |
 
 ## Unfilled places
 
@@ -36,7 +36,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Property testing and distribution learning has 16/20 places.
 - top1000: Differential privacy has 4/20 places.
 - top1000: Constraint satisfaction has 19/20 places.
-- top1000: Automated reasoning, rewriting and unification has 15/20 places.
+- top1000: Automated reasoning, rewriting and unification has 14/20 places.
 - top1000: Miscellaneous has 2/20 places.
 
 ## Review needed after catalogue changes
@@ -502,7 +502,7 @@ Previous prefix: TCS-6562, TCS-6643.
 | 1 | [Word equations with linear length constraints](index.html#TCS-6562) (TCS-6562) | Word equations with arithmetic | 97 | A longstanding decidability question at the intersection of formal languages, number-theoretic constraints and automated verification; even unrestricted termination is unknown, before asking for efficient algorithms. |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) (TCS-6643) | Modal unification | 94 | The basic unresolved decidability boundary in modal unification, already in the minimal normal modal logic. |
 
-Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-6650, TCS-0306, TCS-7134.
+Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-6650, TCS-0306, TCS-7134.
 
 ## Database theory and finite model theory
 
