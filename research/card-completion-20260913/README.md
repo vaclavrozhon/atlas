@@ -1208,3 +1208,7 @@ The concurrent census is 1,032 active cards: 592 reviewed and 440 pending. The q
 Checkpoint 478. Completed TCS-0661 with explicit fixed-rank cyclotomic modules, canonical Euclidean norm, dense generator encoding, integer squared thresholds and deterministic many-one hardness. The September 1 rank-two claim matches the existential-rank target and is recorded as uncertain pending independent proof verification. Related unique-SVP and conditional average-SIVP results retain their promises and limitations.
 
 The concurrent census is 1,032 active cards: 596 reviewed and 436 pending. The queue has 478 completed records, 444 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 24,707 formulas.
+
+Checkpoint 484. Completed the deterministic constant-factor Densest k-Subgraph formulation, exact output and bit model, with dated approximation and hardness boundaries.
+
+The concurrent census is 1,032 active cards: 602 reviewed and 430 pending. The queue has 484 completed records, 450 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 24,982 formulas.
