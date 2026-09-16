@@ -1344,3 +1344,7 @@ The concurrent census is 1,025 active cards: 714 reviewed and 311 pending. The q
 Checkpoint 607. Complete fixed-gap Vertex Cover review and check current claims
 
 The concurrent census is 1,025 active cards: 718 reviewed and 307 pending. The queue has 607 completed records, 566 active and 41 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,025 active cards, covering 30,015 formulas.
+
+Checkpoint 612. Complete general asymptotic tensor rank formulation and September audit
+
+The concurrent census is 1,025 active cards: 723 reviewed and 302 pending. The queue has 612 completed records, 571 active and 41 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,025 active cards, covering 30,317 formulas.

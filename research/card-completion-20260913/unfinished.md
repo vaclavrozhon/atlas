@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **450**.
+Pending active reviews: **449**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -401,7 +401,6 @@ Pending active reviews: **450**.
 | [TCS-7254](../../data/cards/TCS-7254.json) | Neumann–Lara conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7256](../../data/cards/TCS-7256.json) | Reversible simulation in polynomial time and linear space simultaneously | Computational complexity | existing_detailed_audit |
 | [TCS-7261](../../data/cards/TCS-7261.json) | Linear-time minimization of deterministic finite automata | Automata and formal languages | existing_detailed_audit |
-| [TCS-7262](../../data/cards/TCS-7262.json) | Strassen’s asymptotic rank conjecture | Algebraic computation | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
 | [TCS-7264](../../data/cards/TCS-7264.json) | Single-exponential dependence on dimension for integer programming | Optimization and numerics | existing_detailed_audit |
 | [TCS-7265](../../data/cards/TCS-7265.json) | Deterministic polynomial-time construction of a prime of a given bit length | Lattices and computational number theory | existing_detailed_audit |
