@@ -1845,6 +1845,13 @@ The #BIS problem counts all independent vertex subsets of an arbitrary finite si
 [Read in atlas](index.html#TCS-7221) · [A Fixed-Parameter Perspective on #BIS](https://link.springer.com/article/10.1007/s00453-019-00606-4) · [Counting Independent Sets and Colorings on Random Regular Bipartite Graphs](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.34) · [A Spectral Approach to Approximately Counting Independent Sets in Dense Bipartite Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.35) · [Computational Thresholds for Balanced and Fixed-Slice Independent Sets in Bipartite Graphs](https://arxiv.org/abs/2608.02503v1)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6820 — FP versus #P
+
+The question asks whether every polynomially verifiable witness count can be evaluated exactly in deterministic polynomial time. Witnesses are binary strings of a fixed polynomial length, and different witnesses retain their multiplicities. The exact count is output in binary, so even an exponentially large value needs only polynomially many output bits. An affirmative answer would imply P = NP, but efficient existence testing or relative approximation does not establish exact counting. A resolution would settle the basic computational boundary for counting satisfiability, permanents and all other functions in #P.
+
+[Read in atlas](index.html#TCS-6820) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/book.pdf) · [Notes on Computational Complexity Theory](https://www.cs.yale.edu/homes/aspnes/classes/468/notes-2017.pdf) · [P ?= NP](https://www.scottaaronson.com/papers/pnp.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6629 — Deterministic FPTAS for the nonnegative permanent
 
 The permanent of a nonnegative matrix sums the weights of all perfect matchings in its bipartite support graph. The question asks for one deterministic algorithm approximating this value to any requested relative accuracy on every nonnegative rational matrix. Its running time must be polynomial in the full binary input length and inverse accuracy, with a fixed exponent and exact output zero when the permanent is zero. Randomized approximation is established, while checked 2026 deterministic results have dimension-dependent error factors or fixed density and weight restrictions. A complete Lean proof must establish the unrestricted deterministic scheme or prove that none meets the stated guarantees.
@@ -1914,13 +1921,6 @@ A fixed-width CNF formula has a finite number of satisfying assignments. Decisio
 
 [Read in atlas](index.html#TCS-4671) · [An Approximation Algorithm for #k-SAT](https://doi.org/10.4230/LIPIcs.STACS.2012.78) · [Exploiting Independent Subformulas: A Faster Approximation Scheme for #k-SAT](https://doi.org/10.1016/j.ipl.2013.02.013) · [Fine-Grained Reductions from Approximate Counting to Decision](https://doi.org/10.1145/3442352)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6820 — FP versus #P
-
-A #P function counts the accepting computation paths of a nondeterministic polynomial-time machine. The question asks whether every such counting function can be evaluated exactly in deterministic polynomial time. This would make the number of efficiently verifiable witnesses as accessible as a single ordinary polynomial-time computation. It is a central distinction between finding or verifying solutions and determining their full multiplicity. The output is a binary integer and exactness matters, so randomized relative approximation or a decision procedure for whether the count is positive would not resolve the counting-class question.
-
-[Read in atlas](index.html#TCS-6820) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6821 — FP = #P from \(\mathrm{P} = \mathrm{NP}\)
 
@@ -3620,10 +3620,10 @@ Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0196 — Polyhedrality of linear-rank inequality cones
 
-Linear-rank inequalities constrain dimensions of collections of subspaces and their sums. The recorded question asks whether the associated cones are polyhedral. Polyhedrality would mean that finitely many linear inequalities suffice to describe the relevant geometric region. Such a description could turn a broad family of linear-information constraints into a finite system amenable to computation. The saved title does not specify the number of variables, field choices, or closure convention, so it cannot yet identify exactly which cone is conjectured to have a finite description.
+Linear rank inequalities constrain the dimensions of every nonempty sum in a collection of subspaces. The target cone contains the coefficient vectors of inequalities valid over every commutative field. The question asks whether this cone is polyhedral for each fixed number of subspaces at least six. A finite description is known through five subspaces, while increasing families of inequalities for larger collections do not themselves settle the fixed-dimension question. A resolution would determine whether linear information profiles admit a finite complete set of universal linear constraints at each fixed arity.
 
-[Read in atlas](index.html#TCS-0196) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0196) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Linear rank inequalities on five or more variables](https://arxiv.org/abs/0910.0284v3) · [Interaction between skew-representability, tensor products, extension properties, and rank inequalities](https://arxiv.org/abs/2507.10709v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0178 — Bounded-alphabet approximation of entropy-region faces
 

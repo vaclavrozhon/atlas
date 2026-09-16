@@ -751,6 +751,13 @@ An unambiguous context-free grammar has at most one parse tree for every generat
 [Read in atlas](index.html#TCS-0164) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#equivalence-of-unambiguous-context-free-grammars)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5959 — Complexity of the Game of Life limit set
+
+The limit set of Conway’s Game of Life contains the configurations that have predecessor histories of every finite length. The question asks whether recognizing finite patterns occurring in that set is complete for the co-computably-enumerable languages. The pattern is finite, but its surroundings are arbitrary configurations of the infinite plane and are not required to be blank. The source proves polynomial-space hardness and nonsoficity, neither of which settles the stronger computability-theoretic completeness target. A resolution would determine whether this canonical cellular automaton attains the general complexity upper bound for limit-set pattern languages.
+
+[Read in atlas](index.html#TCS-5959) · [What Can Oracles Teach Us About the Ultimate Fate of Life?](https://doi.org/10.4230/LIPIcs.ICALP.2022.131)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3863 — Containment of finitely ambiguous probabilistic automata
 
 Two probabilistic automata assign acceptance probabilities to every finite input word. Each machine has a fixed finite bound on its positive accepting runs, but either bound can be greater than one. The question asks for an unconditional terminating test of whether the first probability never exceeds the second. Existing results with an unambiguous side do not settle the general case, and allowing linearly growing ambiguity already gives undecidability. The benchmark requires a Lean-checked decidability or undecidability proof for exact comparison without a gap promise.
@@ -891,13 +898,6 @@ Two players build infinite labeled trees and compare their membership in two reg
 [Read in atlas](index.html#TCS-4659) · [The Determinacy of Context-Free Games](https://doi.org/10.4230/LIPIcs.STACS.2012.555) · [The Determinacy of Context-Free Games — journal version](https://doi.org/10.2178/jsl.7804050) · [On the topological complexity of tree languages](https://www.mimuw.edu.pl/~niwinski/Prace/lobo_d.pdf) · [Wadge-Wagner Hierarchy of Regular Tree Languages](https://www.ims.uni-stuttgart.de/events/TTATT2016/proceedings.pdf)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-5959 — Complexity of the Game of Life limit set
-
-Conway's Game of Life has a limit set consisting of configurations with arbitrarily long predecessor histories. The project asks the complexity of recognizing finite patterns that occur somewhere in this set. The source proves polynomial-space hardness and asks whether the full co-recursively-enumerable completeness bound is attained. Standard universality constructions do not settle this because surrounding cells must not be assumed harmless when testing arbitrary patterns. A matching hardness result would show that indefinitely possible past histories encode substantially more difficulty than ordinary finite-time simulation.
-
-[Read in atlas](index.html#TCS-5959) · [What Can Oracles Teach Us About the Ultimate Fate of Life?](https://doi.org/10.4230/LIPIcs.ICALP.2022.131)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ## Semantics, logic and verification (38)
 
 ### TCS-6565 — Positivity problem for linear recurrences
@@ -1024,6 +1024,13 @@ Existing status: `source_open` · Summary written: 2026-09-13
 A one-dimensional rational piecewise-affine map repeatedly updates one number using the affine expression selected by its interval guards. The question asks whether exact reachability of a rational target from a rational starting point is decidable for every finite description. The number of pieces is unrestricted, all boundary choices are explicit, and any finite number of iterations including zero is allowed. Injective two-piece maps and certain Bellman operators admit decision procedures, but the checked source retains the general question as open. A resolution would locate a basic boundary between finite descriptions of numerical dynamics and algorithmic reachability analysis.
 
 [Read in atlas](index.html#TCS-5682) · [On Piecewise Affine Reachability with Bellman Operators](https://doi.org/10.4230/LIPIcs.MFCS.2025.92) · [Reachability in Injective Piecewise Affine Maps](https://arxiv.org/abs/2301.09752v2)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-6359 — Decidability and completeness of concurrent Kleene algebra with parallel iteration
+
+Concurrent Kleene algebra describes finite partially ordered executions using choice, sequential and parallel composition, and iteration. The card asks both whether refinement is decidable and whether its valid inequalities follow from the stated axioms when both sequential and parallel iteration are allowed. Refinement preserves events and labels while permitting extra ordering, and parallel iteration allows arbitrarily many concurrent copies. Decision and completeness results for expressions without parallel iteration do not settle the full-signature questions retained here. A resolution would establish the algorithmic and proof-theoretic limits of algebraic reasoning about unbounded finite concurrency.
+
+[Read in atlas](index.html#TCS-6359) · [On Decidability of Concurrent Kleene Algebra](https://doi.org/10.4230/LIPIcs.CONCUR.2017.28) · [Concurrent Kleene Algebra: Free Model and Completeness](https://doi.org/10.1007/978-3-319-89884-1_30) · [Completeness Theorems for Pomset Languages and Concurrent Kleene Algebras](https://arxiv.org/abs/1705.05896v1) · [A note on commutative Kleene algebra](https://arxiv.org/abs/1910.14381v1) · [Concurrent Kleene Algebra: Completeness and Decidability](https://discovery.ucl.ac.uk/id/eprint/10109361/13/main.pdf) · [Continuous Algebras with Hypotheses](https://drops.dagstuhl.de/storage/00lipics/lipics-vol391-concur2026/LIPIcs.CONCUR.2026.42/LIPIcs.CONCUR.2026.42.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6036 — Decidability of restricted elementary real functions
@@ -1157,13 +1164,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Simplicial sets describe spaces through points, edges, triangles, and their higher-dimensional analogues, making them natural models for homotopy type theory. The source recalls a univalent simplicial model and asks how to obtain a constructive simplicial model with univalent universes. Constructivity requires the semantic constructions to work without the classical principles used in the original account. Cubical models provide an encouraging comparison, since a constructive treatment of univalence is available there. Solving the simplicial problem would clarify whether the familiar simplex-based geometry can support the same constructive foundations and computational ambitions as the cubical approach.
 
 [Read in atlas](index.html#TCS-5915) · [From Cubes to Twisted Cubes via Graph Morphisms in Type Theory](https://doi.org/10.4230/LIPIcs.TYPES.2019.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6359 — Decidability and completeness of concurrent Kleene algebra
-
-Concurrent Kleene algebra represents executions as partially ordered multisets of events, preserving distinctions between sequential and parallel behavior. Refinement compares such executions by allowing additional ordering, and the interchange law captures a basic relationship between sequential and parallel composition. The quoted question concerns decidability and completeness for refinement of expressions with iteration. The source itself settles the decision problem for series-rational expressions without parallel iteration, proving EXPSPACE-completeness, while the broader signature and axiomatization questions are distinct. This distinction matters when deciding whether a concurrent specification permits an implementation with a greater degree of sequentialization.
-
-[Read in atlas](index.html#TCS-6359) · [On Decidability of Concurrent Kleene Algebra](https://doi.org/10.4230/LIPIcs.CONCUR.2017.28)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Distributed, parallel and sublinear algorithms (58)
@@ -2023,10 +2023,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5358 — Polynomial-time distribution-free PAC learning of DNF
 
-A DNF is an OR of conjunctions of Boolean literals, representing a union of rule-defined regions. The question asks whether an unknown DNF with at most s terms can be learned from independent labelled examples under every input distribution in time polynomial in n, s, inverse error and log inverse failure probability. The learner may output any efficiently evaluable Boolean hypothesis but cannot request labels for inputs of its choice. Polynomially many samples suffice information-theoretically, while known hardness for unrestricted hypotheses relies on explicit complexity assumptions. A solution would settle a foundational computational-learning barrier and would also yield an efficient learner for uniform-example juntas.
+A DNF is a disjunction of conjunctions of possibly negated Boolean variables, with the number of terms bounded by the supplied size parameter. The learner sees only independent noiseless labeled examples from an arbitrary unknown distribution and must run in one polynomial in dimension, term bound and the stated accuracy/confidence parameters. Its output may be any explicitly written deterministic Boolean circuit whose predictions have small distributional error with high probability. Polynomial sample complexity is available, while known improper-learning lower bounds remain conditional and recent positive results use restricted distributions, stronger query access or different output guarantees. A solution needs a complete Lean proof of the full uniform learner guarantee or a negation covering every allowed learner and polynomial bound.
 
-[Read in atlas](index.html#TCS-5358) · [Learning DNF Expressions from Fourier Spectrum](https://proceedings.mlr.press/v23/feldman12b.html) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791) · [Complexity Theoretic Limitations on Learning DNF’s](https://proceedings.mlr.press/v49/daniely16.html)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5358) · [Learning DNF Expressions from Fourier Spectrum](https://proceedings.mlr.press/v23/feldman12b.html) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791v1) · [Complexity Theoretic Limitations on Learning DNF’s](https://proceedings.mlr.press/v49/daniely16.html) · [From Local Pseudorandom Generators to Hardness of Learning](https://proceedings.mlr.press/v134/daniely21a.html) · [Faster exact learning of k-term DNFs with membership and equivalence queries](https://arxiv.org/abs/2507.20336v1) · [Iterative Chow Filtering for Learning with Distribution Shift](https://arxiv.org/abs/2605.17251v1) · [DNF formulas are efficiently testable with relative error](https://arxiv.org/abs/2601.16076v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6544 — Distribution-free learning of two margin halfspaces
 
@@ -2040,6 +2040,13 @@ Existing status: `source_open` · Summary written: 2026-09-13
 The card asks whether failure of efficient worst-case circuit learning already implies ordinary one-way functions. The learner receives independent noiseless examples under any input distribution and must output a small ordinary Boolean predictor. A one-way function is uniformly easy to evaluate but has negligible inversion probability for every efficient uniform adversary at all sufficiently large lengths. Known reverse connections impose efficiently sampled targets, low computational depth, different learning-length quantifiers or a different description-approximation problem. The completed card preserves the unrestricted implication and records those distinctions while leaving its current status uncertain.
 
 [Read in atlas](index.html#TCS-5090) · [On the Structure of Learnability Beyond P/Poly](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.46) · [On the Structure of Learnability beyond P/poly](https://eccc.weizmann.ac.il/report/2021/173/) · [Learning in Pessiland via Inductive Inference](https://eccc.weizmann.ac.il/report/2023/100/) · [On White-Box Learning and Public-Key Encryption](https://doi.org/10.4230/LIPIcs.ITCS.2025.73) · [A Sharp Characterization of Pessiland](https://eccc.weizmann.ac.il/report/2026/052/) · [On the Structure of Learnability beyond P/poly](https://link.springer.com/article/10.1007/s00037-024-00260-5)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
+### TCS-5434 — Nontrivial agnostic membership-query learning of \(\mathrm{ACC}^{0}\)
+
+The card asks whether constant-depth modular circuits admit agnostic membership-query learning with a superpolynomial-factor saving over exponential time. Inputs are uniform, labels may be arbitrary and stochastic, and each chosen query receives a fresh conditional label. The target keeps the source’s exponentially small correlation slack and its literal one-third full-learning success guarantee. Known positive results restrict the circuit class or relax the optimum-error comparison and do not establish the full ACC⁰ target. A Lean answer must prove the complete uniform algorithmic assertion or its unconditional negation under these exact resource and accuracy conventions.
+
+[Read in atlas](index.html#TCS-5434) · [Agnostic Membership Query Learning with Nontrivial Savings: New Results and Techniques](https://proceedings.mlr.press/v237/karchmer24a.html) · [Agnostic Learning from Tolerant Natural Proofs](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2017.35) · [Agnostic Membership Query Learning with Nontrivial Savings: New Results, Techniques](https://arxiv.org/abs/2311.06690)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7293 — Distribution-free improper learning of two unrestricted halfspaces
@@ -2229,13 +2236,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A Gaussian graphical model encodes conditional dependencies through the nonzero entries of the inverse covariance matrix. The motivating question asks whether its underlying sparse graph can be recovered with the information-theoretically optimal sample count by a polynomial-time algorithm. The source's DICE procedure settles the sample-complexity component using only graph size, maximum degree, and minimum normalized edge strength in its bound. Its search cost still has an exponent depending on the degree, so the paper separately asks for computationally efficient sample-optimal recovery in general. This record therefore combines a statistical question answered in the source with a remaining algorithmic efficiency direction.
 
 [Read in atlas](index.html#TCS-5119) · [Information Theoretic Optimal Learning of Gaussian Graphical Models](https://proceedings.mlr.press/v125/misra20a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5434 — Nontrivial agnostic membership-query learning of \(\mathrm{ACC}^{0}\)
-
-Agnostic membership-query learning must approximate an arbitrary target nearly as well as the best hypothesis in a specified circuit class. The source asks for a nontrivial learning-time saving for ACC0 circuits, even under uniformly distributed inputs. Membership queries allow the learner to choose labeled examples. The target must tolerate noise or mismatch between the target and the hypothesis class. The project seeks algorithmic progress beyond exhaustive truth-table processing while preserving a guarantee relative to the best available constant-depth modular circuit.
-
-[Read in atlas](index.html#TCS-5434) · [Agnostic Membership Query Learning with Nontrivial Savings: New Results and Techniques](https://proceedings.mlr.press/v237/karchmer24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5902 — PAC learning of finite automata under the uniform distribution
@@ -2506,7 +2506,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A depolarizing channel models a qubit subjected to randomly chosen Pauli errors. Its quantum capacity measures how much unknown quantum information can be transmitted reliably per channel use when many uses are encoded together. The goal is the capacity curve throughout the noise range under the unassisted coding convention fixed in the card. Coding across several uses can behave differently from optimizing a single use, which complicates attempts to match achievable rates with impossibility bounds. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
 
 [Read in atlas](index.html#TCS-6519) · [The private classical capacity and quantum capacity of a quantum channel](https://arxiv.org/abs/quant-ph/0304127) · [Quantum cloning and the capacity of the Pauli channel](https://arxiv.org/abs/quant-ph/9803058) · [Quantum and private capacities of low-noise channels](https://arxiv.org/abs/1705.04335) · [Geometric optimization for quantum communication](https://arxiv.org/abs/2509.15106) · [Enhanced quantum capacity thresholds from symmetry](https://arxiv.org/abs/2605.09138) · [A certified lower bound on the quantum-capacity threshold of the depolarizing channel](https://arxiv.org/abs/2608.15870) · [Sharp Quantum Capacity Thresholds: Exponential Strong Converses for Degradable and Antidegradable Channels](https://arxiv.org/abs/2608.01308)
-Existing status: `source_open` · Summary written: 2026-09-12
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-0037 — NP outside BQP
 
@@ -2527,7 +2527,7 @@ Existing status: `source_open` · Summary written: 2026-09-16
 Quantum channel capacity describes the best asymptotic rate for transmitting quantum information through a noisy channel. This problem asks whether that number can always be approximated by an algorithm from an effective finite description of the channel. The algorithm may be slow, but it must halt and meet any requested rational accuracy. Optimizations involving arbitrarily many channel uses make the asymptotic definition harder to turn into a guaranteed finite computation. Establishing computability or an obstruction would separate the existence of an operational communication rate from our ability to calculate it even in principle.
 
 [Read in atlas](index.html#TCS-6520) · [The private classical capacity and quantum capacity of a quantum channel](https://arxiv.org/abs/quant-ph/0304127) · [Continuity of quantum channel capacities](https://arxiv.org/abs/0810.4931) · [Unbounded number of channel uses may be required to detect quantum capacity](https://www.nature.com/articles/ncomms7739) · [Undecidability in Physics: a Review](https://arxiv.org/abs/2410.16532) · [Undecidability in physics: A review — journal version](https://doi.org/10.1016/j.physrep.2025.06.004) · [On the undecidability of quantum channel capacities](https://arxiv.org/abs/2601.22471)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3709 — Quantum query-to-communication lifting
 
