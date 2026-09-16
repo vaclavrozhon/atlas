@@ -106,3 +106,15 @@ already gives unrestricted fixed-accuracy approximation of the full curve.
 After being told this, the user explicitly retained absolute 0.01 accuracy as
 a formalization task. The revised card distinguishes that known approximation
 guarantee from the separate open exact-capacity question.
+
+The general Directed Steiner Tree pass completed TCS-6588 and checked the
+[9 September published version of Length-Constrained Network Design in Planar
+Digraphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2026.15),
+whose July preprint is arXiv:2607.25811. The published introduction still leaves
+the general polynomial-time polylogarithmic approximation question open.
+Theorems 2–4 concern planar cost/length bicriteria approximations. The inherited
+arXiv:2412.10744 general claim was also rechecked against its live record and
+full October 2025 version: the corrected theorem assumes a supplied relatively
+integral fractional solution and states expected polynomial time. Search results
+still surface its superseded affirmative title. Neither item is a resolution of
+the active general-graph target; no external proof was independently certified.

@@ -1308,3 +1308,7 @@ The concurrent census is 1,026 active cards: 682 reviewed and 344 pending. The q
 Checkpoint 575. Completed full randomized Orthogonal Vectors Hypothesis model
 
 The concurrent census is 1,026 active cards: 687 reviewed and 339 pending. The queue has 575 completed records, 535 active and 40 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,026 active cards, covering 28,273 formulas.
+
+Checkpoint 577. Completed general Directed Steiner approximation formulation and September publication check
+
+The concurrent census is 1,026 active cards: 689 reviewed and 337 pending. The queue has 577 completed records, 537 active and 40 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,026 active cards, covering 28,359 formulas.
