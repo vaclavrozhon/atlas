@@ -155,3 +155,20 @@ affected assets were immediately restored byte-for-byte from the preceding
 deployment, retaining the new card data. The corrected deployment is
 6f9a99dc41c90f8e162b32a05a7407833b7f23f8. Those frontend files also match
 the shared working copy as checked on 16 September 2026.
+
+After thirty-one dispositions the queue contains 675 completed records,
+239 pending records and one outside active scope. Of 1,016 active cards,
+777 have completed individual reviews. TCS-4763 now has the source's
+disjunctive parallel-flow target and a checked 2026 status comparison.
+TCS-5427 was an invalid extraction of a historical background sentence:
+the same 2016 source announces and presents the multipass extension.
+It was archived intact with an individual source-context review, without
+inventing a replacement theorem or asserting an independent proof certification.
+The formula check after the flow revision covered 32,842 expressions.
+Local publication after the extraction disposition is f32f911c47c43a0f6a84.
+
+Four further scope questions are pending user answers, recorded in
+pending-scope-choices.json. Their reservations remain visible in the runtime
+claims file. Source checkpoint 3cad09e0 covers the first twenty-nine
+dispositions and was pushed; the corresponding live publication is
+157b4940117c617de4e8, deployment fdcc46bcd4b751ecda0334075f2ca3bc087b8180.

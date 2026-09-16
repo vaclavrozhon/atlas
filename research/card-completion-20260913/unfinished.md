@@ -5,14 +5,12 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **241**.
+Pending active reviews: **239**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
 | [TCS-3384](../../data/cards/TCS-3384.json) | Approximate matching and set packing in \(\mathrm{AC}^{0}\) | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-4231](../../data/cards/TCS-4231.json) | Complexity of general subgraph detection | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-4763](../../data/cards/TCS-4763.json) | Work-efficient parallel approximate flow | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-5427](../../data/cards/TCS-5427.json) | Characterizing multipass turnstile streaming | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-6206](../../data/cards/TCS-6206.json) | Clique detection in CONGEST | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-6380](../../data/cards/TCS-6380.json) | Load-optimal parallel natural joins | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-5015](../../data/cards/TCS-5015.json) | Foundations of quantum cryptography from EFI pairs | Cryptography | pool |
