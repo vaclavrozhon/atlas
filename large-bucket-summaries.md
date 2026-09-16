@@ -1979,10 +1979,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0409 — Minimum-Link Path in 2D
 
-A minimum-link path connects two locations among polygonal obstacles while using as few straight segments as possible. Its objective counts bends and segments rather than total Euclidean length. The source asks whether the planar problem admits a subquadratic algorithm. A short-distance path need not minimize links, so standard shortest-path techniques do not automatically achieve the target. The task would improve route simplification in environments where changing direction is costly even when travel along a straight segment is inexpensive.
+A minimum-link path connects two given points through closed planar free space while using the fewest straight segments. The environment may contain many polygonal holes, and the path may bend at arbitrary interior or boundary points and use arbitrary directions. The question asks for one exact deterministic algorithm whose worst-case real-RAM operation count divided by the square of the total boundary size tends to zero. This interpretation includes logarithmic-factor savings, and known 3SUM-hardness does not by itself rule them out. The checked approximation results and hardness results for boundary bends or three-dimensional paths do not settle this planar exact-path target.
 
-[Read in atlas](index.html#TCS-0409) · [The Open Problems Project](https://topp.openproblem.net/p22)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0409) · [The Open Problems Project: Minimum-Link Path in 2D](https://topp.openproblem.net/p22) · [Minimum-Link Paths Among Obstacles in the Plane](https://doi.org/10.1007/BF01758855) · [Minimum-Link Paths Revisited](https://arxiv.org/abs/1302.3091v1) · [Threesomes, Degenerates, and Love Triangles](https://arxiv.org/abs/1404.0799v3) · [On the Complexity of Minimum-Link Path Problems](https://arxiv.org/abs/1603.06972v1) · [Computational Geometry: Report from Dagstuhl Seminar 25201](https://doi.org/10.4230/DagRep.15.5.64)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4454 — Half-snowflake embeddings into Wasserstein p-space
 
