@@ -564,3 +564,21 @@ scope discussion is retained in scope-TCS-6734.md. Checkpoint twenty-two was
 committed as d56ea7d8 and verified live at fb674265a53cf2c26ba0. Further source
 research was delegated only for already reserved cards; all canonical edits and
 completion records continued through the shared token/hash infrastructure.
+
+Checkpoint twenty-four brings this process to ninety-eight completed reviews:
+eighty-eight retained active cards, ten retirements and forty-four new importance
+assessments. The four scores and categories in this batch were retained.
+
+- TCS-1131: uniform sublinear-seed AC0[2] pseudorandom generation, explicit
+  circuit and constant-error conventions, with restricted later results separated.
+- TCS-7334: Strong Set Disjointness, retained linear space normalization,
+  charged word-RAM model and precise worst-case randomized guarantees.
+- TCS-7329: fully retroactive priority queues, exact historical semantics,
+  changing-history amortized accounting and the retained strict pointer machine.
+- TCS-7369: explicit gapped-reporting exponent curve; corrected a claim of
+  improved regimes unsupported by the cited 2026 Jumbled Indexing consequence.
+  Exact-scope status remains uncertain.
+
+Checkpoint twenty-three was committed as c8a7ccd6 and verified live at
+c775247f80c5092d4151. Source research for this batch was delegated only on
+reserved cards; canonical changes used shared claims and input-hash validation.

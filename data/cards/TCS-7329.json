@@ -4,16 +4,28 @@
   "area": "Data structures",
   "criterion": "resources",
   "question_type": "yes_no",
-  "formal": "Does a deterministic fully retroactive priority queue exist with \\(O(m+1)\\) space and \\(O(\\log(2+m))\\) amortized time per operation, where \\(m\\) is the number of operations in its represented history? It must support adding or removing a historical insertion or extract-min and asking for the minimum immediately after any supplied historical time.",
-  "definitions": "The comparison pointer machine stores constant-size records with a fixed number of pointer and data fields, accessed through a constant number of pointer registers. A step can follow or change a pointer, allocate a record, compare two keys or perform a constant-size control operation. Keys are opaque members of a totally ordered set; pointer arithmetic, array indexing by computed integers and unit-cost unbounded counters are unavailable. All work, including rebuilding, is charged. A history consists of insertion records \\((t,x)\\) and extract-min records \\(t\\), with pairwise distinct timestamps in an opaque totally ordered time domain. Replay records by timestamp from an empty queue. Inserted items have distinct identities and ordered priorities; ties are resolved by identity. Histories supplied after each edit are promised valid: extract-min never acts on an empty queue. An edit adds a record at an unused time or removes a named existing record. A query at \\(t\\) returns the minimum surviving item after replay through \\(t\\), or an empty marker. Removing a past operation changes the interpretation of all subsequent records. There is no monotonicity promise on inserted or extracted priorities. Space includes every retained historical record and index. For each finite edit/query sequence, the sum of \\(1+\\log(2+m)\\) over operations bounds total computation within one universal constant; initialization is constant.",
-  "why": "This asks whether complete access to a changeable operation history can cost only as much asymptotically as an ordinary priority queue.",
+  "formal": "Does there exist one deterministic comparison pointer-machine program \\(A\\), with fixed constants \\(C_t,C_s>0\\), that implements the fully retroactive priority queue defined below on every valid finite sequence of commands? Starting with an empty history, it must insert and remove historical insertion or extract-min records, and return the minimum item immediately after any queried historical time. Write \\(m_j\\) for the number of historical records after command \\(j\\), \\(m_0=0\\), and \\(M_j=\\max\\{m_{j-1},m_j\\}\\). For every \\(q\\ge0\\), require\n\\[\nT_A(q)\\le C_t\\left(1+\\sum_{j=1}^{q}\\log_2(2+M_j)\\right),\n\\]\nwhere \\(T_A(q)\\) counts initialization and all steps through the first \\(q\\) commands. During command \\(j\\), at most \\(C_s(1+M_j)\\) records may be allocated and not yet reclaimed; after it finishes, at most \\(C_s(1+m_j)\\) may remain. Initialization uses at most \\(C_s\\) records. Thus time is amortized over all edits and queries, while space is linear in the currently maintained history, including working storage.",
+  "definitions": "Fix three opaque totally ordered domains: priorities, item identities and historical times. The same program and constants must work for every choice of these domains and every valid input sequence. An item is a pair \\((p,\\iota)\\) of priority and identity, ordered lexicographically: compare priorities first and use identities to break ties. Identities of items whose insertion records are currently in the history are distinct. Atoms in each domain can be copied and compared in constant time, with no access to their representation.\n\nThe history is a finite set of records with pairwise distinct timestamps. A record is either \\(\\operatorname{InsertItem}(t,p,\\iota)\\) or \\(\\operatorname{ExtractMin}(t)\\). Its meaning is obtained by sorting the records by time and replaying them from an empty queue. An insertion adds its item; an extraction removes the least surviving item in the lexicographic order. The history after every edit is promised valid: no extraction is encountered with an empty queue. There is no monotonicity promise on priorities. The data structure need not detect invalid commands or histories.\n\nAn input command has one of four forms. \\(\\operatorname{AddInsert}(t,p,\\iota)\\) adds an insertion record at an unused timestamp. \\(\\operatorname{AddExtract}(t)\\) adds an extraction record at an unused timestamp. Either addition returns a constant-size stable handle for the new historical record. \\(\\operatorname{Remove}(h)\\) removes the existing historical record named by its valid handle; a handle becomes invalid after that removal. \\(\\operatorname{Minimum}(t)\\) returns the identity and priority of the least item after replaying all current records with timestamp at most \\(t\\), or a distinguished empty marker. The supplied query time may coincide with a record, lie between records, or precede or follow all records. Thus an insertion at \\(t\\) is already effective at \\(t\\), and an extraction at \\(t\\) has already removed its item. Edits change the interpretation of all subsequent historical records. An extraction record is not a request to remove a named item, and a removal command deletes a historical operation rather than executing an extra queue extraction.\n\nThe computation is online: each command arrives only after the preceding response, and its response must be completed before the next command is seen. Commands may depend on earlier responses. Input atoms and a removal handle occupy only constantly many input registers; earlier inputs remain available to the program only if it stores them in its charged memory. The client may retain returned handles, but gives the program only the handle named by the current command, with no auxiliary stored computation.\n\nA program has finite control and a fixed finite number of registers. Memory consists of records with a fixed finite number of pointer fields and data fields. A pointer is null or the address of an allocated record. A data field contains one input atom or a symbol from a fixed finite alphabet. Each step may read or write a fixed field of a record reached by a register, copy a register or field, follow a stored pointer, compare two pointers for equality, compare two atoms from the same ordered domain, test a finite-alphabet symbol, branch, allocate or reclaim one record, or emit one output field. Each such primitive costs one step. Allocation supplies a fresh available address; addresses cannot be ordered, converted to data, used in arithmetic, or used for computed array access. Pointer access starts from the fixed registers or follows stored pointers. Unbounded integers and bit strings, if needed, must be represented by charged records and manipulated through these primitives; there is no unit-cost arithmetic on counters. There are no random bits, advice, oracle operations or uncharged preprocessing.\n\nEvery allocated record counts toward space until reclaimed, including historical records, handle records, indexes, temporary storage and unreachable garbage. Rebuilding and reclamation count toward time. The parameters \\(m_j,M_j\\) are used to state the guarantee and are not free machine inputs or unit-cost counters. A query does not change \\(m_j\\), and an edit changes it by exactly one. The bounds hold for every finite prefix, including arbitrarily long sequences that repeatedly add and remove records while keeping the current history small. They do not use the cumulative number of commands as a replacement for history size. The record format, register count, program and resource constants are fixed independently of all inputs.",
+  "why": "A single change to the past can alter which items many later extractions remove. Matching ordinary priority-queue costs despite this dependence would show that unrestricted historical access can be maintained without an asymptotic time or space penalty in the stated model.",
   "context_blocks": [
     {
-      "text": "Demaine, Iacono and Langerman introduced the retroactive model, which edits the past rather than merely preserving snapshots.",
+      "text": "The original retroactive model distinguishes edits to a history from queries about its states and promises that edited histories remain consistent. Its partially retroactive priority queue has logarithmic update time, but queries concern only the present.",
       "citation": "origin"
     },
     {
-      "text": "The April 2026 revision reports \\(O(\\log^2m\\log\\log m)\\) time and \\(O(m\\log m)\\) space for the general case. It attains logarithmic time and linear space for monotonic priority queues, leaving the unrestricted target open.",
+      "text": "The 2015 general fully retroactive structure has \\(O(\\log^2m)\\) amortized update time, \\(O(\\log^2m\\log\\log m)\\) query time and \\(O(m\\log m)\\) space. These are the reported bounds in that paper’s computational setting.",
+      "citation": "checkpoint"
+    },
+    {
+      "text": "Version 3 of the monotonic-priority-queue paper, dated 14 April 2026, reports \\(O(\\log m)\\) time and \\(O(m)\\) space for the restricted variant and explicitly retains the unrestricted logarithmic and linear-space question. Here the relevant monotonic restriction forbids inserting a key smaller than the most recently extracted key.",
+      "citation": "primary"
+    },
+    {
+      "text": "The card retains its previously specified strict comparison pointer machine, including charged counter manipulation. The original paper generally uses RAM or real RAM, and the 2026 result states comparison-model bounds without an explicit analysis under this stricter instruction set. The cited upper bounds are therefore context, not verified implementations in the card’s model.",
+      "citation": "origin"
+    },
+    {
+      "text": "The existing valid-history and post-operation query conventions are retained. The minimum is requested at arbitrary supplied times, while deletion uses a handle to a currently represented historical operation. The explicit before-and-after history sizes remove ambiguity in amortized accounting when operations are erased.",
       "citation": "primary"
     }
   ],
@@ -24,7 +36,15 @@
       "authors": "Erik D. Demaine; John Iacono; Stefan Langerman",
       "year": 2007,
       "url": "https://erikdemaine.org/papers/Retroactive_TALG/",
-      "locator": "Definitions of partial and full retroactivity."
+      "locator": "ACM Transactions on Algorithms 3(2), Article 13, May 2007; DOI 10.1145/1240233.1240236. Author PDF: Sections 2.1–2.4 and beginning of Section 3, pages 6–7; Section 5 time-location convention, page 13; Section 5.4 and Theorem 9, pages 15–20."
+    },
+    {
+      "id": "checkpoint",
+      "title": "Polylogarithmic Fully Retroactive Priority Queues via Hierarchical Checkpointing",
+      "authors": "Erik D. Demaine; Tim Kaler; Quanquan Liu; Aaron Sidford; Adam Yedidia",
+      "year": 2015,
+      "url": "https://erikdemaine.org/papers/FullyRetroactive_WADS2015/",
+      "locator": "WADS 2015, pages 263–275, 5–7 August 2015; DOI 10.1007/978-3-319-21840-3_22. Author PDF: abstract and introduction, pages 1–2; Section 2.1, pages 3–4; Section 3.1, page 6; Theorems 4 and 5, pages 11–12."
     },
     {
       "id": "primary",
@@ -32,39 +52,47 @@
       "authors": "Lucas Castro; Rosiane de Freitas",
       "year": 2026,
       "url": "https://arxiv.org/abs/2508.09892v3",
-      "locator": "Abstract, Definitions 3–4 and Theorem 19; revision of 14 April 2026."
+      "locator": "Version 3, 14 April 2026. Abstract; Definitions 2–4, pages 2–3; Assumptions 5–11, pages 5–6; Theorem 19, page 10; conclusion, page 11. The first version, 13 August 2025, had a different monotonic upper bound."
     }
   ],
   "progress": [
     {
-      "date": "2007",
-      "text": "The retroactive framework formalizes edits to operation histories.",
+      "date": "2007-05",
+      "text": "The journal paper defines retroactive histories and consistency promises and establishes the logarithmic partially retroactive priority queue.",
       "citation": "origin"
     },
     {
+      "date": "2015-08",
+      "text": "The WADS paper gives a general fully retroactive priority queue with \\(O(\\log^2m)\\) amortized updates, \\(O(\\log^2m\\log\\log m)\\) queries and \\(O(m\\log m)\\) space.",
+      "citation": "checkpoint"
+    },
+    {
       "date": "2026-04-14",
-      "text": "The monotonic restriction reaches logarithmic time and linear space; the abstract explicitly retains the general problem.",
+      "text": "The third revision reports logarithmic time and linear space for monotonic priority queues and explicitly leaves the general target open.",
+      "citation": "primary"
+    },
+    {
+      "date": "2026-09-16",
+      "text": "Checked the current revision and the earlier operation definitions; made handles, tie-breaking, boundary semantics, uniformity, and changing-history resource accounting explicit.",
       "citation": "primary"
     }
   ],
-  "answer_criterion": "Give a complete Lean-checked proof of the stated existence claim or its logical negation, with the same inputs, computation model, space allowance, quantifiers and cost guarantees. A result for a restricted input family or a different model does not decide the full target.",
+  "answer_criterion": "Give a complete mathematically correct Lean proof of a uniform deterministic implementation and constants satisfying the exact replay semantics, total-prefix time bound and space bounds for every valid command sequence, or a complete Lean proof of their logical negation in the stated comparison pointer-machine model. All representation, correctness and resource claims must be included. A conditional lower bound alone does not establish unconditional nonexistence, and a result confined to monotonic histories or using a different machine model does not settle this target.",
   "related": [],
   "related_problem_ids": [],
   "year": 2007,
   "evidence": "reviewed",
   "status": "source_open",
-  "status_note": "Open in the cited dated sources. The bounded source and subsequent-result review on 13 September 2026 found no verified resolution of this target; this is not exhaustive certification of current openness.",
+  "status_note": "Source-open: arXiv2508.09892v3, dated14April2026 and rechecked on 2026-09-16, explicitly retains the general logarithmic-time, linear-space question. Its optimal result has a monotonicity restriction. The card preserves its existing stricter comparison pointer-machine interpretation; the cited upper bounds were not independently transferred to that instruction set. Bounded subsequent searches found no verified resolution.",
   "model_self_contained": true,
   "requires_context": false,
-  "formulation_reviewed_on": "2026-09-13",
+  "formulation_reviewed_on": "2026-09-16",
   "statement_review": {
     "status": "revised",
-    "reviewed_on": "2026-09-13",
+    "reviewed_on": "2026-09-16",
     "remaining_issue": "",
-    "notes": [
-      "Individual formulation, model, duplicate and category review for the user-requested researcher list."
-    ],
-    "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+    "notes": "Preserved importance 84, category and the existing deterministic strict comparison pointer-machine target. Specified uniformity, opaque ordered domains and identity tie-breaking, historical-operation handles, exact post-operation query semantics, valid-history promise, online commands, and primitive memory access. Replaced ambiguous amortized notation by an explicit prefix sum using maximum history sizes immediately before and after each command; specified all retained and temporary storage. Documented that the primary papers do not establish their upper bounds in this stricter counter-cost model.",
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
   "importance": {
     "score": 84,
@@ -78,17 +106,18 @@
   },
   "working_summary": {
     "sentences": [
-      "Retroactivity permits inserting and deleting operations in the past.",
-      "Each edit changes the queue state at later historical times.",
-      "Queries must return the minimum at any chosen time.",
-      "The target is logarithmic amortized operation time and linear history storage.",
-      "A recent optimal result covers monotonic histories but not unrestricted priority queues."
+      "A fully retroactive priority queue permits inserting and erasing queue operations anywhere in its current history.",
+      "Every edit changes the queue obtained by replaying later historical operations, and minimum queries may refer to any time.",
+      "The target is one deterministic comparison pointer-machine implementation with logarithmic amortized time and linear storage in the currently maintained history.",
+      "All temporary storage and counter manipulation are charged, and histories remain valid without a monotonicity promise.",
+      "The 2026 logarithmic result covers monotonic priority queues in its stated comparison model and leaves the general question open in that dated source."
     ],
     "basis": "saved_sources",
-    "source_basis": "source-text",
-    "written_on": "2026-09-13",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-16",
     "source_refs": [
       "origin",
+      "checkpoint",
       "primary"
     ]
   },
@@ -99,9 +128,25 @@
     ],
     "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
   },
-  "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-16; see research/card-completion-20260913/reviews.jsonl.",
   "id": "TCS-7329",
   "published_at": "2026-09-13T09:26:53+00:00",
-  "updated_at": "2026-09-13T09:26:53+00:00",
-  "is_new": true
+  "updated_at": "2026-09-16T04:38:31+00:00",
+  "is_new": true,
+  "quality_review": {
+    "reviewed_on": "2026-09-16",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": "Preserved importance 84, category and the existing deterministic strict comparison pointer-machine target. Specified uniformity, opaque ordered domains and identity tie-breaking, historical-operation handles, exact post-operation query semantics, valid-history promise, online commands, and primitive memory access. Replaced ambiguous amortized notation by an explicit prefix sum using maximum history sizes immediately before and after each command; specified all retained and temporary storage. Documented that the primary papers do not establish their upper bounds in this stricter counter-cost model.",
+    "checked_sources": [
+      "Read Demaine, Iacono and Langerman, author version of Retroactive Data Structures, Sections 2.1–2.4 and opening of Section 3, pages 6–7. Insert(t,u) and Delete(t) edit the current historical list; queries are at arbitrary historical times; validity is promised. Their general default is RAM or real RAM, sometimes pointer machine. Read the Section 5 time-location convention and Theorem 9 for the partial result.",
+      "Read Demaine, Kaler, Liu, Sidford and Yedidia, WADS2015 author paper: abstract and introduction state logarithmic-squared amortized updates, logarithmic-squared times loglog queries, and m logm space. Checked definitions in Section 2.1 and final Theorems 4–5. Section 3.1 allows an empty extraction through an infinite placeholder as an internal convention; the card preserves its valid-history promise rather than silently adopting that broader behavior. No independent full-proof verification is claimed.",
+      "Read actual arXiv2508.09892v3 PDF, revision14April2026, not cached search summaries of v1. Definitions3–4 identify the four historical edit types and GetMin(t). Assumption5 allows opaque totally ordered elements and times with constant-time comparisons; Assumptions6–11 give unique times, tie-breaking, consistency and after-operation boundaries. Theorem19 on page10 states logarithmic time and linear space; the abstract and conclusion retain the unrestricted question.",
+      "The source presents two monotonic descriptions as equivalent. For a finite history with no later extraction, nondecreasing extracted values alone need not prohibit inserting a smaller still-unextracted value. The card describes the explicit insertion restriction used by the paper, rather than repeating that finite-prefix equivalence without qualification. No monotonicity restriction is added to the target.",
+      "Theorem19 uses order-statistic trees and rank-based operations and calls its result optimal in the comparison model; it does not explicitly establish all counter manipulations in the card’s existing strict pointer-machine instruction set. Retained that already selected model and documented the distinction instead of silently changing to word RAM or presenting a transfer as verified.",
+      "The selected m parameter is the number of historical records currently maintained, not all client commands ever issued. Maximum sizes before and after one command differ from either endpoint by at most one, preserving the previous logarithmic and linear asymptotic target. Exact handles name historical records, not extracted items; all handle records and transient storage count.",
+      "Checked the current arXiv landing page on 2026-09-16: v3 dated14April2026 remains the latest displayed revision. Bounded searches for later general logarithmic fully retroactive priority-queue results found no matching resolution. The 2020 persistent-search-tree paper found in search describes polylogarithmic performance, not the logarithmic/linear target; only its primary abstract was checked. This is a bounded status review, not exhaustive certification."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }
