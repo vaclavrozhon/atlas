@@ -1894,6 +1894,13 @@ A DNF formula describes a union of sets of Boolean assignments, one set for each
 [Read in atlas](index.html#TCS-1004) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [A Note on Deterministic Approximate Counting for k-DNF](https://eccc.weizmann.ac.il/report/2002/069/) · [Pseudorandomness for read-k DNF formulas](https://www.cs.columbia.edu/~rocco/Public/read-k.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-7099 — Finite-domain enumeration-CSP dichotomy
+
+Enumeration CSP asks for every satisfying assignment of a fixed finite constraint language, each printed once. Polynomial delay bounds the waiting time before, between and after complete outputs independently of their total number. The question seeks a structural classification of all finite languages admitting such enumeration, with the complementary exclusion stated under P≠NP. Boolean languages are classified, but larger-domain examples show that tractability after pinning variables does not characterize efficient enumeration. A full dichotomy would identify the boundary for regular generation of alternatives beyond the known satisfiability decision classification.
+
+[Read in atlas](index.html#TCS-7099) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Enumerating all Solutions for Constraint Satisfaction Problems](https://doi.org/10.4230/DagSemProc.06401.6) · [A dichotomy theorem for nonuniform CSPs](https://arxiv.org/abs/1703.03021v2) · [A Proof of the CSP Dichotomy Conjecture](https://arxiv.org/abs/1704.01914v11)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3635 — Treewidth classification of approximate counting CSP
 
 The input asks how many homomorphisms map a source structure A from a fixed class C into an arbitrary target structure B. The conjecture says a fixed-parameter randomized approximation scheme exists exactly when C has bounded Gaifman treewidth. Relation arity is uniformly bounded, C is recursively enumerable, and the parameter is the size of A. The source proves this under a further fan-class condition and asks to remove it. The 2020 journal version retains that restriction, so exact-counting and fixed-target classifications do not settle the missing approximation direction.
@@ -1941,13 +1948,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 A circuit of a binary matroid is a minimally dependent set of columns in a representation over the two-element field. The question asks to enumerate all such circuits in incremental polynomial time while using polynomial space. The goal combines prompt production of the first several answers with a memory bound independent of the potentially exponential output. This would make a fundamental dependence structure effectively explorable without storing every circuit already encountered. The source's input representation and duplicate-handling convention remain relevant, because listing arbitrary dependent sets does not automatically yield minimal circuits with the required resource guarantees.
 
 [Read in atlas](index.html#TCS-7086) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7099 — Finite-domain enumeration-CSP dichotomy
-
-Enumeration CSP asks an algorithm to list every satisfying assignment of a fixed constraint language. The source asks for a dichotomy over finite-domain templates. Listing all solutions introduces delay and memory questions that ordinary satisfiability decision does not measure. A classification would explain which languages permit controlled output generation even when the total solution set is enormous. The saved note does not state the intended delay, preprocessing, or space class, so a polynomial-time decision dichotomy is only background and does not by itself determine the enumeration target.
-
-[Read in atlas](index.html#TCS-7099) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Structural graph theory and graph algorithms (50)

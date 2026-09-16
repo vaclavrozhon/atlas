@@ -1592,10 +1592,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0008 — Strongly polynomial linear programming
 
-Linear programming optimizes a linear objective subject to linear equality and nonnegativity constraints. The question asks whether every rational instance can be solved using a number of arithmetic operations polynomial only in its numbers of variables and constraints. Intermediate numbers must also have encoding lengths bounded polynomially in the full input length. Existing polynomial-time guarantees may depend on how many bits describe the coefficients, which is the dependence this target seeks to remove. A solution must handle exact optima, infeasibility, and unbounded objectives within the same strongly polynomial framework.
+A rational linear program minimizes a linear objective subject to linear equalities and nonnegative variables. The question asks for one deterministic exact solver using polynomially many scalar arithmetic operations depending only on the numbers of variables and constraints. Intermediate rational values must have bit lengths polynomial in the full input length, and the computation must admit an exact polynomial-time bit implementation. The solver must distinguish infeasibility, an objective unbounded below and a finite attained optimum on every input, without matrix or conditioning promises. Strongly polynomial algorithms are established for major special classes, while current claims of a general solution remain unverified in this review.
 
-[Read in atlas](index.html#TCS-0008) · [Problem 8: Linear Programming: Strongly Polynomial?](https://topp.openproblem.net/p8) · [A Strongly Polynomial Algorithm to Solve Combinatorial Linear Programs](https://doi.org/10.1287/opre.34.2.250) · [A strongly polynomial algorithm for linear programs with at most two non-zero entries per row or column](https://homepages.cwi.nl/~dadush/papers/genflow.pdf) · [No self-concordant barrier interior point method is strongly polynomial](https://arxiv.org/abs/2201.02186) · [Trust Region Interior Point Methods: Optimal l2- and Faster Wide-Neighborhood Path Following](https://homepages.cwi.nl/~dadush/papers/trust-region.pdf) · [A strongly polynomial-time algorithm for the general linear programming problem](https://arxiv.org/abs/2503.12041v10)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0008) · [Problem 8: Linear Programming: Strongly Polynomial?](https://topp.openproblem.net/p8) · [A Strongly Polynomial Algorithm to Solve Combinatorial Linear Programs](https://doi.org/10.1287/opre.34.2.250) · [A Strongly Polynomial Algorithm for Linear Programs with At Most Two Nonzero Entries per Row or Column](https://ir.cwi.nl/pub/34290/34290.pdf) · [No self-concordant barrier interior point method is strongly polynomial](https://arxiv.org/abs/2201.02186v1) · [Trust Region Interior Point Methods: Optimal l2- and Faster Wide-Neighborhood Path Following](https://homepages.cwi.nl/~dadush/papers/trust-region.pdf) · [A strongly polynomial-time algorithm for the general linear programming problem](https://arxiv.org/abs/2503.12041v10) · [Validation of a recently proposed strongly polynomial-time algorithm for the general linear programming problem](https://arxiv.org/abs/2310.05855v5) · [Linear Programming Problem Solved By a Special Substitution Method](https://arxiv.org/abs/2604.06726v4)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6574 — Exact semidefinite feasibility in polynomial time
 
@@ -2091,6 +2091,13 @@ An ample class strongly shatters every set of coordinates that it shatters. A co
 [Read in atlas](index.html#TCS-3787) · [Unlabeled Sample Compression Schemes and Corner Peelings for Ample and Maximum Classes](https://doi.org/10.4230/LIPIcs.ICALP.2019.34) · [Unlabeled Sample Compression Schemes and Corner Peelings for Ample and Maximum Classes](https://doi.org/10.1016/j.jcss.2022.01.003) · [Unlabeled Sample Compression Schemes for Oriented Matroids](https://doi.org/10.1016/j.disc.2024.114006)
 Existing status: `open` · Summary written: 2026-09-12
 
+### TCS-4792 — Multiclass sample compression from binary compression
+
+A compression scheme stores labeled examples and auxiliary bits so a fixed decoder can reproduce all labels of a realizable sample. The question assumes a universal binary compression bound f in terms of VC dimension. It asks whether every multiclass class then has compression of the same order in f of its graph dimension, independently of its label set. Known reductions either pay an extra label-count factor or require additional structure of the binary scheme. A complete Lean answer must establish the full conditional transfer or give an admissible binary bound for which that transfer fails.
+
+[Read in atlas](index.html#TCS-4792) · [Sample Compression Scheme Reductions](https://proceedings.mlr.press/v272/attias25a.html) · [Sample Compression Scheme Reductions](https://arxiv.org/abs/2410.13012) · [Supervised learning through the lens of compression](https://papers.neurips.cc/paper_files/paper/2016/hash/59f51fd6937412b7e56ded1ea2470c25-Abstract.html) · [Multiclass Learnability Does Not Imply Sample Compression](https://proceedings.mlr.press/v237/pabbaraju24a.html)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3689 — Non-clashing teaching dimension versus VC dimension
 
 A teacher assigns correctly labeled examples to each concept in a finite class. No two different concepts may both fit each other’s assigned examples. The conjecture asks whether at most d examples per concept always suffice when the VC dimension is d. A quadratic general bound and exact bounds for certain special classes are known. The sharp signed-example inequality remains distinct from positive-only teaching, computational map-finding and sample-compression questions.
@@ -2202,13 +2209,6 @@ Agnostic halfspace learning seeks a classifier whose error nearly matches the be
 
 [Read in atlas](index.html#TCS-4592) · [Embedding Hard Learning Problems Into Gaussian Space](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.793)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4792 — Multiclass sample compression from binary compression
-
-A sample compression scheme stores a small subset of labeled examples and enough permitted auxiliary information to reconstruct a hypothesis consistent with the full sample. This problem compares compression for binary classes with compression for classes whose labels may take many values. Assuming every binary class of VC-dimension d admits compression of size \(f(d)\), it asks whether graph dimension gives the corresponding multiclass bound up to a constant factor. The source establishes stronger reductions under additional assumptions on the binary reconstruction procedure, including proper or majority-vote reconstruction. Removing those assumptions would transfer binary compression advances to multiclass learning through a general structural reduction.
-
-[Read in atlas](index.html#TCS-4792) · [Sample Compression Scheme Reductions](https://proceedings.mlr.press/v272/attias25a.html)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5061 — Computable PAC learning versus effective sample bounds
 
@@ -2545,10 +2545,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6448 — QMA versus QCMA
 
-A quantum verifier may receive either a quantum state or a classical string as evidence that an input is a yes-instance. QMA permits the former kind of witness, while QCMA restricts the witness to classical information. The question asks whether this change in the form of the evidence changes what can be verified efficiently. Both models already allow quantum computation during verification, so the issue is the additional power of the witness itself. An answer would clarify whether quantum states can serve as fundamentally stronger proofs in the ordinary setting without an oracle.
+QMA and QCMA use efficient quantum verifiers but allow quantum and classical witnesses respectively. A witness can depend on the entire input and is untrusted, so soundness must hold against every permitted message. The question is equality of the ordinary uniform promise classes without oracle access or shared advice. Quantum-oracle and, more recently, classical-oracle separations give evidence about the role of quantum witnesses without separating the ordinary classes. The revised card fixes the finite-circuit model and requires a complete Lean proof of containment or a universally valid separating problem.
 
-[Read in atlas](index.html#TCS-6448) · [Separating Quantum and Classical Advice with Good Codes](https://eccc.weizmann.ac.il/report/2026/020/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6448) · [Separating Quantum and Classical Advice with Good Codes](https://eccc.weizmann.ac.il/report/2026/020/) · [Quantum Versus Classical Proofs and Advice](https://theoryofcomputing.org/articles/v003a007/) · [Separating QMA from QCMA with a classical oracle](https://arxiv.org/abs/2511.09551v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6520 — Computability of quantum channel capacity
 
@@ -2570,6 +2570,13 @@ Two graphs are isomorphic when a relabeling of vertices preserves every edge. Th
 
 [Read in atlas](index.html#TCS-6522) · [Ten Semi-Grand Challenges for Quantum Computing Theory](https://www.scottaaronson.com/writings/qchallenge.html) · [A Quantum-Inspired Algorithm for Graph Isomorphism](https://arxiv.org/abs/2512.24423) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/update.html) · [Limitations of Quantum Coset States for Graph Isomorphism](https://arxiv.org/abs/quant-ph/0511148) · [Quantum state isomorphism problems for groups](https://arxiv.org/abs/2605.12615) · [NPA Hierarchy for Quantum Isomorphism and Homomorphism Indistinguishability](https://quantum-journal.org/papers/q-2026-01-28-1989/)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-2229 — QMA versus \(\mathrm{QMA}(2)\)
+
+QMA(2) receives two quantum witnesses that are promised unentangled across a specified division, whereas QMA receives one unrestricted quantum witness. Both use uniform polynomial-time quantum verification with constant completeness and soundness error. The question is whether the promise of unentanglement adds power for ordinary promise problems without an oracle. Known amplification and restricted-phase results do not resolve this comparison, and concatenating honest witnesses does not preserve soundness automatically. A September 2026 manuscript separates the classes relative to a unitary oracle while explicitly leaving their ordinary relationship unresolved.
+
+[Read in atlas](index.html#TCS-2229) · [Quantum Merlin-Arthur and Proofs Without Relative Phase](https://doi.org/10.4230/LIPIcs.ITCS.2024.9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimization](https://doi.org/10.1145/2432622.2432625) · [A quantum oracle separation between QMA(2) and QMA](https://arxiv.org/abs/2609.02865v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0029 — Maximum randomized-versus-quantum gap for total functions
 
@@ -2695,13 +2702,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 One-way state generators produce quantum states whose generating secrets are hard to recover. EFI pairs and pseudorandom state generators express related forms of quantum indistinguishability. This question asks whether these search-type and decision-type cryptographic resources can be constructed from one another. The classical analogy between one-way functions and pseudorandom generators motivates the comparison, but quantum outputs introduce separate issues of verification and access to copies. Establishing equivalences or separations would organize the basic assumptions needed for computational quantum cryptography.
 
 [Read in atlas](index.html#TCS-1961) · [One-Wayness in Quantum Cryptography](https://doi.org/10.4230/LIPIcs.TQC.2024.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2229 — QMA versus \(\mathrm{QMA}(2)\)
-
-QMA uses a single quantum witness, while \(\mathrm{QMA}(2)\) permits two witnesses that must be unentangled across a specified division. This question asks how much verification power that unentanglement promise adds. The cited work studies proofs with restricted relative phases and finds that nearby models can have very different complexity. Those results do not directly establish equality or separation for ordinary QMA and \(\mathrm{QMA}(2)\). Understanding the relationship would isolate whether independently supplied quantum proofs provide an advantage unavailable to one unrestricted quantum certificate.
-
-[Read in atlas](index.html#TCS-2229) · [Quantum Merlin-Arthur and Proofs Without Relative Phase](https://doi.org/10.4230/LIPIcs.ITCS.2024.9)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2408 — Remote state preparation from quantum-secure one-way functions
