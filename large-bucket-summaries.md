@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-402 five-sentence working summaries, based on saved source material.
+401 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -693,7 +693,7 @@ A spanner keeps a subset of the original graph’s edges while approximately pre
 [Read in atlas](index.html#TCS-6784) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152) · [Spanners and emulators with sublinear distance errors](https://researchprofiles.ku.dk/en/publications/spanners-and-emulators-with-sublinear-distance-errors/) · [A Hierarchy of Lower Bounds for Sublinear Additive Spanners](https://doi.org/10.1137/16M1105815) · [Almost-Optimal Sublinear Additive Spanners](https://doi.org/10.1137/23M1581078)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Automata and formal languages (30)
+## Automata and formal languages (29)
 
 ### TCS-6558 — Maximum reset threshold of synchronizing automata
 
@@ -896,13 +896,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Conway's Game of Life has a limit set consisting of configurations with arbitrarily long predecessor histories. The project asks the complexity of recognizing finite patterns that occur somewhere in this set. The source proves polynomial-space hardness and asks whether the full co-recursively-enumerable completeness bound is attained. Standard universality constructions do not settle this because surrounding cells must not be assumed harmless when testing arbitrary patterns. A matching hardness result would show that indefinitely possible past histories encode substantially more difficulty than ordinary finite-time simulation.
 
 [Read in atlas](index.html#TCS-5959) · [What Can Oracles Teach Us About the Ultimate Fate of Life?](https://doi.org/10.4230/LIPIcs.ICALP.2022.131)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6158 — Unique invariant measures versus cellular-automaton ergodicity
-
-A deterministic cellular automaton induces a transformation on probability distributions over its configurations. Unique ergodicity means that exactly one distribution remains invariant under this transformation. The project asks whether that uniqueness forces every initial distribution to converge weakly to the invariant one. The latter is a stronger convergence requirement associated with Markov-chain ergodicity, rather than merely uniqueness of a stationary distribution. A proof or counterexample would clarify whether local deterministic dynamics can sustain nonconvergent distributional behavior despite having only one invariant measure.
-
-[Read in atlas](index.html#TCS-6158) · [Probabilistic cellular automata, invariant measures, and perfect sampling](https://doi.org/10.4230/LIPIcs.STACS.2011.296)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Semantics, logic and verification (38)
@@ -2263,10 +2256,10 @@ Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-0022 — One-way functions from \(\mathrm{P} \ne  \mathrm{NP}\)
 
-The statement \(\mathrm{P} \ne  \mathrm{NP}\) guarantees that some efficiently verifiable problems cannot be solved efficiently on every input. Cryptographic one-way functions require a stronger kind of difficulty: efficient attackers must fail to invert outputs generated from random inputs. This project asks whether worst-case hardness alone forces that average-case cryptographic hardness to exist. A function that is hard only on an extremely rare set would not provide the required security. Resolving the implication would clarify whether the most familiar complexity assumption already contains the foundations of computational cryptography.
+The question asks whether P != NP alone guarantees a total efficiently computable function that is hard to invert on images of uniform inputs. One fixed function must defeat every fixed uniform classical polynomial-time inverter, even when finding any same-length preimage counts as success. Success must eventually be smaller than every inverse polynomial, with probability over the sampled input and the inverter’s independent coins. Current description-complexity characterizations and conditional-generator results retain specialized hardness premises or different guarantees. A complete Lean proof must establish the implication or its full negation, whose inversion guarantee is at arbitrarily large lengths rather than necessarily every sufficiently large length.
 
-[Read in atlas](index.html#TCS-0022) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Average-Case Complexity](https://arxiv.org/abs/cs/0606037v3) · [A Pseudorandom Generator from any One-way Function](https://johanhastad.se/prgfromowf.pdf) · [On Worst-Case to Average-Case Reductions for NP Problems](https://lucatrevisan.github.io/pubs/BT03.pdf) · [One-Way Functions and Boundary Hardness of Randomized Time-Bounded Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ITCS.2026.97)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0022) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Average-Case Complexity](https://arxiv.org/abs/cs/0606037v3) · [A Pseudorandom Generator from any One-way Function](https://johanhastad.se/prgfromowf.pdf) · [On Worst-Case to Average-Case Reductions for NP Problems](https://lucatrevisan.github.io/pubs/BT03.pdf) · [One-Way Functions and Boundary Hardness of Randomized Time-Bounded Kolmogorov Complexity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.97) · [Cryptographic Implications of Worst-Case Hardness of Time-Bounded Kolmogorov Complexity](https://eccc.weizmann.ac.il/report/2026/051/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6550 — Circuit obfuscation from polynomial-hard LWE
 

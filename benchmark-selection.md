@@ -12,7 +12,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 484 | 16 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 806 | 194 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 805 | 195 |
 
 ## Unfilled places
 
@@ -21,7 +21,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top500: Differential privacy has 4/10 places.
 - top500: Miscellaneous has 2/10 places.
 - top1000: Algorithms has 27/50 places.
-- top1000: Automata and formal languages has 32/50 places.
+- top1000: Automata and formal languages has 31/50 places.
 - top1000: Semantics, logic and verification has 38/50 places.
 - top1000: Optimization and numerical computation has 24/50 places.
 - top1000: Geometry, topology and metric spaces has 41/50 places.
