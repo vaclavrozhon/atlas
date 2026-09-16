@@ -1260,3 +1260,11 @@ The concurrent census is 1,031 active cards: 647 reviewed and 384 pending. The q
 Checkpoint 536. Completed unrestricted truthful-in-expectation scheduling review and checked September universal-truthfulness preprint.
 
 The concurrent census is 1,029 active cards: 651 reviewed and 378 pending. The queue has 536 completed records, 499 active and 37 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,029 active cards, covering 26,742 formulas.
+
+Checkpoint 539. Completed Gyárfás–Sumner formulation and current primary-source pass.
+
+The concurrent census is 1,029 active cards: 654 reviewed and 375 pending. The queue has 539 completed records, 502 active and 37 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,029 active cards, covering 26,874 formulas.
+
+Checkpoint 539. Completed Gyárfás–Sumner review with individually linked source scopes.
+
+The concurrent census is 1,029 active cards: 654 reviewed and 375 pending. The queue has 539 completed records, 502 active and 37 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,029 active cards, covering 26,874 formulas.

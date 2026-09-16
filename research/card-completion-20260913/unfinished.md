@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **501**.
+Pending active reviews: **500**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -415,7 +415,6 @@ Pending active reviews: **501**.
 | [TCS-6645](../../data/cards/TCS-6645.json) | Constant-delay conjunctive-query classification | Database theory and finite model theory | existing_detailed_audit |
 | [TCS-6648](../../data/cards/TCS-6648.json) | Kolmogorov–Loveland randomness versus Martin-Löf randomness | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6649](../../data/cards/TCS-6649.json) | Reversal of Hindman’s theorem to the \(\omega\)-jump | Computability and algorithmic information | existing_detailed_audit |
-| [TCS-6653](../../data/cards/TCS-6653.json) | Gyárfás–Sumner conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-6654](../../data/cards/TCS-6654.json) | Seese’s conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-6657](../../data/cards/TCS-6657.json) | Computational threshold for tensor PCA | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-6659](../../data/cards/TCS-6659.json) | Optimal polynomial-time approximation ratio for metric k-Median | Approximation algorithms and hardness of approximation | existing_detailed_audit |
