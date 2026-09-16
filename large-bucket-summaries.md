@@ -1809,6 +1809,13 @@ The input is an explicit finite simplicial complex promised to triangulate a clo
 [Read in atlas](index.html#TCS-7292) · [Sphere recognition lies in NP](https://sschleimer.warwick.ac.uk/Maths/2011sphere_recog_NP.pdf) · [Integer homology 3-spheres admit irreducible representations in \(\mathrm{SL}(2,\mathbb C)\)](https://arxiv.org/abs/1605.08530v4) · [The efficient certification of knottedness and Thurston norm](https://arxiv.org/abs/1604.00290v3) · [K3: A New Problem List in Low-Dimensional Topology](https://bpb-us-e2.wpmucdn.com/websites.umass.edu/dist/b/22144/files/2026/04/K3-problem-list-watermarked.pdf) · [The foundations of four-manifold theory in the topological category](https://nyjm.albany.edu/m/2025/6v.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-0382 — General unfolding of nonconvex polyhedra
+
+A general unfolding cuts a polyhedral surface along finitely many segments, including segments through faces. The goal is one connected planar piece with no overlap of its uncut surface. The question asks whether every closed embedded polyhedral surface admits such an unfolding, including nonconvex surfaces and surfaces with handles. Convex surfaces and genus-zero orthogonal polyhedra have positive results, while restrictions to original edges or inputs with boundary have counterexamples. A 2025 refolding theorem permits overlap and therefore does not settle this nonoverlapping existence question.
+
+[Read in atlas](index.html#TCS-0382) · [The Open Problems Project, Problem 43: General Unfoldings of Nonconvex Polyhedra](https://topp.openproblem.net/p43) · [Ununfoldable Polyhedra with Convex Faces](https://erikdemaine.org/papers/Ununfoldable/) · [Epsilon-Unfolding Orthogonal Polyhedra](https://scholarworks.smith.edu/csc_facpubs/50/) · [Geometric Folding Algorithms, Spring 2025, Lecture 16](https://courses.csail.mit.edu/6.5310/spring25/lectures/L16.html) · [All Polyhedral Manifolds are Connected by a 2-Step Refolding](https://doi.org/10.2197/ipsjjip.33.981)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7006 — Optimal input-sparsity subspace embeddings
 
 An oblivious subspace embedding chooses a random linear map without knowing the subspace it must preserve. With high probability, the map must preserve the norms of all vectors in each fixed target subspace at once. The question asks for optimal output dimension together with a precise logarithmic-over-accuracy bound on nonzeros per column. These two parameters control compression quality and the arithmetic cost of applying the embedding to sparse data. The checked 2026 result approaches the target with remaining sub-polylogarithmic factors and does not settle the exact conjecture.
@@ -1941,13 +1948,6 @@ The input describes a compact connected three-manifold by gluing faces of finite
 
 [Read in atlas](index.html#TCS-0428) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0382 — General Unfoldings of Nonconvex Polyhedra
-
-General unfolding allows a polyhedral surface to be cut through faces as well as along original edges. The target is a single connected planar piece whose interior does not overlap itself. The source asks whether every closed polyhedron admits such an unfolding, including nonconvex ones. Positive constructions for convex and certain orthogonal polyhedra motivate the broader question. It asks whether arbitrary surface cuts can always overcome the geometric obstructions that prevent more restrictive kinds of polyhedral nets.
-
-[Read in atlas](index.html#TCS-0382) · [The Open Problems Project](https://topp.openproblem.net/p43)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0340 — Efficient average-distortion embeddings of polyhedral norms
 

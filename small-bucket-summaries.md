@@ -2951,10 +2951,10 @@ Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-0005 — VP versus VNP
 
-The permanent sums one matrix-entry product for each permutation of the columns. The question is whether this exponentially described polynomial nevertheless has arithmetic circuits of polynomial size over the complex numbers. Because circuits can reuse expressions and cancel terms, counting its monomials does not establish a lower bound. The problem captures the VP versus VNP question and tests whether algebraically summing efficiently described contributions is inherently expensive. The saved formulation permits arbitrary complex constants but requires exact polynomial equality, so approximation or limits of circuits would address different models.
+The permanent sums one product of matrix variables for each permutation of the columns. The question is whether exact division-free arithmetic circuits over the complex numbers compute these polynomials with one polynomial size bound for all matrix dimensions. The selected model permits arbitrary complex constants, cancellations, unrestricted reuse and a different circuit at each dimension without a uniform generator. A complete Lean proof must establish such circuits or rule out every polynomial size bound, equivalently settling VP versus VNP in this model. The checked August polynomial lower bounds, constant-depth separations and September numerical approximation result do not settle the required general exact-circuit question.
 
-[Read in atlas](index.html#TCS-0005) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Completeness Classes in Algebra](https://doi.org/10.1145/800135.804419) · [Superpolynomial Lower Bounds Against Low-Depth Algebraic Circuits](https://eccc.weizmann.ac.il/report/2021/081/) · [Arithmetic circuit lower bounds from sumset expansion](https://eccc.weizmann.ac.il/report/2026/138/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0005) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Completeness Classes in Algebra](https://doi.org/10.1145/800135.804419) · [Superpolynomial Lower Bounds Against Low-Depth Algebraic Circuits](https://doi.org/10.1145/3734215) · [Arithmetic circuit lower bounds from sumset expansion](https://eccc.weizmann.ac.il/report/2026/138/) · [Circuit and Formula Lower Bounds for the Permanent](https://cdn.openai.com/pdf/ten-proofs-oai.pdf#page=114) · [Subexponential Approximation of the Permanent in Deterministic Polynomial Time](https://arxiv.org/abs/2609.10516)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6613 — Polynomial-size arithmetic formulas for the determinant
 
@@ -3087,6 +3087,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 The input describes a signed integer combination of square roots of positive integers using binary encodings. The question is whether one deterministic algorithm can decide exactly whether its value is nonnegative in polynomial time. All input magnitudes count toward the bit length, and zero or extremely small values are included. The original separation-bound question, equality testing, unary inputs and nonuniform circuit results provide related context without settling this target. A complete Lean proof must establish the uniform algorithm and its bound or prove that no such algorithm exists.
 
 [Read in atlas](index.html#TCS-0055) · [The Open Problems Project, Problem 33: Sum of Square Roots](https://topp.openproblem.net/p33) · [An Improved Bound on Sums of Square Roots via the Subspace Theorem](https://doi.org/10.4230/LIPIcs.SoCG.2024.54) · [USSR is in P/poly](https://arxiv.org/abs/2310.19335v2) · [On the Order of Power Series and the Sum of Square Roots Problem](https://arxiv.org/abs/2304.13605v1) · [PosSLP and Sum of Squares](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.13)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-6493 — Tensor orbit-closure intersection in \(\mathrm{NP}\cap\mathrm{coAM}\)
+
+The input consists of two triples of Gaussian-rational matrices, with two dimensions allowed to grow. Each triple is acted on by simultaneous conjugation using a Kronecker product of two invertible complex matrices, and the decision asks whether the two orbit closures intersect. The selected source subquestion asks whether yes-instances have short NP certificates and no-instances have a polynomial-time public-coin Arthur–Merlin protocol. This is a complete representative of the tensor orbit-closure class, which includes graph isomorphism and tensor-network indistinguishability problems. A complete Lean proof must establish both certificate guarantees for all inputs or refute their conjunction, while the broader original exact-complexity question remains distinct.
+
+[Read in atlas](index.html#TCS-6493) · [Complexity Theory of Orbit Closure Intersection for Tensors: Reductions, Completeness, and Graph Isomorphism Hardness](https://doi.org/10.1109/FOCS63196.2025.00027) · [Complexity theory of orbit closure intersection for tensors: reductions, completeness, and graph isomorphism hardness](https://arxiv.org/abs/2411.04639v2) · [Vanishing Signatures, Orbit Closure, and the Converse of the Holant Theorem](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.32) · [Fixed-Parameter Degree Bounds and Complexity of the Orbit Closure Intersection Problem for Tensors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2026.32)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0010 — Superlinear constant-degree arithmetic circuit lower bounds
@@ -3269,13 +3276,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Given finitely many integer matrices, semigroup membership asks whether a target matrix equals some nonempty product of the generators. This project concerns arbitrary two-by-two integer matrices and asks whether the problem is decidable. Products may use generators repeatedly but cannot freely introduce inverses as a group-membership problem would. The source proves positive results for other structured low-dimensional matrix classes without settling this unrestricted two-dimensional case. A resolution would locate a basic boundary for exact reachability in small-dimensional linear transformation systems.
 
 [Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6493 — Complexity of tensor orbit-closure intersection
-
-A tensor orbit contains objects related by allowed changes of basis. Orbit-closure intersection also treats objects as equivalent when their limiting orbit behavior overlaps. The source develops reductions and completeness notions for this algebraic decision problem and asks for its exact complexity. It also compares this task with ordinary orbit equality and considers symmetry-restricted tensors. The project seeks to understand whether allowing degenerations simplifies equivalence testing or preserves the central hardness of comparing high-dimensional algebraic objects.
-
-[Read in atlas](index.html#TCS-6493) · [Complexity Theory of Orbit Closure Intersection for Tensors: Reductions, Completeness, and Graph Isomorphism Hardness](https://doi.org/10.1109/FOCS63196.2025.00027)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6882 — Homogeneous versus unrestricted arithmetic formulas
