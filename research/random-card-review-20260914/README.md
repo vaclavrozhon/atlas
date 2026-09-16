@@ -620,3 +620,23 @@ Existing scores and categories were preserved.
 Checkpoint twenty-five was committed as 868826fa and verified live at
 32a178c2a013de8a4e78. Source reading, reservations and input-hash checks remain
 individual; no completed review was inferred from publication validation.
+
+Checkpoint twenty-seven brings this process to 110 completed reviews:
+100 retained active cards, ten retirements and 44 new importance assessments.
+Existing scores and categories were preserved.
+
+- TCS-7360: compact binary forward suffix-array access; separated the exact
+  editorial polyloglog target from the source's broader frontier, inverse-array
+  results, and the compatible 2026 lower bound.
+- TCS-0505: arbitrary-signature uniform reliability; made the semantic version
+  of the safe-UCQ dichotomy explicit and audited its unconditional equivalence.
+- TCS-7273: complete disjoint NP pairs with total ordinary many-one reductions;
+  corrected notation and distinguished later oracle results.
+- TCS-7245: constant-factor treewidth preservation by ordinary subcubic
+  subgraphs; distinguished compressed topological-minor size and newer
+  induced-subgraph results.
+
+Checkpoint twenty-six was committed as 06b0fbd7. Its 96 retained cards were
+verified unchanged in the successful concurrent publication df47adef6a21bdcbfb42
+following the deployment guard's rejection of a stale TCS-6683 version.
+Source reading, reservations and input-hash checks remain individual.
