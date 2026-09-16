@@ -429,3 +429,27 @@ Checkpoint sixteen is committed as c27aea24. Its deployment was superseded by a
 successful concurrent deployment retaining every reviewed card; only two derived
 ranks changed, and the live reader assets matched the tested snapshot. Shared
 API reservations and token/hash checks remain in use for concurrent work.
+
+The eighteenth random draw brings this process to seventy-four completed reviews,
+with sixty-five retained active cards and nine resolved historical records:
+
+- TCS-4523: deterministic polynomial-time exact dimension expansion for explicitly
+  encoded finite fields and arbitrary input linear maps. Distinguished image-sum
+  expansion from the identity-added variant. New importance: 81.
+- TCS-2215: the real-alternation hierarchy versus summation-only existential real
+  theory. Operator syntax and finite bit reductions are explicit; the older
+  topological Toda theorem has a different target. New importance: 89.
+- TCS-0689: the full identifiable elicitation-complexity function for real-outcome
+  distribution families, with single-observation losses and exact identification.
+  Explicitly totalized failure of every finite dimension, and applied pointwise
+  1/100 acceptance. Existing importance 65 is preserved.
+- TCS-4949: archived after reading the full proof of Sivan's September 12, 2026
+  preprint, arXiv:2609.13693v1. Its polynomial-time exact algebraic recovery under
+  Lovitz–Petrov includes all Kruskal-promised tensors. Checked the implication,
+  compression, random generic choices, root-finding model and factor recovery;
+  neither noisy recovery nor finite-precision complexity is claimed resolved.
+  Existing importance 83 and all source/consolidation provenance are preserved.
+
+There are thirty-six new individual importance assessments through this draw.
+Checkpoint seventeen is committed as 8a2759c2 and verified live. The shared
+reservation API, token/hash guards and publication lock remain in use.
