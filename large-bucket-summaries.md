@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+404 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -278,12 +278,12 @@ This question concerns randomized logspace algorithms that can reread a fixed po
 [Read in atlas](index.html#TCS-6139) · [A Note on the Advice Complexity of Multipass Randomized Logspace](https://doi.org/10.4230/LIPIcs.MFCS.2016.31) · [Leakage-Resilient Hardness Equivalence to Logspace Derandomization](https://doi.org/10.4230/LIPIcs.MFCS.2024.83)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-6455 — Doubly efficient \(\mathrm{IP} = \mathrm{PSPACE}\) for the full time range
+### TCS-6455 — Doubly efficient \(\mathrm{IP}=\mathrm{PSPACE}\)
 
-An interactive proof lets a verifier check a claim through conversation with a prover. The question asks whether polynomial-space computations taking time T can be verified in polynomial input time using an honest prover running in polynomial T time. The requirement extends across the full time range, beyond quasipolynomial computations. This would make proof generation efficient relative to the computation being certified, strengthening the resource content of \(\mathrm{IP}=\mathrm{PSPACE}\). The saved review stresses that soundness must still withstand arbitrarily powerful cheating provers, despite the efficiency requirement imposed on the honest one.
+An interactive proof lets a verifier check a computation through a conversation with one prover. The question asks for a verifier polynomial in input length and an honest prover polynomial in the specified computation time for every polynomial-space decider. The protocol must be uniform across input lengths and must remain sound against arbitrarily powerful cheating strategies. The checked June 2026 theorem covers quasipolynomial computation times, while the card asks for the full time range. A resolution would strengthen IP = PSPACE by controlling proof-generation overhead without replacing information-theoretic soundness with a cryptographic assumption.
 
-[Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient \(\mathrm{IP}=\mathrm{PSPACE}\)](https://eccc.weizmann.ac.il/report/2026/102/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient \(\mathrm{IP}=\mathrm{PSPACE}\)](https://eccc.weizmann.ac.il/report/2026/102/) · [Doubly-Efficient Interactive Arguments for Bounded-Space from One-Way Functions](https://eccc.weizmann.ac.il/report/2026/111/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7257 — Formula versus circuit noise thresholds
 
@@ -1033,6 +1033,13 @@ The input describes a finite controlled stochastic process whose transitions occ
 [Read in atlas](index.html#TCS-7310) · [On Decidability of Time-Bounded Reachability in CTMDPs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.133)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-3655 — Inductive-inductive types from inductive types without UIP
+
+Inductive-inductive types define mutually dependent sorts, such as contexts together with the types valid in each context. The selected question asks whether every finitary signature can be implemented uniformly in intensional MLTT using indexed W-types and function extensionality, without UIP or equality reflection. The implementation must include full dependent eliminators whose later motives can use the results of earlier eliminators, with propositional constructor equations. The generic published reduction uses an extensional foundation, while the checked UIP-free constructions cover more restricted settings or signatures. A resolution would determine whether this important form of dependent datatype needs a new primitive in the explicitly chosen intensional foundation.
+
+[Read in atlas](index.html#TCS-3655) · [For Finitary Induction-Induction, Induction Is Enough](https://doi.org/10.4230/LIPIcs.TYPES.2019.6) · [Constructing Inductive-Inductive Types in Cubical Type Theory](https://jashug.github.io/papers/ConstructingII.pdf) · [ConTyWithoutK.agda: Constructing a simple closed finitary inductive-inductive type without UIP](https://gist.github.com/szumixie/cf092edec50ad11b91c2d7d086582b15/fc32088bd31bcc59e3266dde2ab00c184a025820) · [Saint Nicholas HOTT workshop programme, 5 December 2025](https://types.elte.hu/)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-5682 — One-dimensional piecewise-affine reachability
 
 A one-dimensional rational piecewise-affine map repeatedly updates one number using the affine expression selected by its interval guards. The question asks whether exact reachability of a rational target from a rational starting point is decidable for every finite description. The number of pieces is unrestricted, all boundary choices are explicit, and any finite number of iterations including zero is allowed. Injective two-piece maps and certain Bellman operators admit decision procedures, but the checked source retains the general question as open. A resolution would locate a basic boundary between finite descriptions of numerical dynamics and algorithmic reachability analysis.
@@ -1152,13 +1159,6 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-3655 — Inductive-inductive types from inductive types without UIP
-
-Inductive-inductive types define several mutually dependent sorts, allowing later sorts to be indexed by earlier ones. They conveniently express structures such as contexts and the types that are well formed within those contexts. The question asks whether these types can be constructed from ordinary inductive types without assuming uniqueness of identity proofs. The source's reduction relies on settings where equality is simpler, and removing that assumption requires rebuilding signatures, semantics, and the term-model construction. A successful reduction would show that this useful dependent form of mutual induction does not require an additional primitive in a richer theory of equality.
-
-[Read in atlas](index.html#TCS-3655) · [For Finitary Induction-Induction, Induction Is Enough](https://doi.org/10.4230/LIPIcs.TYPES.2019.6)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4302 — Strategy synthesis for multi-objective probabilistic LTL
 
 Multi-objective probabilistic synthesis asks one strategy to satisfy several quantitative requirements simultaneously in a stochastic game. When the requirements are probabilistic LTL properties, each combines an infinite-run temporal condition with a probability constraint. The source identifies strategy synthesis for these objectives in general stochastic games as the missing case beyond its restricted algorithms. A controller may need to balance conflicting objectives while accounting for both random transitions and adversarial choices. Resolving the problem would extend automated construction of strategies that meet several reliability or performance requirements, with explicit control over their achievable tradeoffs.
@@ -1168,17 +1168,17 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5817 — Computational interpretation of impredicativity with univalence
 
-Univalent foundations treats equivalence of types as a form of equality while supporting constructive mathematical reasoning. Propositional impredicativity principles allow certain quantifications or size changes for propositions beyond ordinary predicative universe rules. The source identifies the challenge of giving these principles a computational interpretation compatible with univalence. Its domain-theoretic development avoids the resizing axioms, demonstrating that useful semantics can be built while the stronger computational foundation is unsettled. A successful interpretation would explain how proofs using impredicative propositions can retain meaningful computation and would broaden the foundational tools available for constructive domain theory.
+Propositional resizing and impredicativity alter which proposition types can be represented in a small universe. The source asks for a computational interpretation of such axioms compatible with univalence. It distinguishes smallness of the whole type of small propositions from resizing each proposition from a larger universe. The 2025 follow-up retains the question, while the checked cubical-assembly model separates an impredicative universe from a resizing principle. The card still needs a selected axiom scheme and computational guarantee before it defines one complete Lean benchmark target.
 
-[Read in atlas](index.html#TCS-5817) · [Domain Theory in Constructive and Predicative Univalent Foundations](https://doi.org/10.4230/LIPIcs.CSL.2021.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5817) · [Domain Theory in Constructive and Predicative Univalent Foundations](https://doi.org/10.4230/LIPIcs.CSL.2021.28) · [Continuous and algebraic domains in univalent foundations](https://doi.org/10.1016/j.jpaa.2025.108072) · [Continuous and algebraic domains in univalent foundations — accepted manuscript](https://martinescardo.github.io/papers/continuous-algebraic-domains-in-uf.pdf) · [Cubical Assemblies, a Univalent and Impredicative Universe and a Failure of Propositional Resizing](https://doi.org/10.4230/LIPIcs.TYPES.2018.7)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-5915 — Constructive simplicial models with univalent universes
 
-Simplicial sets describe spaces through points, edges, triangles, and their higher-dimensional analogues, making them natural models for homotopy type theory. The source recalls a univalent simplicial model and asks how to obtain a constructive simplicial model with univalent universes. Constructivity requires the semantic constructions to work without the classical principles used in the original account. Cubical models provide an encouraging comparison, since a constructive treatment of univalence is available there. Solving the simplicial problem would clarify whether the familiar simplex-based geometry can support the same constructive foundations and computational ambitions as the cubical approach.
+Simplicial sets describe geometry through simplices and their face and degeneracy maps. The source asks for a constructive model of dependent type theory with univalent universes using this geometry. Gambino–Henry construct substantial weakly stable structure but explicitly leave the strict coherence issue open. Checked 2025–2026 cubical results and presentations do not by themselves supply the requested strict simplicial model. The card retains the full question while awaiting explicit choices of constructive metatheory, universe assumptions and closure requirements.
 
-[Read in atlas](index.html#TCS-5915) · [From Cubes to Twisted Cubes via Graph Morphisms in Type Theory](https://doi.org/10.4230/LIPIcs.TYPES.2019.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5915) · [From Cubes to Twisted Cubes via Graph Morphisms in Type Theory](https://doi.org/10.4230/LIPIcs.TYPES.2019.5) · [Towards a constructive simplicial model of Univalent Foundations](https://doi.org/10.1112/jlms.12532) · [Towards a constructive simplicial model of Univalent Foundations — author version](https://arxiv.org/abs/1905.06281v3) · [The equivariant model structure on cartesian cubical sets](https://doi.org/10.1016/j.aim.2026.110965) · [The equivariant model structure on cartesian cubical sets — published full text](https://research.chalmers.se/publication/551789/file/551789_Fulltext.pdf) · [A constructive model of infinity-groupoids — TYPES 2025 slides](https://msp.cis.strath.ac.uk/types2025/slides/TYPES2025-slidesSattler.pdf) · [Constructive higher sheaf models with applications to synthetic mathematics](https://arxiv.org/abs/2605.15126v2)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ## Distributed, parallel and sublinear algorithms (58)
 
@@ -1588,7 +1588,7 @@ The nuclear norm of a matrix is the sum of its singular values and measures a di
 [Read in atlas](index.html#TCS-7010) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Optimization and numerical computation (20)
+## Optimization and numerical computation (21)
 
 ### TCS-0008 — Strongly polynomial linear programming
 
@@ -1613,10 +1613,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6585 — Nearly linear-time solution of general sparse linear systems
 
-A sparse linear system stores only the nonzero entries of its coefficient matrix, making matrix-vector multiplication relatively cheap. The question asks whether solving every well-conditioned rational system approximately can take nearly linear time in that sparse input size. The saved formulation bounds coefficient lengths, conditioning, and requested residual accuracy to avoid hiding excessive numerical costs. It seeks an explicit solution vector with high enough success probability from a randomized classical algorithm. Such a result would extend the efficiency of structured Laplacian solvers to general sparse matrices, where sparsity alone currently provides much less algorithmic structure.
+A sparse linear system explicitly stores only the nonzero matrix entries and its right-hand side. The question asks whether every nonsingular rational system with polynomial conditioning can be approximately solved in nearly linear time in the number of nonzeros. Coefficient lengths and residual accuracy are bounded on a logarithmic scale, and the output must list every rational coordinate. The fixed word-RAM model charges preprocessing, precision, randomness and output, with a worst-case time bound and success probability at least two thirds. Known structured solvers and general improvements over matrix multiplication motivate the target but do not provide its universal near-linear guarantee.
 
 [Read in atlas](index.html#TCS-6585) · [Solving Sparse Linear Systems Faster than Matrix Multiplication](https://arxiv.org/abs/2007.10254) · [Nearly Linear Time Algorithms for Preconditioning and Solving Symmetric, Diagonally Dominant Linear Systems](https://epubs.siam.org/doi/10.1137/090771430) · [Matrix anti-concentration inequalities with applications](https://arxiv.org/abs/2111.05553) · [Hardness Results for Laplacians of Simplicial Complexes via Sparse-Linear Equation Complete Gadgets](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2022.53) · [Linear Systems and Eigenvalue Problems: Open Questions from a Simons Workshop](https://arxiv.org/abs/2602.05394)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6578 — Smale’s seventh problem
 
@@ -1645,6 +1645,13 @@ The Beck–Fiala conjecture asks whether bounded participation of each element i
 
 [Read in atlas](index.html#TCS-7315) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [Online Beck–Fiala Down to Logarithmic Sparsity](https://arxiv.org/abs/2607.14238v1) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
 Existing status: `uncertain` · Summary written: 2026-09-14
+
+### TCS-7226 — Woodall’s conjecture
+
+A dicut is a nonempty one-way boundary in a directed graph, and a dijoin is a set of arcs meeting every dicut. The smallest dicut bounds how many pairwise disjoint dijoins can exist. Woodall’s conjecture states that this bound is always attained in the unweighted setting. The card allows parallel arcs, fixes the nontrivial connectivity regime and keeps the statement separate from the false weighted generalization. A proof or counterexample would settle a longstanding integral packing–covering equality beyond known constant-factor and graph-class results.
+
+[Read in atlas](index.html#TCS-7226) · [Combinatorial Optimization: Polyhedra and Efficiency](https://homepages.cwi.nl/~lex/co/) · [Approximately Packing Dijoins via Nowhere-Zero Flows](https://doi.org/10.1007/s00493-025-00159-x) · [A Min-Max Relation on Dicuts and Dijoins in Weighted Chordal Digraphs](https://arxiv.org/abs/2501.10918v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0491 — Log-squared query complexity of fixed-dimensional Tarski fixed points
 
@@ -1949,12 +1956,12 @@ General unfolding allows a polyhedral surface to be cut through faces as well as
 [Read in atlas](index.html#TCS-0382) · [The Open Problems Project](https://topp.openproblem.net/p43)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0340 — Average Distortion Embeddings
+### TCS-0340 — Efficient average-distortion embeddings of polyhedral norms
 
-An average-distortion embedding controls aggregate squared distances while remaining nonexpansive for every pair. The source considers the square-root metric associated with a finite-dimensional normed space. An existence theorem supplies a Hilbert-space embedding with favorable dependence on dimension, but its duality proof does not provide an explicit map. The task is to construct and evaluate an embedding efficiently from the supplied point set. This would turn a structural geometric theorem into an algorithmic primitive for proximity search and related computations.
+The average John theorem preserves squared distances on average after taking the square root of a norm metric. The algorithmic question asks for an efficiently constructed map that is nonexpanding on the entire space, including future query points. This card explicitly selects rational polyhedral norms and rational data points so that the input and computational cost have finite bit encodings. The output must describe one continuous Euclidean map that can be evaluated to any requested precision in polynomial time. This would turn a structural existence theorem into an algorithmic object, while the present review keeps the current status of the selected computational specialization uncertain.
 
-[Read in atlas](index.html#TCS-0340) · [Computational Geometry](https://doi.org/10.4230/DagRep.11.4.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0340) · [Computational Geometry](https://doi.org/10.4230/DagRep.11.4.1) · [An average John theorem](https://doi.org/10.2140/gt.2021.25.1631) · [Near Neighbor Search via Efficient Average Distortion Embeddings](https://doi.org/10.4230/LIPIcs.SoCG.2021.50) · [Average-Distortion Sketching](https://arxiv.org/abs/2411.05156v3)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-0970 — Fast JL Transform for Sparse Vectors
 
@@ -2012,7 +2019,7 @@ The cut cone consists of nonnegative combinations of cut metrics and provides a 
 [Read in atlas](index.html#TCS-6880) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Learning theory (35)
+## Learning theory (36)
 
 ### TCS-6541 — Linear-size sample compression
 
@@ -2063,6 +2070,13 @@ The card asks whether constant-depth modular circuits admit agnostic membership-
 [Read in atlas](index.html#TCS-5434) · [Agnostic Membership Query Learning with Nontrivial Savings: New Results and Techniques](https://proceedings.mlr.press/v237/karchmer24a.html) · [Agnostic Learning from Tolerant Natural Proofs](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2017.35) · [Agnostic Membership Query Learning with Nontrivial Savings: New Results, Techniques](https://arxiv.org/abs/2311.06690)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
+### TCS-7294 — Learning decision trees from uniform random examples in polynomial time
+
+The card asks for a polynomial-time learner for every small Boolean decision tree from independent uniform labeled examples. The tree is hidden and the learner receives neither chosen-input labels nor its representation. A successful learner may return any efficient Boolean circuit with the requested prediction error and two-thirds confidence. Known smoothed, query-based and representation-aware results provide different guarantees and do not settle this passive learning target. The completed card preserves its importance and scope while making the accuracy encoding, resource bounds and full Lean proof criterion explicit.
+
+[Read in atlas](index.html#TCS-7294) · [Decision trees are PAC-learnable from most product distributions: a smoothed analysis](https://arxiv.org/abs/0812.0933) · [Backdoor Defense, Learnability and Obfuscation](https://doi.org/10.4230/LIPIcs.ITCS.2025.38) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791) · [Decision Tree Learning on Product Spaces](https://arxiv.org/abs/2605.12983)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-7293 — Distribution-free improper learning of two unrestricted halfspaces
 
 One threshold is efficiently learnable from labeled examples, but the target here combines two thresholds. Examples follow any fixed distribution on the Boolean cube and no positive margin is promised. The learner receives a bound on target description length and may output any efficiently evaluable classifier. Hardness for proper learners or growing numbers of halfspaces does not settle this two-halfspace target. The question asks for a uniform polynomial-time guarantee across all distributions and permitted target descriptions.
@@ -2083,6 +2097,13 @@ An online learner predicts a label distribution and then sees the correct label 
 
 [Read in atlas](index.html#TCS-2336) · [Multiclass Online Learning and Uniform Convergence](https://proceedings.mlr.press/v195/hanneke23b.html) · [Topics in Learning Theory: Prediction, Estimation, and Partial Information](https://www.ambujtewari.com/theses/Vinod_Raman_Thesis_2025.pdf) · [Regret-Oracle Complexity Tradeoffs in Agnostic Online Learning](https://arxiv.org/abs/2605.07155)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-4592 — Time complexity of Gaussian agnostic halfspace learning
+
+The card asks for optimal dimension and accuracy dependence when matching the best affine halfspace under Gaussian inputs. It preserves the original deterministic Boolean target-function model and permits any finite evaluable predictor. The statement explicitly counts exact real-arithmetic sampling, computation, output and evaluation and distinguishes this from finite-bit complexity. Modern statistical-query, cryptographic and proper-learning results have different assumptions or interfaces whose transfer is not silently presumed. A Lean resolution must characterize the attainable uniform time rates with matching bounds under the same label, resource and parameter conventions.
+
+[Read in atlas](index.html#TCS-4592) · [Embedding Hard Learning Problems Into Gaussian Space](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.793) · [The Optimality of Polynomial Regression for Agnostic Learning under Gaussian Marginals in the SQ Model](https://proceedings.mlr.press/v134/diakonikolas21c.html) · [Near-Optimal Cryptographic Hardness of Agnostically Learning Halfspaces and ReLU Regression under Gaussian Marginals](https://proceedings.mlr.press/v202/diakonikolas23b.html) · [Proper Agnostic Learning of Functions of Halfspaces under Gaussian Marginals](https://arxiv.org/abs/2605.27594) · [Near-Optimal Cryptographic Hardness of Learning With Homogeneous Halfspaces Under Gaussian Marginals](https://arxiv.org/abs/2604.26446)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-3117 — Memory–sample tradeoffs for noisy parity learning
 
@@ -2230,13 +2251,6 @@ The question asks whether a weak passive learner with a superpolynomial saving o
 
 [Read in atlas](index.html#TCS-4186) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18) · [Conspiracies between Learning Algorithms, Circuit Lower Bounds and Pseudorandomness — full preprint](https://arxiv.org/abs/1611.01190) · [Learning algorithms from circuit lower bounds](https://doi.org/10.1007/s00037-024-00261-4)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-4592 — Time complexity of Gaussian agnostic halfspace learning
-
-Agnostic halfspace learning seeks a classifier whose error nearly matches the best linear threshold rule, even when labels do not follow any halfspace. This question fixes the unlabeled distribution to be Gaussian and asks for the optimal running time as dimension and target excess error vary. The source specifically proposes a running time whose exponent in the dimension grows only logarithmically with inverse error. It supports that target with a conditional lower bound derived from learning sparse parities with noise. Matching the proposed rate would identify a precise computational price for handling arbitrary label noise under a highly regular input distribution.
-
-[Read in atlas](index.html#TCS-4592) · [Embedding Hard Learning Problems Into Gaussian Space](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.793)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5087 — Polynomial-time robust spectral estimation
 
@@ -2464,7 +2478,7 @@ Unbounded fully homomorphic encryption supports arbitrarily deep permitted compu
 [Read in atlas](index.html#TCS-6871) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Quantum computation and information (54)
+## Quantum computation and information (53)
 
 ### TCS-6446 — Quantum PCP conjecture with classical reductions
 
@@ -2549,6 +2563,13 @@ A lifting theorem would turn the quantum query complexity of a Boolean promise p
 
 [Read in atlas](index.html#TCS-3709) · [Quantum Distinguishing Complexity, Zero-Error Algorithms, and Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.TQC.2019.2) · [CS 860: Quantum Lower Bounds — Week 8, Communication Complexity Basics](https://cs.uwaterloo.ca/~s4bendav/CS860/CS860S20week8.pdf) · [On Query-To-Communication Lifting for Adversary Bounds](https://doi.org/10.4230/LIPIcs.CCC.2021.30) · [A Lifting Theorem for Hybrid Classical-Quantum Communication Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.155)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-4737 — QMA versus \(\mathrm{QMA}_1\) over Clifford+T
+
+A perfectly complete quantum proof system accepts some valid witness with probability exactly one. This question asks whether every QMA proof system can achieve that guarantee without sacrificing efficient verification or soundness. Approximate gate synthesis creates a special difficulty because a tiny implementation error can destroy exact acceptance. Two September 2026 preprints now claim finite-register perfect completeness with fixed gates that cover this card’s exact Clifford+T model. Their stated results match the target, whose status is uncertain pending independent proof verification.
+
+[Read in atlas](index.html#TCS-4737) · [Towards a Universal Gateset for QMA1](https://doi.org/10.4230/LIPIcs.MFCS.2026.98) · [On Perfect Completeness for QMA](https://arxiv.org/abs/0806.0450) · [Quantum-Merlin-Arthur Problems Have Perfect Completeness with an Infinite Counter](https://journals.aps.org/prl/abstract/10.1103/pwdd-htbf) · [QMA has perfect completeness](https://arxiv.org/abs/2609.13032) · [Achieving perfect completeness for one- and two-message quantum proof systems](https://arxiv.org/abs/2609.15926)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6459 — Entanglement without distillable secret key
 
@@ -2690,12 +2711,12 @@ The problem asks whether every quantum unitary can be implemented efficiently us
 [Read in atlas](index.html#TCS-0027) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [A One-Query Lower Bound for Unitary Synthesis and Breaking Quantum Cryptography](https://people.eecs.berkeley.edu/~jswright/papers/one-query-unitary-synthesis.pdf) · [Query and Depth Upper Bounds for Quantum Unitaries via Grover Search](https://arxiv.org/abs/2111.07992) · [Explicit Separations for One-Query Unitary Synthesis](https://arxiv.org/abs/2607.26478)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0860 — Complexity of Quantum Approximate Counting
+### TCS-0860 — Complement of quantum approximate counting in \(\mathrm{QMA}(2)\)
 
-Quantum approximate counting asks about the dimension of an accepting subspace of a quantum verifier. In the saved formulation, one counts eigenvectors of the acceptance operator whose eigenvalues are at least two thirds. The decision task distinguishes a dimension at least a threshold from one at most half that threshold, under the stated promise. The source asks for sharper upper or lower complexity bounds and for the behavior of the complementary problem. This would extend our understanding of witness counting from classical certificates to families of quantum states.
+The selected task asks whether two unentangled quantum witnesses can certify a small accepting eigenspace. The input is an explicitly described quantum verification circuit and a binary threshold for its spectral count. A low count at acceptance threshold one third must be distinguished from a count at least twice as large at threshold two thirds. The spectral buffer permits intermediate eigenvalues and avoids treating the source’s shortened one-threshold description as the full model. The target is ordinary QMA(2) membership of the complementary promise problem; known quantum-oracle lower bounds concern different models.
 
-[Read in atlas](index.html#TCS-0860) · [TCS Open Problems](https://tcsopenproblems.com/problem/12)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0860) · [TCS Open Problems](https://tcsopenproblems.com/problem/12) · [On the Complexity of Unique Quantum Witnesses and Quantum Approximate Counting](https://doi.org/10.4230/LIPIcs.ITCS.2026.10)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0030 — Oracle separation of BQP from efficient-prover interactive proofs
 
@@ -2760,26 +2781,12 @@ Gap amplification increases the separation between satisfiable and unsatisfiable
 [Read in atlas](index.html#TCS-4734) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4737 — QMA versus \(\mathrm{QMA}_{1}\)
-
-A perfectly complete quantum proof system accepts some valid witness with probability exactly one. This question asks whether every QMA proof system can achieve that guarantee without sacrificing efficient verification or soundness. Approximate gate synthesis creates a special difficulty because a tiny implementation error can destroy exact acceptance. The cited work therefore keeps the verifier's gate set explicit and studies the structure needed for QMA1. A solution would explain whether perfect reliability on yes-instances is merely a choice of protocol or an additional restriction on quantum proofs.
-
-[Read in atlas](index.html#TCS-4737) · [Towards a Universal Gateset for QMA1](https://doi.org/10.4230/LIPIcs.MFCS.2026.98)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4811 — Dihedral coset problem versus Subset Sum
 
 The dihedral coset problem is a quantum problem closely connected to hidden subgroup algorithms and certain lattice problems. This project asks how tightly its computational difficulty is related to subset sum, including which densities of subset-sum instances are relevant. A measurement that extracts information optimally need not be efficiently implementable, and its implementation leads to a quantum subset-sum sampling task. The cited reductions connect different density regimes and sometimes pass through unique shortest-vector problems. A sharper equivalence would clarify whether progress on subset sum can actually yield efficient dihedral algorithms, rather than only information-theoretically good measurements.
 
 [Read in atlas](index.html#TCS-4811) · [How Hard Is Deciding Trivial Versus Nontrivial in the Dihedral Coset Problem?](https://doi.org/10.4230/LIPIcs.TQC.2016.6)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4835 — Characterizing nonunitary quantum space
-
-Quantum space complexity asks what computations can be performed with a limited quantum workspace. The cited paper characterizes unitary quantum space and relates quantum verification with exponentially small completeness–soundness gaps to classical space complexity. Its closing questions ask what analogous characterizations hold when intermediate nonunitary operations are allowed. Another direction is to understand quantum interactive proofs with exponentially small gaps, between better-understood precision regimes. Progress would connect resource-bounded quantum computation to concrete matrix problems and clarify how measurement, interaction, and precision change its power.
-
-[Read in atlas](index.html#TCS-4835) · [A Complete Characterization of Unitary Quantum Space](https://doi.org/10.4230/LIPIcs.ITCS.2018.4)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-4894 — Parity versus \(\mathrm{AC}^{0}\) with shallow quantum preprocessing
 

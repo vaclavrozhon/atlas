@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-596 five-sentence working summaries, based on saved source material.
+597 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1163,12 +1163,12 @@ A cutwidth layout orders vertices and measures how many edges cross the busiest 
 [Read in atlas](index.html#TCS-0800) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0808 — Maximum Acyclic Subgraph
+### TCS-0808 — Sub-base-two exact maximum acyclic subgraph
 
-Maximum Acyclic Subgraph seeks as many directed edges as possible while forbidding directed cycles. Equivalently, it asks which edge interactions can be retained without circular dependence. The source entry concerns the exact or parameterized complexity of this optimization task. Progress would clarify the computational cost of extracting a consistent precedence structure from conflicting directed relations. The inherited title does not identify a parameter, weight convention, or target exponential bound, so this preliminary account does not silently replace the question with feedback-arc minimization under additional assumptions.
+Maximum acyclic subgraph retains as many arcs of a directed graph as possible without retaining a directed cycle. The source question asks for an exact algorithm whose running time has a fixed exponential base below two in the number of vertices. The card specifies deterministic bit complexity, arbitrary unweighted directed graphs and an actual optimum arc set as output. Known parameterized and approximation results do not automatically improve that worst-case vertex-count bound. A resolution would clarify whether this basic precedence-ordering problem can beat the longstanding base-two exact-algorithm benchmark.
 
-[Read in atlas](index.html#TCS-0808) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0808) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [A Note on Exact Algorithms for Vertex Ordering Problems on Graphs](https://doi.org/10.1007/s00224-011-9312-0) · [Exploiting Spanning Trees for Directed Acyclicity](https://arxiv.org/abs/2607.07705v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0597 — Parameterized coloring of H-free graphs
 
@@ -1487,14 +1487,14 @@ The input lists local constraints on variables with a finite common label domain
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Online algorithms, scheduling and packing (27)
+## Online algorithms, scheduling and packing (28)
 
 ### TCS-6575 — Deterministic competitiveness of k-server
 
-Exactly k identical servers serve successive requests in a known metric space, paying the sum of movement distances. The target is the infimum competitive ratio uniform over all finite or infinite metrics, while each metric and initial placement may have its own online rule and fixed additive constant. A complete Lean answer must approximate this dimensionless function within absolute one hundredth for every positive server count, without assuming endpoint attainment. The known general bounds lie between k and two k minus one, with exact values one and two at the first two server counts. Circle and tree results, randomized algorithms, advice-assisted rules and time-optimal movement have separate guarantees and do not determine the full function.
+Exactly k identical servers serve successive requests in a known metric space, paying the sum of movement distances. The target is the infimum competitive ratio uniform over all finite or infinite metrics, while each metric and initial placement may have its own online rule and fixed additive constant. A complete Lean answer must approximate this dimensionless function within absolute one hundredth for every positive server count, without assuming endpoint attainment. A September 2026 preprint claims that the work-function algorithm attains factor k on every metric with an explicit fixed additive term. Together with the classical lower bound, that claim would determine the entire function exactly; its proof remains unverified in this review.
 
-[Read in atlas](index.html#TCS-6575) · [Competitive Algorithms for Server Problems](https://www.cs.cmu.edu/~sleator/papers/server-problems.pdf) · [On the k-server conjecture](https://cgi.di.uoa.gr/~elias/papers/paper-kp95.html) · [An Optimal On-Line Algorithm for K Servers on Trees](https://epubs.siam.org/doi/10.1137/0220008) · [Deterministic 3-server on a circle and the limitation of canonical potentials](https://arxiv.org/abs/2205.08103) · [The Randomized k-Server Conjecture Is False!](https://arxiv.org/abs/2211.05753) · [Time-Optimal k-Server](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ISAAC.2025.32) · [k-server-bench: Automating Potential Discovery for the k-Server Conjecture](https://arxiv.org/abs/2604.07240) · [Randomized k-Server in Polynomial Time](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.65)
-Existing status: `source_open` · Summary written: 2026-09-15
+[Read in atlas](index.html#TCS-6575) · [Competitive Algorithms for Server Problems](https://www.cs.cmu.edu/~sleator/papers/server-problems.pdf) · [On the k-server conjecture](https://cgi.di.uoa.gr/~elias/papers/paper-kp95.html) · [An Optimal On-Line Algorithm for K Servers on Trees](https://epubs.siam.org/doi/10.1137/0220008) · [Deterministic 3-server on a circle and the limitation of canonical potentials](https://arxiv.org/abs/2205.08103) · [The Randomized k-Server Conjecture Is False!](https://arxiv.org/abs/2211.05753) · [Time-Optimal k-Server](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ISAAC.2025.32) · [k-server-bench: Automating Potential Discovery for the k-Server Conjecture](https://arxiv.org/abs/2604.07240) · [Randomized k-Server in Polynomial Time](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.65) · [The k-server conjecture is true](https://arxiv.org/abs/2609.15979)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6638 — Optimal approximation ratio for unrelated-machine makespan
 
@@ -1531,12 +1531,26 @@ What is the optimal expected regret for adversarial convex losses when only one 
 [Read in atlas](index.html#TCS-6577) · [Bandit Convex Optimisation](https://tor-lattimore.com/downloads/cvx-book/cvx.pdf) · [Improved Regret for Zeroth-Order Adversarial Bandit Convex Optimisation](https://arxiv.org/abs/2006.00475v3) · [Logarithmic High-Probability Regret for Online Convex Optimization with Two-Point Bandit Feedback](https://arxiv.org/abs/2603.25029v4) · [Adversarial Bandit Optimization with Globally Bounded Perturbations to Convex Losses](https://arxiv.org/abs/2606.19891v2)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-7316 — Matroid secretary conjecture
+
+Elements of a known matroid arrive in a uniformly random order with fixed nonnegative weights revealed only on arrival. The strategy must accept or reject each immediately while keeping its selected set independent. The target is one universal constant fraction of the offline optimum in expectation, with no running-time restriction. Singla’s September 2026 preprint claims a factor-four guarantee even with only arrived-element independence access. The claimed theorem matches this target, so the record is uncertain pending verification rather than still classified as an unchallenged open conjecture.
+
+[Read in atlas](index.html#TCS-7316) · [Constant-Competitiveness for Random Assignment Matroid Secretary Without Knowing the Matroid](https://arxiv.org/abs/2305.05353) · [Matroid Secretary Is Equivalent to Contention Resolution](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2022.58) · [The Matroid Secretary Conjecture is True](https://arxiv.org/abs/2609.14555)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-7317 — Randomized competitiveness of k-server
 
 In randomized k-server, an online strategy moves k servers to serve sequential metric requests. The request sequence is fixed independently of the strategy’s random choices. The target is the infimum competitive ratio as a function of k over all finite metrics, within universal constant factors. The metric and initial placement are known and may affect the strategy and fixed additive cost. The earlier polylogarithmic question is a qualitative consequence of determining this growth, and dependence on the number of metric points cannot be hidden in the ratio.
 
 [Read in atlas](index.html#TCS-7317) · [Randomized k-server in polynomial time](https://arxiv.org/abs/2605.01497) · [The Randomized k-Server Conjecture is False!](https://arxiv.org/abs/2211.05753)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-5779 — Constant-factor online contention resolution for matroids
+
+A random set of active elements is drawn from an arbitrary known distribution on a finite matroid. An offline map can inspect the whole active set before selecting an independent subset while preserving each element’s probability up to a factor alpha. The question asks whether an irrevocable strategy seeing activity in uniformly random arrival order can always match that balance within one universal extra constant. This known-prior correlated model is equivalent at the constant-factor level to the matroid secretary conjecture. A September 2026 secretary proof claim would settle the target with extra factor four, so its current status awaits independent verification.
+
+[Read in atlas](index.html#TCS-5779) · [The Outer Limits of Contention Resolution on Matroids and Connections to the Secretary Problem](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.42) · [Matroid Secretary Is Equivalent to Contention Resolution](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2022.58) · [The Matroid Secretary Conjecture is True](https://arxiv.org/abs/2609.14555)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6724 — Constant-factor related-machine precedence scheduling
 
@@ -1650,13 +1664,6 @@ Bandit combinatorial optimization chooses structured subsets and observes only t
 [Read in atlas](index.html#TCS-5252) · [Tight Bounds for Bandit Combinatorial Optimization](https://proceedings.mlr.press/v65/cohen17a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-5779 — Constant-factor online contention resolution for matroids
-
-A contention-resolution scheme chooses an independent subset from a random set of active matroid elements. The source allows arbitrary correlations in that active set, rather than assuming each element appears independently. It asks for a universal online scheme that competes within a constant factor of the best corresponding offline balance guarantee without assuming the matroid secretary conjecture. Positive correlations can defeat methods designed for product distributions even when offline selection is easy. The problem seeks a robust selection principle that separates difficulty caused by arrival order from difficulty already present in the input distribution.
-
-[Read in atlas](index.html#TCS-5779) · [The Outer Limits of Contention Resolution on Matroids and Connections to the Secretary Problem](https://doi.org/10.4230/LIPIcs.ICALP.2020.42)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6078 — Pinwheel Packing in NP
 
 Pinwheel scheduling requires tasks to receive service repeatedly within prescribed recurrence limits. The cited source studies a packing version of this perpetual scheduling problem. The saved question asks whether Pinwheel Packing belongs to NP, while recording a PSPACE upper bound from earlier work. Membership would require polynomially checkable finite evidence despite the potentially infinite schedule being described. The excerpt does not define the packing rules or certificate format, and its historical upper bound is retained as source context rather than independently verified current status.
@@ -1729,19 +1736,19 @@ The symmetric binary perceptron seeks a sign vector satisfying many random Gauss
 [Read in atlas](index.html#TCS-5011) · [Algorithms and Barriers in the Symmetric Binary Perceptron Model](https://doi.org/10.1109/FOCS54457.2022.00061) · [Symmetric Perceptrons, Number Partitioning and Lattices](https://arxiv.org/abs/2501.16517) · [Parametric RDT approach to computational gap of symmetric binary perceptron](https://arxiv.org/abs/2601.10628)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-5406 — Optimization and certification of Max-Cut in random cubic graphs
+
+The user has specialized the general random-CSP program to Max-Cut on uniform simple random cubic graphs. The target is the pair of best polynomial-time cut-construction and always sound certification thresholds, measured in crossing edges per vertex. Randomized uniform algorithms must meet their performance guarantees with probability tending to one, while certificates must remain sound on every graph. Known spectral values, true-optimum bounds, conditional hardness and a recent reported certification improvement do not establish both requested unconditional thresholds. A complete answer supplies approximations to both constants within absolute error one hundredth and proves their correctness in Lean.
+
+[Read in atlas](index.html#TCS-5406) · [The SDP Value of Random 2CSPs](https://doi.org/10.4230/LIPIcs.ICALP.2022.97) · [The Ising antiferromagnet and max cut on random regular graphs](https://doi.org/10.1137/20M137999X) · [Computational hardness of detecting graph lifts and certifying lift-monotone properties of random regular graphs](https://arxiv.org/abs/2404.17012v1) · [Reinforced Generation of Combinatorial Structures: Hardness of Approximation](https://arxiv.org/abs/2509.18057v7)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-4876 — Algorithmic threshold for random k-SAT
 
 The input is a random conjunction of fixed-width clauses, with all literal positions sampled independently. The algorithm must find an assignment satisfying every clause with probability tending to one. The conjectured leading threshold is two to the clause width times its natural logarithm, divided by the width. Known algorithms reach this scale, while satisfying assignments exist at substantially higher densities. Existing overlap-gap and low-degree barriers do not establish optimality against every polynomial-time algorithm.
 
 [Read in atlas](index.html#TCS-4876) · [Sharp Thresholds for the Overlap Gap Property: Ising p-Spin Glass and Random k-SAT — full version](https://arxiv.org/abs/2309.09913) · [A Better Algorithm for Random k-SAT](https://doi.org/10.1137/09076516X) · [The Algorithmic Phase Transition of Random k-SAT for Low Degree Polynomials](https://arxiv.org/abs/2106.02129)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5406 — Optimization and certification in sparse random CSPs
-
-The source introduces a broad program for optimizing and certifying sparse random constraint-satisfaction instances. It measures an assignment by satisfied constraints per variable and presumes a limiting optimum for the selected random model. Finding a near-optimal assignment and certifying a matching upper bound are different computational tasks. The paper proves a separate result for a semidefinite relaxation on matrix-polynomial lifts. The extracted question leaves its model and algorithmic guarantee unspecified, so this card remains pending until its mathematical target is chosen.
-
-[Read in atlas](index.html#TCS-5406) · [The SDP Value of Random 2CSPs](https://doi.org/10.4230/LIPIcs.ICALP.2022.97)
-Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6702 — Worst-case-to-average-case reductions within NP
 
@@ -3725,6 +3732,13 @@ The question asks whether induced four-cycle freeness can be tested from a rando
 [Read in atlas](index.html#TCS-1030) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/PDF/pt-v3.pdf) · [Efficient Removal without Efficient Regularity](https://www.math.tau.ac.il/~asafico/C4.pdf) · [Easily Testable Graph Properties](https://www.cambridge.org/core/product/identifier/S0963548314000765/type/journal_article) · [A Quantitative Container Characterization of One-Sided Testability](https://eccc.weizmann.ac.il/report/2026/144/)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-4376 — Planar graphs from local neighborhoods
+
+The question compares two planar graphs through the rooted neighborhoods around all their vertices. It asks whether a radius depending only on the allowed error makes identical neighborhood multisets imply closeness under edge edits and vertex relabeling. No maximum-degree bound is imposed, so even a small-radius neighborhood may be large. The source proves the analogous result for outerplanar graphs, while bounded-degree planar theorems allow the radius to depend on the degree bound. This specific structural question replaces the original broad classification target by an explicitly selected yes/no assertion.
+
+[Read in atlas](index.html#TCS-4376) · [Every Property of Outerplanar Graphs is Testable](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.21) · [The complexity of testing all properties of planar graphs, and the role of isomorphism](https://arxiv.org/abs/2108.10547)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-1029 — Sharp graph-removal bounds for fixed patterns
 
 For each fixed connected graph pattern, the question asks how few ordinary copies a graph can contain while still being far from avoiding that pattern. Distance is the fraction of adjacency-matrix entries that must change, and each vertex subset supporting the pattern is counted once. The target is matching constant-factor bounds in both the graph order and the proximity parameter, with constants allowed to depend on the pattern. The removal lemma guarantees positive density at every fixed distance, but the general quantitative bounds remain widely separated. Sharp bounds would quantify the worst-case visibility of local violations and the sampling cost of detecting them.
@@ -3801,13 +3815,6 @@ A property tester probes bits in batches and may choose later batches using prev
 
 [Read in atlas](index.html#TCS-4259) · [An Adaptivity Hierarchy Theorem for Property Testing](https://doi.org/10.4230/LIPIcs.CCC.2017.27) · [An adaptivity hierarchy theorem for property testing — journal publication](https://doi.org/10.1007/s00037-018-0168-4) · [An adaptivity hierarchy theorem for property testing — institutional attachment](https://www.repository.cam.ac.uk/items/73b70279-d662-43f0-b591-98afd3ce529c)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-4376 — Characterizing sublinear-query testable graph properties
-
-Sublinear graph testing tries to infer a global property from a small number of local adjacency queries. The source studies sparse graph classes without imposing a uniform maximum-degree bound. It asks which properties remain testable and whether matching distributions of bounded-radius neighborhoods force graphs to be close under edge edits. Outerplanar results motivate extensions to broader planar and bounded-treewidth classes. The project explores when local views still determine approximate global structure despite the presence of high-degree vertices.
-
-[Read in atlas](index.html#TCS-4376) · [Every Property of Outerplanar Graphs is Testable](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.21)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Differential privacy (4)
 
@@ -3971,10 +3978,10 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6562 — Word equations with linear length constraints
 
-Word equations require substitutions of finite strings that make two concatenations identical. Here the substitutions must also satisfy linear arithmetic constraints on their lengths, with all equations and coefficients supplied as input. The project asks for an algorithm that always decides whether these two kinds of constraints have a common solution. Length arithmetic alone forgets letter alignment, while separate string-solving procedures need not respect additional arithmetic restrictions. This is a basic decidability question for exact string constraints, before imposing practical running-time requirements.
+Word equations require substitutions of finite strings that make all supplied concatenations identical. Here the same substitution must also satisfy a conjunction of integer linear constraints on total string lengths. The target is one always-terminating decision algorithm for arbitrary finite inputs, including empty substitutions and unrestricted variable occurrences. Known restricted decision results and partial termination criteria do not settle this combination, and stronger letter-count predicates describe a different problem. A resolution would establish whether complete exact solving is possible for this basic fragment of string constraints, before imposing efficiency requirements.
 
-[Read in atlas](index.html#TCS-6562) · [Word equations, constraints, and formal languages](https://arxiv.org/abs/2406.02160) · [Word Equations with Length Constraints via Weak Arithmetics and Matrix Reachability Problems](https://link.springer.com/chapter/10.1007/978-3-032-09524-4_4) · [The Termination of Nielsen Transformations Applied to Word Equations with Length Constraints](https://link.springer.com/chapter/10.1007/978-3-032-32592-1_14) · [NEXP-Completeness and Exponential Coefficient Growth for Existential Presburger Arithmetic with Divisibility](https://arxiv.org/abs/2606.14167v3)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6562) · [Word equations, constraints, and formal languages](https://arxiv.org/abs/2406.02160v1) · [Word Equations with Length Constraints via Weak Arithmetics and Matrix Reachability Problems](https://link.springer.com/chapter/10.1007/978-3-032-09524-4_4) · [The Termination of Nielsen Transformations Applied to Word Equations with Length Constraints](https://link.springer.com/chapter/10.1007/978-3-032-32592-1_14) · [NEXP-Completeness and Exponential Coefficient Growth for Existential Presburger Arithmetic with Divisibility](https://arxiv.org/abs/2606.14167v3) · [The termination of Nielsen transformations applied to word equations with length constraints — full preprint](https://arxiv.org/abs/2501.11789v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6643 — Decidability of unification in the basic modal logic K
 
@@ -3982,6 +3989,13 @@ Basic modal logic K interprets formulas on arbitrary accessibility relations bet
 
 [Read in atlas](index.html#TCS-6643) · [On the unification problem for GLP](https://www.mathnet.ru/php/archive.phtml?jrnid=im&option_lang=eng&paperid=9592&wshow=paper)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-1992 — Decidability of Presburger arithmetic with primes
+
+Presburger arithmetic describes the standard integers using addition and order and has a decidable first-order theory. This question adds a predicate for positive primes and asks for one algorithm deciding every sentence, with arbitrary quantifier alternation. The resulting language can express prime-pattern claims such as twin primes and Goldbach’s conjecture. A classical undecidability result is conditional on a prime-tuples conjecture, while a conditional decidability theorem concerns a different unordered structure. An unconditional resolution would locate a major boundary between effective additive arithmetic and quantified number-theoretic reasoning.
+
+[Read in atlas](index.html#TCS-1992) · [An Introduction to the Theory of Linear Integer Arithmetic (Invited Paper)](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.1) · [Decidability and undecidability of theories with a predicate for the primes](https://www.cambridge.org/core/journals/journal-of-symbolic-logic/article/abs/decidability-and-undecidability-of-theories-with-a-predicate-for-the-primes/58C09C04699689A1CFA6FB750600F298) · [Decidability and classification of the theory of integers with primes](https://shelah.logic.at/papers/1082/) · [Decidability and classification of the theory of integers with primes — author manuscript](https://arxiv.org/abs/1601.07099v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6650 — Deterministic polynomial-time equivalence testing for d-DNNFs
 
@@ -4018,6 +4032,13 @@ Word unification solves equations between concatenations by substituting strings
 [Read in atlas](index.html#TCS-0171) · [RTA Open Problems](https://www.cs.tau.ac.il/~nachum/rtaloop/problems/92.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-7125 — Two-sided distributive unification with a unit
+
+Unification asks whether a common substitution can make every pair of supplied expressions equal under specified algebraic identities. Here the identities are both distributive laws together with a two-sided multiplicative unit. The expressions may also use uninterpreted symbols, and neither operation is assumed associative or commutative. Known algorithms handle neighboring fragments, while undecidability results with additional associativity do not settle this exact theory. A resolution would identify a longstanding boundary for symbolic equality reasoning under interacting algebraic laws.
+
+[Read in atlas](index.html#TCS-7125) · [Unification Theory](https://www.cs.bu.edu/fac/snyder/publications/UnifChapter.pdf) · [An algorithm for distributive unification](https://link.springer.com/chapter/10.1007/3-540-61464-8_60) · [Decidability of Unification in the Theory of One-Sided Distributivity and a Multiplicative Unit](https://doi.org/10.1006/jsco.1996.0054) · [Unification problems with one-sided distributivity](https://doi.org/10.1016/S0747-7171(87)80026-3) · [On the Complexity of the Tiden-Arnborg Algorithm for Unification modulo One-Sided Distributivity](https://arxiv.org/abs/1012.4894)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-0114 — Decidability of subsequence constraints with regular domains
 
 Each variable denotes one finite word constrained to a specified regular language. A relational constraint requires that word to occur as a scattered subsequence of a concatenation of other assigned words. The question asks for total decidability over every fixed finite alphabet, allowing repeated variables and arbitrary dependency cycles. Known algorithms for acyclic systems and undecidability results with shuffle or transducers concern different input classes. A resolution would locate the decidability boundary of a basic language for relating incomplete and concatenated strings.
@@ -4039,26 +4060,12 @@ Higher-order beta-matching asks whether one simply typed lambda term can be inst
 [Read in atlas](index.html#TCS-1595) · [Mechanized Undecidability of Higher-Order Beta-Matching](https://doi.org/10.4230/LIPIcs.FSCD.2025.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1992 — Decidability of Presburger arithmetic with primes
-
-Presburger arithmetic describes integers using addition and order without unrestricted multiplication. The saved question asks whether adding a predicate for prime numbers preserves decidability. The added predicate imports number-theoretic structure that the base arithmetic language cannot directly express. An answer would mark a sharp boundary between a tame linear theory and richer arithmetic reasoning. The excerpt attributes this question to its source but does not specify the integer-domain convention or provide a current progress audit, so the draft keeps the decisional target separate from later-status claims.
-
-[Read in atlas](index.html#TCS-1992) · [An Introduction to the Theory of Linear Integer Arithmetic (Invited Paper)](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5603 — Polynomial-time recognition of abelian cores
 
 The input is an entire finite algebra specified by tables of its basic operations. It is promised to possess an idempotent Taylor term, although no witness is supplied. The task is to decide whether its smallest endomorphic image is abelian in the universal-algebraic sense. A quasipolynomial-time recognition algorithm is known. This is a classification problem for algebras, distinct from solving a particular list of term equations.
 
 [Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66) · [Equations over finite algebras](https://www.algebra.uni-linz.ac.at/Slides/sl-aaa105-6.pdf)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-7125 — Two-sided distributive unification with a unit
-
-Unification modulo distributivity seeks substitutions making expressions equal under both left and right distributive laws. The saved question additionally includes a multiplicative unit. It asks whether an algorithm can always decide the existence of a unifier in that equational theory. The unit can interact with distributive expansion and contraction, potentially changing the search space substantially. The source summary does not list any further associativity or commutativity axioms, so the draft does not add them or treat this as unification in an ordinary ring.
-
-[Read in atlas](index.html#TCS-7125) · [Unification Theory](https://www.cs.bu.edu/fac/snyder/pubs.html)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7134 — Polynomial-time equivalence of free binary decision diagrams
 

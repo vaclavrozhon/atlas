@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-851 records have an editorial importance assessment; 185 remain provisional.
+859 records have an editorial importance assessment; 176 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -59,7 +59,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance 
 
 ## 4. Semantics, logic and verification (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance assessed: 34; provisional: 4.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance assessed: 35; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 41; importance 
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance assessed: 31; provisional: 5.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance assessed: 32; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance 
 
 ## 10. Quantum computation and information (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 54; importance assessed: 39; provisional: 15.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 53; importance assessed: 40; provisional: 13.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 24; provisional: 5.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 25; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -309,12 +309,12 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 | 6 | [Minimax dimension dependence in bandit convex optimization](index.html#TCS-6577) | 94 |
 | 7 | [Matroid secretary conjecture](index.html#TCS-7316) | 94 |
 | 8 | [Randomized competitiveness of k-server](index.html#TCS-7317) | 93 |
-| 9 | [Constant-factor related-machine precedence scheduling](index.html#TCS-6724) | 91 |
-| 10 | [Minimax rate of sequential binary calibration](index.html#TCS-7319) | 89 |
+| 9 | [Constant-factor online contention resolution for matroids](index.html#TCS-5779) | 92 |
+| 10 | [Constant-factor related-machine precedence scheduling](index.html#TCS-6724) | 91 |
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 9; provisional: 4.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 10; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -326,8 +326,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance 
 | 6 | [Infinitely-often one-way functions from average-case NP hardness](index.html#TCS-6453) | 95 |
 | 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
 | 8 | [Algorithmic threshold for the symmetric binary perceptron](index.html#TCS-5011) | 87 |
-| 9 | [Algorithmic threshold for random k-SAT](index.html#TCS-4876) | 50 |
-| 10 | [Optimization and certification in sparse random CSPs](index.html#TCS-5406) | 50 |
+| 9 | [Optimization and certification of Max-Cut in random cubic graphs](index.html#TCS-5406) | 87 |
+| 10 | [Algorithmic threshold for random k-SAT](index.html#TCS-4876) | 50 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
@@ -500,7 +500,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 20. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 15; provisional: 1.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 16; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -508,12 +508,12 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 2 | [Polynomial testability versus distance estimation](index.html#TCS-1033) | 96 |
 | 3 | [Sublinear testing of bounded-degree graph isomorphism](index.html#TCS-6672) | 92 |
 | 4 | [Polynomial testing of induced four-cycle freeness](index.html#TCS-1030) | 88 |
-| 5 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
-| 6 | [Polynomial-time density learning of Gaussian mixtures](index.html#TCS-5443) | 84 |
-| 7 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
-| 8 | [Sample complexity of symmetric Markov-chain identity testing](index.html#TCS-3906) | 80 |
-| 9 | [Polylogarithmic-query pattern-freeness testing](index.html#TCS-5210) | 79 |
-| 10 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
+| 5 | [Planar graphs from local neighborhoods](index.html#TCS-4376) | 86 |
+| 6 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
+| 7 | [Polynomial-time density learning of Gaussian mixtures](index.html#TCS-5443) | 84 |
+| 8 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
+| 9 | [Sample complexity of symmetric Markov-chain identity testing](index.html#TCS-3906) | 80 |
+| 10 | [Polylogarithmic-query pattern-freeness testing](index.html#TCS-5210) | 79 |
 
 ## 21. Differential privacy (small)
 
@@ -545,20 +545,20 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance 
 
 ## 23. Automated reasoning, rewriting and unification (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 15; importance assessed: 11; provisional: 4.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 15; importance assessed: 13; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Word equations with linear length constraints](index.html#TCS-6562) | 97 |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) | 94 |
-| 3 | [Deterministic polynomial-time equivalence testing for d-DNNFs](index.html#TCS-6650) | 94 |
-| 4 | [Greedy CDCL without restarts versus resolution](index.html#TCS-7239) | 94 |
-| 5 | [Decidability of termination for one-rule string rewriting](index.html#TCS-6644) | 93 |
-| 6 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
-| 7 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
-| 8 | [Complexity of word unification](index.html#TCS-0171) | 87 |
-| 9 | [Decidability of subsequence constraints with regular domains](index.html#TCS-0114) | 69 |
-| 10 | [Polynomial-time complementation of d-DNNFs](index.html#TCS-0306) | 69 |
+| 3 | [Decidability of Presburger arithmetic with primes](index.html#TCS-1992) | 94 |
+| 4 | [Deterministic polynomial-time equivalence testing for d-DNNFs](index.html#TCS-6650) | 94 |
+| 5 | [Greedy CDCL without restarts versus resolution](index.html#TCS-7239) | 94 |
+| 6 | [Decidability of termination for one-rule string rewriting](index.html#TCS-6644) | 93 |
+| 7 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
+| 8 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
+| 9 | [Complexity of word unification](index.html#TCS-0171) | 87 |
+| 10 | [Two-sided distributive unification with a unit](index.html#TCS-7125) | 84 |
 
 ## 24. Database theory and finite model theory (small)
 
