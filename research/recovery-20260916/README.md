@@ -210,3 +210,17 @@ The additional unanswered source-scope choices are recorded in
 [further-scope-choices.json](further-scope-choices.json); they remain pending.
 Source checkpoint 71db88c7 and deployment 6f6ff83d41e7f58fd682b1f18ace31b87137a723
 cover the first thirty-seven dispositions, with publication a3cc11a1ebe6f219d18a.
+
+After forty-four dispositions the queue contains 688 completed records,
+226 pending records and one outside active scope. Of 1,012 active cards,
+786 have completed individual reviews. TCS-1059 now gives the constant-factor
+width and direct-input-degree linearization conjecture. TCS-0220 is archived
+after matching the 2021 external-information separation, and TCS-1540 is
+archived after matching the COLT 2026 all-function noisy-query lower bound.
+The formula check passes on 33,225 expressions. All completed output hashes
+match, and the review ledger parses. Nine source-scope questions remain
+pending in further-scope-choices.json.
+Source checkpoint aeec4db9 and deployment
+1b45ad6706fcc5392d483a8c149d001592384e07 cover the first forty-one
+dispositions, with publication 918c39f76753ffdaed28.
+Local publication after forty-four is edec3b5e07f009a8411c.

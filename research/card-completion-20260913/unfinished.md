@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **229**.
+Pending active reviews: **226**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -18,13 +18,10 @@ Pending active reviews: **229**.
 | [TCS-5202](../../data/cards/TCS-5202.json) | Quantum security of general seeded extractors | Quantum computation | pool |
 | [TCS-0240](../../data/cards/TCS-0240.json) | Communication for algorithmic secret-key agreement | Computability and algorithmic information | pool |
 | [TCS-0279](../../data/cards/TCS-0279.json) | Extraction of mutual information about two strings | Computability and algorithmic information | pool |
-| [TCS-0220](../../data/cards/TCS-0220.json) | External Information and Amortized Expected Communication | Communication complexity and Boolean function analysis | pool |
-| [TCS-1059](../../data/cards/TCS-1059.json) | Linearizing arbitrary depth-two circuits efficiently | Communication complexity and Boolean function analysis | pool |
 | [TCS-0540](../../data/cards/TCS-0540.json) | Communication Complexity of Max-Flow | Communication complexity and Boolean function analysis | pool |
 | [TCS-0053](../../data/cards/TCS-0053.json) | Sign-representation | Communication complexity and Boolean function analysis | pool |
 | [TCS-0218](../../data/cards/TCS-0218.json) | Cryptogenography | Communication complexity and Boolean function analysis | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
-| [TCS-1540](../../data/cards/TCS-1540.json) | Influence lower bounds for noisy query complexity | Communication complexity and Boolean function analysis | pool |
 | [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
 | [TCS-4771](../../data/cards/TCS-4771.json) | Two-sided versus one-sided randomized communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |
