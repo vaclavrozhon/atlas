@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **448**.
+Pending active reviews: **446**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -57,7 +57,6 @@ Pending active reviews: **448**.
 | [TCS-0954](../../data/cards/TCS-0954.json) | Metric TSP Cost Approximation | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0969](../../data/cards/TCS-0969.json) | Approximating LIS Length in the Streaming Model | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0980](../../data/cards/TCS-0980.json) | Random Walks | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-0988](../../data/cards/TCS-0988.json) | Deterministic Summary Structures | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0834](../../data/cards/TCS-0834.json) | Estimating a Graph's Degree Distribution | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0836](../../data/cards/TCS-0836.json) | Non-Adaptive Group Testing | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0849](../../data/cards/TCS-0849.json) | Group Testing | Distributed, parallel and sublinear algorithms | pool |
@@ -385,7 +384,6 @@ Pending active reviews: **448**.
 | [TCS-6684](../../data/cards/TCS-6684.json) | Computational Kesten–Stigum threshold | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
-| [TCS-7228](../../data/cards/TCS-7228.json) | Exact directed maximum flow in \(O((m+n) \operatorname{polylog} n)\) time | Structural graph theory | existing_detailed_audit |
 | [TCS-7236](../../data/cards/TCS-7236.json) | Polynomial-time private release of all marginals | Differential privacy | existing_detailed_audit |
 | [TCS-7237](../../data/cards/TCS-7237.json) | Hardness of 6-coloring 3-colorable graphs | Constraint satisfaction | existing_detailed_audit |
 | [TCS-7238](../../data/cards/TCS-7238.json) | Polynomial-time refutation of random 3-SAT at constant density | Beyond worst-case and average-case analysis | existing_detailed_audit |
