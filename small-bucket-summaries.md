@@ -354,10 +354,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6664 — Maximum influence of polynomial threshold functions
 
-A polynomial threshold function takes the sign of a real polynomial on the Boolean cube. Total influence is the expected number of coordinate flips that change its output. The target is the largest possible influence as a joint function of dimension n and degree bound d, within universal constant factors. The asymptotic Gotsman–Linial conjecture gives a proposed upper scale, whereas a stronger exact-extremizer claim was disproved. The statement permits arbitrary realizing polynomials and does not prescribe a particular extremal construction.
+A polynomial threshold function records the sign of a real polynomial on the uniformly distributed Boolean cube. Total influence is the expected number of individual coordinate flips that change the function’s value. The target is the largest influence possible as a joint function of dimension and degree bound, within constants independent of both parameters. A complete Lean proof must give a matching universal upper bound and a lower example for every parameter pair, including the regime where influence is of order the dimension. The disproved exact symmetric-extremizer conjecture, fixed-degree logarithmic bounds and the separate 2026 surface-area and rational-degree theorems do not determine this joint growth.
 
 [Read in atlas](index.html#TCS-6664) · [The Gotsman–Linial Conjecture is False](https://arxiv.org/abs/2108.02288) · [A Dual Perspective on Computational Complexity](https://dspace.mit.edu/server/api/core/bitstreams/7f2e32fd-d615-4dba-97be-f26cd30ca234/content) · [The Correct Exponent for the Gotsman–Linial Conjecture](https://arxiv.org/abs/1210.1283) · [On Graphs and the Gotsman–Linial Conjecture for \(d = 2\)](https://arxiv.org/abs/1709.06650) · [The Boolean surface area of polynomial threshold functions](https://arxiv.org/abs/2604.08095) · [Rational degree is polynomially related to degree](https://arxiv.org/abs/2601.08727)
-Existing status: `source_open` · Summary written: 2026-09-12
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7219 — Aanderaa–Karp–Rosenberg conjecture
 

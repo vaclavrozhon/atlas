@@ -1266,6 +1266,13 @@ A metric TSP cost query algorithm asks for distances between selected pairs of l
 [Read in atlas](index.html#TCS-0954) · [Open Problems in Sublinear Algorithms, Problem 71: Metric TSP Cost Approximation](https://sublinear.info/index.php?title=Open_Problems:71) · [Estimating the Weight of Metric Minimum Spanning Trees in Sublinear Time](https://doi.org/10.1137/060672121) · [Sublinear Algorithms and Lower Bounds for Metric TSP Cost Estimation](https://doi.org/10.4230/LIPIcs.ICALP.2020.30) · [Sublinear Algorithms and Lower Bounds for Estimating MST and TSP Cost in General Metrics](https://doi.org/10.4230/LIPIcs.ICALP.2023.37)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-0980 — Full random walks with near-linear streaming space
+
+The problem asks for one entire random-walk trajectory in a directed graph presented as an edge stream. The start is known in advance, and the number of steps is at most the number of vertices. The output distribution must be within 1/100 in total variation of the true joint distribution of all visits. Near-linear bit space and a fixed polylogarithmic number of passes must suffice for every graph and edge order. Known constant-pass tradeoffs and improved dense-graph samplers do not settle this general target.
+
+[Read in atlas](index.html#TCS-0980) · [Problem 22: Random Walks](https://sublinear.info/index.php?title=Open_Problems:22) · [Estimating PageRank on Graph Streams](https://doi.org/10.1145/1970392.1970397) · [Near-Optimal Two-Pass Streaming Algorithm for Sampling Random Walks over Directed Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2021.52) · [Universally Optimal Streaming Algorithm for Random Walks in Dense Graphs](https://doi.org/10.4230/LIPIcs.ITCS.2026.55)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0998 — Fast merging of summaries for symmetric streaming computations
 
 The input statistic is a total Boolean function invariant under reordering the stream. A streaming program computes it using polylogarithmic memory and time per item. The selected question asks for equally efficient local summaries and merging on every binary aggregation tree. A known simulation preserves small space but can use superpolynomial merge time. The target excludes promise and randomness separations and does not require identical intermediate summaries.
@@ -1433,13 +1440,6 @@ A hidden set of at most k positions must be identified by noiseless yes/no tests
 
 [Read in atlas](index.html#TCS-0849) · [Problem 33: Group Testing](https://sublinear.info/index.php?title=Open_Problems:33) · [Optimal Two-Stage Algorithms for Group Testing Problems](https://doi.org/10.1137/S0097539703428002)
 Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-0980 — Random Walks
-
-The task is to simulate a long random walk on a graph presented as an edge stream. The source asks whether nearly linear memory can reduce the number of passes to a polylogarithmic function of graph size and walk length. It also asks for the complexity of approximating the walk's endpoint distribution and identifying its most likely vertices. These tasks may require less information than producing every step of the trajectory. A resolution would clarify how effectively repeated scans can substitute for direct access to the transition choices of a large graph.
-
-[Read in atlas](index.html#TCS-0980) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:22)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0985 — Streaming space for additive \(L_\infty\) estimation
 
