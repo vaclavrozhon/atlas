@@ -1336,3 +1336,7 @@ The concurrent census is 1,025 active cards: 709 reviewed and 316 pending. The q
 Checkpoint 600. Complete Unique Games formulation and check September 4-to-1 result
 
 The concurrent census is 1,025 active cards: 711 reviewed and 314 pending. The queue has 600 completed records, 559 active and 41 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,025 active cards, covering 29,594 formulas.
+
+Checkpoint 603. Complete VP versus VNP circuit-model and recent-result review
+
+The concurrent census is 1,025 active cards: 714 reviewed and 311 pending. The queue has 603 completed records, 562 active and 41 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,025 active cards, covering 29,767 formulas.
