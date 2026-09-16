@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-400 five-sentence working summaries, based on saved source material.
+399 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (67)
+## Computational complexity (66)
 
 ### TCS-0001 — P versus NP
 
@@ -63,17 +63,17 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0015 — Superlinear Boolean circuit lower bounds
 
-A multi-output Boolean function can share intermediate computations among all its output bits. The question asks for one polynomial-time computable family whose unrestricted Boolean circuits exceed every fixed linear size bound. The saved formulation uses as many output bits as input bits. An arbitrary hard truth table does not satisfy the explicitness requirement. The project seeks a modest but fundamental lower bound demonstrating that some efficiently specified transformations intrinsically need more than a constant amount of circuit work per input bit.
+The question asks for a polynomial-time computable function with as many output bits as input bits that needs more than linear circuit size. Competing circuits may use every two-input Boolean operation and share intermediate work without depth or fan-out restrictions. The lower-bound ratio must be unbounded at arbitrarily large input lengths, not necessarily tend to infinity at every length. Known explicit full-basis lower bounds improve fixed linear constants, and recent conditional barriers apply only to specified proof classes. A complete answer must prove or refute the existence of one uniformly computable function satisfying the entire claim.
 
-[Read in atlas](index.html#TCS-0015) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [\(3.1n -  o(n)\) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Boolean Circuit Complexity and Two-Dimensional Cover Problems](https://eccc.weizmann.ac.il/report/2025/033/) · [Convergent Gate Elimination and Constructive Circuit Lower Bounds](https://arxiv.org/abs/2602.17942) · [A Note on Natural-Proofs for Super-Linear Lower Bounds for Linear Functions](https://eccc.weizmann.ac.il/report/2026/008/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0015) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [\(3.1n-o(n)\) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Boolean Circuit Complexity and Two-Dimensional Cover Problems](https://eccc.weizmann.ac.il/report/2025/033/) · [Convergent Gate Elimination and Constructive Circuit Lower Bounds](https://arxiv.org/abs/2602.17942) · [A Note on Natural-Proofs for Super-Linear Lower Bounds for Linear Functions](https://eccc.weizmann.ac.il/report/2026/008/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0016 — Exponential circuit lower bounds for 3-SAT
 
-The saved 3-SAT family uses a fixed encoding of which clauses on n variables are present. The conjecture asks for circuit size exponential in n, even when every input length gets its own arbitrary circuit. Its scale is stronger than merely excluding polynomial-size circuits. The variable count differs from the total number of encoded clause bits, so the parameter must remain explicit. The project aims to prove that searching for a satisfying assignment retains essentially exponential difficulty even under nonuniform computation.
+The question asks whether n-variable 3-SAT requires Boolean circuits of size at least two to a positive constant times n at every sufficiently large n. Inputs are complete incidence vectors for all clauses of width at most three, giving Theta(n cubed) input bits. The circuit model permits every two-input Boolean gate, arbitrary sharing and independent nonuniform designs at each length. Known restricted-circuit lower bounds and randomized exponential-time improvements do not settle this unrestricted lower-bound target. A complete answer must prove the eventual exponential bound or its exact quantified negation in Lean.
 
-[Read in atlas](index.html#TCS-0016) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Which Problems Have Strongly Exponential Complexity?](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturiZane_2001_jcss.pdf) · [\(3.1n -  o(n)\) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [A Better Analysis For PPSZ For 3-SAT](https://arxiv.org/abs/2607.10697)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0016) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Which Problems Have Strongly Exponential Complexity?](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturiZane_2001_jcss.pdf) · [\(3.1n-o(n)\) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [A Better Analysis For PPSZ For 3-SAT](https://arxiv.org/abs/2607.10697)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7158 — PH versus PSPACE
 
@@ -292,6 +292,13 @@ The input is a Boolean satisfiability formula measured by its complete binary le
 [Read in atlas](index.html#TCS-0303) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Time-Space Tradeoffs for Counting NP Solutions Modulo Integers](https://eccc.weizmann.ac.il/report/2007/036/) · [Limits on Alternation Trading Proofs for Time–Space Lower Bounds](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/npProofLimits/paper-journal.pdf) · [Time-Space Lower Bounds for Simulating Proof Systems with Quantum and Randomized Verifiers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2021.50) · [Bounded Relativization](https://eccc.weizmann.ac.il/report/2023/070/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-2532 — NEXP circuit lower bounds from uniform obfuscation
+
+The card asks whether uniformly secure perfectly correct indistinguishability obfuscation implies NEXP is not contained in P/poly. The obfuscator preserves every circuit’s function exactly and hides equivalent equal-size representations from uniform randomized polynomial-time distinguishers. The security definition follows the source and gives distinguishers no auxiliary input or nonuniform advice. The source proves the desired circuit lower bound under stronger nonuniform security and a different uniform-time separation under uniform security. The user selected this precise implication, and a complete answer must establish or refute it without adding hypotheses.
+
+[Read in atlas](index.html#TCS-2532) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2023.31) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [Non-Levin NP-Hardness of Implicit MCSP and PAC Learning under Few Assumptions](https://eccc.weizmann.ac.il/report/2026/091/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6006 — Is ARRIVAL solvable in polynomial time?
 
 ARRIVAL asks which of two destinations is reached by one token following deterministic alternating switches. The graph and both successor choices are explicit, and every vertex can reach at least one sink in the underlying graph. The target is one deterministic polynomial-time decision algorithm, without requiring it to list the token trajectory. General subexponential algorithms and newer bounded-treewidth or ladder results leave that all-instance target open. Short certificates for both outcomes make this a basic unresolved question at the boundary of efficient decision and total search.
@@ -333,6 +340,13 @@ The conjecture asks for Boolean functions with linear-size circuits but no polyn
 
 [Read in atlas](index.html#TCS-0019) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#conciseness-gap-between-formulae-and-circuits)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-3862 — Complete problem for Search-SZK
+
+The question asks whether the authors’ statistical zero-knowledge search class has one complete promise search problem. Protocols output a legal solution with perfect completeness and retain the source’s two soundness conditions. A universal simulator receives one sample of the honest protocol’s output distribution and must reproduce any efficient verifier’s view up to negligible statistical distance. Reductions must preserve yes and no promises and decode every legal target answer into a valid source answer. Completeness is known for the Prefix-SZK subclass, while this card retains the full Search-SZK question selected by the user.
+
+[Read in atlas](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2018.105) · [Zero-Knowledge Protocols for Search Problems](https://eprint.iacr.org/2018/437)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6139 — Subexponential derandomization with two-way random-tape access
 
@@ -439,33 +453,12 @@ The question asks whether some zero-one matrices are arbitrarily more costly to 
 [Read in atlas](index.html#TCS-1036) · [Complexity of Linear Boolean Operators](https://doi.org/10.1561/0400000063) · [Separating OR, SUM, and XOR Circuits](https://doi.org/10.1016/j.jcss.2016.01.001)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-2532 — Circuit lower bounds from indistinguishability obfuscation
-
-Indistinguishability obfuscation hides which of two equivalent circuit implementations was supplied to an observer. The cited work shows that obfuscation secure against nonuniform polynomial-size circuits implies nontrivial circuit lower bounds. This project asks whether an analogous implication follows when security is assumed only against uniform efficient algorithms. Nonuniform attackers can use input-length-dependent advice, so the existing security hypothesis is stronger than the proposed replacement. Establishing lower bounds from uniform security would connect a more algorithmic cryptographic assumption with structural limitations on small circuits.
-
-[Read in atlas](index.html#TCS-2532) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2681 — UEOPL versus EOPL
 
 EOPL describes total search along succinct paths with potentials. UEOPL admits additional answers witnessing failures of uniqueness. The question asks whether both ordinary circuit-defined classes nevertheless have the same power. A published theorem separates them in the black-box model, which does not decide this equality. Resolving it would clarify the computational role of uniqueness in total search.
 
 [Read in atlas](index.html#TCS-2681) · [Further Collapses in TFNP](https://doi.org/10.4230/LIPIcs.CCC.2022.33) · [Unique End of Potential Line](https://doi.org/10.1016/j.jcss.2020.05.007) · [Separations in Proof Complexity and TFNP](https://doi.org/10.1145/3663758)
 Existing status: `source_open` · Summary written: 2026-09-12
-
-### TCS-3862 — Complete problems for search zero knowledge
-
-Zero-knowledge protocols are usually framed around deciding whether a statement is true. Search zero knowledge instead concerns interactions that produce a valid solution while controlling what additional information is revealed. The selected problem asks whether these search classes have complete problems in either the computational or statistical security setting. A complete problem would serve as a universal representative to which other search-zero-knowledge tasks can be reduced under suitable definitions. Finding one would organize the new model and help transfer general techniques from the better-developed theory of decision zero knowledge.
-
-[Read in atlas](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://doi.org/10.4230/LIPIcs.ICALP.2018.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6832 — Separations among P, RP and NP
-
-P consists of problems with deterministic polynomial-time algorithms, while RP permits randomized algorithms that can miss yes-instances but never falsely accept no-instances. Every RP algorithm can be viewed as an NP verification procedure by treating its random choices as a certificate. This gives the chain P contained in RP contained in NP. The question asks which of these inclusions are strict. The alternatives distinguish whether randomness adds power beyond deterministic computation and whether one-sided randomized search can capture the full strength of efficiently verifiable existence.
-
-[Read in atlas](index.html#TCS-6832) · [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6934 — Unconditional exclusion of linear-time CNF satisfiability
 

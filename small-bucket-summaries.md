@@ -797,6 +797,13 @@ BPP contains decision problems solved efficiently using random bits with bounded
 [Read in atlas](index.html#TCS-1005) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-5287 — Does arithmetic formula hardness derandomize identity testing?
+
+An arithmetic formula is a tree of additions and multiplications with rational constants and commuting variables. Assume a coefficient-explicit multilinear polynomial family eventually requires formulas larger than every fixed polynomial in its variable count. Must there then be deterministic identity testers for every unrestricted formula in time 2^{O(N^epsilon)} for every epsilon > 0? The selected target is the forward, subexponential branch of the original two-direction question. Known later results change the hardness assumption or restrict the formula model; the bounded review found no verified resolution of this implication.
+
+[Read in atlas](index.html#TCS-5287) · [Hardness vs Randomness for Bounded Depth Arithmetic Circuits](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2018.13) · [Closure Results for Polynomial Factorization](https://theoryofcomputing.org/articles/v015a013/) · [Derandomizing Polynomial Identity Tests Means Proving Circuit Lower Bounds](https://www2.cs.sfu.ca/~kabanets/papers/poly_derand.pdf) · [Hardness-Randomness Tradeoffs for Algebraic Computation](https://mrinalkr.bitbucket.io/papers/hardness-randomness-survey.pdf) · [Polynomial-Time PIT from (Almost) Necessary Assumptions](https://eccc.weizmann.ac.il/report/2025/042/) · [Algebraic Pseudorandomness in VNC⁰](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2025.15) · [Polynomial Identity Testing for Read-4 Arithmetic Formulas](https://eccc.weizmann.ac.il/report/2026/076/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6879 — Explicit near-optimal vertex expanders
 
 The goal is to construct arbitrarily large regular graphs by a deterministic polynomial-time procedure. Every sufficiently small set must have almost the largest possible number of distinct neighbors outside itself. The original survey asks for the sharp additive expansion factor of the degree minus two minus any fixed positive tolerance. The 2025 lossless-expander breakthrough gives an arbitrarily small fixed relative loss, with a degree threshold depending on that loss. Because these quantified guarantees differ, the precise original target is retained with uncertain current status rather than being marked solved from the relative theorem alone.
@@ -985,13 +992,6 @@ Relational computation allows many valid answers to a single input, which compli
 
 [Read in atlas](index.html#TCS-4778) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5287 — Arithmetic formula hardness versus identity testing
-
-Arithmetic formulas compute polynomials using tree-shaped addition and multiplication circuits. The source asks whether superpolynomial formula lower bounds imply nontrivial deterministic polynomial identity testing for formulas, and conversely. Hardness-versus-randomness aims to transform difficult explicit polynomials into test points that expose nonzero computations. An equivalence restricted to formulas would reveal whether this connection survives a more structured computational model. The saved question does not quantify “nontrivial” running time or all field assumptions, so it should not be read as automatically claiming polynomial-time PIT from any weak lower bound.
-
-[Read in atlas](index.html#TCS-5287) · [Hardness vs Randomness for Bounded Depth Arithmetic Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.13)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5341 — Pseudorandom generators from hitting-set generators
 
@@ -2774,10 +2774,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
-A combinatorial auction allocates indivisible items among bidders whose bundle values satisfy diminishing returns. The reviewed question asks for a constant-factor welfare approximation using polynomial communication and universal truthfulness. Payments must make honest reporting optimal for every fixed random choice, while values may require exponentially large tables to describe completely. A mechanism would show that strategic incentives need not cause an unbounded welfare loss in this communication model. The saved review distinguishes demand queries from weaker value access and universal truthfulness from truthfulness only in expectation.
+The auction allocates indivisible items to bidders with private normalized monotone submodular bundle valuations. The question asks for a constant expected-welfare approximation with universal truthfulness and polynomial communication in bidders, items and per-value bit precision. Local computation is unrestricted, but every query description, price, reply, allocation and payment must fit the bit bound. A complete Lean proof must establish the fixed-random-tape incentive inequality and all-profile welfare guarantee, or rule out every protocol in this full class. Value-query impossibility, graph eligibility results, growing approximation factors and budget-feasible procurement do not settle the selected target.
 
-[Read in atlas](index.html#TCS-6632) · [Improved Truthful Mechanisms for Combinatorial Auctions with Submodular Bidders](https://epubs.siam.org/doi/10.1137/20M1316068) · [On the Power of Randomization in Algorithmic Mechanism Design](https://theory.stanford.edu/~shaddin/papers/randompower-focs09.pdf) · [An Impossibility Result for Truthful Combinatorial Auctions with Submodular Valuations](https://arxiv.org/abs/1011.1830) · [Improved Truthful Mechanisms for Subadditive Combinatorial Auctions: Breaking the Logarithmic Barrier](https://arxiv.org/abs/2010.01420) · [The Communication Complexity of Combinatorial Auctions in Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2026.27)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6632) · [Improved Truthful Mechanisms for Combinatorial Auctions with Submodular Bidders](https://epubs.siam.org/doi/10.1137/20M1316068) · [On the Power of Randomization in Algorithmic Mechanism Design](https://theory.stanford.edu/~shaddin/papers/randompower-focs09.pdf) · [An Impossibility Result for Truthful Combinatorial Auctions with Submodular Valuations](https://arxiv.org/abs/1011.1830) · [Improved Truthful Mechanisms for Subadditive Combinatorial Auctions: Breaking the Logarithmic Barrier](https://arxiv.org/abs/2010.01420) · [The Communication Complexity of Combinatorial Auctions in Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2026.27) · [From Compensation Design to Budget-Feasible Mechanisms: A Constant Approximation for Subadditive Valuations](https://arxiv.org/abs/2608.04337)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0011 — Existence of complete EFX allocations for additive valuations
 
