@@ -35,6 +35,33 @@ Completed in this continuation:
 - TCS-4193: the approved randomized general-graph LOCAL lower-bound target.
 - TCS-3381: the approved leaderless population protocol question, measured in
   the original quantified Presburger formula.
+- TCS-6767: the approved sharp width-versus-length resolution target, with
+  unrestricted refutations and the additive exponent loss quantified uniformly.
+- TCS-0970: the approved sparse-vector Johnson–Lindenstrauss application target,
+  with the independent short-seed objective removed.
+- TCS-1022: the quantitative NEXP circuit-hardness consequence of promise
+  derandomization, including its infinitely-often convention.
+- TCS-5275: the historical resolution size-depth existence question, completed
+  and archived after checking the published STOC 2025 theorem.
+
+For TCS-5275, the published Theorem 2.10 supplies a concrete witness with
+k = 40, c = 20 and m = t^3: formula size O(t^33), variable count O(t^24),
+short proof size O(t^172), a larger proof budget at least 2^(-60)t^180, and
+required depth Omega(t^40). The published definitions, lifting theorem and
+simulation lemma were read, together with the full preprint lifting proof.
+The underlying compressed cops-and-robber lower bound was not independently
+reconstructed. The source's separate conjecture about Cutting Planes is not
+claimed resolved.
+
+The coefficient-normalization card also received a typography repair after
+an escaped-string error was detected. The authoring script was repaired, the
+canonical output hash and ledger were updated under the review lock, and the
+math check now rejects stray control characters before scanning formulas.
+
+The recovery checkpoint was committed and pushed as cf61f9a4. The live site
+was deployed through the normal publication workflow after the seventh review
+(publication version 1ef14bec6efb5d099b6c). Later local completions remain
+tracked by the queue and subsequent checkpoints.
 
 For TCS-0805, the review covered the complete new proof: the chain-partition
 bound, forced profile decoding, aggregation by released count and deadline,

@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **264**.
+Pending active reviews: **261**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -21,7 +21,6 @@ Pending active reviews: **264**.
 | [TCS-6206](../../data/cards/TCS-6206.json) | Clique detection in CONGEST | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-6380](../../data/cards/TCS-6380.json) | Load-optimal parallel natural joins | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0990](../../data/cards/TCS-0990.json) | Estimating Earth-Mover Distance | Computational geometry and metric spaces | pool |
-| [TCS-0970](../../data/cards/TCS-0970.json) | Fast JL Transform for Sparse Vectors | Computational geometry and metric spaces | pool |
 | [TCS-6880](../../data/cards/TCS-6880.json) | Efficient constant-distortion cut-cone approximation | Computational geometry and metric spaces | pool |
 | [TCS-5015](../../data/cards/TCS-5015.json) | Foundations of quantum cryptography from EFI pairs | Cryptography | pool |
 | [TCS-5793](../../data/cards/TCS-5793.json) | Pseudorandom functions from hardness of learning | Cryptography | pool |
@@ -42,7 +41,6 @@ Pending active reviews: **264**.
 | [TCS-0071](../../data/cards/TCS-0071.json) | \(\mathrm{NC}^{0}\) proof systems | Proof complexity | pool |
 | [TCS-1253](../../data/cards/TCS-1253.json) | Superpolynomial Res\([\oplus ]\) lower bounds | Proof complexity | pool |
 | [TCS-5114](../../data/cards/TCS-5114.json) | Lovász–Schrijver versus cutting planes | Proof complexity | pool |
-| [TCS-5275](../../data/cards/TCS-5275.json) | Supercritical proof size–depth tradeoffs | Proof complexity | pool |
 | [TCS-0220](../../data/cards/TCS-0220.json) | External Information and Amortized Expected Communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-1059](../../data/cards/TCS-1059.json) | Linearizing arbitrary depth-two circuits efficiently | Communication complexity and Boolean function analysis | pool |
 | [TCS-0540](../../data/cards/TCS-0540.json) | Communication Complexity of Max-Flow | Communication complexity and Boolean function analysis | pool |
@@ -62,7 +60,6 @@ Pending active reviews: **264**.
 | [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
 | [TCS-6949](../../data/cards/TCS-6949.json) | Exhaustive-search lower bounds for Circuit-SAT | Fine-grained complexity | pool |
 | [TCS-6950](../../data/cards/TCS-6950.json) | Disjunction of SETH, APSP and 3SUM hypotheses | Fine-grained complexity | pool |
-| [TCS-1022](../../data/cards/TCS-1022.json) | Derandomization implying exponential nondeterministic circuit hardness | Pseudorandomness and derandomization | pool |
 | [TCS-1125](../../data/cards/TCS-1125.json) | Sub-log-squared seeds for width-four ordered branching programs | Pseudorandomness and derandomization | pool |
 | [TCS-1133](../../data/cards/TCS-1133.json) | Sub-log-squared seeds for polynomial-size CNFs and DNFs | Pseudorandomness and derandomization | pool |
 | [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
