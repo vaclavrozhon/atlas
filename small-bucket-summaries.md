@@ -869,17 +869,17 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1125 — Sub-log-squared seeds for width-four ordered branching programs
 
-Width-four ordered branching programs read bits in sequence while remembering only one of four states. The saved source asks for pseudorandom generators with seed length below the log-squared scale. Even this very small state space can repeatedly combine and discard information from earlier bits. An improvement would test whether general space-bounded pseudorandomness barriers already occur at constant width. The entry does not state the error dependence or explicitness convention, so a claimed shorter seed must be evaluated in the same length and accuracy regime as the cited source.
+The tests are branching programs that read each input bit once and keep at most four states. One uniform polynomial-time generator must preserve every test’s acceptance probability within one tenth. Its seed must be little-o of the square of the logarithm of the output length. Nearly logarithmic seeds are known for width three, while the general width-four bound remains log-squared in the checked sources. Recent weighted-generator results and restrictions on INW constructions do not resolve this ordinary-generator question.
 
-[Read in atlas](index.html#TCS-1125) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1125) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/revision/2/) · [Pseudorandom Generators for Width-3 Branching Programs](https://arxiv.org/abs/1806.04256) · [On Sums of INW Pseudorandom Generators](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX-RANDOM.2025.67) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/revision/3/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1133 — Sub-log-squared seeds for polynomial-size CNFs and DNFs
 
-CNFs and DNFs combine clauses or terms through two layers of Boolean operations. The source asks for pseudorandom generators with sub-log-squared seed length that fool polynomial-size formulas of these types. A generator must preserve acceptance probabilities across many overlapping clauses despite using far fewer random bits. Improving the seed would sharpen derandomization for basic Boolean tests and reduce exhaustive seed-enumeration costs. The saved title does not specify the allowed formula size exponent or error, so these dependencies remain necessary before the quantitative target is fully defined.
+A CNF is an AND of clauses, and a DNF is an OR of terms, with unrestricted reuse of variables. The target is one uniform polynomial-time generator that preserves satisfying fractions within one tenth. For every fixed polynomial formula-size bound, the seed must be little-o of log-squared input length. The checked general seed bound has log-squared length with an additional log-log factor. Bounded-read constructions and recent hitting-set results do not resolve the unrestricted probability-preservation target.
 
-[Read in atlas](index.html#TCS-1133) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1133) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/revision/2/) · [Improved Pseudorandom Generators for AC⁰ Circuits](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2022.34) · [Pseudorandomness for read-k DNF formulas](https://www.cs.columbia.edu/~rocco/papers/soda19.html) · [Optimal Hitting Set Generators via A Potential-Descent Framework](https://eccc.weizmann.ac.il/report/2026/178/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1014 — Lossless condensers with constant output overhead
 
@@ -939,10 +939,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1124 — Optimal PRGs for high-dimensional combinatorial rectangles
 
-A combinatorial rectangle tests whether each coordinate falls inside a chosen subset of its alphabet. The recorded problem asks for optimal pseudorandom generators when the number of coordinates is large. Coordinate-wise simplicity does not remove the challenge of preserving probabilities for every combination of allowed subsets. An efficient optimal generator would support derandomization of tests that factor across many independent-looking coordinates. The source title does not specify alphabet sizes, error, or the desired seed formula, so these parameters must be recovered before one quantitative meaning of optimality is selected.
+A combinatorial rectangle requires each of several disjoint input blocks to belong to an arbitrary chosen subset. The generator must preserve every rectangle’s probability to a prescribed additive error. The requested seed is proportional to block length plus logarithmic inverse error plus doubly logarithmic total length. The same polynomial-time algorithm and absolute seed constant must work in every dimension and accuracy regime. Checked near-optimal rectangle generators and recent optimal min-wise hashing results do not establish the full target.
 
-[Read in atlas](index.html#TCS-1124) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1124) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/revision/2/) · [Concentration for Limited Independence via Inequalities for the Elementary Symmetric Polynomials](https://theoryofcomputing.org/articles/v016a017/) · [Explicit Min-wise Hash Families with Optimal Size](https://arxiv.org/abs/2510.10431v3)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1019 — Polynomial-time derandomization of randomized \(\mathrm{AC}^0\)
 
@@ -953,10 +953,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1122 — Nontrivial PRGs for logarithmic-degree binary polynomials
 
-A binary polynomial evaluates input bits using arithmetic over the two-element field. The source asks for nontrivial pseudorandom generators fooling polynomials whose degree grows logarithmically with input length. As degree increases, these tests can detect increasingly intricate correlations among generated bits. A generator saving a meaningful amount of randomness would extend algebraic pseudorandomness beyond much simpler parity tests. The saved title does not quantify nontrivial seed length, degree constants, or error, so these remain required choices before this becomes a precise construction benchmark.
+The tests are all binary polynomials of degree at most the floor of log₂ n, without a sparsity restriction. One uniform polynomial-time generator must preserve every test’s output probability within one tenth. The user-selected goal is to save at least one random bit at every sufficiently large output length. Known binary-field constructions in the checked sources retain exponential dependence on degree. The 2026 optimal-seed construction over larger-characteristic fields does not settle this binary-field target.
 
-[Read in atlas](index.html#TCS-1122) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1122) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/revision/2/) · [The Sum of d Small-Bias Generators Fools Polynomials of Degree d](https://www.khoury.northeastern.edu/home/viola/papers/d.pdf) · [Fractional Pseudorandom Generators from Any Fourier Level](https://eccc.weizmann.ac.il/report/2020/121/revision/1/) · [Optimal PRGs for Low-Degree Polynomials over Polynomial-Size Fields](https://arxiv.org/abs/2602.10030v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1131 — Sublinear-seed generators for AC0 with parity gates
 

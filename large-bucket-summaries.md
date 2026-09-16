@@ -1741,10 +1741,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6528 — Unknot recognition in polynomial time
 
-Unknot recognition asks whether a closed loop represented by a finite crossing diagram can be deformed into a circle without cutting. A complicated drawing may still represent an unknot, so simplifying visible crossings is not a complete decision method. The target here is a deterministic algorithm whose bit complexity is polynomial in the diagram encoding. The saved card records a September 2026 preprint claiming such an algorithm, with its proof not independently validated. This description therefore preserves the uncertainty around that claim while explaining the computational target.
+The input is an explicit finite crossing diagram of a tame knot. The question asks whether a deterministic algorithm can recognize the unknot in polynomial bit time. Both unknottedness and knottedness have polynomially verifiable certificates, which does not itself give such an algorithm. A September 2026 preprint claims a positive solution using locally minimal bridge presentations. The review has not independently certified that claim, so the card retains uncertain scientific status.
 
-[Read in atlas](index.html#TCS-6528) · [The Computational Complexity of Knot and Link Problems](https://arxiv.org/abs/math/9807016) · [A polynomial upper bound on Reidemeister moves](https://annals.math.princeton.edu/2015/182-2/p03) · [The efficient certification of knottedness and Thurston norm](https://arxiv.org/abs/1604.00290) · [Unknot recognition in quasi-polynomial time](https://www.maths.ox.ac.uk/node/60914) · [A Practical Algorithm for Knot Factorisation](https://drops.dagstuhl.de/storage/00lipics/lipics-vol332-socg2025/html/LIPIcs.SoCG.2025.55/LIPIcs.SoCG.2025.55.html) · [Incompressible surfaces, hierarchies and unknot recognition](https://arxiv.org/abs/2607.23350) · [Locally Minimal Bridge Presentations of Knots](https://arxiv.org/abs/2609.06492)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6528) · [The Computational Complexity of Knot and Link Problems](https://arxiv.org/abs/math/9807016) · [A polynomial upper bound on Reidemeister moves](https://annals.math.princeton.edu/2015/182-2/p03) · [The efficient certification of knottedness and Thurston norm](https://arxiv.org/abs/1604.00290v3) · [Unknot recognition in quasi-polynomial time](https://www.maths.ox.ac.uk/node/60914) · [A Practical Algorithm for Knot Factorisation](https://drops.dagstuhl.de/storage/00lipics/lipics-vol332-socg2025/html/LIPIcs.SoCG.2025.55/LIPIcs.SoCG.2025.55.html) · [Incompressible surfaces, hierarchies and unknot recognition](https://arxiv.org/abs/2607.23350v1) · [Locally Minimal Bridge Presentations of Knots](https://arxiv.org/abs/2609.06492v1)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6573 — Polynomial Hirsch conjecture
 
@@ -1755,10 +1755,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0318 — Planar k-set extremal function
 
-A planar k-set is a k-element subset of a point set that one line strictly separates from all remaining points. The target is the maximum number of such subsets over n points with no three collinear. Determine its growth within universal constant factors jointly in n and k, for \(1\le k\le \lfloor n/2\rfloor\). The problem counts subsets rather than separating lines and asks for combinatorial complexity rather than an enumeration algorithm. Both a uniform bound for every point set and matching examples throughout the parameter range are required.
+A planar k-set is a k-element subset strictly separated from the remaining points by a line. The extremal function maximizes the number of these subsets over n distinct points with no three collinear. The task is to determine one function within universal constant factors for every n and every k between one and half of n. Acceptance requires both a bound for all point sets and matching examples for every parameter pair. The checked general bounds and newer halving-line refinements still leave the asymptotic function unresolved.
 
-[Read in atlas](index.html#TCS-0318) · [The Open Problems Project: Problem 7, k-sets](https://topp.openproblem.net/p7) · [Improved Bounds for Planar k-Sets and Related Problems](https://courses.cs.duke.edu/cps234/fall08/handouts/dey.pdf) · [Point Sets with Many k-Sets](https://link.springer.com/article/10.1007/s004540010022) · [An Improved, Simple Construction of Many Halving Edges](https://rangevoting.org/many_halving_edges.pdf) · [An Improvement of the Upper Bound for the Number of Halving Lines of Planar Sets](https://oa.upm.es/89576/1/10302927.pdf)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-0318) · [The Open Problems Project: Problem 7, k-sets](https://topp.openproblem.net/p7) · [Improved Bounds for Planar k-Sets and Related Problems](https://courses.cs.duke.edu/fall08/cps234/handouts/dey.pdf) · [Point Sets with Many k-Sets](https://link.springer.com/article/10.1007/s004540010022) · [An Improved, Simple Construction of Many Halving Edges](https://rangevoting.org/many_halving_edges.pdf) · [An Improvement of the Upper Bound for the Number of Halving Lines of Planar Sets](https://oa.upm.es/89576/1/10302927.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6524 — Lang–Plaut problem
 
@@ -1769,10 +1769,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7242 — Decidability of PL four-sphere recognition
 
-The input is a finite triangulation promised to be a closed combinatorial four-dimensional manifold. The task is to recognize the standard piecewise-linear four-sphere. The question asks for a terminating decision algorithm, with no polynomial-time requirement. Recognizing a topological sphere or checking its homology would answer a different question. The problem marks the exceptional dimension between established decidability and undecidability results for sphere recognition.
+The input is a finite simplicial complex promised to be a closed combinatorial four-manifold. The question asks whether one deterministic algorithm can recognize the standard PL four-sphere on every such input. There is no time bound, but both termination and a correct binary answer are mandatory. Topological equivalence, finite experimental classifications and heuristics that may remain inconclusive do not supply this guarantee. The checked sources retain dimension four as the unresolved boundary in PL sphere recognition.
 
-[Read in atlas](index.html#TCS-7242) · [Frontiers of sphere recognition in practice](https://link.springer.com/article/10.1007/s41468-022-00092-8) · [Applied topology: sphere recognition research presentation](https://page.math.tu-berlin.de/~joswig/presentations/Joswig-Applied%2BTopology-250715.pdf) · [Is there an algorithm to recognize the combinatorial four-sphere?](https://www.openproblemgarden.org/op/is_there_an_algorithm_to_determine_if_a_triangulated_4_manifold_is_combinatorially_equivalent_to_the_4_sphere)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7242) · [Frontiers of sphere recognition in practice](https://link.springer.com/article/10.1007/s41468-022-00092-8) · [Frontiers of Sphere Recognition in Practice](https://page.math.tu-berlin.de/~joswig/presentations/Joswig-Applied%2BTopology-250715.pdf) · [Is there an algorithm to recognize the combinatorial four-sphere?](https://www.openproblemgarden.org/op/is_there_an_algorithm_to_determine_if_a_triangulated_4_manifold_is_combinatorially_equivalent_to_the_4_sphere) · [Small Triangulations of 4-Manifolds and the 4-Manifold Census](https://link.springer.com/article/10.1007/s00454-026-00818-w)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6526 — Optimal size of weak \(\varepsilon\)-nets for convex ranges
 
@@ -1935,12 +1935,12 @@ A polygon's visibility graph records which pairs of vertices can be joined by a 
 [Read in atlas](index.html#TCS-0416) · [The Open Problems Project: Visibility Graph Recognition](https://topp.openproblem.net/p17) · [The Existential Theory of the Reals as a Complexity Class: A Compendium](https://arxiv.org/abs/2407.18006) · [Complexity Aspects of Visibility Graphs](https://doi.org/10.1142/S0218195995000179)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-0990 — Estimating Earth-Mover Distance
+### TCS-0990 — Constant-factor streaming approximation of planar Earth Mover Distance
 
-A stream presents red and blue points on a planar grid, with equally many points of each color. Their Earth Mover Distance is the minimum total cost of matching each red point to a blue point. The source asks which approximation guarantees are possible when the stream can be retained only through a small memory state. A central target is constant-factor approximation with space polynomial in the logarithms of the input and grid sizes. Transportation structure must be captured without storing all points or the matching itself.
+The stream contains equal numbers of red and blue unit-mass points on a planar integer grid. Earth Mover Distance is the minimum total L1 cost of matching red occurrences to blue occurrences. The question asks for one-pass constant-factor estimation with memory polynomial in the logarithms of the point count and grid side length. The guarantee must hold with constant success probability for every fixed arbitrary stream order. Known grid-space tradeoffs and embedding or constant-sketch lower bounds do not settle this unrestricted streaming target.
 
-[Read in atlas](index.html#TCS-0990) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:7)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0990) · [Problem 7: Estimating Earth-Mover Distance](https://sublinear.info/index.php?title=Open_Problems:7) · [List of Open Problems in Sublinear Algorithms](https://sublinear.info/sublinear_info.pdf) · [Efficient Sketches for Earth-Mover Distance, with Applications](https://people.csail.mit.edu/indyk/emdStream.pdf) · [Sketching and Embedding are Equivalent for Norms](https://arxiv.org/abs/1411.2577v3) · [Lower Estimates for L1-Distortion of Transportation Cost Spaces](https://arxiv.org/abs/2602.14852v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0377 — Linear-size universal point sets for planar graphs
 
