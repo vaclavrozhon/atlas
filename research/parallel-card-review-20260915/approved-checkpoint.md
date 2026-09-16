@@ -1,0 +1,15 @@
+# User-selected scopes: completed quantum and planar cards
+
+Reviewed on 16 September 2026. The full catalogue review continues.
+
+- **TCS-4376:** selected the all-planar local-neighborhood implication, with no maximum-degree bound. Specified rooted induced neighborhoods, multiplicities, a radius depending only on epsilon, global vertex relabeling and edge-edit distance. The original broad property-testing classification and authorized change of scope are recorded. Importance 86.
+- **TCS-4737:** selected exact Hadamard/CNOT/T gates for QMA1. Defined finite polynomial registers, witness states, gate matrices and exact completeness. Distinguished the May 2026 infinite-counter result and its near-perfect finite truncation. Importance 94.
+- **TCS-0860:** selected complement membership in QMA(2), preserving importance 72. Repaired the shortened source definition with spectral thresholds 2/3 and 1/3, a factor-two count gap, explicit circuit/binary-threshold encoding and full product-witness quantifiers. The repair and narrowing are explicit; no equivalence with a sharp single-threshold problem is asserted.
+- **TCS-4811:** selected approximation of the concrete optimal dihedral POVM, with its support inverse and complementary outcome. Specified full valid-input total-variation accuracy, unary reciprocal precision and uniform polynomial circuits; no prescribed coherent dilation or post-measurement state. Distinguished restricted Subset Sum converses from hardness of every measurement implementation. Importance 87.
+- **TCS-4835:** repaired the mismatched adjacent-question citation to the title-matching nonunitary-space question. Checked the original matrix characterizations and STOC 2021 Theorem 1 with its definitions, logarithmic-space argument and general-space padding proof. Recorded the positive resolution and immediately archived the card. The active site no longer contains it. Importance 91.
+
+The four active cards remain source-open under the selected formulations. All five completions used the shared reservations and expected hashes, schema validation, completion ledger and immediate local publication. The archived body was not reopened. Its newly authored text was independently extracted from the authoring script for formula checking.
+
+Validation passed: 16 desktop/mobile compact/full browser cases; canonical/publication parity; source captions; no math, browser, HTTP or horizontal-overflow errors; the active math check covered 1,035 cards and 23,732 expressions. The newly authored archived text contributed 80 successfully parsed expressions. Queue hashes match the four active canonical bodies; completion metadata and active absence were checked for the archived card. The accompanying source manifest distinguishes cached selected full passages from web-only sources.
+
+Separate workers also completed the user-approved TCS-3655 and TCS-5406 scopes; see their individual reports. No root staging, commit, push or external deployment occurred. No cited proof was independently verified in full or formalized in Lean.

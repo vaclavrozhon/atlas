@@ -1,0 +1,28 @@
+# Foundation-card scope findings — 16 September 2026
+
+Update: the user selected both recommended scopes on16September2026. The parent completed TCS-5817 and TCS-5915 after the strings worker hit a service usage limit; see boson-foundations-checkpoint.md. The unresolved-choice notes below describe the earlier checkpoint.
+
+Both canonical records now contain source-grounded partial updates under their saved claims, marked needs_specification/source and not self-contained. Their review queue entries remain pending. These notes preserve the substantive source findings and unselected variants.
+
+## TCS-5817: computational interpretation of impredicativity
+
+- CSL 2021 §3, https://doi.org/10.4230/LIPIcs.CSL.2021.28 defines `X has size U` as the dependent sum of a small type and an equivalence to X. It distinguishes **smallness of the whole type Ω_U of U-small propositions** from **resizing every proposition in U+ to U**. These should not silently be identified.
+- The historical sentence asks for a computational interpretation of the impredicativity axioms but does not select a reduction calculus, a canonicity theorem or normalization strength.
+- The published follow-up, *Continuous and algebraic domains in univalent foundations*, JPAA229(10),108072 (2025), §1.2 retains that open statement. §2.5 retains the distinct resizing principles. Checked author accepted manuscript https://martinescardo.github.io/papers/continuous-algebraic-domains-in-uf.pdf and publisher https://doi.org/10.1016/j.jpaa.2025.108072 .
+- Uemura, TYPES2018 (published2019), https://doi.org/10.4230/LIPIcs.TYPES.2018.7 constructs cubical assemblies with a univalent impredicative universe while proving failure of propositional resizing. Its title therefore must not be read as a positive resolution of the resizing-computation question.
+- A source-faithful update can explain this family and current evidence, but making a benchmark target requires choosing the exact principle(s) and computational guarantee. Effective homotopy canonicity (algorithmically extracting a numeral with an identity proof) differs from judgmental reduction to a numeral or a full normalization theorem. Merely asserting a classical model is not a computational interpretation.
+- In Lean, the object type theory and its identity types must be represented explicitly. Native proof-irrelevant equality or native impredicative `Prop` cannot replace the object-theory homotopy propositions in the target.
+
+Concrete variants were sent to root: a specified resizing scheme with effective homotopy canonicity; both named principles in a normalizing cubical extension (stronger); or leave the broad research programme unpromoted until a computational guarantee is selected.
+
+## TCS-5915: constructive simplicial model
+
+- The source TYPES2019 sentence asks for a constructive simplicial model with univalent universes. Reference13 is Gambino–Sattler, *The Frobenius condition, right properness, and uniform fibrations* (2017), not the later Gambino–Henry paper.
+- Gambino–Henry, *Towards a constructive simplicial model of Univalent Foundations*, JLMS105(2),1073–1109 (2022), https://doi.org/10.1112/jlms.12532; checked author version https://arxiv.org/abs/1905.06281v3 . Theorem8.1 constructs a comprehension category with weak/pseudo-stable type formers and a univalent universe. **Remark8.5 explicitly leaves splitting/coherence open**; obtaining a univalent fibration alone is not a strict substitution-stable model.
+- The paper's p5 constructivity paragraph assumes CZF plus an inaccessible set. Universe closure under arbitrary Π-types additionally assumes every subset of a small set is small. Remark8.3 spells out alternatives if this additional resizing assumption is dropped. A fully predicative target forbidding this assumption is stronger than the stated partial construction setting.
+- *The equivariant model structure on cartesian cubical sets*, Advances in Mathematics (2026),110965, https://doi.org/10.1016/j.aim.2026.110965, §1.7.3 still identifies the coherence gap. It also says effective Kan fibrations do not yet supply universes or the needed complete model. Downloaded publisher full text through the Chalmers repository.
+- Sattler's TYPES2025 presentation, https://msp.cis.strath.ac.uk/types2025/slides/TYPES2025-slidesSattler.pdf, announces a constructive infinity-groupoid interpretation through a **cubical** localization and a Quillen reflection from semisimplicial objects. This must not automatically be promoted to a strict model directly in simplicial sets.
+- Coquand–Höfer–Sattler, *Constructive higher sheaf models with applications to synthetic mathematics*, https://arxiv.org/abs/2605.15126v2 (18May2026), p2 explicitly calls Sattler's homotopically correct base model **forthcoming**; §§2–4 work with cubical inner models and a constructive metatheory with universes. Footnotes5–6 distinguish a simplicial construction using excluded middle. The paper is not a checked strict simplicial solution of the source question.
+- Cavallo–Riehl–Sattler, https://arxiv.org/abs/2607.02420v1, is directed univalence for simplicial objects in an infinity-topos, another distinct semantic target; abstract checked, no full-proof inspection claimed.
+
+Recommended precise full target relayed to root: a strict substitution-stable simplicial model of MLTT with Π,Σ,Id,N and univalent universes in an explicitly specified constructive set theory with universe/size assumptions, excluding excluded middle and choice. This retains the full model construction rather than replacing it by coherence of one selected existing construction. A no-resizing metatheory is a materially stronger alternative and should be selected explicitly.

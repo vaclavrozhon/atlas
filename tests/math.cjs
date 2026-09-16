@@ -21,6 +21,7 @@ let cards=0,expressions=0;const errors=[];
 function walk(value,location){
  if(typeof value==='string'){
   if(/(?:^|\.)(?:url|pdf_url|source_url|id|citation|key)$/.test(location))return;
+  if(/[\x00-\x08\x0b-\x1f\x7f]/.test(value))errors.push({location,error:'Unexpected control character: check escaped LaTeX commands'});
   const parts=math.parts(value);
   for(const part of parts){
    if(part.math){

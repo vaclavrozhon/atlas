@@ -1384,3 +1384,7 @@ The concurrent census is 1,023 active cards: 747 reviewed and 276 pending. The q
 Checkpoint 640. Complete randomized Hyperclique Hypothesis model and recent source review
 
 The concurrent census is 1,022 active cards: 748 reviewed and 274 pending. The queue has 640 completed records, 596 active and 44 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,022 active cards, covering 31,660 formulas.
+
+Checkpoint 644. Completed individual metric k-Median review
+
+The concurrent census is 1,021 active cards: 751 reviewed and 270 pending. The queue has 644 completed records, 599 active and 45 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,021 active cards, covering 31,816 formulas.
