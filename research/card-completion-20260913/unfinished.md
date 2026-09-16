@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **226**.
+Pending active reviews: **223**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -23,10 +23,7 @@ Pending active reviews: **226**.
 | [TCS-0218](../../data/cards/TCS-0218.json) | Cryptogenography | Communication complexity and Boolean function analysis | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
 | [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
-| [TCS-4771](../../data/cards/TCS-4771.json) | Two-sided versus one-sided randomized communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |
-| [TCS-6710](../../data/cards/TCS-6710.json) | Number-on-forehead Disjointness complexity | Communication complexity and Boolean function analysis | pool |
-| [TCS-0562](../../data/cards/TCS-0562.json) | Refuting nondeterministic SETH | Fine-grained complexity | pool |
 | [TCS-0560](../../data/cards/TCS-0560.json) | Fine-grained reductions from Hitting Set to 3SUM | Fine-grained complexity | pool |
 | [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
 | [TCS-6942](../../data/cards/TCS-6942.json) | Hitting Set hardness from Orthogonal Vectors | Fine-grained complexity | pool |

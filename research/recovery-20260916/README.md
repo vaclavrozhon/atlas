@@ -224,3 +224,16 @@ Source checkpoint aeec4db9 and deployment
 1b45ad6706fcc5392d483a8c149d001592384e07 cover the first forty-one
 dispositions, with publication 918c39f76753ffdaed28.
 Local publication after forty-four is edec3b5e07f009a8411c.
+
+After forty-seven dispositions the queue contains 691 completed records,
+223 pending records and one outside active scope. Of 1,012 active cards,
+789 have completed individual reviews. TCS-0562 now fixes uniform
+nondeterministic acceptance of UNSAT and the all-width exponent saving.
+TCS-4771 specifies total-function adaptive RP-oracle communication, and
+TCS-6710 specifies randomized interactive NOF disjointness in both parameters.
+The formula check passes on 33,362 expressions; all completed hashes match
+and the ledger parses. Eleven source-scope choices remain pending.
+Source checkpoint 6e22a683 and deployment
+ab965ecb723d54c039740a4da8b0cccdb174d1f2 cover the first forty-four
+dispositions with publication edec3b5e07f009a8411c.
+Local publication after forty-seven is 35d3b83c975c97770175.
