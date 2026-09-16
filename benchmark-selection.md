@@ -242,7 +242,7 @@ Previous prefix: TCS-6603, TCS-6604.
 | 1 | [Log-rank conjecture](index.html#TCS-6603) (TCS-6603) | Communication versus rank | 98 | A flagship structural conjecture linking deterministic protocols and matrix rank, with many equivalent combinatorial formulations and a large quantitative gap. |
 | 2 | [Fourier Entropy–Influence conjecture](index.html#TCS-6604) (TCS-6604) | Fourier information and influence | 97 | A longstanding, broadly consequential conjecture in Boolean function analysis, with direct learning-theory implications and active 2026 progress that still leaves the universal classical inequality open. |
 
-Candidates considered: TCS-6603, TCS-6604, TCS-6605, TCS-6581, TCS-6664, TCS-6450, TCS-0220.
+Candidates considered: TCS-6603, TCS-6604, TCS-6605, TCS-6581, TCS-6664, TCS-6450.
 
 ## Fine-grained complexity
 

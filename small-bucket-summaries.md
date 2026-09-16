@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-606 five-sentence working summaries, based on saved source material.
+604 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -315,7 +315,7 @@ The input is a CNF formula and a proof-length budget written in unary. The algor
 [Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1) · [Regular resolution effectively simulates resolution](https://doi.org/10.1016/j.ipl.2024.106489) · [Automating Resolution is NP-Hard](https://arxiv.org/abs/1904.02991) · [The Proof Analysis Problem](https://arxiv.org/abs/2506.16956)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Communication complexity and Boolean function analysis (33)
+## Communication complexity and Boolean function analysis (31)
 
 ### TCS-6603 — Log-rank conjecture
 
@@ -422,13 +422,6 @@ Alice and Bob must compute a Boolean function of their separate inputs by exchan
 [Read in atlas](index.html#TCS-6711) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf) · [Nearly Optimal Separations Between Communication (or Query) Complexity and Partitions](https://doi.org/10.4230/LIPIcs.CCC.2016.4)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0220 — External Information and Amortized Expected Communication
-
-Communication protocols reveal information about distributed inputs through their transcripts. This entry compares external information with amortized expected communication, linking what an observer learns to the cost of repeatedly performing a task. The central issue is whether many instances allow communication to be compressed toward the relevant information quantity. Understanding this relation would clarify when an information-theoretic lower bound accurately predicts operational communication cost. The saved record is only a topic label, so the source must provide the input distribution, error convention, and direction of the proposed relationship before a formal equality or separation is stated.
-
-[Read in atlas](index.html#TCS-0220) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:76)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1845 — Optimal time exponent for truth-table decision-tree depth
 
 Given the complete truth table of a Boolean function, the task is to compute the minimum worst-case depth of a decision tree evaluating it. The known sequential upper bound is polynomial in the table length but has an exponent larger than one. This card asks for the infimum deterministic time exponent in a fixed finite-word random-access model, allowing different uniform algorithms for different candidate exponents. That exponent separates the cost of optimizing query depth from the query depth itself and from parallel complexity. An accepted answer must give a real approximation within 1/100 and a complete Lean proof, without assuming that an algorithm attains the infimum.
@@ -443,12 +436,12 @@ A De Morgan formula computes a Boolean function with an expression tree whose le
 [Read in atlas](index.html#TCS-1047) · [Boolean Function Complexity: Advances and Frontiers — early author draft](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Boolean Function Complexity: Advances and Frontiers — Second Expanded Edition, author draft](https://web.vu.lt/mif/s.jukna/boolean-2nd/BFC-new.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-1059 — Linearizing arbitrary depth-two circuits efficiently
+### TCS-1059 — Linearization conjecture for depth-two circuits
 
-The source considers depth-two circuits for a linear computational task and asks whether arbitrary circuits can be linearized efficiently. Linearization would replace possibly nonlinear intermediate behavior by a representation using the intended linear operations. The question tests whether leaving the linear model temporarily can provide substantial savings even when the final output is linear. Resolving it would help interpret lower bounds proved only for linear circuits. The abbreviated source record does not retain the coefficient field, gate basis, or allowable overhead, so those choices remain necessary before an exact simulation theorem can be proposed.
+A depth-two Boolean circuit computes a linear transformation using shared middle-layer gates and direct input wires. The question asks whether all its gates can be made linear with only constant-factor increases in width and direct-input degree. Middle-layer gates may initially compute arbitrary Boolean functions, and every input vector must be handled exactly. The linear conclusion is equivalent to decomposing the matrix into a low-rank part and a part sparse in each row. The target is existence of such circuits, without a requirement to find the conversion efficiently.
 
-[Read in atlas](index.html#TCS-1059) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1059) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Block Rigidity: Strong Multiplayer Parallel Repetition implies Super-Linear Lower Bounds for Turing Machines](https://eccc.weizmann.ac.il/report/2020/173/) · [Efficient Linearization Implies the Multiphase Conjecture](https://eccc.weizmann.ac.il/report/2022/122/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0540 — Communication Complexity of Max-Flow
 
@@ -491,13 +484,6 @@ The target is a universal quadratic upper bound on deterministic decision-tree d
 
 [Read in atlas](index.html#TCS-1061) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Decision Tree Complexity Versus Block Sensitivity and Degree](https://doi.org/10.4230/LIPIcs.FSTTCS.2023.27) · [Nearly Tight Bounds on the Block Number of Boolean Functions in Terms of Sensitivity](https://eccc.weizmann.ac.il/report/2026/010/)
 Existing status: `source_open` · Summary written: 2026-09-15
-
-### TCS-1540 — Influence lower bounds for noisy query complexity
-
-Noisy query algorithms receive unreliable information when inspecting input bits. The source conjectures a lower bound of order \(I(f) \log  I(f)\) for every Boolean function, with \(I(f)\) denoting influence in its model. The proposed logarithmic factor would quantify the extra cost of overcoming noise for functions sensitive to many coordinates. It links an analytic property of the function to the number of observations needed for reliable computation. The saved passage does not preserve the noise rate, error guarantee, or influence convention, and those choices are essential when interpreting both the bound and small-influence edge cases.
-
-[Read in atlas](index.html#TCS-1540) · [Tight Bounds for Noisy Computation of High-Influence Functions, Connectivity, and Threshold](https://proceedings.mlr.press/v291/gu25a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2571 — Communication characterization of nonmonotone Karchmer–Wigderson games
 
