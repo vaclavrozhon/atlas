@@ -224,10 +224,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7243 — Linear-size circuits for stable ternary compaction
 
-Stable ternary compaction moves every 2 to the end while preserving the order of all 0s and 1s. The question is whether every input length admits a Boolean circuit of size proportional to that length. The circuits use a fixed bounded-fan-in basis and may have arbitrary depth and fan-out. Stability retains the original binary sequence, so ordinary ternary sorting is insufficient. The target supplies a concrete function for studying the limits of linear-size circuits.
+Stable ternary compaction moves every 2 to the end while preserving the order of all zeros and ones. The question asks whether each input length admits an exact Boolean circuit of size proportional to that length. Circuits may have arbitrary depth and fan-out and may compute freely on the fixed two-bit alphabet encoding. Non-stable compaction and ordinary ternary sorting do not retain the binary sequence required in the answer. The checked short-key sorting advances and conditional or restricted lower bounds do not resolve this nonuniform linear-size question.
 
-[Read in atlas](index.html#TCS-7243) · [Linear-size circuits for stable \(0,1 < 2\) sorting?](https://www.openproblemgarden.org/op/linear_size_circuits_for_stable_0_1_2_sorting) · [Sorting Short Keys in Circuits of Size \(o(n \log  n)\)](https://arxiv.org/abs/2010.09884)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7243) · [Linear-size circuits for stable \(0,1<2\) sorting?](https://www.openproblemgarden.org/op/linear_size_circuits_for_stable_0_1_2_sorting) · [Sorting Short Keys in Circuits of Size \(o(n\log n)\)](https://doi.org/10.1137/20M1380983) · [Optimal Sorting Circuits for Short Keys](https://doi.org/10.1137/1.9781611977073.142)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0017 — KRW formula-size conjecture with constant loss
 
@@ -758,12 +758,26 @@ Two probabilistic automata assign acceptance probabilities to every finite input
 [Read in atlas](index.html#TCS-3863) · [When is Containment Decidable for Probabilistic Automata?](https://doi.org/10.4230/LIPIcs.ICALP.2018.121) · [When are emptiness and containment decidable for probabilistic automata?](https://doi.org/10.1016/j.jcss.2021.01.006)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5904 — Equivalence of discounted-sum automata
+
+A discounted-sum automaton assigns a convergent weighted value to each infinite run, with later weights geometrically discounted. Its value on an infinite word is the supremum over all runs carrying that word. The question asks for exact decidability of equality of two such functions for every input rational discount factor shared by the automata. Known results for constant functions, reciprocal-integer factors, finite words and transition-dependent discounting have different scopes. A resolution would determine whether arbitrary nondeterministic quantitative specifications in this basic model can be compared algorithmically.
+
+[Read in atlas](index.html#TCS-5904) · [Safety and Liveness of Quantitative Automata](https://doi.org/10.4230/LIPIcs.CONCUR.2023.17) · [Discounted-Sum Automata with Real-Valued Discount Factors](https://faculty.runi.ac.il/udiboker/files/RealValuedNDAs.pdf) · [Discounted-Sum Automata with Multiple Discount Factors](https://lmcs.episciences.org/15802/pdf) · [The Target Discounted-Sum Problem](https://faculty.runi.ac.il/udiboker/files/tds.pdf) · [Target Discounted Sum Problem on Markov Chains with Applications to Markov Decision Processes](https://arxiv.org/html/2609.03670v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0167 — Primitive words and context-freeness
 
 A primitive word is nonempty and is not a power of any shorter nonempty word. The language contains all such words over a fixed finite alphabet with at least two symbols. The conjecture says that no context-free grammar generates exactly this language. Grammars may be ambiguous, so unique-parse limitations would not settle the question. A 2026 paper still states this grammar-expressibility question as open.
 
 [Read in atlas](index.html#TCS-0167) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#context-freeness-of-primitive-words) · [On the Complexity of Language Membership for Probabilistic Words](https://doi.org/10.4230/LIPIcs.STACS.2026.5)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-6064 — Two-dimensional cellular-automaton limit sets
+
+A cellular automaton updates every site of an infinite grid using one finite local rule. Its ordinary limit set contains configurations that can occur after arbitrarily many update steps from some initial configurations. The question classifies exactly which two-dimensional subshifts can arise in this way, allowing finitely many transient auxiliary states. The classification is represented by a realizability indicator on the full domain of subshifts, without assuming an effective decision procedure. Results for typical initial states, computational degrees or a different notion of limit set do not determine this exact ordinary-limit-set class.
+
+[Read in atlas](index.html#TCS-6064) · [Construction of \(\mu\)-Limit Sets of Two-dimensional Cellular Automata](https://doi.org/10.4230/LIPIcs.STACS.2015.262) · [Turing degrees of limit sets of cellular automata](https://arxiv.org/abs/1402.3766v1) · [Limit dynamics of elementary cellular automaton 18](https://doi.org/10.1017/etds.2026.10300)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0154 — Separating words problem
 
@@ -877,25 +891,11 @@ A stochastic resolver chooses an automaton's transitions randomly while reading 
 [Read in atlas](index.html#TCS-5863) · [Resolving Nondeterminism with Randomness](https://doi.org/10.4230/LIPIcs.MFCS.2025.57)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-5904 — Equivalence of discounted-sum automata
-
-Discounted-sum automata assign values to infinite words by giving earlier transition weights more influence than later ones. The project asks whether equivalence of these quantitative functions is decidable for the source's automaton model. Agreement must hold on every word and in the exact numerical value, not just at a chosen threshold. The source distinguishes this from deciding whether one automaton computes a constant function, which it handles separately. A general comparison procedure would provide a fundamental correctness test for quantitative specifications with geometrically discounted future contributions.
-
-[Read in atlas](index.html#TCS-5904) · [Safety and Liveness of Quantitative Automata](https://doi.org/10.4230/LIPIcs.CONCUR.2023.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5959 — Complexity of the Game of Life limit set
 
 Conway's Game of Life has a limit set consisting of configurations with arbitrarily long predecessor histories. The project asks the complexity of recognizing finite patterns that occur somewhere in this set. The source proves polynomial-space hardness and asks whether the full co-recursively-enumerable completeness bound is attained. Standard universality constructions do not settle this because surrounding cells must not be assumed harmless when testing arbitrary patterns. A matching hardness result would show that indefinitely possible past histories encode substantially more difficulty than ordinary finite-time simulation.
 
 [Read in atlas](index.html#TCS-5959) · [What Can Oracles Teach Us About the Ultimate Fate of Life?](https://doi.org/10.4230/LIPIcs.ICALP.2022.131)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6064 — Characterizing cellular-automaton limit sets
-
-A cellular automaton's limit set contains every configuration that can appear after arbitrarily many update steps. This project asks which subshifts can arise as such limit sets. The characterization concerns all possible initial configurations, including exceptional behaviors of negligible probability. The source's positive result instead addresses measure-based limit sets under random initial conditions and therefore answers a different question. An ordinary limit-set characterization would describe the full range of persistent global behavior that can emerge from a finite local update rule.
-
-[Read in atlas](index.html#TCS-6064) · [Construction of mu-Limit Sets of Two-dimensional Cellular Automata](https://doi.org/10.4230/LIPIcs.STACS.2015.262)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6158 — Unique invariant measures versus cellular-automaton ergodicity
@@ -2098,6 +2098,13 @@ A teacher assigns correctly labeled examples to each concept in a finite class. 
 [Read in atlas](index.html#TCS-3689) · [Optimal Collusion-Free Teaching](https://proceedings.mlr.press/v98/kirkpatrick19a.html) · [On Batch Teaching Without Collusion](https://www.jmlr.org/papers/v24/22-0330.html) · [Non-Clashing Teaching Maps for Balls in Graphs](https://proceedings.mlr.press/v247/chalopin24a.html)
 Existing status: `open` · Summary written: 2026-09-12
 
+### TCS-5031 — Littlestone-dimension regret bounds for unrestricted classes
+
+A learner predicts binary labels while an adversary supplies instances and then labels. Its regret is the expected number of errors beyond those of the best fixed concept on the same sequence. The question asks whether every class of finite Littlestone dimension has regret of square-root order in dimension times horizon, with universal constants. The sharp known theorem uses a minimax regularity assumption, and later primary sources explicitly leave removal of that assumption open. A complete Lean answer must establish the universal two-sided bound for arbitrary classes or refute it under the same prediction model.
+
+[Read in atlas](index.html#TCS-5031) · [The Dimension of Self-Directed Learning](https://proceedings.mlr.press/v237/devulapalli24a.html) · [Multiclass Online Learning and Uniform Convergence](https://proceedings.mlr.press/v195/hanneke23b.html) · [Adversarial Laws of Large Numbers and Optimal Regret in Online Classification](https://arxiv.org/abs/2101.09054) · [Topics in Learning Theory: Prediction, Estimation, and Partial Information](https://www.ambujtewari.com/theses/Vinod_Raman_Thesis_2025.pdf) · [Optimal Prediction Using Expert Advice and Randomized Littlestone Dimension](https://proceedings.mlr.press/v195/filmus23a.html) · [Regret-Oracle Complexity Tradeoffs in Agnostic Online Learning](https://arxiv.org/abs/2605.07155)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-2339 — Recursive teaching dimension conjecture
 
 A finite concept class can be studied through both its VC dimension and its recursive teaching dimension. VC dimension measures the ability to realize label patterns, while recursive teaching measures how examples can identify concepts through successive elimination. The question asks whether one universal constant always bounds recursive teaching dimension by that constant times VC dimension. The same constant must work for every finite class. The project seeks a direct quantitative link between the complexity of learning from samples and the information needed for structured teaching.
@@ -2208,13 +2215,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A sample compression scheme stores a small subset of labeled examples and enough permitted auxiliary information to reconstruct a hypothesis consistent with the full sample. This problem compares compression for binary classes with compression for classes whose labels may take many values. Assuming every binary class of VC-dimension d admits compression of size \(f(d)\), it asks whether graph dimension gives the corresponding multiclass bound up to a constant factor. The source establishes stronger reductions under additional assumptions on the binary reconstruction procedure, including proper or majority-vote reconstruction. Removing those assumptions would transfer binary compression advances to multiclass learning through a general structural reduction.
 
 [Read in atlas](index.html#TCS-4792) · [Sample Compression Scheme Reductions](https://proceedings.mlr.press/v272/attias25a.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5031 — Littlestone-dimension regret bounds for unrestricted classes
-
-Online classification compares a learner's errors with the best hypothesis in a concept class. The cited result gives optimal square-root regret in the product of horizon and Littlestone dimension under an additional regularity condition. The extracted question asks whether that characterization holds for completely unrestricted classes. The restriction matters because it supports a minimax argument for an associated game. Removing it would show that the combinatorial dimension alone determines regret, even where the usual interchange between randomized strategies and adversarial choices cannot simply be assumed.
-
-[Read in atlas](index.html#TCS-5031) · [The Dimension of Self-Directed Learning](https://proceedings.mlr.press/v237/devulapalli24a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5061 — Computable PAC learning versus effective sample bounds
@@ -2496,10 +2496,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0036 — BPP versus BQP
 
-This problem asks whether efficient quantum computation can decide something that efficient randomized classical computation cannot. BPP and BQP both require a reliable yes-or-no answer on every input, with bounded probability of error. Quantum interference gives promising candidate advantages, including the algorithms underlying factoring, but those examples do not establish an unconditional classical lower bound. Separations using special oracles or restricted classical circuits concern narrower comparisons. Settling the ordinary class separation would identify whether quantum computers enlarge the set of efficiently decidable problems at its most basic level.
+BPP and BQP are classes of total decision languages with bounded error separately on every input, using classical randomness and quantum circuits respectively. The quantum model uses one polynomial-time classical generator for finite H, T and CNOT circuits with auxiliary qubits initialized to zero and one final measured bit. The question asks whether some quantum polynomial-time language has no classical randomized polynomial-time decider; the alternative is equality of the classes. Factoring algorithms, oracle separations and shallow sampling lower bounds retain assumptions or output/resource differences that do not establish this full separation. A September 2026 oracle result further distinguishes total-language equality from promise-class equality, while the ordinary total-language target remains unresolved in the inspected sources.
 
-[Read in atlas](index.html#TCS-0036) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer](https://arxiv.org/abs/quant-ph/9508027v2) · [Oracle Separation of BQP and PH](https://doi.org/10.1145/3530258) · [Unconditional Quantum Advantage for Sampling with Shallow Circuits](https://quantum-journal.org/papers/q-2026-08-12-2188/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0036) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [On Universal and Fault-Tolerant Quantum Computing](https://arxiv.org/abs/quant-ph/9906054) · [Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer](https://arxiv.org/abs/quant-ph/9508027v2) · [Oracle Separation of BQP and PH](https://doi.org/10.1145/3530258) · [Unconditional Quantum Advantage for Sampling with Shallow Circuits](https://quantum-journal.org/papers/q-2026-08-12-2188/) · [Promises should be taken seriously: On relativization with promise problems](https://arxiv.org/abs/2609.07945)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6516 — Area law for gapped two-dimensional Hamiltonians
 
@@ -2545,10 +2545,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-0037 — NP outside BQP
 
-This problem asks whether quantum computers still face an unavoidable efficient-computation barrier on some NP problems. An equivalent target is to rule out a bounded-error polynomial-time quantum algorithm for every instance of Boolean satisfiability. Fast quantum algorithms for structured tasks do not imply an algorithm for general NP-complete search or decision problems. Likewise, a speedup for searching an unstructured list addresses a particular access model rather than the full complexity-class question. A resolution would delimit the reach of quantum computation on problems whose proposed solutions are easy to check classically.
+NP consists of total decision languages with polynomial-length classical certificates checkable in deterministic polynomial time. The question is whether at least one such language has no uniform bounded-error quantum polynomial-time decider, equivalently whether full 3-SAT is outside BQP. The quantum model has a fixed finite universal gate set, polynomially many zero-initialized auxiliary qubits and a final membership-bit measurement, with no supplied witness or oracle. Structured quantum algorithms and unstructured-search or oracle lower bounds do not settle the unrestricted explicit-input comparison. Recent Pauli-coefficient hardness remains conditional on this noncontainment, while nonlinear quantum computation adds operations outside the model.
 
-[Read in atlas](index.html#TCS-0037) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer](https://arxiv.org/abs/quant-ph/9508027) · [A fast quantum mechanical algorithm for database search](https://arxiv.org/abs/quant-ph/9605043) · [Strengths and Weaknesses of Quantum Computing](https://arxiv.org/abs/quant-ph/9701001) · [Complexity of detecting large coefficients in the Pauli basis](https://arxiv.org/abs/2606.19545)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0037) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [On Universal and Fault-Tolerant Quantum Computing](https://arxiv.org/abs/quant-ph/9906054) · [Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer](https://arxiv.org/abs/quant-ph/9508027v2) · [A fast quantum mechanical algorithm for database search](https://arxiv.org/abs/quant-ph/9605043) · [Strengths and Weaknesses of Quantum Computing](https://arxiv.org/abs/quant-ph/9701001) · [Complexity of detecting large coefficients in the Pauli basis](https://arxiv.org/abs/2606.19545) · [Quantum algorithm for Valiant-Vazirani reduction](https://arxiv.org/abs/2606.18428v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6448 — QMA versus QCMA
 

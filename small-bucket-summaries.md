@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-596 five-sentence working summaries, based on saved source material.
+597 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -417,10 +417,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1047 — Formula size versus partition complexity
 
-Boolean formula size measures computation by an expression tree, while partition complexity measures how a related communication space is divided into simpler pieces. The source asks about the relationship between these two quantities. A tight connection would explain whether an efficient static partition can be organized into an efficient hierarchical computation. The distinction matters because knowing that simple pieces exist need not provide a low-cost procedure for finding the appropriate piece. The saved index does not define the partition measure or desired bound, and the original book formulation is needed to specify the exact comparison.
+A De Morgan formula computes a Boolean function with an expression tree whose leaves are literals. Its partition measure counts disjoint rectangles pairing accepting and rejecting inputs, each certified by one differing coordinate. The question asks whether formula leaf size is always bounded by a fixed polynomial in that rectangle count. The partition need not already be organized as a recursive communication protocol, which is the source of the possible gap. Jukna’s author draft dated 14 September 2026 still lists the polynomial inverse as open and gives only a quasipolynomial general bound.
 
-[Read in atlas](index.html#TCS-1047) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1047) · [Boolean Function Complexity: Advances and Frontiers — early author draft](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Boolean Function Complexity: Advances and Frontiers — Second Expanded Edition, author draft](https://web.vu.lt/mif/s.jukna/boolean-2nd/BFC-new.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1059 — Linearizing arbitrary depth-two circuits efficiently
 
@@ -1079,6 +1079,13 @@ Subset Sum asks whether some subcollection of given positive integers adds to a 
 [Read in atlas](index.html#TCS-4790) · [Subset Sum Quantumly in \(1.17^{n}\)](https://doi.org/10.4230/LIPIcs.TQC.2018.5) · [Derandomizing Pseudopolynomial Algorithms for Subset Sum](https://arxiv.org/abs/2601.01390)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-7035 — Single-exponential Directed Feedback Vertex Set
+
+A directed feedback vertex set meets every directed cycle by deleting its vertices. The question asks for an exact deterministic algorithm with a fixed exponential base in the allowed number of deletions. The remaining dependence on graph size must be polynomial with an exponent independent of the deletion budget. Known fixed-parameter algorithms retain a factorial-scale parameter cost, including the checked SOSA 2025 improvement. This card targets arbitrary digraphs, while the survey’s planar restriction and structural-parameter results remain distinct.
+
+[Read in atlas](index.html#TCS-7035) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867v2) · [A Simplified Parameterized Algorithm for Directed Feedback Vertex Set](https://doi.org/10.1137/1.9781611978315.29) · [Data reduction for directed feedback vertex set on graphs without long induced cycles](https://doi.org/10.1007/s00236-025-00490-2)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7181 — Exact recognition of bounded clique-width
 
 Clique-width measures how many reusable vertex labels are needed to build a graph with four specified operations. Even a complete graph of arbitrary size needs only two labels. The question asks whether graphs of width at most k can be recognized in polynomial time for every fixed k. The polynomial exponent may depend on k, so known NP-completeness when k is input does not settle it. Small thresholds are understood, while approximate or supplied decompositions do not give exact recognition at every threshold.
@@ -1308,13 +1315,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Directed feedback sets remove vertices or arcs until no directed cycle remains. The survey asks for polynomial kernels for both versions, parameterized by the allowed number of removals. The compression must preserve interactions among cycles that may share only selected portions of their routes. Resolving these questions would determine whether small directed cycle-repair budgets imply compact equivalent instances. The vertex and arc variants remain separate tasks, and the saved 2020 formulation supplies neither a current resolution nor a particular optimal polynomial size.
 
 [Read in atlas](index.html#TCS-7033) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7035 — Single-exponential FPT for directed feedback sets
-
-Directed feedback problems seek a small deletion set that eliminates all directed cycles. The saved survey question asks for fixed-parameter algorithms with single-exponential dependence on the deletion budget. It also includes the vertex-deletion case on planar directed graphs. Such a bound would replace more costly parameter growth with a clearer exponential search scale. The source question spans distinct variants, so an algorithm for planar vertex deletion would not automatically settle the unrestricted vertex and arc cases, and subsequent status has not been audited here.
-
-[Read in atlas](index.html#TCS-7035) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7036 — Parameterized complexity of three-pair Directed Edge Multicut
@@ -1745,10 +1745,10 @@ Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5406 — Optimization and certification in sparse random CSPs
 
-A sparse random constraint-satisfaction instance can have a predictable asymptotic optimum even when proving its exact value is difficult. The source distinguishes efficiently finding a nearly optimal assignment from efficiently certifying that no assignment is substantially better. Its question asks how close algorithms can come to both goals in specified random models. Semidefinite relaxations supply computable certificates, but their typical value may exceed the actual combinatorial optimum. Understanding this gap would reveal whether constructing good solutions and certifying their quality have different computational thresholds on random optimization instances.
+The source introduces a broad program for optimizing and certifying sparse random constraint-satisfaction instances. It measures an assignment by satisfied constraints per variable and presumes a limiting optimum for the selected random model. Finding a near-optimal assignment and certifying a matching upper bound are different computational tasks. The paper proves a separate result for a semidefinite relaxation on matrix-polynomial lifts. The extracted question leaves its model and algorithmic guarantee unspecified, so this card remains pending until its mathematical target is chosen.
 
 [Read in atlas](index.html#TCS-5406) · [The SDP Value of Random 2CSPs](https://doi.org/10.4230/LIPIcs.ICALP.2022.97)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6702 — Worst-case-to-average-case reductions within NP
 
@@ -3816,14 +3816,14 @@ Learning a Gaussian mixture seeks a distribution close to an unknown mixture in 
 [Read in atlas](index.html#TCS-5443) · [Mixtures of Gaussians are Privately Learnable with a Polynomial Number of Samples](https://proceedings.mlr.press/v237/afzali24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Differential privacy (3)
+## Differential privacy (4)
 
 ### TCS-0506 — Private PAC sample complexity from VC and Littlestone dimensions
 
-A private PAC learner must infer a Boolean concept from examples while limiting what its output reveals about any one example. The reviewed question asks whether sample complexity is polynomial in VC dimension and the iterated logarithm of Littlestone dimension. VC dimension measures ordinary statistical capacity, whereas Littlestone dimension measures how many adaptive prediction challenges the class can support. A positive answer would bound the additional sample cost of privacy by a remarkably slow-growing contribution from that online complexity. The saved formulation fixes constant accuracy and confidence, permits improper hypotheses and unlimited computation, and specifies approximate privacy with an additive privacy parameter shrinking quadratically in sample size.
+A private PAC learner must predict a Boolean concept accurately while protecting every individual labeled example. The card asks for sample size polynomial in VC dimension and the iterated logarithm of Littlestone dimension for every finite class. It retains fixed accuracy and confidence and privacy slack shrinking quadratically with the actual sample size. The latest checked general upper bound is polynomial in Littlestone dimension itself, while the proposed much smaller dependence is known in important special cases. A solution must prove the universal bound or a superpolynomial obstruction for unrestricted improper private learners, with its full quantifiers checked in Lean.
 
-[Read in atlas](index.html#TCS-0506) · [Invited Open Problem: Does Differential Privacy Make PAC Learning Much Harder?](https://proceedings.mlr.press/v336/nissim26a.html)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0506) · [Invited Open Problem: Does Differential Privacy Make PAC Learning Much Harder?](https://proceedings.mlr.press/v336/nissim26a.html) · [Private Learning of Littlestone Classes, Revisited](https://arxiv.org/abs/2510.00076) · [An Õptimal Differentially Private PAC Learner for Concept Classes with VC Dimension 1](https://arxiv.org/abs/2505.06581) · [STOC 2026 proceedings table of contents](https://acm-stoc.org/stoc2026/toc.html)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6673 — Optimal error for pure-DP continual counting
 
@@ -3831,6 +3831,13 @@ Continual counting releases prefix sums of a binary stream as its bits arrive. T
 
 [Read in atlas](index.html#TCS-6673) · [The Binary Tree Mechanism is Optimal for Approximate Differentially Private Continual Counting](https://arxiv.org/abs/2607.00876v2) · [The Price of Differential Privacy under Continual Observation](https://proceedings.mlr.press/v202/jain23b.html) · [Improved Error Bounds for Pure Differentially Private Continual Counting via Matrix Factorization](https://arxiv.org/abs/2607.08963) · [Costs of Arbitrary Real Matrix Factorizations for Pure-DP Continual Counting](https://arxiv.org/abs/2607.28703v2) · [A Near-Optimal Lower Bound for Prefix-Matrix Factorizations](https://arxiv.org/abs/2608.08238)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7236 — Polynomial-time private release of all marginals
+
+A marginal query asks what fraction of database rows match a pattern on selected attributes. The card asks for one private synopsis that answers all exponentially many such queries with error tending to zero as the dimension grows. Both creating the synopsis and evaluating a short query must use polynomial time, with only polynomially many input rows. Known interactive, synthetic-data and Gaussian-factorization results impose different resource or output requirements and do not settle this target. A complete Lean answer must prove the specified uniform existence statement or rule out every mechanism and evaluator satisfying it.
+
+[Read in atlas](index.html#TCS-7236) · [The Complexity of Differential Privacy](https://salil.seas.harvard.edu/publications/complexity-differential-privacy) · [Faster Private Release of Marginals on Small Databases](https://arxiv.org/abs/1304.3754) · [Weighted Fourier Factorizations: Optimal Gaussian Noise for Differentially Private Marginal and Product Queries](https://arxiv.org/abs/2512.21499)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0507 — Optimal regret for private stochastic online learning
 
@@ -4113,10 +4120,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0488 — Computability of entropic query-size bounds
 
-Entropy-based bounds use information inequalities to limit the number of answers a database query can produce. The source asks whether the relevant entropic query-size bounds are computable. The issue is not merely evaluating one join, but determining an extremal bound over all data distributions or instances satisfying the supplied constraints. An effective method would strengthen the use of information theory in predicting query output size. The inherited label does not preserve the constraint language, exact-versus-approximate target, or entropy region, so these must be recovered before the computability claim is formalized.
+Entropy bounds limit the number of tuples returned by a database join from constraints on conditional degrees. The entropic bound optimizes total entropy over the closure of all finite discrete entropy vectors. The question asks for one terminating algorithm that computes this value to every requested absolute accuracy in arbitrary dimension. Simple constraints admit effective special cases, while the general polymatroid relaxation can overestimate the desired value. Resolving computability would determine whether the strongest information-theoretic estimate is accessible to algorithms at all.
 
-[Read in atlas](index.html#TCS-0488) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0488) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Applications of Information Inequalities to Database Theory Problems](https://arxiv.org/abs/2304.11996v4) · [Efficient Algorithms for Cardinality Estimation and Conjunctive Query Evaluation With Simple Degree Constraints](https://arxiv.org/abs/2504.02770v1) · [Size Bounds for CQs Under Acyclic Constraints](https://arxiv.org/abs/2608.26775v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0482 — Linear-round convergence over stable semirings
 
@@ -4127,10 +4134,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0487 — Complexity of polymatroid query-size bounds
 
-Polymatroid bounds replace entropy constraints by a collection of abstract submodularity inequalities when estimating query output sizes. The source asks for the computational complexity of obtaining these bounds. The attraction is a potentially more tractable relaxation that still captures useful dependencies among database attributes. Understanding its complexity would show when the relaxation can guide algorithms rather than merely certify a bound existentially. The saved entry does not specify the representation of constraints or requested numerical precision, so the full source problem is needed before identifying a particular linear program or complexity class.
+Polymatroid query bounds maximize a normalized monotone submodular function subject to supplied degree constraints. The obvious linear program has exponentially many coordinates even when its input constraint list is short. The source explicitly asks whether computing this general bound is NP-hard, formalized here through exact rational threshold comparisons. Simple constraints admit polynomial-time algorithms, while hardness for the smaller cone of normal functions leaves the general question unresolved. An answer would clarify whether this broad database estimation framework can be computed efficiently from compact dependency descriptions.
 
-[Read in atlas](index.html#TCS-0487) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0487) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Optimizing Polymatroid Functions](https://arxiv.org/abs/2211.08381v1) · [Efficient Algorithms for Cardinality Estimation and Conjunctive Query Evaluation With Simple Degree Constraints](https://arxiv.org/abs/2504.02770v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0494 — BDD/FC conjecture
 
