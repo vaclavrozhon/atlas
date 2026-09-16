@@ -476,3 +476,26 @@ with sixty-nine retained active cards and nine resolved historical records:
 There are thirty-nine new individual importance assessments through this draw.
 Checkpoint eighteen is committed as 72e59c0d and verified live. Every card uses the
 shared reservation API and completion token/hash guards; comments are preserved.
+
+The twentieth random draw brings this process to eighty-two completed reviews,
+with seventy-three retained active cards and nine resolved historical records:
+
+- TCS-7226: rechecked the unit-capacity Woodall conjecture and added a complete
+  Lean criterion. The May 2026 chordal revision remains a graph-class result.
+  Existing importance 89 is preserved.
+- TCS-6455: full-time-range doubly efficient IP = PSPACE with uniform bit-cost
+  machines, time constructibility, total honest-prover work and unconditional
+  soundness. Distinguished the July cryptographic-argument result.
+  Existing importance 84 is preserved.
+- TCS-0808: recovered the missing exact-algorithm target with a fixed exponential
+  base below two in vertex count; specified arbitrary unweighted directed graphs
+  and deterministic bit complexity. Existing importance 62 is preserved.
+- TCS-0340: explicitly encoded polyhedral-norm branch of efficient average-John
+  embeddings, with a single globally nonexpanding map and coherent precision-
+  dependent evaluation. The source leaves norm representation unspecified, so
+  this selected computational specialization retains uncertain current status.
+  Existing importance 70 is preserved.
+
+There remain thirty-nine new importance assessments through this draw; all four
+existing scores in this draw were preserved. Checkpoint nineteen is committed as
+01ae2c56 and verified live. Shared reservations and token/hash checks remain in use.
