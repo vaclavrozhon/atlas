@@ -719,3 +719,26 @@ Checkpoint thirty was committed as 981fdd3f. Its tested version was
 retained all 111 active reviewed card contents apart from derived ranking changes,
 all twelve retirements, and byte-identical core reader assets. The deployment
 guard prevented overwriting the parallel process's newer reviews.
+
+Checkpoint thirty-two brings this process to 132 completed reviews:
+120 retained active cards, twelve retirements and 54 new importance assessments.
+
+- TCS-5333: recovered exact arbitrary-fan-in Cutting Planes and numerical-digit
+  total space, distinguishing the final quadratic bound from an older draft typo.
+- TCS-7274: retained P-uniform constant-depth OWFs with nonuniform inversion
+  security, including the full negative implication and a 2025 open statement.
+- TCS-0009: selected a disclosed editorial deterministic coefficient-bit integer
+  specialization, preserving the weak logarithmic circuit lower-bound target.
+- TCS-4524: retained the numerical binary adversarial deletion threshold, with
+  source-backed infinitely-many-lengths quantifiers and real 1/100 tolerance.
+- TCS-7357: retained the unconditional randomized expected ATSP approximation
+  infimum, distinguishing conditional hardness from the March 2026 upper bound.
+- TCS-5326: recovered the two-party internal-information question and chose an
+  explicit logarithmic-input-length simulation variant, with uncertain status.
+
+TCS-0009 and TCS-5326 are editorial scope choices, not user approvals; the
+optional scope questions had no answer at completion. Their exact combined
+formulations are disclosed and carry uncertain scientific status. All source
+provenance and comments are preserved. Checkpoint thirty-one was committed as
+42816d7f and verified on live successor 5a1c98b680765effcea7, which retained all
+114 reviewed active contents and twelve retirements with matching reader assets.
