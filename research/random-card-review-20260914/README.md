@@ -523,3 +523,23 @@ concurrent deployment containing a documented newer status refresh of TCS-6450;
 that external refresh is preserved and this manifest now tracks its current
 queue-verified hash. Original review and later status-refresh ledger entries
 remain intact. Reservation tokens and input hashes continue to guard every edit.
+
+The twenty-second random draw brings this process to ninety completed reviews,
+with eighty retained active cards and ten resolved historical records:
+
+- TCS-7247: uniform deterministic maximum-weight independent-set computation
+  polynomial in minimum tropical circuit size, with circuit semantics and full
+  bit costs fixed. Existing importance 88 retained.
+- TCS-6879: reconstructed the external-neighborhood additive expansion target.
+  The relative-loss FOCS 2025 theorem has different quantifiers; the precise
+  additive target remains marked uncertain. New importance 90.
+- TCS-6895: characteristic-zero rational-output superlinear ordinary tensor rank,
+  with eventual growth and full-output bit complexity. Distinguished linear
+  border-rank progress and semi-explicit number-field constructions. Importance 94.
+- TCS-1961: ordinary-model EFI-to-efficiently-verifiable OWSG implication,
+  explicitly selecting classical advice, mixed states and average correctness.
+  Distinguished inefficient verification and oracle-relative results. Importance 90.
+
+There are forty-three new importance assessments through this draw. Checkpoint
+twenty-one is committed as 73200c56 and deployed successfully. All card changes
+used shared reservations and token/hash checks; no community comments were removed.
