@@ -81,3 +81,13 @@ communication rounds. Section 1.3.2 separately retains the unrestricted
 agent-specific valuation problem as open. The card remains source-open; neither
 the distributed theorem nor the restricted valuation promise resolves its
 centralized constant-factor target.
+
+The trace-reconstruction pass completed TCS-6623 and checked
+[Degree Sequence Reconstruction from Subgraph Traces, 2609.09397v1](https://arxiv.org/abs/2609.09397),
+submitted 8 September. Its full introduction acknowledges the July quasipolynomial
+upper bound and the polynomial lower bound for ordinary binary strings. Its new
+results concern vertex-deleted graph observations and graph degree sequences,
+so they do not determine the string card’s constant-factor sample complexity.
+An active-only search found no matching graph-degree-sequence target. The July
+paper’s full Theorem 43 and its distinction between samples and running time
+were checked separately; no external proof was independently formalized.
