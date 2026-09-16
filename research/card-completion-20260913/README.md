@@ -1216,3 +1216,7 @@ The concurrent census is 1,032 active cards: 602 reviewed and 430 pending. The q
 Checkpoint 486. Completed the single-prover classical verification question with uniform resource bounds, unbounded-strategy soundness and 2026 model distinctions.
 
 The concurrent census is 1,032 active cards: 604 reviewed and 428 pending. The queue has 486 completed records, 452 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 25,051 formulas.
+
+Checkpoint 490. Completed the fixed polynomial-hard LWE-to-iO implication, precise security quantifiers, and strengthened-assumption versus heuristic boundaries through September 2026.
+
+The concurrent census is 1,032 active cards: 608 reviewed and 424 pending. The queue has 490 completed records, 456 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 25,153 formulas.
