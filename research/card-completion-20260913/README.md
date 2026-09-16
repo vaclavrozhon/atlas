@@ -1276,3 +1276,7 @@ The concurrent census is 1,029 active cards: 656 reviewed and 373 pending. The q
 Checkpoint 543. Completed general Santa Claus allocation review with September 2026 scope check.
 
 The concurrent census is 1,028 active cards: 657 reviewed and 371 pending. The queue has 543 completed records, 505 active and 38 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,028 active cards, covering 26,976 formulas.
+
+Checkpoint 544. Verified official SWAT bibliographic metadata for the completed Santa Claus card.
+
+The concurrent census is 1,028 active cards: 658 reviewed and 370 pending. The queue has 544 completed records, 506 active and 38 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,028 active cards, covering 27,009 formulas.
