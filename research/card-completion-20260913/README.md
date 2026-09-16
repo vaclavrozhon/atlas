@@ -1224,3 +1224,7 @@ The concurrent census is 1,032 active cards: 608 reviewed and 424 pending. The q
 Checkpoint 496. Completed arbitrary IND-CPA encryption to semi-honest OT with explicit simulation quantifiers, uniformity qualifications and 2026 source boundaries.
 
 The concurrent census is 1,032 active cards: 614 reviewed and 418 pending. The queue has 496 completed records, 462 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 25,467 formulas.
+
+Checkpoint 503. Completed individual binary Gilbert–Varshamov rate review and checked recent coding results.
+
+The concurrent census is 1,031 active cards: 620 reviewed and 411 pending. The queue has 503 completed records, 468 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 25,686 formulas.
