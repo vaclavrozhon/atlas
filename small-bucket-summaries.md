@@ -54,6 +54,13 @@ A finite list of two-by-two integer matrices generates all nonempty products wit
 [Read in atlas](index.html#TCS-7193) · [Mortality for \(2 \times  2\) Matrices is NP-hard](https://cgi.csc.liv.ac.uk/~igor/papers/paper_BHP_MFCS2012.pdf) · [On Affine Reachability Problems](https://arxiv.org/abs/1905.05114v3) · [The membership problem for subsemigroups of \(GL_{2}(\mathbb{Z} )\) is NP-complete](https://doi.org/10.1016/j.ic.2023.105132) · [On Word Representations and Embeddings in Complex Matrices](https://arxiv.org/abs/2604.15386v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6105 — Computability of the Mandelbrot set
+
+The Mandelbrot set consists of complex parameters whose quadratic iteration starting at zero remains bounded. The question asks for one ordinary program that approximates the entire set to every requested accuracy. Its output must be a finite set of dyadic points with a proved Hausdorff error bound, and no running-time bound is imposed. Known positive results depend on a hyperbolicity conjecture, including the checked 2025 application to escape problems. The selected unconditional approximation question differs from exact real membership, computing area and producing images without certified error.
+
+[Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129) · [Is the Mandelbrot set computable?](https://doi.org/10.1002/malq.200310124) · [Is the Mandelbrot set computable?](https://web.math.wisc.edu/logic/conf/OW21/questions/Hertling.pdf) · [Deciding Robust Instances of an Escape Problem for Dynamical Systems in Euclidean Space](https://doi.org/10.4230/LIPIcs.MFCS.2025.79)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0250 — Scaling joint Kolmogorov-complexity profiles
 
 Every tuple of strings has a profile of complexities of its nonempty subtuples. The question asks whether that whole profile can be multiplied by any fixed positive real factor. One new tuple must realize all the scaled quantities within logarithmic additive error. No fixed algorithm mapping the old tuple to the new one is required. The target concerns the homogeneous geometry of shared algorithmic information.
@@ -123,13 +130,6 @@ Randomized Kolmogorov complexity measures how short a randomized description can
 
 [Read in atlas](index.html#TCS-5010) · [Optimal Coding for Randomized Kolmogorov Complexity and Its Applications](https://doi.org/10.1109/FOCS61266.2024.00030)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6105 — Computability of the Mandelbrot set
-
-The Mandelbrot set consists of complex parameters for which repeatedly applying the associated quadratic map to zero gives a bounded orbit. The computability question asks whether one program can approximate this entire compact set to every requested accuracy. This is stronger than producing convincing images at selected resolutions or testing many individual parameters. The source cites the question as motivation for studying computability and semicomputability of geometric sets. A solution would connect effective approximation of a familiar fractal with rigorous information about the global behavior of complex dynamical systems.
-
-[Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Proof complexity (26)
 

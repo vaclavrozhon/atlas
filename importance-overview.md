@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-926 records have an editorial importance assessment; 90 remain provisional.
+930 records have an editorial importance assessment; 84 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -76,7 +76,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance 
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 55; importance assessed: 51; provisional: 4.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 54; importance assessed: 54; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance 
 
 ## 9. Cryptography (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance assessed: 27; provisional: 4.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 30; importance assessed: 27; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -178,7 +178,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 52; importance 
 
 ## 1. Computability and algorithmic information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 15; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 16; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -189,9 +189,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 | 5 | [Reversal of Hindman’s theorem to the \\(\\omega\\)-jump](index.html#TCS-6649) | 95 |
 | 6 | [Universality of Turing equivalence](index.html#TCS-6679) | 95 |
 | 7 | [Mortality of \\(2\\times 2\\) integer matrix semigroups](index.html#TCS-7193) | 91 |
-| 8 | [Scaling joint Kolmogorov-complexity profiles](index.html#TCS-0250) | 85 |
-| 9 | [Shannon feasibility from algorithmic network coding](index.html#TCS-0247) | 81 |
-| 10 | [Existence of strings without simple optimal hypotheses](index.html#TCS-4185) | 76 |
+| 8 | [Computability of the Mandelbrot set](index.html#TCS-6105) | 90 |
+| 9 | [Scaling joint Kolmogorov-complexity profiles](index.html#TCS-0250) | 85 |
+| 10 | [Shannon feasibility from algorithmic network coding](index.html#TCS-0247) | 81 |
 
 ## 2. Proof complexity (small)
 

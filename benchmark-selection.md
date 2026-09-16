@@ -12,7 +12,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 484 | 16 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 803 | 197 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 802 | 198 |
 
 ## Unfilled places
 
@@ -26,7 +26,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Optimization and numerical computation has 24/50 places.
 - top1000: Geometry, topology and metric spaces has 40/50 places.
 - top1000: Learning theory has 36/50 places.
-- top1000: Cryptography has 31/50 places.
+- top1000: Cryptography has 30/50 places.
 - top1000: Computability and algorithmic information theory has 18/20 places.
 - top1000: Beyond worst-case and average-case analysis has 13/20 places.
 - top1000: Sampling, Markov chains and mixing times has 9/20 places.

@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-400 five-sentence working summaries, based on saved source material.
+398 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1159,7 +1159,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (55)
+## Distributed, parallel and sublinear algorithms (54)
 
 ### TCS-6553 — P versus NC
 
@@ -1343,6 +1343,13 @@ Every node in a weighted network must learn its exact distance to every other no
 [Read in atlas](index.html#TCS-6080) · [Quadratic and Near-Quadratic Lower Bounds for the CONGEST Model](https://doi.org/10.4230/LIPIcs.DISC.2017.10) · [Distributed Exact Weighted All-Pairs Shortest Paths in Near-Linear Time](https://arxiv.org/abs/1811.03337) · [Message Optimality and Message-Time Trade-offs for APSP and Beyond](https://arxiv.org/abs/2504.21781)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6206 — Optimal clique-detection rounds in CONGEST
+
+The input graph is also the communication network, and each edge carries at most b bits in each direction per round. The task is for some processor to report that a clique of the requested size exists, with joint success probability at least two thirds. The selected question asks for the optimal number of rounds as a function of graph size, clique size and bandwidth, within absolute constant factors. Known clique-listing algorithms already give sublinear detection for every fixed clique size at logarithmic bandwidth. Their tightness for listing does not settle the full detection function, and even the known four-clique comparison retains polylogarithmic uncertainty.
+
+[Read in atlas](index.html#TCS-6206) · [Detecting Cliques in CONGEST Networks](https://doi.org/10.4230/LIPIcs.DISC.2018.16) · [Tight Distributed Listing of Cliques](https://doi.org/10.1137/1.9781611976465.171) · [Detecting cliques in CONGEST networks](https://doi.org/10.1007/s00446-019-00368-w)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0469 — Maximum independent set in the congested clique
 
 An exact maximum independent set contains as many pairwise nonadjacent vertices as possible. Each vertex initially knows its incident edges and can exchange a logarithmic number of bits with every other processor in a round. The target is the optimal worst-case number of deterministic communication rounds, with local computation uncharged. A tight bound would measure the information exchange needed for exact graph optimization in a network without distance barriers. The source leaves bandwidth and randomness broader, while this card preserves its explicit deterministic logarithmic-bandwidth specialization.
@@ -1448,6 +1455,13 @@ A proper coloring with Delta plus one colors always exists for a graph of maximu
 [Read in atlas](index.html#TCS-0524) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#local) · [Local Conflict Coloring Revisited: Linial for Lists](https://arxiv.org/abs/2007.15251) · [Faster Distributed Delta-Coloring via a Reduction to MIS](https://doi.org/10.1137/1.9781611978971.162)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6380 — Fractional-edge-cover load for general-message parallel joins
+
+A natural join returns every assignment of values that belongs to all input relations on their shared attributes. The question asks whether every fixed schema can be processed in constant MPC rounds with load matching its fractional-edge-cover scale up to polylogarithmic factors. The selected model permits arbitrary encoded messages and requires explicit full output, with free local computation and receive-only communication cost. A published stronger lower bound rules out the analogous target for algorithms that treat rows as indivisible tuples. That restricted lower bound and the checked 2026 results do not settle the general-message assertion retained here.
+
+[Read in atlas](index.html#TCS-6380) · [A Simple Parallel Algorithm for Natural Joins on Binary Relations](https://doi.org/10.4230/LIPIcs.ICDT.2020.25) · [Parallel Acyclic Joins: Optimal Algorithms and Cyclicity Separation](https://doi.org/10.1145/3633512) · [Cover or Pack: New Upper and Lower Bounds for Massively Parallel Joins](https://doi.org/10.1145/3452021.3458319) · [κ-Join: Combining Vertex Covers for Parallel Joins](https://arxiv.org/abs/2603.10177v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0950 — Randomized parity sketches versus one-way communication for XOR functions
 
 The input is an arbitrary Boolean function on a binary vector space. A parity sketch measures a fixed random collection of linear forms and then decodes their bits. A one-way protocol may instead send any randomized message about Alice’s vector to Bob. The conjecture asks whether parity sketches lose only a universal polylogarithmic factor for the associated XOR function. Known deterministic and uniform-input comparisons do not establish the required worst-input randomized bound.
@@ -1476,6 +1490,13 @@ A hidden set of at most k positions must be identified by noiseless yes/no tests
 [Read in atlas](index.html#TCS-0849) · [Problem 33: Group Testing](https://sublinear.info/index.php?title=Open_Problems:33) · [Optimal Two-Stage Algorithms for Group Testing Problems](https://doi.org/10.1137/S0097539703428002)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-3384 — Polynomial-in-optimum graph matching in \(\mathrm{AC}^{0}\)
+
+The input is an arbitrary labelled simple graph, and the output must explicitly identify pairwise vertex-disjoint edges. One deterministic uniform AC0 circuit family must produce at least c times the optimum matching size to the power alpha, for fixed positive c and alpha. The circuits have constant depth, polynomial size and unrestricted-fan-in AND and OR gates together with negation. The source can estimate packing cardinality in this model but does not construct a corresponding packing. The selected search question remains unresolved in the checked sources and is distinct from recent monotone exact-matching lower bounds.
+
+[Read in atlas](index.html#TCS-3384) · [Kernelizing the Hitting Set Problem in Linear Sequential and Constant Parallel Time](https://doi.org/10.4230/LIPIcs.SWAT.2020.9) · [Monotone Circuit Complexity of Matching](https://eccc.weizmann.ac.il/report/2025/102/revision/1/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0985 — Streaming space for additive \(L_\infty\) estimation
 
 The output is a single estimate of the largest absolute coordinate of a streamed frequency vector. The allowed additive error is one over k times the final L1 or L2 norm. Insertion-only streams and signed differences of two streams are distinct modes of the same resource question. The target is a tight bit-space characterization in the domain size, update budget and accuracy. A 2016 paper reports resolving the insertion-only L1 part, while this review does not certify a complete characterization of all cases.
@@ -1497,13 +1518,6 @@ The network comes with an orientation having at most \(\beta\) outgoing edges at
 [Read in atlas](index.html#TCS-2470) · [List Defective Colorings: Distributed Algorithms and Applications](https://doi.org/10.4230/LIPIcs.DISC.2023.22) · [Greedy-Like Defective Coloring: Distributed Algorithms and Applications](https://arxiv.org/abs/2608.02386)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3384 — Approximate matching and set packing in \(\mathrm{AC}^{0}\)
-
-Constant-depth \(\mathrm{AC}^{0}\) circuits offer a highly parallel but weak model of computation with unbounded-fan-in Boolean gates. The source asks whether they can output useful approximate matchings, and more generally approximate set packings. This is a search question about producing disjoint edges or sets, rather than merely estimating the optimum value. The paper obtains shallow-circuit approximations of packing size but explains why extracting an actual packing is a different obstacle, even on simple bipartite inputs. Resolving the search problem would distinguish numerical approximation from constructing compatible choices under severe limits on computational depth.
-
-[Read in atlas](index.html#TCS-3384) · [Kernelizing the Hitting Set Problem in Linear Sequential and Constant Parallel Time](https://doi.org/10.4230/LIPIcs.SWAT.2020.9)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3416 — Wait-free exact FIFO queues in Common\(_{2}\)
 
 The question asks for an exact FIFO queue shared by any fixed finite number of processes. Every process may enqueue and dequeue, and each operation must finish in finitely many of its own steps despite other processes stopping. Only read/write registers and Test&Set bits are supplied. Relaxed queues and algorithms that merely guarantee system-wide progress do not meet this requirement. The checked 2026 impossibility concerns strong linearizability, so the ordinary Common\(_{2}\) question remains open in the cited sources.
@@ -1518,33 +1532,12 @@ Set agreement lets n processes decide at most k proposed values. Its task has an
 [Read in atlas](index.html#TCS-3792) · [On Deterministic Linearizable Set Agreement Objects](https://doi.org/10.4230/LIPIcs.OPODIS.2019.16) · [On the Number of Objects with Distinct Power and the Linearizability of Set Agreement Objects](https://doi.org/10.4230/LIPIcs.DISC.2017.12) · [Life beyond set agreement](https://doi.org/10.1007/s00446-020-00372-5)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4231 — Complexity of general subgraph detection
-
-Distributed subgraph detection asks whether a network contains a fixed constant-size graph H as a subgraph. The source asks whether every such target can be detected in \(O(n) \mathrm{CONGEST}\) rounds or whether some targets require superlinear time. A linear bound is easy for cliques, despite their prominence as hard patterns in centralized computation. Other patterns can distribute their relevant edges across distant parts of the communication network in different ways, so centralized hardness is a poor guide. A general upper bound or a superlinear example would establish a basic classification boundary for exact distributed pattern detection.
-
-[Read in atlas](index.html#TCS-4231) · [Deterministic Subgraph Detection in Broadcast CONGEST](https://doi.org/10.4230/LIPIcs.OPODIS.2017.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4274 — Subpolynomial detection of two-connected patterns
 
 The question asks whether any fixed 2-vertex-connected graph can be detected in subpolynomial CONGEST rounds. Nodes can exchange only logarithmically many bits per edge per round. Exact detection requires one node to signal an existing copy and all nodes to stay negative when none exists. Trees have constant-round algorithms, while many cyclic patterns have polynomial lower bounds. The newer logarithmic lower bound for triangles leaves the requested subpolynomial-versus-harder boundary unresolved.
 
 [Read in atlas](index.html#TCS-4274) · [Lower Bounds for Subgraph Detection in the CONGEST Model](https://doi.org/10.4230/LIPIcs.OPODIS.2017.6) · [Distributed Subgraph Finding: Progress and Challenges](https://arxiv.org/abs/2203.06597) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6206 — Clique detection in CONGEST
-
-In \(\mathrm{CONGEST}_{b}\), each graph edge carries at most b bits per communication round. The source studies detecting cliques with size at least four and up to order \(\sqrt{n}\), asking how far the round complexity exceeds its roughly \(\sqrt{n}/b\) lower-bound scale. A linear-round algorithm leaves a substantial gap, particularly for fixed clique sizes. The paper proves that its two-party vertex-partition method cannot establish the stronger lower bounds that would close that gap. The project therefore calls for improved detection algorithms or new communication-hardness techniques that capture interactions among more than the two partitioned views.
-
-[Read in atlas](index.html#TCS-6206) · [Detecting Cliques in CONGEST Networks](https://doi.org/10.4230/LIPIcs.DISC.2018.16)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6380 — Load-optimal parallel natural joins
-
-A natural join combines database relations by matching equal values on shared attributes. In massively parallel computation, the load measures how much data any one of p machines must handle. The question asks for algorithms matching the \(\Omega (m/p^{1/\rho})\) load bound for arbitrary join queries, where m is total input size and \(\rho\) is the fractional edge-cover number. The source achieves the target for binary-relation joins in a small constant number of rounds, but those graph-shaped queries do not cover arbitrary relation arities. A general construction would align parallel join execution with the structural lower bound of the query hypergraph.
-
-[Read in atlas](index.html#TCS-6380) · [A Simple Parallel Algorithm for Natural Joins on Binary Relations](https://doi.org/10.4230/LIPIcs.ICDT.2020.25)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Optimization and numerical computation (23)
 
@@ -2245,7 +2238,7 @@ The question asks whether a weak passive learner with a superpolynomial saving o
 [Read in atlas](index.html#TCS-4186) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18) · [Conspiracies between Learning Algorithms, Circuit Lower Bounds and Pseudorandomness — full preprint](https://arxiv.org/abs/1611.01190) · [Learning algorithms from circuit lower bounds](https://doi.org/10.1007/s00037-024-00261-4)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Cryptography (30)
+## Cryptography (29)
 
 ### TCS-6545 — Public-key encryption from one-way functions
 
@@ -2428,13 +2421,6 @@ The input is a complete truth table promised to have either a small or a much la
 
 [Read in atlas](index.html#TCS-4754) · [A Relativization Perspective on Meta-Complexity](https://doi.org/10.4230/LIPIcs.STACS.2022.54) · [Robustness of Average-Case Meta-Complexity via Pseudorandomness](https://doi.org/10.1145/3519935.3520051) · [One-Way Functions and Zero Knowledge](https://doi.org/10.1137/24M1689971)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5015 — Foundations of quantum cryptography from EFI pairs
-
-Classical computational cryptography is organized around one-way functions as a basic necessary resource for many tasks. Quantum cryptography may rely on different forms of hardness, motivating the search for an analogous minimal primitive. The cited paper studies pairs of efficiently generated quantum states that are statistically far apart but computationally difficult to distinguish. It shows that these EFI pairs follow from many quantum cryptographic tasks and can also support significant zero-knowledge constructions. The entry introduces this foundational question together with that partial characterization, without asserting a universal equivalence covering every conceivable quantum primitive.
-
-[Read in atlas](index.html#TCS-5015) · [On the Computational Hardness Needed for Quantum Cryptography](https://doi.org/10.4230/LIPIcs.ITCS.2023.24)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5793 — Pseudorandom functions from hardness of learning
 
