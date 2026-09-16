@@ -5,11 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **233**.
+Pending active reviews: **229**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-5793](../../data/cards/TCS-5793.json) | Pseudorandom functions from hardness of learning | Cryptography | pool |
 | [TCS-6692](../../data/cards/TCS-6692.json) | Linear-seed pseudorandom generators from one-way functions | Cryptography | pool |
 | [TCS-6871](../../data/cards/TCS-6871.json) | Fully homomorphic encryption from worst-case hardness | Cryptography | pool |
 | [TCS-2707](../../data/cards/TCS-2707.json) | Quantum partition functions from zero-freeness | Quantum computation | pool |
@@ -17,11 +16,8 @@ Pending active reviews: **233**.
 | [TCS-4927](../../data/cards/TCS-4927.json) | Classification of quantum gate sets | Quantum computation | pool |
 | [TCS-4991](../../data/cards/TCS-4991.json) | Reducing shared entanglement in communication protocols | Quantum computation | pool |
 | [TCS-5202](../../data/cards/TCS-5202.json) | Quantum security of general seeded extractors | Quantum computation | pool |
-| [TCS-0254](../../data/cards/TCS-0254.json) | Networks characterized by information-flow inequalities | Computability and algorithmic information | pool |
 | [TCS-0240](../../data/cards/TCS-0240.json) | Communication for algorithmic secret-key agreement | Computability and algorithmic information | pool |
 | [TCS-0279](../../data/cards/TCS-0279.json) | Extraction of mutual information about two strings | Computability and algorithmic information | pool |
-| [TCS-2202](../../data/cards/TCS-2202.json) | NP-hardness of conditional polynomial-time pKt | Computability and algorithmic information | pool |
-| [TCS-5010](../../data/cards/TCS-5010.json) | Unconditional coding theorem for randomized Kolmogorov complexity | Computability and algorithmic information | pool |
 | [TCS-0220](../../data/cards/TCS-0220.json) | External Information and Amortized Expected Communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-1059](../../data/cards/TCS-1059.json) | Linearizing arbitrary depth-two circuits efficiently | Communication complexity and Boolean function analysis | pool |
 | [TCS-0540](../../data/cards/TCS-0540.json) | Communication Complexity of Max-Flow | Communication complexity and Boolean function analysis | pool |

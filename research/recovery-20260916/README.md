@@ -195,3 +195,18 @@ The offline checks passed through completion thirty-six, as did the formula
 check on 32,966 expressions. A new source-scope choice for TCS-6692 is pending;
 the original quantitative-security and newer black-box formulations are not
 silently conflated.
+
+After forty-one dispositions the queue contains 685 completed records,
+229 pending records and one outside active scope. Of 1,014 active cards,
+785 have completed individual reviews. TCS-5793 now states the uniform
+learning-hardness to same-class PRF implication; TCS-0254 specifies algorithmic
+network cut sufficiency; TCS-5010 keeps existential all-support private-randomness
+coding; and TCS-2202 expands the source’s uniform polynomial-regime hardness
+reduction. The Boolean-valued network classification explicitly permits a real
+approximation within 1/100 under the benchmark acceptance policy.
+All completed queue hashes match and every review ledger line parses.
+The formula check passes on 33,189 expressions across all 1,014 active cards.
+The additional unanswered source-scope choices are recorded in
+[further-scope-choices.json](further-scope-choices.json); they remain pending.
+Source checkpoint 71db88c7 and deployment 6f6ff83d41e7f58fd682b1f18ace31b87137a723
+cover the first thirty-seven dispositions, with publication a3cc11a1ebe6f219d18a.
