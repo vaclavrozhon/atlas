@@ -1240,3 +1240,7 @@ The concurrent census is 1,031 active cards: 629 reviewed and 402 pending. The q
 Checkpoint 513. Completed Asser spectrum-complement review with exact fragment and complexity boundaries.
 
 The concurrent census is 1,031 active cards: 630 reviewed and 401 pending. The queue has 513 completed records, 478 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 25,980 formulas.
+
+Checkpoint 519. Individually completed TCS-6685: exact user-approved BB(6) witness, full transition semantics, verified final-step convention, 2026 BB5 proof scope and dated September holdouts.
+
+The concurrent census is 1,031 active cards: 636 reviewed and 395 pending. The queue has 519 completed records, 484 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,161 formulas.
