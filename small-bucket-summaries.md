@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-597 five-sentence working summaries, based on saved source material.
+598 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -375,10 +375,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-6450 — Polynomial relation between classical and quantum communication
 
-Two parties must evaluate a Boolean function when each holds one part of the input. The question asks whether randomized classical communication is polynomially bounded by quantum communication with shared entanglement for every total function. Both models allow bounded error on each input, and their costs count transmitted bits or qubits rather than local computation. A positive answer would limit quantum communication advantages whenever the function is defined on every input pair. The totality condition is central: results for promise problems cannot be substituted, and the polynomial must be universal across all finite domains.
+Two parties must evaluate a Boolean function when each holds one part of the input. The question asks whether randomized classical communication is polynomially bounded by quantum communication with shared entanglement for every total function. Both models allow bounded error on each input, and their costs count transmitted bits or qubits rather than local computation. August and September 2026 preprints claim total-function families with polylogarithmic quantum cost and polynomial randomized classical cost. Those stated results would refute the conjecture even with the quantum side allowed free entanglement, but their proofs are not independently certified in this review.
 
-[Read in atlas](index.html#TCS-6450) · [Quantum–Classical Equivalence for AND-Functions](https://eccc.weizmann.ac.il/report/2026/013/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6450) · [Quantum–Classical Equivalence for AND-Functions](https://eccc.weizmann.ac.il/report/2026/013/) · [Constant-round quantum advantage in communication complexity for total functions](https://arxiv.org/abs/2608.19787v1) · [On the quantum communication complexity of total functions](https://arxiv.org/abs/2608.18784) · [Improved Separations between Quantum and Classical Communication Complexity of Total Functions](https://arxiv.org/abs/2609.16726)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6708 — Fourier Min-Entropy–Influence conjecture
 
@@ -1685,7 +1685,7 @@ Best-arm identification spends samples to recommend a good arm, rather than to m
 [Read in atlas](index.html#TCS-6838) · [Bandit Algorithms](https://banditalgs.com/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Beyond worst-case and average-case analysis (12)
+## Beyond worst-case and average-case analysis (13)
 
 ### TCS-6656 — Planted clique conjecture
 
@@ -1714,6 +1714,13 @@ The symmetric stochastic block model generates a sparse graph with higher edge p
 
 [Read in atlas](index.html#TCS-6684) · [Detection in the stochastic block model with multiple clusters: proof of the achievability conjectures, acyclic BP, and the information-computation gap](https://arxiv.org/abs/1512.09080) · [Information-theoretic thresholds for community detection in sparse networks](https://proceedings.mlr.press/v49/banks16.html) · [Low degree conjecture implies sharp computational thresholds in stochastic block model](https://arxiv.org/abs/2502.15024) · [Stochastic block models with many communities and the Kesten–Stigum bound](https://arxiv.org/abs/2503.03047)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7238 — Polynomial-time refutation of random 3-SAT at constant density
+
+A random 3-SAT formula at sufficiently large constant clause density is almost surely unsatisfiable. The question asks for one polynomial-time randomized refuter that recognizes almost all such formulas while never rejecting a satisfiable formula. The density, algorithm and time bound must be fixed independently of the number of variables. Gap refutation, planted detection and lower bounds for particular proof systems do not settle this exact-sound unrestricted target. An accepted answer proves existence or impossibility with the full quantifiers in Lean.
+
+[Read in atlas](index.html#TCS-7238) · [How to refute a random CSP](https://www.cs.cmu.edu/~odonnell/papers/random-csp-refutation.pdf) · [Proof vs. Truth in Computational Complexity](https://eccc.weizmann.ac.il/report/2012/120/revision/1/download/) · [Strongly Refuting Random CSP without Literals](https://arxiv.org/abs/2604.27336v1) · [Random 3-CNF formulas are hard for k-DNF resolution up to k=O(sqrt(log n))](https://eccc.weizmann.ac.il/report/2026/158/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6453 — Infinitely-often one-way functions from average-case NP hardness
 
@@ -1889,10 +1896,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7355 — Fully polynomial randomized approximation of mixed discriminants
 
-The mixed discriminant is a specified coefficient of the determinant of a linear matrix pencil. Positive semidefinite inputs make this coefficient nonnegative. An FPRAS must approximate it to arbitrary relative accuracy in time polynomial in the input size and inverse accuracy. Nonnegative permanent approximation addresses a special diagonal case but does not settle the general matrix target. A resolution would decide a central frontier connecting approximate counting and constrained determinantal sampling.
+The mixed discriminant is a fixed coefficient of a determinant polynomial built from positive semidefinite matrices. The question asks for one randomized algorithm giving arbitrary relative accuracy in time polynomial in the input size and inverse accuracy. The full rational-input model includes singular matrices, zero answers and badly conditioned matrices. Permanents and single squared determinants are special cases, while constrained determinantal sums illustrate why the general case matters. An accepted answer proves existence or impossibility of the full approximation scheme in Lean.
 
-[Read in atlas](index.html#TCS-7355) · [A polynomial time algorithm to approximate the mixed volume within a simply exponential factor](https://eccc.weizmann.ac.il/report/2007/037/revision/1/) · [On the Complexity of Constrained Determinantal Point Processes](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2017.36)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7355) · [Polynomial time algorithms to approximate mixed volumes within a simply exponential factor](https://eccc.weizmann.ac.il/report/2007/037/revision/1/) · [On the Complexity of Constrained Determinantal Point Processes](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2017.36) · [On the (In)tractability of Computing Normalizing Constants for the Product of Determinantal Point Processes](https://proceedings.mlr.press/v119/ohsaka20a.html)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7320 — #BIS-easiness of Boolean log-supermodular counting CSPs
 

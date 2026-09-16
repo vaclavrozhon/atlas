@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-859 records have an editorial importance assessment; 176 remain provisional.
+861 records have an editorial importance assessment; 174 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 41; importance 
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance assessed: 32; provisional: 4.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance assessed: 33; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -135,12 +135,12 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance 
 | 2 | [Learning parity with noise in polynomial time](index.html#TCS-6542) | 96 |
 | 3 | [Learning Boolean juntas from uniform random examples](index.html#TCS-6543) | 95 |
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) | 97 |
-| 5 | [Distribution-free learning of two margin halfspaces](index.html#TCS-6544) | 92 |
-| 6 | [One-way functions from hardness of learning P/poly](index.html#TCS-5090) | 91 |
-| 7 | [Nontrivial agnostic membership-query learning of \\(\\mathrm{ACC}^{0}\\)](index.html#TCS-5434) | 91 |
-| 8 | [Learning decision trees from uniform random examples in polynomial time](index.html#TCS-7294) | 91 |
-| 9 | [Distribution-free improper learning of two unrestricted halfspaces](index.html#TCS-7293) | 90 |
-| 10 | [PAC learning of finite automata under the uniform distribution](index.html#TCS-5902) | 89 |
+| 5 | [Fully polynomial learning of halfspace intersections under Gaussian and uniform inputs](index.html#TCS-5088) | 92 |
+| 6 | [Distribution-free learning of two margin halfspaces](index.html#TCS-6544) | 92 |
+| 7 | [One-way functions from hardness of learning P/poly](index.html#TCS-5090) | 91 |
+| 8 | [Nontrivial agnostic membership-query learning of \\(\\mathrm{ACC}^{0}\\)](index.html#TCS-5434) | 91 |
+| 9 | [Learning decision trees from uniform random examples in polynomial time](index.html#TCS-7294) | 91 |
+| 10 | [Distribution-free improper learning of two unrestricted halfspaces](index.html#TCS-7293) | 90 |
 
 ## 9. Cryptography (large)
 
@@ -161,7 +161,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance 
 
 ## 10. Quantum computation and information (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 53; importance assessed: 40; provisional: 13.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 53; importance assessed: 41; provisional: 12.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |

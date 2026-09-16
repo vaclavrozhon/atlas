@@ -169,7 +169,7 @@ Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 | 2 | [Learning parity with noise in polynomial time](index.html#TCS-6542) (TCS-6542) | Learning with noise | 96 | A fundamental boundary between information-theoretic learnability and efficient learning, with broad consequences for noise-tolerant algorithms and cryptographic assumptions. |
 | 3 | [Learning Boolean juntas from uniform random examples](index.html#TCS-6543) (TCS-6543) | Sparse Boolean structure | 95 | A central unresolved task in computational learning theory, isolating feature selection and serving as a prerequisite for efficient learning of general decision trees and DNF formulas. |
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) (TCS-5358) | Distribution-free Boolean rule learning | 97 | A defining improper PAC-learning question for compact Boolean rules under arbitrary input distributions, with broad consequences for decision-tree and junta learning. The general target and its conditional-hardness evidence are now stated precisely. |
-| 5 | [Distribution-free learning of two margin halfspaces](index.html#TCS-6544) (TCS-6544) | Needs review | 92 | Unreviewed replacement |
+| 5 | [Fully polynomial learning of halfspace intersections under Gaussian and uniform inputs](index.html#TCS-5088) (TCS-5088) | Needs review | 92 | Unreviewed replacement |
 
 Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-5358.
 

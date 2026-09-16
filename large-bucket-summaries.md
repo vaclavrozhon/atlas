@@ -2049,6 +2049,13 @@ A DNF is a disjunction of conjunctions of possibly negated Boolean variables, wi
 [Read in atlas](index.html#TCS-5358) · [Learning DNF Expressions from Fourier Spectrum](https://proceedings.mlr.press/v23/feldman12b.html) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791v1) · [Complexity Theoretic Limitations on Learning DNF’s](https://proceedings.mlr.press/v49/daniely16.html) · [From Local Pseudorandom Generators to Hardness of Learning](https://proceedings.mlr.press/v134/daniely21a.html) · [Faster exact learning of k-term DNFs with membership and equivalence queries](https://arxiv.org/abs/2507.20336v1) · [Iterative Chow Filtering for Learning with Distribution Shift](https://arxiv.org/abs/2605.17251v1) · [DNF formulas are efficiently testable with relative error](https://arxiv.org/abs/2601.16076v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-5088 — Fully polynomial learning of halfspace intersections under Gaussian and uniform inputs
+
+The card asks separately whether intersections of a variable number of affine halfspaces can be learned efficiently under Gaussian and uniform Boolean-cube inputs. The desired polynomial bounds cover dimension, intersection size, inverse accuracy, training and prediction. Labels come only from independent noiseless examples, and the output predictor may lie outside the target class. The surrounding margin theorem and newer subexponential, bounded-width and proper-learning results do not supply the requested uniform polynomial guarantee. A Lean resolution must prove or refute the full learner-existence statement in each explicitly defined computational model.
+
+[Read in atlas](index.html#TCS-5088) · [Learning Intersections of Two Margin Halfspaces under Factorizable Distributions](https://proceedings.mlr.press/v291/diakonikolas25a.html) · [Learning Functions of Halfspaces](https://arxiv.org/abs/2603.08700) · [Sparsifying Suprema of Gaussian Processes](https://arxiv.org/abs/2411.14664) · [Proper Agnostic Learning of Functions of Halfspaces under Gaussian Marginals](https://arxiv.org/abs/2605.27594)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-6544 — Distribution-free learning of two margin halfspaces
 
 The intersection of two halfspaces labels a point positively when both linear inequalities hold. This question asks whether such labels can be learned in polynomial time from independent examples under any distribution with a margin from both boundaries. The learner may output a different kind of hypothesis, provided that predictions remain efficient. The 2025 source proves efficient learning under an extra factorization assumption, while two 2026 preprints report broader bounds that do not by themselves meet this polynomial target. A resolution would determine whether two linear rules can be learned efficiently without favorable structure in the example distribution.
@@ -2258,13 +2265,6 @@ Adversarially robust dimension reduction seeks a low-rank projection that both a
 
 [Read in atlas](index.html#TCS-5087) · [Adversarially Robust Low Dimensional Representations](https://proceedings.mlr.press/v134/awasthi21a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5088 — Learning halfspace intersections under factorizable distributions
-
-An intersection of k halfspaces labels a point positively only when it satisfies all k linear inequalities. Even under a Gaussian input distribution or the uniform distribution on the Boolean cube, the source identifies a gap between learning algorithms and fully polynomial efficiency. The question asks whether the dependence on dimension, number of halfspaces, and inverse accuracy can all be polynomial under these distributional assumptions. The surrounding paper studies a restricted two-halfspace setting with margin and factorization assumptions, which illustrates how additional structure can help. Resolving the broader question would clarify whether simple input distributions make learning a growing conjunction of thresholds computationally feasible.
-
-[Read in atlas](index.html#TCS-5088) · [Learning Intersections of Two Margin Halfspaces under Factorizable Distributions](https://proceedings.mlr.press/v291/diakonikolas25a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5119 — Sample-optimal Gaussian graphical model learning in polynomial time
 
@@ -2627,6 +2627,13 @@ The question asks for the largest polynomial quantum query advantage over random
 [Read in atlas](index.html#TCS-0029) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629) · [k-Forrelation Optimally Separates Quantum and Classical Query Complexity](https://arxiv.org/abs/2008.07003)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-4811 — Efficient approximation of the optimal dihedral measurement
+
+The selected question asks for efficient approximation of one explicitly defined optimal quantum measurement. Its input space contains several dihedral coset-state registers, and its outcomes are candidate hidden shifts plus a complementary outcome. The measurement is defined by the inverse square root of the sum of the ensemble states, with an explicit convention on its kernel. The required circuit must reproduce its outcome distribution uniformly on valid inputs to any requested inverse-polynomial accuracy. Known subset-sum connections constrain particular unitary implementations and do not establish hardness for every measurement circuit.
+
+[Read in atlas](index.html#TCS-4811) · [How Hard Is Deciding Trivial Versus Nontrivial in the Dihedral Coset Problem?](https://doi.org/10.4230/LIPIcs.TQC.2016.6) · [Optimal measurements for the dihedral hidden subgroup problem](https://arxiv.org/abs/quant-ph/0501044) · [The dihedral hidden subgroup problem](https://doi.org/10.1515/jmc-2022-0029) · [The Hidden Subgroup Problem in Semidirect Products and Quasi-Hamiltonian Groups](https://arxiv.org/abs/2608.05321)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6449 — Quantum versus classical nonuniform advice
 
 Quantum and classical advice supply information fixed for an entire input length to an efficient quantum computation. The selected advice must decide every binary input of that length correctly with bounded error, and can be arbitrarily hard to prepare. The question asks whether quantum advice increases the resulting ordinary class of total languages. A known simulation by PP with classical advice uses a different error and computation model, while successive oracle separations retain their black boxes. The latest standard classical-oracle separation does not resolve the ordinary equality, and fresh-copy advice remains distinct from untrusted per-instance witnesses.
@@ -2779,13 +2786,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 Gap amplification increases the separation between satisfiable and unsatisfiable instances in a verification problem. The cited quantum construction can amplify a Hamiltonian promise gap repeatedly, but its terms act on progressively more qubits. This growing locality obstructs the composition steps used in the classical PCP strategy. The question asks for a quantum analogue that retains the important structural features of Dinur's classical amplification procedure. Such an operation would address a concrete missing ingredient in efforts to make quantum proofs locally checkable with a constant gap.
 
 [Read in atlas](index.html#TCS-4734) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4811 — Dihedral coset problem versus Subset Sum
-
-The dihedral coset problem is a quantum problem closely connected to hidden subgroup algorithms and certain lattice problems. This project asks how tightly its computational difficulty is related to subset sum, including which densities of subset-sum instances are relevant. A measurement that extracts information optimally need not be efficiently implementable, and its implementation leads to a quantum subset-sum sampling task. The cited reductions connect different density regimes and sometimes pass through unique shortest-vector problems. A sharper equivalence would clarify whether progress on subset sum can actually yield efficient dihedral algorithms, rather than only information-theoretically good measurements.
-
-[Read in atlas](index.html#TCS-4811) · [How Hard Is Deciding Trivial Versus Nontrivial in the Dihedral Coset Problem?](https://doi.org/10.4230/LIPIcs.TQC.2016.6)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4894 — Parity versus \(\mathrm{AC}^{0}\) with shallow quantum preprocessing
