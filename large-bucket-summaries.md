@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-402 five-sentence working summaries, based on saved source material.
+400 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (69)
+## Computational complexity (67)
 
 ### TCS-0001 — P versus NP
 
@@ -459,20 +459,6 @@ The minimum circuit size problem asks whether a truth table can be implemented b
 
 [Read in atlas](index.html#TCS-4786) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6715 — Monotone circuits versus monotone span programs
-
-A monotone span program accepts an input when vectors enabled by its one-bits span a designated target vector over a field. A monotone Boolean circuit instead combines input bits using AND and OR gates. The question asks for functions with polynomial-size monotone circuits that require superpolynomial-size monotone span programs. The source discusses a separation in the opposite direction, so this asks whether the two models can be incomparable in efficiency. Such an example would expose a limitation of linear-algebraic representations even for functions having short purely monotone logical computations.
-
-[Read in atlas](index.html#TCS-6715) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6716 — General versus monotone span programs
-
-Ordinary span programs may enable vectors using either positive or negative input literals. Monotone span programs use only positive literals, even when the function itself is monotone. The question asks for a monotone function with a polynomial-size ordinary span program but no polynomial-size monotone span program. The analogous distinction can be dramatic for Boolean circuits, but the source leaves it unsettled for span programs. A separation would show that negative tests can provide essential efficiency in linear-algebraic computation despite the monotonicity of the final answer.
-
-[Read in atlas](index.html#TCS-6716) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6832 — Separations among P, RP and NP
 
