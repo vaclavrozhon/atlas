@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-880 records have an editorial importance assessment; 152 remain provisional.
+883 records have an editorial importance assessment; 149 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -263,7 +263,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance 
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance assessed: 28; provisional: 14.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance assessed: 29; provisional: 13.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance 
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 26; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 27; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -291,9 +291,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 | 5 | [Subtour-LP integrality gap for metric TSP](index.html#TCS-6589) | 95 |
 | 6 | [Optimal polynomial-time approximation ratio for metric k-Median](index.html#TCS-6659) | 95 |
 | 7 | [Vertex Cover approximation below factor two](index.html#TCS-7282) | 95 |
-| 8 | [Subtour-LP integrality gap for asymmetric TSP](index.html#TCS-6590) | 94 |
-| 9 | [Constant-factor approximation for uniform Sparsest Cut](index.html#TCS-7266) | 94 |
-| 10 | [Unconditional NP-hardness at the Goemans–Williamson Max-Cut threshold](index.html#TCS-7281) | 94 |
+| 8 | [Does a fixed d-to-1 Games conjecture imply Unique Games?](index.html#TCS-5544) | 94 |
+| 9 | [Subtour-LP integrality gap for asymmetric TSP](index.html#TCS-6590) | 94 |
+| 10 | [Constant-factor approximation for uniform Sparsest Cut](index.html#TCS-7266) | 94 |
 
 ## 8. Online algorithms, scheduling and packing (small)
 
@@ -528,7 +528,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 4; importance a
 
 ## 22. Constraint satisfaction (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 17; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 18; provisional: 1.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -540,8 +540,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance 
 | 6 | [Hardness of 6-coloring 3-colorable graphs](index.html#TCS-7237) | 94 |
 | 7 | [NP-intermediate \\(\\omega\\)-categorical CSPs](index.html#TCS-1173) | 88 |
 | 8 | [VCSP tractability over the countable random graph](index.html#TCS-1555) | 88 |
-| 9 | [Boolean decision-Holant dichotomy](index.html#TCS-6748) | 86 |
-| 10 | [Exact exponential-time equivalence for nonnegative Boolean Max-CSP](index.html#TCS-3585) | 85 |
+| 9 | [Super-log-logarithmic colouring hardness for two-colourable triple systems](index.html#TCS-3984) | 87 |
+| 10 | [Boolean decision-Holant dichotomy](index.html#TCS-6748) | 86 |
 
 ## 23. Automated reasoning, rewriting and unification (small)
 

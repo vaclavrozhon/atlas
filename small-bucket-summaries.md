@@ -210,12 +210,12 @@ Polynomial circuit upper bounds for NP would assert small nonuniform computation
 [Read in atlas](index.html#TCS-1097) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1098 — \(PV_{1}\) cannot verify any polynomial-time SAT solver
+### TCS-1098 — \(PV_1\) nonprovability of polynomial-time SAT solvers
 
-\(PV_{1}\) is an arithmetic theory organized around polynomial-time computation. The saved question asks whether it can verify the correctness of any polynomial-time SAT solver. The target would rule out formal correctness proofs in that theory, rather than by itself rule out the existence of such a solver. It links the provability of algorithmic claims to the theory's limited reasoning strength. The index does not state how solvers and their correctness are encoded or which assumptions support the proposed unprovability, so those details remain essential to the final formulation.
+A polynomial-time SAT search algorithm would return a satisfying assignment whenever one exists. The question asks whether the theory PV1 fails to prove correctness for every such polynomial-time function symbol. This is a statement about finite formal proofs, with the theory and formula encoding specified explicitly. It can hold even if a polynomial-time solver exists but its correctness has no proof in this particular theory. The benchmark requires a complete Lean proof of the nonprovability schema or a verified counterexample consisting of a symbol and a finite correctness proof.
 
-[Read in atlas](index.html#TCS-1098) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1098) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416v1) · [The strength of sharply bounded induction](https://www.math.cas.cz/~jerabek/papers/t02.pdf) · [A Theory for Probabilistic Polynomial-Time Reasoning](https://arxiv.org/abs/2602.09302v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0071 — \(\mathrm{NC}^{0}\) proof systems
 
@@ -1107,6 +1107,13 @@ Rank-width measures the ranks of adjacency cuts in an optimally chosen decomposi
 [Read in atlas](index.html#TCS-7312) · [Parameterized complexity of graph isomorphism testing](https://epub.uni-regensburg.de/78630/1/1-s2.0-S1574013726000274-main.pdf) · [Canonisation and Definability for Graphs of Bounded Rank Width](https://arxiv.org/abs/1901.10330v2) · [Canonizing Graphs of Bounded Rank-Width in Parallel via Weisfeiler–Leman](https://doi.org/10.4230/LIPIcs.SWAT.2024.32) · [Branch-width of connectivity functions is fixed-parameter tractable](https://arxiv.org/abs/2601.04756v2)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6734 — Polynomial compression versus polynomial kernelization
+
+A polynomial compression replaces an instance by a short string for a possibly different decision language. A polynomial kernel must instead return a short equivalent instance of the original parameterized problem. The selected question asks for an NP-complete unary source language with deterministic polynomial compression but a conditional obstruction to polynomial kernels. The obstruction must show that any such kernel would put every NP language in coNP with polynomial advice. The compression is unconditional, its target language is unrestricted, and the original informal naturalness requirement is replaced by the user-selected precise source class.
+
+[Read in atlas](index.html#TCS-6734) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [Kernelization: Theory of Parameterized Preprocessing](https://fedorvf.github.io/BookKer/book_kernels.pdf) · [Abusing the Tutte Matrix: An Algebraic Instance Compression for the K-set-cycle Problem](https://doi.org/10.4230/LIPIcs.STACS.2013.341) · [Preprocessing Complexity for Some Graph Problems Parameterized by Structural Parameters](https://arxiv.org/abs/2306.12655v1) · [Boundaried Kernelization via Representative Sets](https://doi.org/10.4230/LIPIcs.IPEC.2025.6)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-3480 — Polynomial exact metric sparsifiers with a crossing-edge budget
 
 A graph with terminals is queried by choosing labels for the terminals and a metric on the labels. The goal is a small retained edge set that supports an optimal extension for every such query. Only labelings with at most p crossing edges are compared, and the retained set must have size polynomial in p plus the number of terminals. The original claimed quasipolynomial metric-sparsifier result was explicitly retracted in the corrected paper. Ordinary multicut sparsifiers preserve a different collection of values and do not settle this universal metric question.
@@ -1275,13 +1282,6 @@ The W-hierarchy organizes parameterized problems into levels defined through con
 [Read in atlas](index.html#TCS-6731) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6734 — Polynomial compression versus polynomial kernelization
-
-A polynomial compression maps an instance into a short equivalent string for some target decision problem. A polynomial kernel requires the output to remain an instance of the original problem. The textbook asks for natural problems demonstrating a separation between these preprocessing capabilities. Such an example would show whether freedom to change the output language provides a substantive advantage in useful settings. The saved formulation does not define the intended naturalness criterion or the assumptions supporting nonexistence of kernels, so it remains an exploratory separation target.
-
-[Read in atlas](index.html#TCS-6734) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6749 — Deterministic polynomial kernels for Almost 2-SAT
 
 Almost 2-SAT asks whether a limited number of clauses can be removed from a 2-CNF formula to make it satisfiable. The saved question asks for a deterministic polynomial kernel with the deletion budget as the intended parameter. Preprocessing must retain the interactions responsible for inconsistency while reducing the complete instance to polynomial size. A deterministic result would make that compression guarantee independent of random choices. The note records the question from the 2017 source without checking subsequent developments, so the draft does not infer a currently unresolved derandomization gap.
@@ -1367,6 +1367,13 @@ Metric k-Median selects at most k allowed facilities to minimize total client di
 
 [Read in atlas](index.html#TCS-6659) · [A \((2+\varepsilon )\)-Approximation Algorithm for Metric k-Median](https://people.idsia.ch/~grandoni/Pubblicazioni/CGLSS25stoc.pdf) · [A threshold of ln n for approximating set cover](https://disco.ethz.ch/alumni/pascalv/refs/ds_1998_feige.pdf) · [A new greedy approach for facility location problems](https://cgi.di.uoa.gr/~vassilis/co/co-papers/jain02.pdf) · [Tight FPT Approximations for k-Median and k-Means](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.42) · [Almost-Optimal Upper and Lower Bounds for Clustering in Low Dimensional Euclidean Spaces](https://arxiv.org/abs/2603.09846) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-5544 — Does a fixed d-to-1 Games conjecture imply Unique Games?
+
+The question asks whether perfect-completeness d-to-one hardness for any fixed d implies the full Unique Games conjecture. Every game is an explicit finite classical constraint system, and hardness means deterministic polynomial reductions from Boolean satisfiability. Known direct conversion gives a fixed positive Unique Games completeness rather than a value arbitrarily close to one. A September 2026 preprint claims perfect-completeness four-to-one hardness, which would establish the antecedent if correct. The implication remains a separate target and, conditional on that theorem, is equivalent to proving full UGC.
+
+[Read in atlas](index.html#TCS-5544) · [Near-Optimal UGC-hardness of Approximating Max \(k-\mathrm{CSP}_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [Towards a Proof of the 2-to-1 Games Conjecture?](https://theoryofcomputing.org/articles/v021a011/) · [On the Hardness of 4-to-1 Games with Perfect Completeness](https://eccc.weizmann.ac.il/report/2026/179/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6590 — Subtour-LP integrality gap for asymmetric TSP
 
@@ -1464,13 +1471,6 @@ Existing status: `source_open` · Summary written: 2026-09-12
 Constrained submodular maximization chooses an independent set of a matroid to maximize a nonnegative submodular objective. The objective need not be monotone, so adding a feasible element can reduce its value. The extracted question asks for the best possible approximation factor in this general setting. It appears as background to a paper that additionally studies linear regularization, rather than being restricted to that modified objective. Matching oracle algorithms and lower bounds would determine the precise cost of combining diminishing returns, possible negative marginal gains, and matroid feasibility.
 
 [Read in atlas](index.html#TCS-5407) · [On Maximizing Sums of Non-Monotone Submodular and Linear Functions](https://doi.org/10.4230/LIPIcs.ISAAC.2022.41)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5544 — d-to-1 versus Unique Games conjectures
-
-The d-to-1 and Unique Games conjectures concern hardness of satisfying labeled constraints with different local compatibility structures. The saved 2016 passage asks whether the former implies the latter. A reduction must preserve a sufficiently strong completeness–soundness gap while turning several compatible labels into unique compatibility. An implication could connect distinct assumptions used to prove approximation hardness for general-domain CSPs. The excerpt truncates the final name and does not specify completeness conventions, so later results for related games cannot be substituted without checking the exact quantified conjectures.
-
-[Read in atlas](index.html#TCS-5544) · [Near-Optimal UGC-hardness of Approximating Max \(k-\mathrm{CSP}_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5554 — Subquadratic factor-three edit-distance approximation
@@ -1724,10 +1724,10 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6684 — Computational Kesten–Stigum threshold
 
-The symmetric stochastic block model generates a sparse graph with higher edge probability within hidden communities than between them. The question asks whether some fixed parameters below the Kesten–Stigum threshold permit polynomial-time weak recovery. Weak recovery means a constant improvement over chance after relabeling the output communities optimally. A positive example would cross a proposed computational threshold in a setting where information can persist beyond simple spectral methods. The reviewed model keeps the number of communities and edge parameters fixed, so results with growing community counts or only restricted-algorithm lower bounds do not settle it.
+A sparse stochastic block model hides a fixed number of equally likely community labels in a random graph. The question asks whether any fixed assortative parameters below the Kesten–Stigum threshold allow polynomial-time recovery with a constant expected advantage over chance. The algorithm receives one graph, and success is measured after the best permutation of the community names. Information can survive below the threshold, but known computational barriers retain conjectural or restricted-estimator assumptions. Recent algorithms with a growing number of communities do not supply the fixed-parameter example required here.
 
 [Read in atlas](index.html#TCS-6684) · [Detection in the stochastic block model with multiple clusters: proof of the achievability conjectures, acyclic BP, and the information-computation gap](https://arxiv.org/abs/1512.09080) · [Information-theoretic thresholds for community detection in sparse networks](https://proceedings.mlr.press/v49/banks16.html) · [Low degree conjecture implies sharp computational thresholds in stochastic block model](https://arxiv.org/abs/2502.15024) · [Stochastic block models with many communities and the Kesten–Stigum bound](https://arxiv.org/abs/2503.03047)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7238 — Polynomial-time refutation of random 3-SAT at constant density
 
@@ -3932,6 +3932,13 @@ The question concerns valued constraint problems whose costs depend only on equa
 [Read in atlas](index.html#TCS-1555) · [Temporal Valued Constraint Satisfaction Problems](https://doi.org/10.4230/LIPIcs.MFCS.2025.24) · [A Complexity Dichotomy for Temporal Valued Constraint Satisfaction Problems](https://arxiv.org/abs/2409.07285v2) · [The Complexity of Resilience Problems via Valued Constraint Satisfaction](https://arxiv.org/abs/2309.15654v6)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-3984 — Super-log-logarithmic colouring hardness for two-colourable triple systems
+
+The question concerns colouring hypergraphs whose edges contain exactly three vertices and whose vertices admit a hidden two-colouring. It asks for a hardness reduction ruling out a palette that grows faster than log log of the output vertex count. A deterministic quasipolynomial reduction from Boolean satisfiability suffices, and a polynomial reduction is a stronger permitted answer. Known larger palette gaps often change the edge size or allow three colours in the completeness promise. The latest fixed-density independent-set hardness claim does not by itself give the required quantitative growing-palette gap.
+
+[Read in atlas](index.html#TCS-3984) · [NP-Hardness of Coloring 2-Colorable Hypergraph with Poly-Logarithmically Many Colors](https://doi.org/10.4230/LIPIcs.ICALP.2018.15) · [Super-polylogarithmic hypergraph coloring hardness via low-degree long codes](https://arxiv.org/abs/1311.7407) · [On the Hardness of 4-to-1 Games with Perfect Completeness](https://eccc.weizmann.ac.il/report/2026/179/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6748 — Boolean decision-Holant dichotomy
 
 Boolean decision Holant asks whether edges of a graph can be assigned zero or one so that every local relation is satisfied. The question seeks a structural classification of all fixed finite relation families that admit polynomial-time decision. The source’s edge-CSP model makes each variable occur in exactly two distinct constraint scopes, without freely adding constants or unary relations. Known results handle the non-delta-matroid boundary, symmetric delta-matroids and even delta-matroids, while the arbitrary delta-matroid region remains the general obstacle. A complete answer would identify the full tractability boundary beyond ordinary Boolean CSP and matching.
@@ -3994,13 +4001,6 @@ A crisp constraint language lists the allowed tuples over a finite domain, and t
 
 [Read in atlas](index.html#TCS-3678) · [Testing the Complexity of a Valued CSP Language](https://doi.org/10.4230/LIPIcs.ICALP.2019.77) · [Testing the complexity of a valued CSP language](https://arxiv.org/abs/1803.02289) · [The Complexity of Finding Coset-Generating Polymorphisms and the Promise Metaproblem](https://doi.org/10.4230/LIPIcs.ICALP.2026.169)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-3984 — Hardness of coloring 2-colorable 3-uniform hypergraphs
-
-A proper hypergraph coloring assigns colors to vertices so that no hyperedge is monochromatic. The promise here is that every hyperedge has three vertices and that a two-coloring exists. The question asks whether finding a coloring with more than a logarithm-of-logarithm number of colors is NP-hard, or at least quasi-NP-hard. The source obtains stronger coloring hardness for four-uniform hypergraphs, where one additional vertex per edge gives reductions more flexibility. Transferring comparable hardness to triples would sharpen the boundary of what efficient algorithms can do under a very strong colorability promise.
-
-[Read in atlas](index.html#TCS-3984) · [NP-Hardness of Coloring 2-Colorable Hypergraph with Poly-Logarithmically Many Colors](https://doi.org/10.4230/LIPIcs.ICALP.2018.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7124 — SNP definability of CSPs in NP
 
