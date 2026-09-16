@@ -110,6 +110,13 @@ TFNP contains search problems with polynomially bounded, efficiently verifiable 
 [Read in atlas](index.html#TCS-4988) · [An Oracle with no UP-Complete Sets, but \(\mathrm{NP}=\mathrm{PSPACE}\)](https://doi.org/10.4230/LIPIcs.MFCS.2024.50) · [Incompleteness in the finite domain](https://users.math.cas.cz/~pudlak/inco.pdf) · [Hierarchies within TFNP: building blocks and collapses](https://eccc.weizmann.ac.il/report/2025/123/revision/1/download/)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6977 — Ruling out quasilinear-time SAT without a space restriction
+
+SAT asks whether an explicitly written Boolean formula has a satisfying assignment. The target excludes every deterministic running time n times a fixed polynomial in log n in a uniform random-access model. There is no independent restriction on working memory. Known small-space lower bounds and either/or resource alternatives do not establish this time-only statement. The user explicitly selected the quasilinear interpretation of the source’s informal near-linear goal.
+
+[Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Time-Space Tradeoffs for Counting NP Solutions Modulo Integers](https://eccc.weizmann.ac.il/report/2007/036/) · [Bounded Relativization](https://eccc.weizmann.ac.il/report/2023/070/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7363 — \(\exists\mathbb{R}\) versus \(\mathrm{NP}\)
 
 Existential real formulas ask whether polynomial constraints have a real solution. The input is a finite binary description of the constraints. The class contains NP and is contained in PSPACE. The question asks whether it is exactly NP. An oracle separation or a rational-coordinate obstruction alone does not answer that class comparison.
@@ -250,6 +257,13 @@ The selected KRW variant asks whether minimum formula size under block compositi
 [Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Super-logarithmic Depth Lower Bounds via the Direct Sum in Communication Complexity](https://doi.org/10.1007/BF01206317) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-0303 — Improving the log-space SAT time exponent beyond 2 cos(π/7)
+
+The input is a Boolean satisfiability formula measured by its complete binary length. The proposed lower bound applies to deterministic algorithms that use only logarithmic writable memory and can query any input location. The goal is to exclude some time exponent strictly larger than 2 cos(π/7), with the same machine subject to both resource bounds. Known lower bounds approach the threshold from below, and a theorem limits a formalized proof method at that threshold. A refutation must provide algorithms for every larger exponent, possibly different algorithms for different exponents.
+
+[Read in atlas](index.html#TCS-0303) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Time-Space Tradeoffs for Counting NP Solutions Modulo Integers](https://eccc.weizmann.ac.il/report/2007/036/) · [Limits on Alternation Trading Proofs for Time–Space Lower Bounds](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/npProofLimits/paper-journal.pdf) · [Time-Space Lower Bounds for Simulating Proof Systems with Quantum and Randomized Verifiers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2021.50) · [Bounded Relativization](https://eccc.weizmann.ac.il/report/2023/070/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6006 — Is ARRIVAL solvable in polynomial time?
 
 ARRIVAL asks which of two destinations is reached by one token following deterministic alternating switches. The graph and both successor choices are explicit, and every vertex can reach at least one sink in the underlying graph. The target is one deterministic polynomial-time decision algorithm, without requiring it to list the token trajectory. General subexponential algorithms and newer bounded-treewidth or ladder results leave that all-instance target open. Short certificates for both outcomes make this a basic unresolved question at the boundary of efficient decision and total search.
@@ -347,13 +361,6 @@ Savitch’s theorem simulates nondeterministic space s with deterministic space 
 
 [Read in atlas](index.html#TCS-0293) · [Improving SPACE versus NSPACE via Tree Evaluation, in Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.15.3.56)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0303 — Stronger log-space time lower bounds for SAT
-
-Time-space lower bounds show that some combinations of fast running time and tiny memory cannot solve SAT. The source asks to strengthen the known limits for logarithmic-space algorithms. This differs from proving a general SAT time lower bound because the memory restriction supplies additional structure. Simulation and alternation-trading arguments are central tools in the cited discussion. The project seeks a sharper quantitative obstruction to deciding satisfiability while retaining only a few indices, even if the input can be revisited freely.
-
-[Read in atlas](index.html#TCS-0303) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1602 — Deterministic query complexity of tournament kings
 
@@ -480,13 +487,6 @@ CNF satisfiability asks whether an assignment makes every listed clause true. Th
 
 [Read in atlas](index.html#TCS-6934) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/) · [Time-space lower bounds for satisfiability](https://doi.org/10.1145/1101821.1101822) · [Simulating Time with Square-Root Space](https://doi.org/10.1145/3798104)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-6977 — Super-near-linear SAT time lower bounds
-
-SAT asks whether a Boolean formula has a satisfying assignment. The selected question seeks an unconditional lower bound excluding algorithms whose running time stays near the input length. This is a weaker objective than excluding every polynomial-time algorithm, but it must still account for all algorithms in the chosen model. Restrictions on working space can support different lower bounds and should not be silently added to the question. Progress would establish a concrete limit on efficient satisfiability algorithms without needing to settle the full P versus NP problem.
-
-[Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Algorithms (27)
 
@@ -1268,10 +1268,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7336 — Common2 membership of FIFO queues
 
-Several processes concurrently insert and remove items from a FIFO queue. Every continuing process must complete its own operation despite arbitrary delays of others. Only read/write registers and test-and-set primitives are available. Known restricted queue implementations do not cover the full interface. The question separates the synchronization power of a queue from that of weaker shared objects.
+Several named processes repeatedly insert arbitrary items into a first-in-first-out queue and remove the oldest remaining item. Only atomic read/write registers and initially unused test-and-set bits are available, with no fixed memory-capacity limit. For every fixed process count, the question asks for a deterministic implementation in which every continuing process finishes each operation despite arbitrary interference or crashes. Correctness requires ordinary linearizability, allowing a legal sequential explanation of every history without demanding one prefix-preserving choice across histories. Known restricted-role queues and impossibility theorems under strong linearizability do not settle this unrestricted target.
 
-[Read in atlas](index.html#TCS-7336) · [Nontrivial and Universal Helping for Wait-Free Queues and Stacks](https://drops.dagstuhl.de/storage/00lipics/lipics-vol046-opodis2015/LIPIcs.OPODIS.2015.31/LIPIcs.OPODIS.2015.31.pdf)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7336) · [Nontrivial and Universal Helping for Wait-Free Queues and Stacks](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2015.31) · [Common2 Extended to Stacks and Unbounded Concurrency](https://www.cs.tau.ac.il/~mad/publications/podc06.pdf) · [Two-enqueuer queue in Common2](https://arxiv.org/abs/0805.0444v2) · [Efficient Wait-Free Queue Algorithms with Multiple Enqueuers and Multiple Dequeuers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2022.4) · [Preserving hyperproperties of programs using primitives with consensus number 2](https://doi.org/10.1007/s00236-025-00500-3) · [Impossibility Results for Strong Linearizability: The Difficulty of Consistent Refereeing](https://arxiv.org/abs/2506.18401v3)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0515 — Deterministic volume gap
 

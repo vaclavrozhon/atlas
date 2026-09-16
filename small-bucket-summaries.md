@@ -28,10 +28,10 @@ Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-6685 — Busy Beaver \(\mathrm{BB}(6)\)
 
-\(\mathrm{BB}(6)\) is the maximum halting runtime among six-state, two-symbol Turing machines started on a blank tape. The accepted answer specifies one concrete machine and proves in Lean that it halts and no other halting machine in the same class runs longer. Its runtime describes \(\mathrm{BB}(6)\) exactly, so no simple closed form, decimal expansion or full execution trace is required. The problem turns the general undecidability of halting into an exceptionally concrete finite classification challenge. The saved review records large candidate runtimes and unresolved holdouts, and distinguishes runtime from the separate Busy Beaver measure counting printed ones.
+\(\mathrm{BB}(6)=S(6)\) is the maximum number of steps taken by a halting six-state binary Turing machine from the blank tape. The required answer supplies one complete transition table and Lean-checked proofs of its halting and universal runtime maximality. That proved-halting machine’s runtime names the exact integer without requiring a decimal expansion, closed form or execution trace. The five-state value is established, while six-state machines already exhibit enormous halting runtimes and unresolved arithmetic behavior. The September 2026 project pages still report the value as unknown; lower bounds, heuristics and a shrinking holdout list do not certify the requested maximum.
 
-[Read in atlas](index.html#TCS-6685) · [\(\mathrm{BB}(6)\)](https://wiki.bbchallenge.org/w/index.php?title=BB(6)&oldid=8417) · [Story: Turing machines and the Busy Beaver function](https://bbchallenge.org/story) · [Determination of the fifth Busy Beaver value](https://arxiv.org/abs/2509.12337v2) · [Antihydra](https://bbchallenge.org/antihydra) · [Holdouts lists](https://wiki.bbchallenge.org/wiki/Holdouts)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-6685) · [Determination of the fifth Busy Beaver value](https://arxiv.org/abs/2509.12337v2) · [\(\mathrm{BB}(6)\)](https://wiki.bbchallenge.org/w/index.php?title=BB(6)&oldid=8519) · [Holdouts lists](https://wiki.bbchallenge.org/w/index.php?title=Holdouts_lists&oldid=8522) · [Antihydra](https://bbchallenge.org/antihydra) · [Story: Turing machines and the Busy Beaver function](https://bbchallenge.org/story)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6649 — Reversal of Hindman’s theorem to the \(\omega\)-jump
 
@@ -2227,10 +2227,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7244 — Boolean dimension of posets with planar cover graphs
 
-The cover graph records immediate comparabilities of a finite partial order. The question asks whether its planarity guarantees a constant number of total orders encoding every comparability. One Boolean rule interprets the pairwise comparison bits from those orders. The orders and rule may vary with the poset, but their number must have a universal bound. The target links sparse graph structure to concise representations of reachability.
+The cover graph records which pairs in a finite partial order are immediately comparable, with edge directions forgotten. The question asks whether planarity of that graph guarantees a universal constant number of total orders encoding every comparability. One Boolean function decodes the comparison bits for all distinct ordered pairs, and both that function and the auxiliary orders may vary with the poset. The orders need not extend the partial order, and no upward planar diagram or unique minimal element is assumed. Known bounds with additional structural hypotheses leave the general question open in the checked sources and motivate its connection to concise reachability labels.
 
-[Read in atlas](index.html#TCS-7244) · [Boolean dimension and dim-boundedness: Planar cover graph with a zero](https://arxiv.org/abs/2206.06942) · [Cliquewidth and dimension](https://arxiv.org/abs/2308.11950) · [List of open questions: Boolean dimension of planar posets](https://a3nm.net/work/research/questions/#boolean-dimension-of-planar-posets)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7244) · [Boolean dimension and dim-boundedness: Planar cover graph with a zero](https://arxiv.org/abs/2206.06942v2) · [Cliquewidth and dimension](https://arxiv.org/abs/2308.11950v3) · [Cliquewidth and dimension](https://doi.org/10.1112/plms.70116) · [Boolean dimension of a Boolean lattice](https://arxiv.org/abs/2307.16671v2) · [List of open questions: Boolean dimension of planar posets](https://a3nm.net/work/research/questions/#boolean-dimension-of-planar-posets)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7285 — Strongly explicit Ramanujan families for every degree
 
