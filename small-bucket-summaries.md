@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-605 five-sentence working summaries, based on saved source material.
+607 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1331,7 +1331,7 @@ Directed feedback sets remove vertices or arcs until no directed cycle remains. 
 [Read in atlas](index.html#TCS-7033) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (25)
+## Approximation algorithms and inapproximability (26)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1374,6 +1374,13 @@ Metric k-Median selects at most k allowed facilities to minimize total client di
 
 [Read in atlas](index.html#TCS-6659) · [A \((2+\varepsilon )\)-Approximation Algorithm for Metric k-Median](https://people.idsia.ch/~grandoni/Pubblicazioni/CGLSS25stoc.pdf) · [A threshold of ln n for approximating set cover](https://disco.ethz.ch/alumni/pascalv/refs/ds_1998_feige.pdf) · [A new greedy approach for facility location problems](https://cgi.di.uoa.gr/~vassilis/co/co-papers/jain02.pdf) · [Tight FPT Approximations for k-Median and k-Means](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.42) · [Almost-Optimal Upper and Lower Bounds for Clustering in Low Dimensional Euclidean Spaces](https://arxiv.org/abs/2603.09846) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-7282 — Vertex Cover approximation below factor two
+
+A vertex cover selects at least one endpoint of every edge of a finite simple undirected graph. The problem asks whether one deterministic polynomial-time algorithm always finds a cover within a fixed factor strictly below two of the minimum size. The positive improvement must be independent of graph size, and the output and worst-case bit-time guarantees apply to every explicitly listed graph, including edgeless ones. A complete Lean proof must establish such an algorithm or unconditionally rule out every polynomial-time candidate, rather than assume an unproved hardness hypothesis. Known vanishing improvements, Unique-Games-based hardness, recent hypergraph results and the checked heuristic claims do not provide the required unconditional fixed-gap resolution.
+
+[Read in atlas](index.html#TCS-7282) · [The Primal-Dual Schema for Approximation Algorithms: Where Does It Stand, and Where Can It Go?](https://algo.inria.fr/seminars/sem00-01/vazirani.html) · [A better approximation ratio for the Vertex Cover problem](https://www.cas.mcmaster.ca/~gk/papers/vc.pdf) · [Vertex Cover Might be Hard to Approximate to within \(2-\varepsilon\)](https://cims.nyu.edu/~regev/papers/vc_hard.pdf) · [On Independent Sets, 2-to-2 Games and Grassmann Graphs](https://theoryofcomputing.org/articles/v021a010/) · [An Approximate Solution to the Minimum Vertex Cover Problem: The Salvador Algorithm](https://www.preprints.org/manuscript/202605.2000/v3) · [An Approximate Solution to the Minimum Vertex Cover Problem: The Hallelujah Algorithm](https://www.preprints.org/manuscript/202510.2392/v2) · [Improved Multilayered PCPs and Hypergraph Vertex Cover](https://arxiv.org/abs/2609.06775) · [On the Hardness of 4-to-1 Games with Perfect Completeness](https://eccc.weizmann.ac.il/report/2026/179/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5544 — Does a fixed d-to-1 Games conjecture imply Unique Games?
 
@@ -1992,7 +1999,7 @@ The source asks to separate both polynomial-delay and incremental-polynomial enu
 [Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Structural graph theory and graph algorithms (50)
+## Structural graph theory and graph algorithms (51)
 
 ### TCS-6651 — Hadwiger’s conjecture
 
@@ -2217,6 +2224,13 @@ Delete each edge of a graph in turn, erase vertex labels and collect the resulti
 
 [Read in atlas](index.html#TCS-7217) · [Reconstruction of Small Graphs and Digraphs](https://arxiv.org/abs/2102.01942) · [A combinatorial K-theory perspective on the Edge Reconstruction Conjecture in graph theory](https://arxiv.org/abs/2402.14986v2) · [The Class Edge-Reconstruction Number of a Maximal Planar Graph Is One or Two](https://arxiv.org/abs/2609.02389v1)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7289 — Lovász conjecture
+
+A graph is vertex-transitive when an adjacency-preserving permutation can send any vertex to any other vertex. The Lovász conjecture asks whether every finite nonempty connected vertex-transitive simple undirected graph has a path that visits each vertex exactly once. The path need not return to its starting vertex, and the statement includes graphs outside the Cayley-graph setting without requiring an efficient path-finding algorithm. A resolution would decide whether connectedness and vertex symmetry alone force a spanning path, beyond known long-cycle guarantees and restricted Hamiltonicity results. A complete Lean answer must prove the path exists for every graph in the stated class or prove that one graph in the class has no such path.
+
+[Read in atlas](index.html#TCS-7289) · [Towards the Lovász conjecture via sublinear expanders](https://arxiv.org/abs/2606.09742v2) · [The Lovász conjecture holds for moderately dense Cayley graphs](https://arxiv.org/abs/2603.08675v2) · [Long Directed Cycles in Vertex-Transitive Digraphs](https://arxiv.org/abs/2607.05807v2) · [On Hamilton cycles in connected vertex-transitive graphs of order 2pq](https://arxiv.org/abs/2608.02349v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7344 — Almost-linear exact directed global minimum cut
 
@@ -3054,6 +3068,13 @@ The target is unconditional NP-hardness of deciding whether a succinctly represe
 [Read in atlas](index.html#TCS-5520) · [PosSLP and Sum of Squares](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.13) · [On the Hardness of PosSLP](https://goravjindal.github.io/assets/pdf/posslpsoda2024.pdf) · [Beyond Bits: An Introduction to Computation over the Reals](https://arxiv.org/abs/2603.29427)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-6897 — Permanent lower bounds from black-box identity testing
+
+A hitting set is a list of inputs on which every nonzero polynomial in a specified circuit class has a nonzero value somewhere. The card asks whether a uniform polynomial-time generator of such sets for general rational arithmetic circuits forces the permanent to require more than polynomially many arithmetic edges. Both sides allow arbitrary rational constants in the circuits, while the generator must write its rational points within a polynomial bit-time bound on unary variable, degree and size parameters. The published question isolates a missing permanent lower bound beyond established consequences involving other hard polynomials or a disjunction with Boolean circuit hardness. The general-circuit black-box instance is explicitly sourced, its field and encoding conventions are disclosed, and the bounded review found no later result meeting the full implication.
+
+[Read in atlas](index.html#TCS-6897) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf#page=67) · [Hardness-Randomness Tradeoffs for Algebraic Computation](https://mrinalkr.bitbucket.io/papers/hardness-randomness-survey.pdf#page=8) · [On Circuit Lower Bounds from Derandomization](https://theoryofcomputing.org/articles/v007a012/) · [Marginal Hitting Sets Imply Super-Polynomial Lower Bounds for Permanent](https://eccc.weizmann.ac.il/report/2011/133/) · [Tighter Connections between Derandomization and Circuit Lower Bounds](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX-RANDOM.2015.645) · [Polynomial-Time PIT from (Almost) Necessary Assumptions](https://arxiv.org/abs/2504.06044v1) · [A Note on Deterministic PIT for depth-four circuits with top fan-in three and constant bottom fan-in](https://eccc.weizmann.ac.il/report/2026/168/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0481 — Cubic min-plus circuit lower bounds for shortest paths
 
 A min-plus circuit computes by a fixed network of minimum and addition gates. The question asks whether even one shortest-path distance in a complete nonnegatively weighted graph requires cubic circuit size. Ordinary graph algorithms can branch on comparisons and therefore need not translate into equally small circuits. Repeated relaxation provides a cubic upper bound, while dependence on all edge inputs gives only a weaker basic lower bound. The project seeks to understand how much sharing fixed tropical computations can achieve across competing paths.
@@ -3318,13 +3339,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Multilinear arithmetic circuits keep variable exponents at most one in their intermediate polynomials. The saved question seeks superpolynomial lower bounds against this circuit model. Unlike formulas, these circuits can share partial computations, which creates the central obstacle when transferring tree-based arguments. A lower bound would quantify the power still available under multilinearity and provide a stronger benchmark for algebraic complexity techniques. The short survey note does not select the explicit polynomial family or settle semantic versus syntactic conventions, so those details remain required before the question becomes a complete research card.
 
 [Read in atlas](index.html#TCS-6893) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6897 — Permanent lower bounds from identity testing
-
-Polynomial identity testing decides whether an arithmetic representation computes the zero polynomial. The source asks whether an efficient identity test for a circuit class implies that the permanent is hard for that same class. The desired implication would convert an algorithm for recognizing algebraic cancellation into a lower bound for a canonical counting polynomial. This is a focused hardness-versus-randomness question because the conclusion must concern the particular class being tested. The saved formulation leaves efficient testing and closure assumptions unspecified, and those hypotheses are essential before a general implication can be claimed.
-
-[Read in atlas](index.html#TCS-6897) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6903 — Derandomizing noncommutative PIT

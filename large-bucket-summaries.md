@@ -1252,6 +1252,13 @@ Deterministic maximal independent set algorithms must coordinate their choices u
 [Read in atlas](index.html#TCS-6506) · [Near-Optimal Deterministic Network Decomposition and Ruling Set, and Improved MIS](https://arxiv.org/abs/2410.19516) · [Lower Bounds for Maximal Matchings and Maximal Independent Sets](https://arxiv.org/abs/1901.02441) · [Polylogarithmic-Time Deterministic Network Decomposition and Distributed Derandomization](https://arxiv.org/abs/1907.10937) · [Faster Distributed \(\Delta\)-Coloring via a Reduction to MIS](https://doi.org/10.1137/1.9781611978971.162)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-0954 — Subquadratic metric TSP cost estimation below factor two
+
+A metric TSP cost query algorithm asks for distances between selected pairs of labeled points. The question asks whether some fixed approximation factor below two is achievable with a subquadratic number of queries on every metric. The algorithm is randomized and only needs to output a cost estimate, with success probability at least two thirds. Nearly linear MST-weight estimation gives the factor-two baseline, while stronger TSP estimates are known for special metrics or with extra spanning-tree information. The target separates sparse access to a global optimum value from the information needed to construct an explicit tour.
+
+[Read in atlas](index.html#TCS-0954) · [Open Problems in Sublinear Algorithms, Problem 71: Metric TSP Cost Approximation](https://sublinear.info/index.php?title=Open_Problems:71) · [Estimating the Weight of Metric Minimum Spanning Trees in Sublinear Time](https://doi.org/10.1137/060672121) · [Sublinear Algorithms and Lower Bounds for Metric TSP Cost Estimation](https://doi.org/10.4230/LIPIcs.ICALP.2020.30) · [Sublinear Algorithms and Lower Bounds for Estimating MST and TSP Cost in General Metrics](https://doi.org/10.4230/LIPIcs.ICALP.2023.37)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0998 — Fast merging of summaries for symmetric streaming computations
 
 The input statistic is a total Boolean function invariant under reordering the stream. A streaming program computes it using polylogarithmic memory and time per item. The selected question asks for equally efficient local summaries and merging on every binary aggregation tree. A known simulation preserves small space but can use superpolynomial merge time. The target excludes promise and randomness separations and does not require identical intermediate summaries.
@@ -1411,13 +1418,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 A graph stream reveals edges in sequence while the algorithm keeps a small memory state. The task is to approximate the shortest-path distance between specified vertices. The source asks whether multiple passes or random edge order permit better approximations than approaches based on preserving many distances in a spanner. Following reachability one layer per pass computes the exact distance, but can require too many scans for distant vertices. The project is to exploit the single-pair objective or additional passes without storing a large global distance-preserving graph.
 
 [Read in atlas](index.html#TCS-0993) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:14)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0954 — Metric TSP Cost Approximation
-
-A metric traveling-salesperson query algorithm learns distances between pairs of points on demand. The source asks whether it can approximate the optimal tour length within a factor strictly below two using o(n squared) distance queries. Estimating a minimum spanning tree's weight gives a near-two approximation without recovering the tree itself. However, constructing a good spanning tree can already require quadratically many queries, obstructing a direct use of classical tour algorithms. The project is to estimate the tour's value more accurately while avoiding the information needed to output an explicit global structure.
-
-[Read in atlas](index.html#TCS-0954) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:71)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0969 — Approximating LIS Length in the Streaming Model
