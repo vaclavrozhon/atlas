@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+401 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -215,6 +215,13 @@ The question concerns a fixed machine that prints all digits of a real number wi
 [Read in atlas](index.html#TCS-7159) · [On the computational complexity of algebraic numbers: the Hartmanis–Stearns problem revisited](https://arxiv.org/abs/1601.02771) · [Time-Restricted Sequence Generation](https://people.csail.mit.edu/meyer/time-restricted-sequence-generation-jcss.pdf) · [On Transcendence of Numbers Related to Sturmian and Arnoux-Rauzy Words](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.144) · [Computing the base-b representation of quadratic irrationals using automata](https://doi.org/10.1016/j.tcs.2026.115843)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-2215 — Real quantifier alternation versus summation
+
+The question asks whether all fixed levels of alternating real quantification reduce to one strengthened existential theory. That target theory permits nested sums over Boolean dummy variables inside arithmetic terms. Its real variables must remain explicitly listed, and it has no compact product binder. The reductions operate on finite binary descriptions and may have a different polynomial bound for each fixed alternation level. A positive answer would supply the specific counting-versus-alternation principle proposed in the 2024 source, distinct from earlier topological Toda analogues.
+
+[Read in atlas](index.html#TCS-2215) · [The Existential Theory of the Reals with Summation Operators](https://doi.org/10.4230/LIPIcs.ISAAC.2024.13) · [Beyond the Existential Theory of the Reals](https://doi.org/10.1007/s00224-023-10151-x) · [Polynomial Hierarchy, Betti Numbers, and a Real Analogue of Toda’s Theorem](https://arxiv.org/abs/0812.1200v3)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6714 — Nonuniform \(\mathrm{NC}^{1}\) perfect matching
 
 The question asks whether perfect-matching existence in every undirected graph has nonuniform polynomial-size circuits of logarithmic depth. The circuits use binary AND and OR with negation and return only an exact decision bit. This is equivalent to polynomial-size formulas and, under explicit graph transformations, to the matching-threshold question in the original source. Monotone lower bounds and broader polylogarithmic-depth algorithms do not decide the unrestricted NC-one target. The July 2026 bipartite NC result also has a different graph scope and depth guarantee.
@@ -395,13 +402,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Multi-prover interactive proofs let a verifier question several provers that cannot coordinate their answers during the protocol. The source asks for such a proof system for SAT whose honest provers run in randomized polynomial time with SAT-oracle access. Unrestricted provers do not meet this efficiency requirement. The question is tied to whether SAT programs can be checked through suitable oracle interactions. The project seeks a verification protocol whose participants need no computational power beyond the problem they are supposed to certify.
 
 [Read in atlas](index.html#TCS-0298) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2215 — A real analogue of Toda’s theorem
-
-Toda's theorem in discrete complexity relates alternating quantifiers to counting power. This source asks for an analogous relationship among real-algebraic complexity classes. The proposed target is to contain fixed levels of alternating real quantification in an existential real theory enhanced with summation operators. The exact operator language matters because unrestricted real exponentiation would change the setting substantially. A positive result would organize several real-feasibility hierarchies under one strengthened existential framework and illuminate the role of counting-like operations over real computation.
-
-[Read in atlas](index.html#TCS-2215) · [The Existential Theory of the Reals with Summation Operators](https://doi.org/10.4230/LIPIcs.ISAAC.2024.13)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2333 — Downward self-reducibility of PLS-complete problems
@@ -977,12 +977,33 @@ A rational linear differential system evolves as a matrix exponential applied to
 [Read in atlas](index.html#TCS-6566) · [The continuous Skolem-Pisot problem](https://perso.uclouvain.be/vincent.blondel/publications/10BDJ.pdf) · [On the Skolem Problem for Continuous Linear Dynamical Systems](https://arxiv.org/abs/1506.00695) · [On Recurrent Reachability for Continuous Linear Dynamical Systems](https://arxiv.org/abs/1507.03632) · [Axiomatization of Compact Initial Value Problems: Open Properties](https://publikationen.bibliothek.kit.edu/1000188295/170660770) · [A Survey of the Skolem and Positivity Problems for Linear Recurrence Sequences](https://people.mpi-sws.org/~joel/publications/skolem_and_positivity_survey26.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7153 — Ultimate Positivity problem
+
+A rational linear recurrence describes an infinite sequence using finitely many initial terms and constant coefficients. Ultimate Positivity asks whether every sufficiently late term is nonnegative, allowing a finite negative prefix and infinitely many zero terms. The target is one uniform decision procedure for arbitrary recurrence lengths, including repeated characteristic roots. The general problem is decidable through order five and the simple-root subclass is decidable at every order, while the July 2026 survey retains the unrestricted problem as open. Its resolution would connect algorithmic eventual sign analysis with central questions about linear dynamics and Diophantine approximation.
+
+[Read in atlas](index.html#TCS-7153) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html) · [Positivity Problems for Low-Order Linear Recurrence Sequences](https://www.cs.ox.ac.uk/james.worrell/pos12.pdf) · [Ultimate Positivity is Decidable for Simple Linear Recurrence Sequences](https://www.cs.ox.ac.uk/james.worrell/ultimate4.pdf) · [Termination Analysis of Linear-Constraint Programs](https://arxiv.org/abs/2509.06752v3) · [Positivity of arbitrary-order P-recursive sequences with a unique dominant root](https://arxiv.org/abs/2605.17013v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7192 — Decidability of multiplicative-exponential linear logic
 
 MELL asks whether provability in a resource-sensitive propositional logic can always be decided. Its multiplicative connectives combine resources, while exponential modalities permit controlled reuse. The card specifies the entire finite proof calculus, including units and the conditions on contraction and promotion. Proof checking alone does not guarantee that a search can terminate on an unprovable input. A July 2026 preprint claims a positive resolution through general branching vector addition systems, which is recorded here without independent proof verification.
 
 [Read in atlas](index.html#TCS-7192) · [Handbook of Linear Logic](https://ll-handbook.pages.math.cnrs.fr/book/ll-handbook-public.pdf) · [On the Decision Problem for MELL](https://www.lix.polytechnique.fr/~lutz/papers/OnDeciMELL.pdf) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://drops.dagstuhl.de/storage/00lipics/lipics-vol345-mfcs2025/html/LIPIcs.MFCS.2025.22/LIPIcs.MFCS.2025.22.html) · [Solving the Reachability Problem for Branching Vector Addition Systems via Semilinear Inductive Invariants](https://arxiv.org/abs/2607.09558v1)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-7154 — Effective ultimate-positivity thresholds for simple recurrences
+
+A simple rational linear recurrence has a characteristic polynomial with distinct roots and a finite exact description. The question asks for an algorithm that produces an index beyond which every term is nonnegative whenever such an index exists. Any sufficient index is accepted, with no requirement that it be minimal or small. Ultimate Positivity itself is already decidable for this class, but the checked general algorithm does not compute the threshold and later cardinality bounds do not locate the final exception. A general effective threshold would close a gap between eventual guarantees and finite witnesses and would decide all-time Positivity for simple recurrences.
+
+[Read in atlas](index.html#TCS-7154) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html) · [Ultimate Positivity is Decidable for Simple Linear Recurrence Sequences](https://www.cs.ox.ac.uk/james.worrell/ultimate4.pdf) · [On the Positivity Problem for Simple Linear Recurrence Sequences](https://people.mpi-sws.org/~joel/publications/simple_positivity14.pdf) · [Quantitative growth of linear recurrences](https://arxiv.org/abs/2504.09519v1) · [Positivity of arbitrary-order P-recursive sequences with a unique dominant root](https://arxiv.org/abs/2605.17013v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-6245 — Exponential witness bounds for three-dimensional VASS
+
+A three-dimensional vector addition system with states combines a finite control graph with three nonnegative integer counters. The question asks whether every reachable pair of configurations has an actual run whose length is singly exponential in the binary input size. The same exponent bound must work for all inputs, including unbounded control graphs and arbitrary binary counter values. Published triply-exponential and subsequently claimed doubly-exponential witness bounds leave this stronger target unresolved. A resolution would clarify the structural and algorithmic change between exact reachability with two counters and with three.
+
+[Read in atlas](index.html#TCS-6245) · [Involved VASS Zoo (Invited Talk)](https://doi.org/10.4230/LIPIcs.CONCUR.2022.5) · [Reachability in 3-VASS Is Elementary](https://drops.dagstuhl.de/storage/00lipics/lipics-vol334-icalp2025/LIPIcs.ICALP.2025.153/LIPIcs.ICALP.2025.153.pdf) · [3-VASS Reachability is in EXPSPACE](https://arxiv.org/abs/2607.14983v1) · [Reachability in 3-VAS](https://arxiv.org/abs/2608.04786v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5987 — Decidability of weak bisimulation for normed BPA
 
@@ -1138,33 +1159,12 @@ A probabilistic transition system is decisive for a target when it almost surely
 [Read in atlas](index.html#TCS-5975) · [About Decisiveness of Dynamic Probabilistic Models](https://doi.org/10.4230/LIPIcs.CONCUR.2023.14)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6245 — Exponential witness bounds for three-dimensional VAS
-
-Reachability in a three-dimensional vector addition system asks for a legal counter run connecting an initial and a target configuration. The source highlights the gap in understanding how long the shortest such run may need to be. Its concrete question is whether existence of any run always guarantees one of at most exponential length in the input size. Known short-run arguments in two dimensions motivate this possibility, while much larger general upper bounds leave room for doubly exponential or faster growth. Settling the witness-length question would illuminate why adding a third counter changes the structure of exact reachability.
-
-[Read in atlas](index.html#TCS-6245) · [Involved VASS Zoo (Invited Talk)](https://doi.org/10.4230/LIPIcs.CONCUR.2022.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6359 — Decidability and completeness of concurrent Kleene algebra
 
 Concurrent Kleene algebra represents executions as partially ordered multisets of events, preserving distinctions between sequential and parallel behavior. Refinement compares such executions by allowing additional ordering, and the interchange law captures a basic relationship between sequential and parallel composition. The quoted question concerns decidability and completeness for refinement of expressions with iteration. The source itself settles the decision problem for series-rational expressions without parallel iteration, proving EXPSPACE-completeness, while the broader signature and axiomatization questions are distinct. This distinction matters when deciding whether a concurrent specification permits an implementation with a greater degree of sequentialization.
 
 [Read in atlas](index.html#TCS-6359) · [On Decidability of Concurrent Kleene Algebra](https://doi.org/10.4230/LIPIcs.CONCUR.2017.28)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-7153 — Ultimate Positivity problem
-
-An integer linear recurrence generates each term as a fixed linear combination of a bounded number of preceding terms. Ultimate positivity asks whether all sufficiently late terms are nonnegative, permitting finitely many earlier exceptions. The cited survey identifies decidability for arbitrary recurrences as the central task and highlights the difficulty already at order six. Simple recurrences, whose characteristic roots are distinct, admit a different positive result, so repeated roots are an important part of the unresolved general setting described there. An algorithm would support reasoning about eventual sign behavior and termination conditions in linear dynamical programs.
-
-[Read in atlas](index.html#TCS-7153) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7154 — Effective ultimate-positivity thresholds for simple recurrences
-
-For simple linear recurrence sequences, the cited survey distinguishes deciding eventual nonnegativity from computing when it begins. The task asks for an effective threshold N after which every term is nonnegative, whenever such a threshold exists. Available general decidability arguments use noneffective Diophantine approximation bounds and therefore need not produce this numerical witness. Computing it would allow all earlier terms to be checked directly, giving a route to deciding positivity of the entire sequence beyond the established low-order cases. The problem exposes a concrete gap between proving an eventual property algorithmically and extracting a usable bound on its exceptional prefix.
-
-[Read in atlas](index.html#TCS-7154) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7157 — Termination of linear-constraint loops
 
@@ -2005,7 +2005,7 @@ The cut cone consists of nonnegative combinations of cut metrics and provides a 
 [Read in atlas](index.html#TCS-6880) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Learning theory (36)
+## Learning theory (35)
 
 ### TCS-6541 — Linear-size sample compression
 
@@ -2090,6 +2090,13 @@ A compression scheme stores labeled examples and auxiliary bits so a fixed decod
 
 [Read in atlas](index.html#TCS-4792) · [Sample Compression Scheme Reductions](https://proceedings.mlr.press/v272/attias25a.html) · [Sample Compression Scheme Reductions](https://arxiv.org/abs/2410.13012) · [Supervised learning through the lens of compression](https://papers.neurips.cc/paper_files/paper/2016/hash/59f51fd6937412b7e56ded1ea2470c25-Abstract.html) · [Multiclass Learnability Does Not Imply Sample Compression](https://proceedings.mlr.press/v237/pabbaraju24a.html)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-5847 — Linear conditional-information bounds for VC learning
+
+The card asks whether every finite-VC binary class has a proper learner whose whole output has conditional information only linear in the dimension. The same learner must achieve expected training error within a universal square-root dimension-to-sample-size term of the best hypothesis on every sample. The information experiment reveals two candidates per training position and measures what the output says about the hidden choices. Known negative results concern stricter realizable training guarantees, while other optimal generalization analyses use different information bounds. A directly relevant FOCS 2026 paper is accepted but its theorem text was not located, so the completed formulation retains uncertain current status.
+
+[Read in atlas](index.html#TCS-5847) · [Open Problem: Information Complexity of VC Learning](https://proceedings.mlr.press/v125/steinke20b.html) · [On the Information Complexity of Proper Learners for VC Classes in the Realizable Case](https://arxiv.org/abs/2011.02970) · [PAC-Bayes, MAC-Bayes and Conditional Mutual Information: Fast rate bounds that handle general VC classes](https://proceedings.mlr.press/v134/grunwald21a.html) · [Tighter CMI-Based Generalization Bounds via Stochastic Projection and Quantization](https://arxiv.org/abs/2510.23485) · [FOCS 2026 accepted papers: The optimal information complexity of VC learning](https://focs.computer.org/2026/accepted-papers/) · [The Optimal Information Complexity of VC Learning — author publication entry](https://stevehanneke.com/)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-3689 — Non-clashing teaching dimension versus VC dimension
 
@@ -2231,25 +2238,11 @@ A Gaussian graphical model encodes conditional dependencies through the nonzero 
 [Read in atlas](index.html#TCS-5119) · [Information Theoretic Optimal Learning of Gaussian Graphical Models](https://proceedings.mlr.press/v125/misra20a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5153 — Characterizing adversarially robust PAC learnability
-
-Adversarially robust PAC learning seeks a predictor that remains correct under every permitted test-time perturbation of a fresh example. The perturbation rule and the hypothesis class together determine this task, even though the training observations themselves are independent and uncorrupted. The source proves that finite VC-dimension suffices with improper learning and that a robust shattering dimension supplies a necessary condition. Neither observation yields the requested exact characterization, since ordinary VC-dimension need not be necessary and the sufficiency of the robust quantity is unresolved there. The question is to identify a complexity measure that precisely captures robust learnability and supports corresponding sample bounds.
-
-[Read in atlas](index.html#TCS-5153) · [VC Classes are Adversarially Robustly Learnable, but Only Improperly](https://proceedings.mlr.press/v99/montasser19a.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-5434 — Nontrivial agnostic membership-query learning of \(\mathrm{ACC}^{0}\)
 
 Agnostic membership-query learning must approximate an arbitrary target nearly as well as the best hypothesis in a specified circuit class. The source asks for a nontrivial learning-time saving for ACC0 circuits, even under uniformly distributed inputs. Membership queries allow the learner to choose labeled examples. The target must tolerate noise or mismatch between the target and the hypothesis class. The project seeks algorithmic progress beyond exhaustive truth-table processing while preserving a guarantee relative to the best available constant-depth modular circuit.
 
 [Read in atlas](index.html#TCS-5434) · [Agnostic Membership Query Learning with Nontrivial Savings: New Results and Techniques](https://proceedings.mlr.press/v237/karchmer24a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5847 — Linear conditional-information bounds for VC learning
-
-The source studies how much information a learning algorithm reveals while learning a class of VC dimension d. Its conjecture seeks a learner with conditional mutual information bounded by \(O(d)\). The desired bound would make information usage depend linearly on the class's combinatorial capacity rather than on additional sample-related factors. This connects statistical learnability with a precise notion of how strongly the output depends on the training data. The excerpt ends before the learner's accuracy and sample guarantees, so those conditions must be recovered before an information bound can be interpreted as a full learning result.
-
-[Read in atlas](index.html#TCS-5847) · [Open Problem: Information Complexity of VC Learning](https://proceedings.mlr.press/v125/steinke20b.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5902 — PAC learning of finite automata under the uniform distribution
@@ -2464,7 +2457,7 @@ Unbounded fully homomorphic encryption supports arbitrarily deep permitted compu
 [Read in atlas](index.html#TCS-6871) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Quantum computation and information (54)
+## Quantum computation and information (53)
 
 ### TCS-6446 — Quantum PCP conjecture with classical reductions
 
@@ -2554,15 +2547,15 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 The dihedral hidden subgroup problem presents a function that is constant on cosets of an unknown subgroup of a dihedral group. The task is to recover generators for that subgroup using quantum access to the function. The target is a uniform algorithm whose total running time is polynomial in the length of the group description and oracle values. Counting only a small number of oracle queries is insufficient if processing the resulting quantum information is expensive. An efficient solution would extend the reach of hidden-subgroup methods beyond the abelian setting and illuminate connections with lattice-related algorithmic problems.
 
-[Read in atlas](index.html#TCS-6521) · [Another subexponential-time quantum algorithm for the dihedral hidden subgroup problem](https://arxiv.org/abs/1112.3333) · [A Subexponential-Time Quantum Algorithm for the Dihedral Hidden Subgroup Problem](https://epubs.siam.org/doi/10.1137/S0097539703436345) · [The dihedral hidden subgroup problem](https://arxiv.org/abs/2106.09907) · [A Subexponential Time Algorithm for the Dihedral Hidden Subgroup Problem with Polynomial Space](https://arxiv.org/abs/quant-ph/0406151) · [Quantum Computation and Lattice Problems](https://cims.nyu.edu/~regev/papers/quantum_average.pdf) · [A Quantum Polynomial-Time Solution to The Dihedral Hidden Subgroup Problem](https://arxiv.org/abs/2202.09697) · [A Polynomial-Time Quantum Algorithm for the Dihedral Coset Problem](https://eprint.iacr.org/2026/1591) · [The ePrint:\(2026/1591\) Quantum Algorithm Does Not Solve DCP](https://eprint.iacr.org/2026/1693) · [Rigorous Statements and Proofs of the Lemmas in Simon's Algorithm for the Dihedral Coset Problem and Their Underlying Hypothesis](https://arxiv.org/abs/2608.16598) · [The Hidden Subgroup Problem in Semidirect Products and Quasi-Hamiltonian Groups](https://arxiv.org/abs/2608.05321)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6521) · [Another subexponential-time quantum algorithm for the dihedral hidden subgroup problem](https://arxiv.org/abs/1112.3333) · [A Subexponential-Time Quantum Algorithm for the Dihedral Hidden Subgroup Problem](https://epubs.siam.org/doi/10.1137/S0097539703436345) · [The dihedral hidden subgroup problem](https://arxiv.org/abs/2106.09907) · [A Subexponential Time Algorithm for the Dihedral Hidden Subgroup Problem with Polynomial Space](https://arxiv.org/abs/quant-ph/0406151) · [Quantum Computation and Lattice Problems](https://cims.nyu.edu/~regev/papers/quantum_average.pdf) · [A Quantum Polynomial-Time Solution to The Dihedral Hidden Subgroup Problem](https://arxiv.org/abs/2202.09697) · [A Polynomial-Time Quantum Algorithm for the Dihedral Coset Problem](https://eprint.iacr.org/2026/1591) · [The ePrint:2026/1591 Quantum Algorithm Does Not Solve DCP](https://eprint.iacr.org/2026/1693) · [Rigorous Statements and Proofs of the Lemmas in Simon's Algorithm for the Dihedral Coset Problem and Their Underlying Hypothesis](https://arxiv.org/abs/2608.16598) · [The Hidden Subgroup Problem in Semidirect Products and Quasi-Hamiltonian Groups](https://arxiv.org/abs/2608.05321)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6522 — Graph isomorphism in BQP
 
 Two graphs are isomorphic when a relabeling of vertices preserves every edge. This question asks whether a quantum algorithm can decide that equivalence in polynomial time for every pair of explicitly given graphs. The algorithm must include all processing costs and achieve bounded error, rather than merely extract a small amount of information from an oracle. Symmetry makes graph isomorphism a natural testing ground for quantum methods, but quantum access to related group structure is not itself a complete algorithm. A resolution would clarify whether quantum computation can efficiently handle this central classification problem.
 
-[Read in atlas](index.html#TCS-6522) · [Ten Semi-Grand Challenges for Quantum Computing Theory](https://www.scottaaronson.com/writings/qchallenge.html) · [A Quantum-Inspired Algorithm for Graph Isomorphism](https://arxiv.org/abs/2512.24423) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/update.html) · [Limitations of Quantum Coset States for Graph Isomorphism](https://arxiv.org/abs/quant-ph/0511148) · [Quantum state isomorphism problems for groups](https://arxiv.org/abs/2605.12615) · [NPA Hierarchy for Quantum Isomorphism and Homomorphism Indistinguishability](https://quantum-journal.org/papers/q-2026-01-28-1989/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6522) · [Ten Semi-Grand Challenges for Quantum Computing Theory](https://www.scottaaronson.com/writings/qchallenge.html) · [A Quantum-Inspired Algorithm for Graph Isomorphism](https://arxiv.org/abs/2512.24423) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/) · [Limitations of Quantum Coset States for Graph Isomorphism](https://arxiv.org/abs/quant-ph/0511148) · [Quantum state isomorphism problems for groups](https://arxiv.org/abs/2605.12615) · [NPA Hierarchy for Quantum Isomorphism and Homomorphism Indistinguishability](https://quantum-journal.org/papers/q-2026-01-28-1989/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-2229 — QMA versus \(\mathrm{QMA}(2)\)
 
@@ -2751,13 +2744,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A perfectly complete quantum proof system accepts some valid witness with probability exactly one. This question asks whether every QMA proof system can achieve that guarantee without sacrificing efficient verification or soundness. Approximate gate synthesis creates a special difficulty because a tiny implementation error can destroy exact acceptance. The cited work therefore keeps the verifier's gate set explicit and studies the structure needed for QMA1. A solution would explain whether perfect reliability on yes-instances is merely a choice of protocol or an additional restriction on quantum proofs.
 
 [Read in atlas](index.html#TCS-4737) · [Towards a Universal Gateset for QMA1](https://doi.org/10.4230/LIPIcs.MFCS.2026.98)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4789 — Collapse of the quantum-classical polynomial hierarchy
-
-The quantum-classical polynomial hierarchy alternates classical witnesses while retaining quantum verification. In the classical hierarchy, equality of suitable neighboring levels produces a collapse of all higher levels. This question asks whether equality of the second existential and universal levels has the analogous consequence here. Promise gaps in quantum verification make the usual quantifier manipulations more delicate. A collapse theorem or obstruction would determine whether this hierarchy shares the structural rigidity of its classical counterpart.
-
-[Read in atlas](index.html#TCS-4789) · [Quantum Generalizations of the Polynomial Hierarchy with Applications to \(\mathrm{QMA}(2)\)](https://doi.org/10.4230/LIPIcs.MFCS.2018.58)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4811 — Dihedral coset problem versus Subset Sum

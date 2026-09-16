@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-596 five-sentence working summaries, based on saved source material.
+597 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -764,10 +764,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0026 — L versus BPL
 
-BPL permits bounded-error randomized decisions using logarithmic work space and polynomial time. The question asks whether every such language has a deterministic logarithmic-space decider. Random bits are fresh independent coin outcomes, and remembering them consumes counted work space. Known deterministic simulations and recent weighted-generator improvements still use more space or establish different parameter guarantees. The completed card keeps this class-equality target separate from constructing a particular optimal pseudorandom generator.
+L contains languages decided by one deterministic machine using logarithmic work space, while BPL permits fresh fair random bits and bounded error. Random bits are read once unless stored in counted memory, and the randomized machine obeys uniform logarithmic-space and polynomial-time bounds on every run. The question asks whether every BPL language has a deterministic logarithmic-space decider that is correct on every input. The best general simulation reviewed here uses more than logarithmic space, and recent weighted-generator and regular-program results retain distinct guarantees or restrictions. A solution requires a complete Lean proof of the inclusion or a single total language separating the two classes under the stated uniform model.
 
-[Read in atlas](index.html#TCS-0026) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/storage/00lipics/lipics-vol207-approx-random2021/LIPIcs.APPROX-RANDOM.2021.28/LIPIcs.APPROX-RANDOM.2021.28.pdf) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0026) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/storage/00lipics/lipics-vol207-approx-random2021/LIPIcs.APPROX-RANDOM.2021.28/LIPIcs.APPROX-RANDOM.2021.28.pdf) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/) · [Weighted Pseudorandom Generators for Read-Once Branching Programs via Weighted Pseudorandom Reductions](https://arxiv.org/abs/2502.08272v5)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6662 — Optimal deterministic restricted-isometry matrices
 
@@ -1829,7 +1829,7 @@ The cover time is the expected number of random-walk steps needed to visit every
 [Read in atlas](index.html#TCS-6851) · [Reversible Markov Chains and Random Walks on Graphs](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch6.S8.html#SS3) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Cover times, blanket times, and majorizing measures](https://annals.math.princeton.edu/2012/175-3/p08) · [Deterministic approximation for the cover time of trees](https://cims.nyu.edu/~zeitouni/pdf/feigezeitouni3.pdf) · [A polynomial time approximation scheme for computing the supremum of Gaussian processes](https://arxiv.org/abs/1202.4970)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-## Counting and enumeration (16)
+## Counting and enumeration (17)
 
 ### TCS-6628 — FPRAS for counting perfect matchings
 
@@ -1872,6 +1872,13 @@ The mixed discriminant is a specified coefficient of the determinant of a linear
 
 [Read in atlas](index.html#TCS-7355) · [A polynomial time algorithm to approximate the mixed volume within a simply exponential factor](https://eccc.weizmann.ac.il/report/2007/037/revision/1/) · [On the Complexity of Constrained Determinantal Point Processes](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2017.36)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-7320 — #BIS-easiness of Boolean log-supermodular counting CSPs
+
+A Boolean log-supermodular counting CSP sums products of nonnegative rational local weights over all Boolean assignments. The question asks whether every fixed finite family of these weights admits a randomized approximation-preserving reduction to counting independent sets in bipartite graphs. The reduction must control relative error, all oracle failures and polynomial bit cost, and must also handle zero total weight. Known classifications give #BIS upper bounds in important special cases, while a four-variable gadget obstruction does not rule out more general reductions. A resolution would determine whether the whole log-supermodular approximation region has #BIS as a common computational upper benchmark.
+
+[Read in atlas](index.html#TCS-7320) · [Counting Constraint Satisfaction Problems](https://doi.org/10.4230/DFU.Vol7.15301.205) · [The complexity of approximating conservative counting CSPs](https://arxiv.org/abs/1208.1783v3) · [The expressibility of functions on the Boolean domain, with applications to Counting CSPs](https://arxiv.org/abs/1108.5288v4)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3037 — Parity subgraph-counting dichotomy
 
@@ -3068,6 +3075,13 @@ A third-order tensor decomposition expresses an array as a sum of rank-one outer
 [Read in atlas](index.html#TCS-4949) · [Open Problem: Tensor Decompositions: Algorithms up to the Uniqueness Threshold?](https://proceedings.mlr.press/v35/bhaskara14b.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-4523 — Polynomial-time dimension expansion over finite fields
+
+Dimension expansion measures how much a collection of linear maps enlarges every subspace of dimension at most half the ambient dimension. This card asks for exact evaluation on arbitrary matrices over an explicitly represented finite field. The desired algorithm must use polynomial time in the complete input bit length, including the field representation. The output is the minimum ratio of image-span dimension to original dimension over all eligible nonzero subspaces. Explicit constructions and spectral expansion tests remain distinct from a general exact evaluator.
+
+[Read in atlas](index.html#TCS-4523) · [Dimension Expanders via Rank Condensers](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.800) · [On Linear-Algebraic Notions of Expansion](https://doi.org/10.4086/toc.2025.v021a001)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0009 — Explicit univariate arithmetic circuit lower bounds
 
 A polynomial in one variable may have a compact arithmetic description even when its expanded coefficient list is huge. This entry seeks explicit univariate polynomials with provably large arithmetic-circuit complexity. The challenge is to identify concrete algebraic structure that defeats arbitrary sharing of intermediate computations. Such examples would give unusually focused lower-bound targets, removing the many-variable geometry present in other circuit problems. The inherited index supplies neither the required quantitative bound nor the source's explicitness and constant conventions, so those parameters remain essential unfinished parts of the eventual card.
@@ -3185,13 +3199,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Matrix powering studies properties of repeated products of a fixed matrix, where a concise input describes an infinite sequence. The source asks about the complexity of its positivity problem PosMatPow in higher dimensions. The dimension restriction is central because increasing the number of coordinates can introduce substantially more complicated spectral behavior. Determining the complexity would clarify how far low-dimensional decision methods extend to general matrix dynamics. The saved title and excerpt do not define which positivity condition or power quantifier PosMatPow uses, so those conventions must be recovered before stating the decision task more narrowly.
 
 [Read in atlas](index.html#TCS-4490) · [On Matrix Powering in Low Dimensions](https://doi.org/10.4230/LIPIcs.STACS.2015.329)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4523 — Complexity of dimension expansion
-
-Dimension expansion asks whether applying several linear maps makes every relevant subspace grow in dimension. The source asks for the computational complexity of evaluating this expansion. Unlike ordinary vertex expansion, the objects being expanded form a continuous family of subspaces. An efficient method would help assess algebraic expanders and the rank-condensation constructions that produce them. The saved question does not specify the field, input maps, subspace range, or exact versus approximate output, and each of these choices affects the resulting computational problem.
-
-[Read in atlas](index.html#TCS-4523) · [Dimension Expanders via Rank Condensers](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.800)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5240 — Transferring arithmetic hardness to constantly many variables
@@ -3869,6 +3876,13 @@ A finite promise CSP distinguishes strong constraints whose satisfiability is gu
 [Read in atlas](index.html#TCS-6675) · [An invitation to the promise constraint satisfaction problem](https://arxiv.org/abs/2208.13538v1) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3) · [Ineffectiveness for Search and Undecidability of PCSP Meta-Problems](https://arxiv.org/abs/2504.04639v4) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1) · [Publications — FOCS 2025 research summary](https://albertolarrauri.github.io/publications/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6748 — Boolean decision-Holant dichotomy
+
+Boolean decision Holant asks whether edges of a graph can be assigned zero or one so that every local relation is satisfied. The question seeks a structural classification of all fixed finite relation families that admit polynomial-time decision. The source’s edge-CSP model makes each variable occur in exactly two distinct constraint scopes, without freely adding constants or unary relations. Known results handle the non-delta-matroid boundary, symmetric delta-matroids and even delta-matroids, while the arbitrary delta-matroid region remains the general obstacle. A complete answer would identify the full tractability boundary beyond ordinary Boolean CSP and matching.
+
+[Read in atlas](index.html#TCS-6748) · [On the Complexity of Holant Problems](https://doi.org/10.4230/DFU.Vol7.15301.159) · [Even Delta-Matroids and the Complexity of Planar Boolean CSPs](https://arxiv.org/abs/1602.03124v6) · [A Strongly Polynomial-Time Algorithm for Weighted General Factors with Three Feasible Degrees](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ISAAC.2023.57)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3585 — Exact exponential-time equivalence for nonnegative Boolean Max-CSP
 
 A Boolean Max-CSP instance asks for an assignment satisfying constraints of maximum total nonnegative weight. Each fixed language has a degree defined by the real multilinear polynomials of its predicates. The question asks whether an exact algorithm with exponential base \(\alpha\) for any NP-hard degree-d language yields the same base for weighted Max d-CNF-SAT. The known classification allows negative weights or imposes closure properties on the language. The remaining issue is preserving the exponential base when removing the sign restriction; the 2024 journal article still asks it.
@@ -3944,13 +3958,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only \(O(\log  n)\) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
 
 [Read in atlas](index.html#TCS-6725) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6748 — Boolean decision-Holant dichotomy
-
-A Boolean decision-Holant problem asks whether local constraints on incident Boolean edge labels can all be satisfied. The saved textbook question seeks a complexity classification across the allowed constraint families. Each variable naturally participates through graph incidence, giving a structure different from completely unrestricted CSP occurrences. A dichotomy would identify which local signatures permit efficient decision and which support hardness. The historical note does not reproduce conventions about available unary signatures or graph restrictions, so these details must be fixed before applying a classification from a particular Holant variant.
-
-[Read in atlas](index.html#TCS-6748) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7116 — Universal representation of NP by \(\omega\)-categorical CSPs
