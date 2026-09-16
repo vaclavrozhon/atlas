@@ -1915,6 +1915,13 @@ Enumeration CSP asks for every satisfying assignment of a fixed finite constrain
 [Read in atlas](index.html#TCS-7099) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Enumerating all Solutions for Constraint Satisfaction Problems](https://doi.org/10.4230/DagSemProc.06401.6) · [A dichotomy theorem for nonuniform CSPs](https://arxiv.org/abs/1703.03021v2) · [A Proof of the CSP Dichotomy Conjecture](https://arxiv.org/abs/1704.01914v11)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-7086 — Incremental polynomial-time binary-matroid circuit enumeration
+
+A circuit of a binary matroid is a nonempty inclusion-minimal linearly dependent set of matrix columns. The question asks to enumerate all circuits exactly once in incremental polynomial time using memory polynomial only in the matrix input length. The running time for the first k circuits may be polynomial in k, but the memory bound must remain independent of the number already output. Incremental enumeration is known with large saturation storage, while polynomial-space regularization assumes that this memory problem has already been solved. A positive answer would expose all minimal binary dependencies efficiently without storing an exponentially large circuit history.
+
+[Read in atlas](index.html#TCS-7086) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [On the Complexity of Some Enumeration Problems for Matroids](https://doi.org/10.1137/S0895480103428338) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3635 — Treewidth classification of approximate counting CSP
 
 The input asks how many homomorphisms map a source structure A from a fixed class C into an arbitrary target structure B. The conjecture says a fixed-parameter randomized approximation scheme exists exactly when C has bounded Gaifman treewidth. Relation arity is uniformly bounded, C is recursively enumerable, and the parameter is the size of A. The source proves this under a further fan-class condition and asks to remove it. The 2020 journal version retains that restriction, so exact-counting and fixed-target classifications do not settle the missing approximation direction.
@@ -1938,17 +1945,10 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7084 — Time–space separations in polynomial enumeration
 
-Polynomial-delay and incremental-polynomial enumeration can use large memory to store solutions or organize future outputs. The source asks for conditional separations from the versions restricted to polynomial space. Such a separation would show that memory is an essential resource even when output timing already satisfies a strong efficiency guarantee. The difficulty is proving that every low-space strategy must suffer a timing penalty, rather than only analyzing one buffering method. The saved note does not select the underlying hypothesis or witness problem, so those must be recovered before a precise class separation can be asserted.
+The source asks to separate both polynomial-delay and incremental-polynomial enumeration from their polynomial-space counterparts under a complexity hypothesis. All target problems retain efficiently checkable, polynomial-length solutions and must enumerate each solution exactly once. The timing guarantees must hold simultaneously with a memory bound polynomial only in the input size. Known results either drop polynomial-time verification or compare classes that already both use polynomial space, so they do not settle these separations. The source does not select the supporting hypothesis, leaving the exact conditional completion target pending.
 
-[Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7086 — Incremental polynomial-time binary-matroid circuit enumeration
-
-A circuit of a binary matroid is a minimally dependent set of columns in a representation over the two-element field. The question asks to enumerate all such circuits in incremental polynomial time while using polynomial space. The goal combines prompt production of the first several answers with a memory bound independent of the potentially exponential output. This would make a fundamental dependence structure effectively explorable without storing every circuit already encountered. The source's input representation and duplicate-handling convention remain relevant, because listing arbitrary dependent sets does not automatically yield minimal circuits with the required resource guarantees.
-
-[Read in atlas](index.html#TCS-7086) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ## Structural graph theory and graph algorithms (50)
 
@@ -3611,6 +3611,13 @@ This record concerns explicit binary codes that can be decoded efficiently at st
 [Read in atlas](index.html#TCS-1012) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-3513 — Explicit positive-rate codes below the Plotkin point
+
+A fixed adversarial channel restricts the types of transmitted words and noise words and transforms each input symbol through a specified table. The source gives a completely positive distribution criterion ensuring that positive-rate codes with a fixed list bound exist. The question asks whether every channel satisfying that criterion also admits deterministic encoders running in polynomial time in blocklength. The card fixes a finite-description channel model, preserves its alphabet and list bound, and specifies uniformity and the permitted infinite set of blocklengths. A resolution would connect a general information-theoretic feasibility criterion with explicit error-correcting constructions across many adversarial channel models.
+
+[Read in atlas](index.html#TCS-3513) · [Generalized List Decoding](https://doi.org/10.4230/LIPIcs.ITCS.2020.51) · [Tight Bounds on List-Decodable and List-Recoverable Zero-Rate Codes](https://doi.org/10.4230/LIPIcs.ITCS.2025.82) · [Probabilistic Guarantees to Explicit Constructions: Local Properties of Linear Codes](https://arxiv.org/abs/2510.06185v2) · [From Random to Explicit via Subspace Designs With Applications to Local Properties and Matroids](https://arxiv.org/abs/2510.13777v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-1011 — Full-length Reed–Solomon list decoding beyond Johnson
 
 The question asks whether some infinite family of full-length Reed–Solomon codes has polynomially bounded lists beyond the Johnson threshold. The code evaluates every polynomial of degree at most a fixed fraction of the field size at every field element. One fixed pair of rate and agreement constants and one polynomial list bound must work for every received word along infinitely many field sizes. This is an information-theoretic existence question and does not demand an efficient decoding algorithm. Recent capacity theorems for randomly punctured codes and lower bounds for list recovery have different quantifiers or models and do not settle this target.
@@ -3651,13 +3658,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The Ingleton expression is a linear combination of entropies associated with a constraint familiar from linear representations. The recorded question asks for the infimum of its normalized score over the intended distributions. Negative scores quantify how far general information structures can deviate from linear-rank behavior. Determining the extremal value would sharpen a concrete measure of that separation. The saved title does not supply the normalization or admissible alphabet conventions, and an infimum need not be attained by a finite distribution, so those details are essential to an exact-value statement.
 
 [Read in atlas](index.html#TCS-0205) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3513 — Explicit positive-rate codes below the Plotkin point
-
-The cited generalized list-decoding framework considers arbitrary adversarial channels rather than one fixed error type. It asks for explicit positive-rate codes whenever the channel lies below its Plotkin threshold. The source describes this condition through the existence of non-confusable CP distributions. An explicit construction would convert the framework's information-theoretic feasibility criterion into concrete families carrying a linear amount of information. The saved passage does not define CP distributions or the channel representation, so these technical conditions cannot be replaced by the usual Hamming-channel error threshold.
-
-[Read in atlas](index.html#TCS-3513) · [Generalized List Decoding](https://doi.org/10.4230/LIPIcs.ITCS.2020.51)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4524 — Positive-rate binary codes against adversarial deletions
@@ -3869,6 +3869,13 @@ A finite promise CSP distinguishes strong constraints whose satisfiability is gu
 [Read in atlas](index.html#TCS-6675) · [An invitation to the promise constraint satisfaction problem](https://arxiv.org/abs/2208.13538v1) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3) · [Ineffectiveness for Search and Undecidability of PCSP Meta-Problems](https://arxiv.org/abs/2504.04639v4) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1) · [Publications — FOCS 2025 research summary](https://albertolarrauri.github.io/publications/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-1173 — NP-intermediate \(\omega\)-categorical CSPs
+
+Assuming P differs from NP, the question asks whether an omega-categorical fixed-template CSP can have intermediate NP complexity. Omega-categoricity means finitely many symmetry orbits at each fixed tuple length, and the template has a finite relational signature. The CSP must lie in NP while being neither polynomial-time decidable nor NP-complete under polynomial-time many-one reductions. CoNP-intermediate examples and completeness at every polynomial-hierarchy level are known, but they do not supply the required NP-intermediate example. A resolution would determine whether this broad symmetry condition alone rules out intermediate complexity inside NP.
+
+[Read in atlas](index.html#TCS-1173) · [The Polynomial Hierarchy and omega-Categorical CSPs](https://doi.org/10.4230/LIPIcs.MFCS.2026.96) · [Non-dichotomies in Constraint Satisfaction Complexity](https://www.lix.polytechnique.fr/~bodirsky/publications/nodich.pdf) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [The Polynomial Hierarchy and omega-categorical CSPs](https://arxiv.org/abs/2604.24539v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6748 — Boolean decision-Holant dichotomy
 
 Boolean decision Holant asks whether edges of a graph can be assigned zero or one so that every local relation is satisfied. The question seeks a structural classification of all fixed finite relation families that admit polynomial-time decision. The source’s edge-CSP model makes each variable occur in exactly two distinct constraint scopes, without freely adding constants or unary relations. Known results handle the non-delta-matroid boundary, symmetric delta-matroids and even delta-matroids, while the arbitrary delta-matroid region remains the general obstacle. A complete answer would identify the full tractability boundary beyond ordinary Boolean CSP and matching.
@@ -3924,13 +3931,6 @@ Boolean MinCSP asks whether an assignment can violate at most a specified number
 
 [Read in atlas](index.html#TCS-0444) · [PACS 2024: Workshop on Parameterized Algorithms and Constraint Satisfaction — Open problems](https://pacs2024.github.io/pacs2024-open-problems.pdf) · [Flow-augmentation III: Complexity dichotomy for Boolean CSPs parameterized by the number of unsatisfied constraints](https://arxiv.org/abs/2207.07422v3) · [Representative Sets and Irrelevant Vertices: New Tools for Kernelization](https://doi.org/10.1145/3390887) · [Search-Space Reduction for Boolean MinCSPs via Essential Constraints](https://doi.org/10.4230/LIPIcs.SWAT.2026.22)
 Existing status: `source_open` · Summary written: 2026-09-15
-
-### TCS-1173 — NP-intermediate \(\omega\)-categorical CSPs
-
-An \(\omega\)-categorical structure has a strong finiteness property for the types of finite tuples under its symmetries. The source asks whether, assuming \(\mathrm{P}\ne \mathrm{NP}\), some CSP over such a structure is NP-intermediate. That would mean it lies in NP but is neither polynomial-time solvable nor NP-complete. An example would show that symmetry alone does not force the familiar tractable-versus-hard dichotomy. The saved question is broader than finitely bounded homogeneous template conjectures, and additional representational restrictions cannot be silently imposed when assessing whether those conjectures answer it.
-
-[Read in atlas](index.html#TCS-1173) · [The Polynomial Hierarchy and \(\omega\)-Categorical CSPs](https://doi.org/10.4230/LIPIcs.MFCS.2026.96)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1555 — VCSP tractability without pp-constructions of \(K_{3}\)
 

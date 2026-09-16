@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-846 records have an editorial importance assessment; 190 remain provisional.
+851 records have an editorial importance assessment; 185 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -76,7 +76,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance 
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 59; importance assessed: 43; provisional: 16.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 59; importance assessed: 44; provisional: 15.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance 
 
 ## 10. Quantum computation and information (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 54; importance assessed: 38; provisional: 16.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 54; importance assessed: 39; provisional: 15.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -347,7 +347,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 9; importance a
 
 ## 11. Counting and enumeration (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 15; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 16; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -483,7 +483,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 
 ## 19. Coding and information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 22; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 23; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -528,7 +528,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 4; importance a
 
 ## 22. Constraint satisfaction (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 14; provisional: 5.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 15; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -537,11 +537,11 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance 
 | 3 | [Constant-colour polynomial-time colouring of 3-colourable graphs](index.html#TCS-6637) | 96 |
 | 4 | [Search-to-decision equivalence for finite promise CSPs](index.html#TCS-6675) | 96 |
 | 5 | [Hardness of 6-coloring 3-colorable graphs](index.html#TCS-7237) | 94 |
-| 6 | [Boolean decision-Holant dichotomy](index.html#TCS-6748) | 86 |
-| 7 | [Exact exponential-time equivalence for nonnegative Boolean Max-CSP](index.html#TCS-3585) | 85 |
-| 8 | [Universal representation of NP by \\(\\omega\\)-categorical CSPs](index.html#TCS-7116) | 84 |
-| 9 | [Dichotomy for finite-domain restricted CSPs](index.html#TCS-1807) | 83 |
-| 10 | [Search tractability of BLP-solvable promise CSPs](index.html#TCS-1978) | 83 |
+| 6 | [NP-intermediate \\(\\omega\\)-categorical CSPs](index.html#TCS-1173) | 88 |
+| 7 | [Boolean decision-Holant dichotomy](index.html#TCS-6748) | 86 |
+| 8 | [Exact exponential-time equivalence for nonnegative Boolean Max-CSP](index.html#TCS-3585) | 85 |
+| 9 | [Universal representation of NP by \\(\\omega\\)-categorical CSPs](index.html#TCS-7116) | 84 |
+| 10 | [Dichotomy for finite-domain restricted CSPs](index.html#TCS-1807) | 83 |
 
 ## 23. Automated reasoning, rewriting and unification (small)
 

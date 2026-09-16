@@ -979,10 +979,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6566 — Continuous Skolem problem
 
-A rational linear differential system evolves as a matrix exponential applied to its initial state. Continuous Skolem asks whether a specified linear observation of that trajectory is exactly zero at some nonnegative real time. The dimension is unrestricted, and the project seeks decidability without a time horizon. Approaching zero or changing sign are inadequate substitutes because trajectories may approach without hitting or touch zero without crossing it. A resolution would establish the limits of exact reachability verification even for continuous systems with linear, fully specified dynamics.
+A rational linear differential system evolves as a matrix exponential applied to its initial state. Continuous Skolem asks whether a specified rational linear observation is exactly zero at some finite nonnegative real time. The dimension is unrestricted, and the target is an unconditional always-halting Turing decision procedure or an undecidability proof. Conditional bounded-time and low-order recurrence results do not settle this question, and numerical proximity cannot distinguish a tangency from a near miss. A resolution would establish a basic limit of exact reachability verification for fully specified continuous linear dynamics.
 
 [Read in atlas](index.html#TCS-6566) · [The continuous Skolem-Pisot problem](https://perso.uclouvain.be/vincent.blondel/publications/10BDJ.pdf) · [On the Skolem Problem for Continuous Linear Dynamical Systems](https://arxiv.org/abs/1506.00695) · [On Recurrent Reachability for Continuous Linear Dynamical Systems](https://arxiv.org/abs/1507.03632) · [Axiomatization of Compact Initial Value Problems: Open Properties](https://publikationen.bibliothek.kit.edu/1000188295/170660770) · [A Survey of the Skolem and Positivity Problems for Linear Recurrence Sequences](https://people.mpi-sws.org/~joel/publications/skolem_and_positivity_survey26.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7153 — Ultimate Positivity problem
 
@@ -1294,6 +1294,13 @@ The VOLUME model measures how many graph vertices an adaptive local algorithm in
 [Read in atlas](index.html#TCS-0515) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [The randomized local computation complexity of the Lovász local lemma](https://arxiv.org/abs/2103.16251v2) · [The Landscape of Distributed Complexities on Trees and Beyond](https://arxiv.org/abs/2202.04724v2) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [New Complexity Classes in Locally Checkable Labeling for Local Computation Algorithms](https://arxiv.org/abs/2607.09626v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-5797 — Local certificate size versus verification radius
+
+Local certification assigns a short proof string to every vertex so that a global graph property can be checked from nearby information. The selected model has no identifiers or input labels, and certificate bounds must hold uniformly over all finite graphs. For each initial bit budget and verification radius, the target is the largest minimum certificate size among properties certifiable within that budget at radius one. The source asks whether certificate size always scales inversely with radius; this card explicitly asks for the full underlying worst-case function. Determining the function would quantify when greater local visibility can replace stored proof information, with a Lean-certified error of at most one hundredth of a bit at every parameter pair.
+
+[Read in atlas](index.html#TCS-5797) · [Local Certification of Local Properties: Tight Bounds, Trade-Offs and New Parameters](https://doi.org/10.4230/LIPIcs.STACS.2024.21) · [Decreasing verification radius in local certification](https://doi.org/10.1016/j.tcs.2025.115520) · [Complexity Landscape for Local Certification](https://doi.org/10.4230/LIPIcs.DISC.2025.18)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0986 — Characterizing separable distances approximable in small streaming space
 
 A local nonnegative cost φ defines a dissimilarity by summing over corresponding frequency coordinates. The stream may insert and delete frequencies while keeping both vectors nonnegative. The selected task classifies exactly which effectively evaluable costs admit polylogarithmic-space relative approximations. The criterion must cover the entire specified domain and include both algorithms and impossibility proofs. Known offset obstructions, difference-based aggregate classifications and norm-sketching results cover only parts of this domain.
@@ -1552,13 +1559,6 @@ Depth-first-search tree construction is easy when a streaming algorithm can reta
 
 [Read in atlas](index.html#TCS-5795) · [Streaming Complexity of Spanning Tree Computation](https://doi.org/10.4230/LIPIcs.STACS.2020.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5797 — Linear scaling of local certificate size with verification radius
-
-Local certification gives each graph vertex a short certificate and lets it verify a global claim by inspecting nearby information. Suppose the optimal certificate size is s when the verifier sees only distance-one neighborhoods. The conjecture asks whether allowing inspection to distance d always reduces the required size to at most a constant times \(s/d\). For local properties, the source stresses that the dependence must track their natural parameters, rather than merely asymptotic graph size. Resolving this tradeoff would show whether a wider view can universally substitute for stored proof information or whether some properties resist such compression.
-
-[Read in atlas](index.html#TCS-5797) · [Local Certification of Local Properties: Tight Bounds, Trade-Offs and New Parameters](https://doi.org/10.4230/LIPIcs.STACS.2024.21)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6080 — Linear-round weighted APSP in CONGEST
 
@@ -2023,17 +2023,17 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6542 — Learning parity with noise in polynomial time
 
-A parity function returns the XOR of a hidden subset of input coordinates. Without label noise, random examples produce linear equations that reveal the hidden subset efficiently. This project asks whether a polynomial-time classical algorithm can still recover it when each label is independently flipped at a fixed rate below one half. Polynomially many samples contain enough information, but searching all candidate subsets takes exponential time. An efficient learner must avoid that search using only ordinary random examples, without chosen noiseless queries or restrictions that make the unknown subset sparse.
+The card asks whether a hidden parity vector can be recovered efficiently from uniform examples whose labels are independently flipped. The noise rate is any fixed rational below one half, with a separate uniform polynomial-time learner allowed for each rate. Success requires the entire secret vector with probability at least two thirds for every secret and dimension. Known subexponential algorithms, storage bounds, conditional reductions and structured physical experiments do not establish the unrestricted polynomial-time assertion or its negation. The completed card preserves the assessed importance and gives exact computation, sampling and Lean proof requirements.
 
-[Read in atlas](index.html#TCS-6542) · [Noise-Tolerant Learning, the Parity Problem, and the Statistical Query Model](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/11/2003-Noise-Tolerant_Learning.pdf) · [The Parity Problem in the Presence of Noise, Decoding Random Linear Codes, and the Subset Sum Problem](https://cseweb.ucsd.edu/~vlyubash/papers/parityproblem.pdf) · [Memory-Sample Lower Bounds for Learning Parity with Noise](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2021.60) · [Hardness Amplification for (Sparse) LPN](https://arxiv.org/abs/2605.10056) · [Towards Worst-case Hardness for Low-Noise LPN](https://eccc.weizmann.ac.il/report/2026/095/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6542) · [Noise-Tolerant Learning, the Parity Problem, and the Statistical Query Model](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/11/2003-Noise-Tolerant_Learning.pdf) · [The Parity Problem in the Presence of Noise, Decoding Random Linear Codes, and the Subset Sum Problem](https://cseweb.ucsd.edu/~vlyubash/papers/parityproblem.pdf) · [Memory-Sample Lower Bounds for Learning Parity with Noise](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2021.60) · [Hardness Amplification for (Sparse) LPN](https://arxiv.org/abs/2605.10056) · [Towards Worst-case Hardness for Low-Noise LPN](https://eccc.weizmann.ac.il/report/2026/095/) · [Solving Learning Parity with Noise on an Optical Coherent Ising Machine](https://www.nature.com/articles/s42005-026-02868-1)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6543 — Learning Boolean juntas from uniform random examples
 
-A Boolean junta depends on only k coordinates even though its input contains n possible features. The project asks whether it can be learned from uniformly random labeled examples in time polynomial in n, the size of its k-variable truth table, and the inverse error tolerance. The allowed exponential dependence on k accommodates an arbitrary function of the relevant coordinates. The difficult step is locating useful coordinates without enumerating all possible subsets of the n features. A learner with this guarantee would turn hidden low-dimensional structure into efficient prediction even when the number of relevant variables grows logarithmically with n.
+A Boolean junta depends on at most k hidden coordinates of an n-bit input. The card asks for a single learner with time polynomial in n, 2^k and inverse prediction error from independent uniform noiseless examples. The output may be any efficient Boolean circuit and need not recover the exact relevant set. Known faster-exponent algorithms and results using smoothing, monotonicity, membership queries or correlated examples do not meet this full guarantee. The completed card preserves its earlier approved target and importance, identifies the original source, and specifies the exact uniform quantifiers for a Lean proof or refutation.
 
-[Read in atlas](index.html#TCS-6543) · [Learning functions of k relevant variables; author manuscript titled Learning juntas](https://www.cs.cmu.edu/~odonnell/papers/juntas.pdf) · [Finding Correlations in Subquadratic Time, with Applications to Learning Parities and the Closest Pair Problem](https://theory.stanford.edu/~valiant/papers/corrFull.pdf) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791) · [New Statistical and Computational Results for Learning Junta Distributions](https://arxiv.org/abs/2505.05819) · [The Benefits of Temporal Correlations: SGD Learns k-Juntas from Random Walks Efficiently](https://arxiv.org/abs/2605.10237) · [Inherited OpenReview research pointer; bibliographic identity not verified](https://openreview.net/pdf?id=wszZlP1K14)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6543) · [Learning functions of k relevant variables; author manuscript titled Learning juntas](https://www.cs.cmu.edu/~odonnell/papers/juntas.pdf) · [Finding Correlations in Subquadratic Time, with Applications to Learning Parities and the Closest Pair Problem](https://theory.stanford.edu/~valiant/papers/corrFull.pdf) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791) · [New Statistical and Computational Results for Learning Junta Distributions](https://arxiv.org/abs/2505.05819) · [The Benefits of Temporal Correlations: SGD Learns k-Juntas from Random Walks Efficiently](https://arxiv.org/abs/2605.10237) · [Learning Juntas under Markov Random Fields](https://openreview.net/forum?id=wszZlP1K14) · [Mathematics and Computation (March 27, 2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-5358 — Polynomial-time distribution-free PAC learning of DNF
 
@@ -2485,7 +2485,7 @@ Existing status: `source_open` · Summary written: 2026-09-16
 An area law says that entanglement between a region and its surroundings grows with the region's boundary rather than its volume. This problem asks for such a bound for the unique ground state of a general two-dimensional local Hamiltonian with a fixed positive spectral gap. Interaction strength, local dimension, and interaction range are held fixed as the lattice grows. Known routes involving frustration-free systems or additional conditions do not automatically establish the unrestricted statement recorded here. A solution would clarify how strongly locality and an energy gap constrain many-body quantum states, without by itself supplying an efficient algorithm to find them.
 
 [Read in atlas](index.html#TCS-6516) · [An Area Law for One Dimensional Quantum Systems](https://arxiv.org/abs/0705.2024v4) · [An area law for 2D frustration-free spin systems](https://arxiv.org/abs/2103.02492v3) · [Entanglement spread area law in gapped ground states](https://doi.org/10.1038/s41567-022-01740-7) · [Area Laws and Tensor Networks for Maximally Mixed Ground States](https://doi.org/10.1007/s00220-026-05554-z) · [Quantum matter is weakly entangled at low energies](https://arxiv.org/abs/2604.14143v1) · [Two-dimensional local Hamiltonian problem with area laws is QMA-complete](https://doi.org/10.1016/j.jcp.2021.110534)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6580 — Information-theoretic classical verification of quantum computation
 
@@ -2505,8 +2505,8 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 A locally testable quantum code should reveal a substantial error by checking only a few qubits. The desired family must also encode a linear amount of quantum information and tolerate errors on a linear number of physical qubits. Each check and each qubit's participation in checks must remain bounded as the code grows. These requirements strengthen ordinary good quantum LDPC codes by demanding a quantitative relation between distance from the code space and rejection probability. Such codes would connect robust quantum error detection with the complexity of low-energy states and the broader search for quantum PCP constructions.
 
-[Read in atlas](index.html#TCS-6515) · [Quantum Locally Testable Code with Constant Soundness](https://quantum-journal.org/papers/q-2024-10-18-1501/) · [Asymptotically Good Quantum and Locally Testable Classical LDPC Codes](https://arxiv.org/abs/2111.03654) · [Local testability of distance-balanced quantum codes](https://www.nature.com/articles/s41534-024-00908-8) · [Expansion of higher-dimensional cubical complexes with application to quantum locally testable codes](https://arxiv.org/abs/2402.07476) · [NLTS Hamiltonians from Good Quantum Codes](https://arxiv.org/abs/2206.13228) · [Transversal non-Clifford gates on almost-good quantum LDPC and quantum locally testable codes](https://arxiv.org/abs/2604.01874) · [Probabilistically Checking Quantum Proofs, with Interaction](https://arxiv.org/abs/2606.09588)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6515) · [Quantum Locally Testable Code with Constant Soundness](https://quantum-journal.org/papers/q-2024-10-18-1501/) · [Asymptotically Good Quantum and Locally Testable Classical LDPC Codes](https://arxiv.org/abs/2111.03654) · [Local testability of distance-balanced quantum codes](https://www.nature.com/articles/s41534-024-00908-8) · [Expansion of higher-dimensional cubical complexes with application to quantum locally testable codes](https://arxiv.org/abs/2402.07476) · [NLTS Hamiltonians from Good Quantum Codes](https://arxiv.org/abs/2206.13228) · [Transversal non-Clifford gates on almost-good quantum LDPC and quantum locally testable codes](https://arxiv.org/abs/2604.01874) · [Probabilistically Checking Quantum Proofs, with Interaction](https://arxiv.org/abs/2606.09588) · [Robust Local Testability of Tensor Products of Constant-Rate Algebraic Geometry Codes](https://eccc.weizmann.ac.il/report/2025/136/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6517 — Passive quantum memory in three dimensions
 
@@ -2576,6 +2576,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 QMA(2) receives two quantum witnesses that are promised unentangled across a specified division, whereas QMA receives one unrestricted quantum witness. Both use uniform polynomial-time quantum verification with constant completeness and soundness error. The question is whether the promise of unentanglement adds power for ordinary promise problems without an oracle. Known amplification and restricted-phase results do not resolve this comparison, and concatenating honest witnesses does not preserve soundness automatically. A September 2026 manuscript separates the classes relative to a unitary oracle while explicitly leaving their ordinary relationship unresolved.
 
 [Read in atlas](index.html#TCS-2229) · [Quantum Merlin-Arthur and Proofs Without Relative Phase](https://doi.org/10.4230/LIPIcs.ITCS.2024.9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimization](https://doi.org/10.1145/2432622.2432625) · [A quantum oracle separation between QMA(2) and QMA](https://arxiv.org/abs/2609.02865v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-4615 — Quantum entropy inequalities beyond strong subadditivity
+
+For a multipartite quantum state, the entropies of all subsystems form a vector subject to universal inequalities. Positivity and strong subadditivity give basic constraints on those vectors. This question asks whether additional inequalities are needed to describe the quantum entropy cone for four or more parties. The cited stabilizer-state analysis relates the problem to classical non-Shannon inequalities and to states violating the Ingleton inequality. New constraints or counterexamples would sharpen the mathematical description of how quantum information can be shared among several systems.
+
+[Read in atlas](index.html#TCS-4615) · [The Quantum Entropy Cone of Stabiliser States](https://doi.org/10.4230/LIPIcs.TQC.2013.270) · [Quantum Entropy Prover](https://arxiv.org/abs/2501.16025) · [Exploring the holographic entropy cone via reinforcement learning](https://arxiv.org/abs/2601.19979)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7308 — Bell nonlocality from finitely many copies of every entangled state
@@ -2745,13 +2752,6 @@ A fixed two-qubit interaction generates circuits by evolving selected ordered pa
 
 [Read in atlas](index.html#TCS-4457) · [Complexity Classification of Two-Qubit Commuting Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2016.28) · [The Space Around BQP](https://dspace.mit.edu/server/api/core/bitstreams/ad343002-e1d8-4966-96ac-7d32b3b215d4/content) · [General Conditions for Universality of Quantum Hamiltonians](https://doi.org/10.1103/PRXQuantum.3.010308)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-4615 — Quantum entropy inequalities beyond strong subadditivity
-
-For a multipartite quantum state, the entropies of all subsystems form a vector subject to universal inequalities. Positivity and strong subadditivity give basic constraints on those vectors. This question asks whether additional inequalities are needed to describe the quantum entropy cone for four or more parties. The cited stabilizer-state analysis relates the problem to classical non-Shannon inequalities and to states violating the Ingleton inequality. New constraints or counterexamples would sharpen the mathematical description of how quantum information can be shared among several systems.
-
-[Read in atlas](index.html#TCS-4615) · [The Quantum Entropy Cone of Stabiliser States](https://doi.org/10.4230/LIPIcs.TQC.2013.270)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4734 — Locality-preserving quantum gap amplification
 
