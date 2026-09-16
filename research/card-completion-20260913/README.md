@@ -1248,3 +1248,7 @@ The concurrent census is 1,031 active cards: 636 reviewed and 395 pending. The q
 Checkpoint 523. Individually completed TCS-6683: optimal excluded-grid asymptotics, exact threshold convention, full Lean acceptance and scope checks of 2026 structural advances.
 
 The concurrent census is 1,031 active cards: 640 reviewed and 391 pending. The queue has 523 completed records, 488 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,296 formulas.
+
+Checkpoint 528. Individually completed TCS-6678: effective monadic dependence, fully encoded deterministic model checking, class-wise quantifiers and July 2026 theorem scopes.
+
+The concurrent census is 1,031 active cards: 645 reviewed and 386 pending. The queue has 528 completed records, 493 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,485 formulas.
