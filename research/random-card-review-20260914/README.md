@@ -770,3 +770,30 @@ choices and are not counted as completed. New independent claims continue throug
 the shared infrastructure. Checkpoint thirty-two was committed as d43b1b9e and
 verified live at version 262d5efb204001665774, with all 120 active reviewed cards
 matching exactly and twelve retired cards absent.
+
+Checkpoint thirty-four brings this process to 148 completed reviews:
+136 retained active cards, twelve retirements and 63 new importance assessments.
+Previously assessed scores and categories were preserved.
+
+- TCS-7289: vertex-transitive connected undirected graphs and Hamiltonian paths;
+  independently checked later restricted cycle results without broadening the target.
+- TCS-6897: general rational arithmetic circuits, explicit rational hitting sets
+  and the permanent lower-bound implication, with arbitrary circuit constants.
+- TCS-7358: the optimal randomized expected Steiner-tree approximation ratio,
+  with real absolute 1/100 acceptance and explicit all-input feasibility.
+- TCS-7350: output-sensitive enumeration of every bounded subset sum, with
+  worst-case random-tape time and no oracle revealing the output count.
+- TCS-0432: the disclosed combinatorial compact-3-manifold interpretation,
+  allowing boundary shellings and inverse shellings as well as interior moves.
+- TCS-2408: the disclosed source-own inverse-polynomial parallel BB84 rigidity
+  variant, with quantum advice and weighted accepted states.
+- TCS-6729: one rational transversal-matroid representation in deterministic
+  polynomial bit time; recorded the 2025 quasipolynomial advance and scope.
+- TCS-7283: exact unrestricted real semidefinite lifts of perfect matching,
+  with full polynomial-bound quantifiers and an independent source/model audit.
+
+Checkpoint thirty-three was committed as f4ecf390 and verified live as
+568e6729981daec0c163. All 128 then-retained reviewed cards matched exactly,
+twelve retirements were absent, and six core reader assets matched byte-for-byte.
+Optional unanswered model questions were adopted only as disclosed editorial
+choices, never recorded as user approval. Original comments remain preserved.

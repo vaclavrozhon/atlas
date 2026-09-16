@@ -4,66 +4,93 @@
   "area": "Algorithms & data structures",
   "criterion": "resources",
   "question_type": "yes_no",
-  "formal": "Do there exist a uniform bounded-error randomized word-RAM algorithm and constants \\(C>0\\), \\(b\\ge0\\) that, given \\(n\\ge1\\) positive integers \\(x_{1},\\ldots,x_{n}\\le t\\) and an integer \\(t\\ge1\\), output exactly the distinct values in \\(S(X,t)=\\{\\sum_{i\\in I}x_{i}:I\\subseteq[n]\\}\\cap\\{0,\\ldots,t\\}\\) in at most \\(C(n+|S(X,t)|)(\\log(n+t+2))^{b}\\) operations?",
-  "definitions": "The input is an explicitly listed multiset; repeated values are allowed and each index can be selected at most once. The empty subset contributes zero. Output every attainable value once, in any order, with no requirement to list subsets or witnesses. Inputs exceeding the threshold can be discarded when represented in the same word model. Use a uniform word RAM with word length \\(w=d\\lceil\\log_{2}(n+t+2)\\rceil\\), for a fixed positive integer \\(d\\) chosen with the algorithm and large enough for its addresses and input values. Unit-cost instructions are word reads/writes, copying, comparisons, branching, Boolean operations, shifts, addition, subtraction and multiplication modulo \\(2^{w}\\), and integer quotient and remainder with nonzero divisor. Shifts by at least \\(w\\) return zero. Multiword computation is charged by its component instructions. The fixed finite program receives no advice or precomputed tables; all initialization, preprocessing and output writes count. Randomness consists of independent uniform random words, each generated at unit cost. On every input, the whole output must be correct with probability at least \\(2/3\\). The time bound holds for every random execution, including unsuccessful ones. The word-size constant and all time constants are independent of both \\(n\\) and \\(t\\). The target permits polylogarithmic dependence on the numerical threshold, but no linear scan of its universe unless covered by the stated output bound.",
+  "formal": "Is there a uniform classical randomized word-RAM algorithm that lists all attainable subset sums up to a given threshold in time near-linear in the explicit input size plus the number of distinct output values?\n\nMore precisely, for integers \\(n,t\\ge1\\) and an input list \\(X=(x_1,\\ldots,x_n)\\in\\{1,\\ldots,t\\}^{n}\\), put\n\\[\nS(X,t)=\\left\\{\\sum_{i\\in I}x_i:I\\subseteq\\{1,\\ldots,n\\}\\right\\}\n\\cap\\{0,\\ldots,t\\},\\qquad q(X,t)=|S(X,t)|.\n\\]\nDoes there exist one finite program \\(A\\), a fixed integer \\(d\\ge1\\), a constant \\(C>0\\), and an integer \\(b\\ge0\\), chosen independently of every input, such that on the word RAM defined below, with\n\\[\nw=d\\left\\lceil\\log_2(n+t+2)\\right\\rceil,\n\\]\nboth of the following hold for every valid \\(n,t,X\\)?\n\\[\n\\forall r\\quad T_{A,d}(X,t;r)\n\\le C\\bigl(n+q(X,t)\\bigr)\\bigl(\\log_2(n+t+2)\\bigr)^b,\n\\]\n\\[\n\\Pr_r\\!\\left[\\operatorname{Success}_{A,d}(X,t;r)\\right]\\ge \\frac23.\n\\]\nHere success means that the complete output lists every element of \\(S(X,t)\\) exactly once and no other value. The time bound applies to every random execution, including unsuccessful executions. The algorithm is not given \\(q(X,t)\\) or any subset-sum information as additional input.\n\nThis card retains the previously selected bounded-error, worst-case word-RAM formulation of the source's near-linear output-sensitive question. Its explicit instruction set and requirement on every random execution are editorial model conventions; the source's expected-time or high-probability bounds are reported separately below.",
+  "definitions": "The input is a list of \\(n\\) positive integers and an integer threshold \\(t\\), with \\(1\\le x_i\\le t\\). Repeated values represent distinct available items, and each index may be selected at most once. Thus the input is an explicitly listed multiset, not a binary encoding of item multiplicities. The empty subset contributes zero. The set \\(S(X,t)\\) contains distinct integer sums, not a count of subsets. The required output is a finite sequence of \\(q(X,t)\\) integers in arbitrary order, containing each element of \\(S(X,t)\\) once. There is no requirement to output witnessing subsets. The threshold is inclusive.\n\nFor each fixed choice of \\(d\\), a word holds an unsigned integer in \\(\\{0,\\ldots,2^w-1\\}\\). The input occupies a read-only word array containing \\(n,t,x_1,\\ldots,x_n\\) at addresses \\(0,1,\\ldots,n+1\\), one integer per cell; these values fit in a word. Reading that array at a larger address returns zero. The machine starts at its designated first instruction, with register zero containing \\(w\\) and all other registers zero. Its separate writable memory consists of word-addressed cells with addresses in the same range, initially zero. Initially zero memory is a machine convention, not an instruction that scans the entire address space. Every initialization performed by the program, and every subsequent memory access, is charged. A computation has a fixed finite control and a fixed finite number of word registers; additional storage uses the charged memory instructions.\n\nEach of the following is a unit-cost instruction on a fixed number of words: copying; reading one addressed input word; loading or storing one addressed writable word; comparing unsigned words and conditional branching; bitwise Boolean operations; logical left or right shifts; addition, subtraction and multiplication modulo \\(2^w\\); integer quotient or remainder with a nonzero divisor; generating one independent uniform random word; and appending one word to the output. A shift by an amount at least \\(w\\) returns zero. Arithmetic on larger integers must be implemented using these instructions and is charged accordingly. The program may use fixed integer constants encoded in its finite description, interpreted modulo \\(2^w\\) when placed in a word. It has no advice, input-dependent tables, or additional oracle instructions. Tables constructed during a run are allowed and all their construction costs count. A halt instruction ends the output sequence and costs one step; an invalid operation, such as division by zero, halts with failure. Output words already appended cannot be withdrawn.\n\nOne finite program and one constant \\(d\\) must serve all \\(n,t,X\\); neither the program nor its constants may vary with the input parameters. This is the uniformity requirement. All input reads, preprocessing, random-word generation, internal computation and output writes count toward running time. The memory bound comes only from word addressing; no further space restriction is imposed.\n\nFor a fixed input and \\(d\\), let \\(r=(r_1,r_2,\\ldots)\\) be an infinite sequence of independent uniform words from \\(\\{0,\\ldots,2^w-1\\}\\), consumed in order by random-word instructions. This product distribution defines \\(\\Pr_r\\). A deterministic program is permitted as a special case that ignores \\(r\\). Let \\(T_{A,d}(X,t;r)\\) be the number of executed instructions, or \\(+\\infty\\) for a nonhalting run. The event \\(\\operatorname{Success}_{A,d}(X,t;r)\\) means that the run halts normally and its output sequence has exactly the required distinct values. Failure includes a missing sum, an extra value, a duplicate, an invalid operation or nontermination. The probability guarantee concerns this single event for the entire output, rather than a separate probability for each attainable value. The condition on time includes even random sequences having probability zero as individual infinite sequences.\n\nThe logarithm is base two, and \\(b\\) is any fixed nonnegative integer. Allowing an arbitrary fixed real exponent \\(b\\ge0\\) would give the same existence question, since rounding that exponent up only enlarges this bound. The notation \\(\\widetilde O\\) used in the context suppresses fixed powers of logarithms in the specified parameters; the displayed bound itself is the exact target. In particular, dependence polynomial in the numerical threshold \\(t\\), or in \\(q(X,t)\\) beyond its first power, is not hidden in the target's logarithmic factor.",
   "context_blocks": [
     {
-      "text": "Subset Sum may have very few attainable values below the threshold even when the threshold is huge. Output-sensitive complexity measures the set that must actually be produced, together with reading the input."
+      "text": "Subset Sum can have a sparse set of attainable values below a very large threshold. The output-sensitive target measures the work against that set and the explicit input, while still requiring exact enumeration."
     },
     {
-      "text": "Bringmann and Nakos explicitly ask for near-linear time in the number of attainable sums. Their algorithm gives a four-thirds power dependence on the output size.",
+      "text": "Bringmann and Nakos explicitly ask for a \\(\\widetilde O(|S(X,t)|)\\)-time algorithm. Their inspected revision gives a randomized \\(\\widetilde O(|S(X,t)|^{4/3})\\) bound with high probability; its formal subset-sum definition includes the threshold itself. This card includes the input-reading term needed for an explicit multiset.",
       "citation": "primary"
     },
     {
-      "text": "Chan derandomizes pseudopolynomial Subset Sum in 2026 and also derandomizes the \\(\\widetilde O(|S|^{4/3})\\) and \\(\\widetilde O(|S|\\sqrt n)\\) output-sensitive bounds. Those results do not attain the stated near-linear output-sensitive endpoint.",
+      "text": "Bringmann, Fischer and Nakos give a randomized \\(\\widetilde O(|S(X,t)|\\sqrt n)\\)-time algorithm and explicitly leave the near-linear output-sensitive endpoint open. Their probability guarantees and multiset conventions are stated separately, rather than implying a bound for every random execution.",
+      "citation": "bfn2025"
+    },
+    {
+      "text": "Chan proves deterministic output-sensitive bounds \\(\\widetilde O(|S(X,t)|^{4/3})\\) and \\(\\widetilde O(|S(X,t)|\\sqrt n)\\), as well as deterministic pseudopolynomial time \\(\\widetilde O(t)\\). The inspected paper allows polylogarithmic factors in \\(n,t\\) and separately discusses the input-reading cost for explicit multisets. These bounds do not attain the endpoint on this card.",
       "citation": "chan2026"
+    },
+    {
+      "text": "The card preserves its existing bounded-error word-RAM target with time bounded on every random execution. This fixes the previously chosen model precisely; it does not identify expected-time, high-probability-time and worst-case-time guarantees as interchangeable.",
+      "citation": "primary"
     }
   ],
-  "why": "This asks whether a fundamental pseudopolynomial problem can be solved at essentially its actual input and output size, avoiding a large unused numerical universe.",
-  "answer_criterion": "Prove the stated existence claim or its logical negation, with the specified model, quantifiers and guarantees. A conditional lower bound settles only its conditional claim. Benchmark acceptance requires a complete mathematically correct proof checked in Lean; a partial improvement does not meet the target.",
+  "why": "The question tests whether a basic dynamic-programming problem can be solved at essentially the cost of reading its input and writing its distinct answers. A positive resolution would avoid paying for a large unused numerical range even when the input contains repeated items. A negative resolution would establish an additional computational cost beyond input and output size for a fundamental exact problem. This is a general algorithmic endpoint, not a request to count solutions or to improve one implementation.",
+  "answer_criterion": "Give a complete mathematically correct proof checked in Lean of the formal existence assertion or its full logical negation, using exactly the input, machine, randomness, output and cost conventions above.\n\nA positive answer must specify one finite program \\(A\\) and constants \\(d\\ge1\\), \\(C>0\\), and \\(b\\ge0\\), with \\(d,b\\) integers, and prove for every valid input both the running-time bound on every random execution and probability at least \\(2/3\\) of the complete correct output. The constants may depend on the program but not on \\(n,t,X\\). An expected-time estimate or a bound that holds only with high probability does not by itself prove the required bound on every execution.\n\nA negative answer must prove the following full negation. For every finite program \\(A\\) in the defined model, every integer \\(d\\ge1\\), every constant \\(C>0\\), and every integer \\(b\\ge0\\), there exist integers \\(n,t\\ge1\\) and a list \\(X\\in\\{1,\\ldots,t\\}^{n}\\) such that\n\\[\n\\left[\n\\exists r\\quad\nT_{A,d}(X,t;r)>\nC\\bigl(n+q(X,t)\\bigr)\\bigl(\\log_2(n+t+2)\\bigr)^b\n\\right]\n\\quad\\lor\\quad\n\\left[\n\\Pr_r\\!\\left[\\operatorname{Success}_{A,d}(X,t;r)\\right]<\\frac23\n\\right].\n\\]\nThe defeating input may depend on \\(A,d,C,b\\), so no single fixed instance must defeat all algorithms. A lower bound only for a restricted class of algorithms does not establish this negation. A conditional lower bound proves only its conditional conclusion unless its hypothesis is also established. The target is an exact existence question about an asymptotic resource bound; numerical \\(1/100\\) approximation does not replace either required proof.",
   "references": [
     {
       "id": "primary",
       "title": "Top-k-Convolution and the Quest for Near-Linear Output-Sensitive Subset Sum",
       "authors": "Karl Bringmann; Vasileios Nakos",
-      "year": 2021,
-      "url": "https://arxiv.org/abs/2107.13206",
-      "locator": "Introduction and explicit output-sensitive question; revised preprint 23 April 2023."
+      "year": 2020,
+      "url": "https://arxiv.org/abs/2107.13206v2",
+      "locator": "Full version of the STOC 2020 paper, DOI 10.1145/3357713.3384308; inspected actual 40-page arXiv v2 submitted 23 April 2023 (initial arXiv submission 28 July 2021). Question 1.1, printed p. 1/PDF p. 3; soft-O convention in its footnote and §2.1; Definition 2.3, printed p. 3/PDF p. 5, uses sums <=t. Theorem 2.11, printed p. 5/PDF p. 7, gives the Subset Sum bound with high probability; nearby Corollary 2.10 gives expected-time convolution bounds. §9.4, printed pp. 33–34/PDF pp. 35–36, concerns the complete subset-sum output."
+    },
+    {
+      "id": "bfn2025",
+      "title": "Beating Bellman's Algorithm for Subset Sum",
+      "authors": "Karl Bringmann; Nick Fischer; Vasileios Nakos",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2410.21942v1",
+      "locator": "SODA 2025, pp. 4596–4612, DOI 10.1137/1.9781611978322.157. Inspected actual 24-page arXiv v1 submitted 29 October 2024. §1.2 and Theorem 1.1, printed p. 2/PDF p. 3: randomized output-sensitive bound and explicit remaining near-linear question. §2, printed p. 4/PDF p. 5: multiset definition, word-RAM sumset convention and high-probability definition. Lemmas 4.5–4.7, printed pp. 15–16/PDF pp. 16–17, separate high-probability recursion, correctness and time statements."
     },
     {
       "id": "chan2026",
       "title": "Derandomizing Pseudopolynomial Algorithms for Subset Sum",
       "authors": "Timothy M. Chan",
       "year": 2026,
-      "url": "https://arxiv.org/abs/2601.01390",
-      "locator": "SODA 2026; introduction and section 3. Pseudopolynomial and output-sensitive bounds distinguished from exponential time."
+      "url": "https://arxiv.org/abs/2601.01390v1",
+      "locator": "SODA 2026, pp. 3600–3610, DOI 10.1137/1.9781611978971.131, publisher publication date 7 January 2026. Inspected actual 14-page arXiv v1 submitted 4 January 2026, document dated 6 January 2026. Introduction and footnote 1, PDF p. 1: all-targets task and logarithmic factors in n,t. Theorems 3.10 and 3.11, PDF pp. 9–10: deterministic output-sensitive bounds. §4, PDF p. 10: polylog(n,t), multiset extension and explicit input-reading term."
     }
   ],
   "progress": [
     {
-      "date": "2021",
-      "text": "An output-sensitive algorithm achieves \\(\\widetilde O(|S|^{4/3})\\) time, with input-reading costs understood.",
+      "date": "2023-04-23",
+      "text": "The inspected second arXiv revision of the STOC 2020 work states the near-linear output-sensitive question and the randomized \\(\\widetilde O(|S|^{4/3})\\) result with high probability.",
       "citation": "primary"
     },
     {
-      "date": "2026",
-      "text": "Known pseudopolynomial and output-sensitive bounds are derandomized, leaving the near-linear output endpoint unanswered.",
+      "date": "2024-10-29",
+      "text": "The inspected preprint of the SODA 2025 work gives the randomized \\(\\widetilde O(|S|\\sqrt n)\\) bound and explicitly retains \\(\\widetilde O(|S|)\\) as an open endpoint.",
+      "citation": "bfn2025"
+    },
+    {
+      "date": "2026-01-07",
+      "text": "The SODA 2026 publication gives deterministic pseudopolynomial and output-sensitive algorithms; the latter retain the \\(|S|^{4/3}\\) and \\(|S|\\sqrt n\\) bounds up to logarithmic factors.",
+      "citation": "chan2026"
+    },
+    {
+      "date": "2026-09-16",
+      "text": "Individually checked actual primary PDFs, later theorem scopes, explicit multiset input costs, probability conventions and the full Lean negation. The existing assessed importance 90 and Algorithms category are preserved.",
       "citation": "chan2026"
     }
   ],
   "evidence": "reviewed",
   "status": "source_open",
-  "status_note": "Sources and subsequent-result searches checked on 13 September 2026. The cited results leave this target unanswered; this is a bounded literature review, not an exhaustive certification of current openness. The explicit input-reading term, multiplicities, truncation and word length are fixed. Algorithms is the editorial home because the target is a basic pseudopolynomial computation measured by its support size, closely tied to convolution; it is not counting the number of solutions.",
+  "status_note": "Bringmann–Nakos explicitly pose the near-linear output-sensitive question in the inspected 2023 revision of their STOC 2020 work; the inspected SODA 2025 preprint explicitly retains that endpoint. Chan’s inspected January 2026 paper derandomizes known bounds without reaching it. A bounded primary-source review through 16 September 2026 found no verified proof or refutation of the card’s retained bounded-error worst-case word-RAM target. The detailed every-execution model is editorially fixed; expected-time and high-probability-time claims are not silently identified with it. This is a source-and-scope review, not an exhaustive literature certificate or Lean verification.",
   "model_self_contained": true,
   "requires_context": false,
   "statement_review": {
     "status": "revised",
-    "reviewed_on": "2026-09-13",
+    "reviewed_on": "2026-09-16",
     "remaining_issue": "",
-    "reason": "The explicit input-reading term, multiplicities, truncation and word length are fixed. Algorithms is the editorial home because the target is a basic pseudopolynomial computation measured by its support size, closely tied to convolution; it is not counting the number of solutions."
+    "notes": "Individually retained the existing near-linear output-sensitive Subset Sum target and assessed importance 90/category. Added complete word-RAM execution semantics, joint whole-output success, the every-random-execution time requirement and its full logical negation. The original source asks the near-linear output question with less detailed machine conventions; the already selected bounded-error worst-case interpretation is publicly identified as an editorial convention, not attributed verbatim to the source. Inclusive threshold, explicit repeated items, zero from the empty subset, no witnesses and input-reading costs are preserved. No claimed equivalence between expected-time, high-probability-time and every-execution bounds is used. Import provenance and comments are unchanged.",
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
-  "formulation_reviewed_on": "2026-09-13",
-  "review_note": "The explicit input-reading term, multiplicities, truncation and word length are fixed. Algorithms is the editorial home because the target is a basic pseudopolynomial computation measured by its support size, closely tied to convolution; it is not counting the number of solutions.",
+  "formulation_reviewed_on": "2026-09-16",
+  "review_note": "Completed individual review against P versus NP on 2026-09-16; see research/card-completion-20260913/reviews.jsonl.",
   "importance": {
     "score": 90,
     "method": "editorial",
@@ -88,23 +115,44 @@
     "association_note": "Documented research connections, not an attribution of personal priorities or authorship of every endpoint."
   },
   "year": 2021,
-  "updated_at": "2026-09-13T09:27:29+00:00",
+  "updated_at": "2026-09-16T09:17:02+00:00",
   "working_summary": {
     "sentences": [
-      "The input is a multiset of positive integers and a threshold.",
-      "The task is to enumerate the distinct attainable subset sums at most that threshold.",
-      "The question asks for near-linear time in the explicit input and the actual number of output values.",
-      "Known pseudopolynomial algorithms and output-sensitive improvements do not reach this endpoint.",
-      "The target avoids spending linear time on a large numerical universe containing few attainable sums."
+      "The input is an explicit list of positive integers, allowing repetitions, together with an integer threshold.",
+      "The task is to list every distinct attainable subset sum at most that threshold exactly once, including zero.",
+      "The question asks for one uniform randomized word-RAM algorithm whose time on every random execution is near-linear in input size plus output size and whose whole output is correct with probability at least two thirds.",
+      "Known output-sensitive improvements and their 2026 derandomization do not attain this endpoint, which would avoid paying for a large unused numerical range.",
+      "A complete Lean answer must prove such an algorithm and its guarantees exist or prove their full logical negation in the specified model."
     ],
     "basis": "saved_sources",
-    "written_on": "2026-09-13",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-16",
     "source_refs": [
       "primary",
+      "bfn2025",
       "chan2026"
     ]
   },
   "id": "TCS-7350",
   "is_new": true,
-  "published_at": "2026-09-13T09:27:29+00:00"
+  "published_at": "2026-09-13T09:27:29+00:00",
+  "quality_review": {
+    "reviewed_on": "2026-09-16",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": "Individually retained the existing near-linear output-sensitive Subset Sum target and assessed importance 90/category. Added complete word-RAM execution semantics, joint whole-output success, the every-random-execution time requirement and its full logical negation. The original source asks the near-linear output question with less detailed machine conventions; the already selected bounded-error worst-case interpretation is publicly identified as an editorial convention, not attributed verbatim to the source. Inclusive threshold, explicit repeated items, zero from the empty subset, no witnesses and input-reading costs are preserved. No claimed equivalence between expected-time, high-probability-time and every-execution bounds is used. Import provenance and comments are unchanged.",
+    "checked_sources": [
+      "Read the full active TCS-7350 card and current docs/RULES.md. Preserve its assessed importance object (90, assessed 13 September 2026), Algorithms category, original mathematical endpoint and comments. The existing bounded-error every-tape model is retained; this is not a new specialization chosen to close the review.",
+      "Cached and read the actual latest available 2107.13206v2 PDF/text as subset-output-bn2023. The arXiv revision is 23 April 2023 and the underlying conference work is STOC 2020, not a new 2023 result. Q1.1 is printed p. 1/PDF p. 3; §2.1/Def2.3 printed p. 3/PDF p. 5 uses <=t despite the abstract wording smaller than t. This inclusive convention matches the card. The footnote permits logarithmic factors in the target/universe as well as output.",
+      "Distinguished Bringmann–Nakos expected Las Vegas convolution statements (Cor2.10 printed p. 5/PDF p. 7) from the Subset Sum Thm2.11 high-probability statement on the same page. Read §9.4 printed pp. 33–34/PDF pp. 35–36 for joint correctness. These source statements do not by themselves certify time bounded for every random tape in the card model. No automatic truncation claim is made: the true output size is not supplied, so a cutoff based on it cannot simply be assumed implementable.",
+      "Cached/read actual 2410.21942v1 (29 October 2024) as subset-output-bfn2025. Thm1.1 and explicit remaining near-linear question are printed p. 2/PDF p. 3. §2 printed p. 4/PDF p. 5 defines the multiset 0-1 task, discusses input preprocessing and states the word-RAM and high-probability conventions. Lemmas4.5–4.7 printed pp. 15–16/PDF pp. 16–17 separately bound recursive depth, correctness and running time with high probability. The restricted rectangle-covering limitation mentioned in the introduction is not a lower bound against all algorithms and is not treated as a refutation.",
+      "Cached/read actual 2601.01390v1 as subset-output-chan2026. ArXiv submission is 4 January 2026, PDF title-page date 6 January, publisher SODA publication 7 January. Theorems3.10 and3.11 PDF pp. 9–10 are deterministic |OUT|sqrt(n) and |OUT|^(4/3), not near-linear |OUT|. §4 p. 10 explicitly suppresses polylog(n,t), and explicitly adds that multiset input may require O(n) reading unless compressed multiplicities are provided. Thus n+q is the appropriate existing endpoint for this card; no compressed representation is silently substituted.",
+      "The finite word-RAM instruction list, zero-initialized untouched memory, finite program constants and no advice are explicit completions of the already saved word-RAM model, not claims that the primary papers enumerate that exact instruction list. Untouched memory is logically zero without a universe-sized initialization instruction; any initialization actually performed by the program is counted. The full negative criterion quantifies every program, word-size constant, time multiplier and logarithmic exponent before the input, and permits failure of either time or whole-output probability.",
+      "The restriction b to a nonnegative integer leaves the existing fixed-real-b existence claim unchanged by rounding upward, since log2(n+t+2)>1 on the input domain. Positive integers and t>=1 preserve the saved scope; sources also allowing zero-valued items do not require adding such items to this card. The target measures enumeration of distinct attainable values, not numbers of realizing subsets, decision for only t, modular or unbounded sums, real inputs, or high-dimensional sums.",
+      "Bounded later primary searches through 16 September 2026 found the inspected SODA2026 derandomization and earlier SODA2025 output-sensitive improvement, not a verified near-linear endpoint. A SODA2025 real-RAM extension, Sumsets, 3SUM, Subset Sum: Now for Real! (2410.21953; publisher abstract inspected), retains output exponent 4/3 and concerns a different input/model extension; it was not used as a resolution. No exhaustive openness certificate or independent proof validation of every cited theorem is claimed.",
+      "Checked active related cards TCS-4790 and TCS-6598. TCS-4790 is the fixed improvement below the meet-in-the-middle exponential exponent for decision Subset Sum; TCS-6598 is truly subquadratic min-plus convolution. Neither is this exact output-sensitive enumeration endpoint. Preserve existing links without automatic consolidation.",
+      "Inert draft supplies only fields/notes/sources/status_note/summary. No canonical card, queue, claim, selection, comments, commit or publication has been modified."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }
