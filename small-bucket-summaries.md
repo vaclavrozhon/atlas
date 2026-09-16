@@ -2972,10 +2972,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6613 — Polynomial-size arithmetic formulas for the determinant
 
-The determinant is efficiently computed with arithmetic circuits that can reuse intermediate expressions. This question asks whether polynomial-size arithmetic formulas, whose computation graphs are trees, can also compute it exactly. Each reused subexpression must be copied in a formula, making sharing the central resource under investigation. Resolving the problem would clarify whether a basic linear-algebra operation witnesses a superpolynomial difference between expression trees and circuits. The formulation allows cancellation and arbitrary complex constants, so lower bounds restricted to multilinear, monotone, or bounded-depth formulas do not settle it.
+The symbolic determinant has n² commuting input variables for an n-by-n matrix. The question asks whether its exact polynomial can be expressed by arithmetic trees of size bounded by one fixed polynomial in n. Every occurrence of a variable, constant or copied subexpression is charged, while arbitrary fixed complex constants and cancellations are allowed. A complete Lean proof must establish such formulas for all dimensions or refute every polynomial size bound in the full nonuniform model. Cubic unrestricted lower bounds and superpolynomial multilinear lower bounds do not settle this equivalent formulation of VF versus VBP over the complex field.
 
-[Read in atlas](index.html#TCS-6613) · [On computing the determinant in small parallel time using a small number of processors](https://www.sciencedirect.com/science/article/pii/0020019084900188) · [A Lower Bound for the Formula Size of Rational Functions](https://epubs.siam.org/doi/10.1137/0214050) · [Multi-Linear Formulas for Permanent and Determinant are of Super-Polynomial Size](https://eccc.weizmann.ac.il/report/2003/067/) · [Schur Polynomials do not have small formulas if the Determinant doesn’t!](https://arxiv.org/abs/1911.12520) · [Multilinear Formula Lower Bounds for Sparse Determinants](https://eccc.weizmann.ac.il/report/2026/090/) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/download/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6613) · [On computing the determinant in small parallel time using a small number of processors](https://www.sciencedirect.com/science/article/pii/0020019084900188) · [A Lower Bound for the Formula Size of Rational Functions](https://epubs.siam.org/doi/10.1137/0214050) · [Multi-Linear Formulas for Permanent and Determinant are of Super-Polynomial Size](https://eccc.weizmann.ac.il/report/2003/067/) · [Schur Polynomials do not have small formulas if the Determinant doesn’t!](https://arxiv.org/abs/1911.12520) · [Multilinear Formula Lower Bounds for Sparse Determinants](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2026.33) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/download/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6641 — Word problem for one-relation monoids
 
@@ -3098,10 +3098,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0055 — Sum-of-square-roots problem
 
-The saved entry identifies the sum-of-square-roots problem, an exact comparison question involving quantities described by radicals. Its geometric relevance comes from distances that can be written as square roots even when the underlying coordinates are simple. The computational difficulty is deciding a comparison reliably when two such expressions are extremely close. The catalogue currently preserves only an index label and a pointer to the original problem collection, rather than its complete input conventions or requested complexity class. Those details must be recovered before this working description can become a precise claim about an algorithm or lower bound.
+The input describes a signed integer combination of square roots of positive integers using binary encodings. The question is whether one deterministic algorithm can decide exactly whether its value is nonnegative in polynomial time. All input magnitudes count toward the bit length, and zero or extremely small values are included. The original separation-bound question, equality testing, unary inputs and nonuniform circuit results provide related context without settling this target. A complete Lean proof must establish the uniform algorithm and its bound or prove that no such algorithm exists.
 
-[Read in atlas](index.html#TCS-0055) · [The Open Problems Project](https://topp.openproblem.net/p33)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0055) · [The Open Problems Project, Problem 33: Sum of Square Roots](https://topp.openproblem.net/p33) · [An Improved Bound on Sums of Square Roots via the Subspace Theorem](https://doi.org/10.4230/LIPIcs.SoCG.2024.54) · [USSR is in P/poly](https://arxiv.org/abs/2310.19335v2) · [On the Order of Power Series and the Sum of Square Roots Problem](https://arxiv.org/abs/2304.13605v1) · [PosSLP and Sum of Squares](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.13)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0010 — Superlinear constant-degree arithmetic circuit lower bounds
 

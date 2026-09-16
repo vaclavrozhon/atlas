@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-401 five-sentence working summaries, based on saved source material.
+402 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (67)
+## Computational complexity (68)
 
 ### TCS-0001 — P versus NP
 
@@ -122,6 +122,13 @@ Existing status: `source_open` · Summary written: 2026-09-14
 SAT asks whether an explicitly written Boolean formula has a satisfying assignment. The target excludes every deterministic running time n times a fixed polynomial in log n in a uniform random-access model. There is no independent restriction on working memory. Known small-space lower bounds and either/or resource alternatives do not establish this time-only statement. The user explicitly selected the quasilinear interpretation of the source’s informal near-linear goal.
 
 [Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Time-Space Tradeoffs for Counting NP Solutions Modulo Integers](https://eccc.weizmann.ac.il/report/2007/036/) · [Bounded Relativization](https://eccc.weizmann.ac.il/report/2023/070/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7321 — \(\mathrm P_{\mathbb R}\) versus \(\mathrm{NP}_{\mathbb R}\)
+
+The BSS model computes exactly with arbitrary real inputs using unit-cost arithmetic and comparisons. Each machine has one fixed finite program and finitely many fixed real constants for all input dimensions. The question asks whether polynomial-time verification with real witnesses always yields polynomial-time deterministic decision. Real polynomial feasibility is complete for the nondeterministic class, while Boolean-input PosSLP results concern different restrictions. A complete answer must prove equality or separation in the full model; a claimed separation was withdrawn in July 2026.
+
+[Read in atlas](index.html#TCS-7321) · [A survey on real structural complexity theory](https://www.emis.de/journals/BBMS/Bulletin/bul971/meer.pdf) · [On the Complexity of Numerical Analysis](https://doi.org/10.1137/070697926) · [Some structural complexity results for \(\exists\mathbb R\)](https://arxiv.org/abs/2502.00680) · [Scheme-theoretic Approach to Computational Complexity II. The Separation of P and NP over \(\mathbb C\), \(\mathbb R\), and \(\mathbb Z\)](https://arxiv.org/abs/2107.07387)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7363 — \(\exists\mathbb{R}\) versus \(\mathrm{NP}\)
