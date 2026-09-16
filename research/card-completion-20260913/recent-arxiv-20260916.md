@@ -118,3 +118,19 @@ full October 2025 version: the corrected theorem assumes a supplied relatively
 integral fractional solution and states expected polynomial time. Search results
 still surface its superseded affirmative title. Neither item is a resolution of
 the active general-graph target; no external proof was independently certified.
+
+The UGC pass completed TCS-0006 and checked the closely related
+[Fei–Minzer–Wang ECCC TR26-179](https://eccc.weizmann.ac.il/report/2026/179/),
+posted 14 September. The full introductory definitions, main theorem and
+coloring corollaries were read. Theorem 1.6 claims perfect-completeness hardness
+for 4-to-1 games, while Conjecture 1.4 still states UGC with permutation
+constraints. The result therefore updates the context without resolving UGC.
+The active coloring and implication cards TCS-7237, TCS-6637, TCS-3984 and
+TCS-5544 already record the relevant claim with their own target distinctions.
+The 95-page proof has not been independently audited. The September 4
+[noisy-entanglement paper, 2609.05122](https://arxiv.org/abs/2609.05122),
+was screened through its official abstract; it concerns a different game-value
+model. The full introductory theorem of the May
+[tolerant-testing paper, 2605.17760](https://arxiv.org/abs/2605.17760),
+was also checked: its size-dependent completeness-error restriction does not
+cover the fixed-gap, all-instance UGC target.

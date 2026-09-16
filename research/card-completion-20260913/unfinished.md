@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **461**.
+Pending active reviews: **460**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -309,7 +309,6 @@ Pending active reviews: **461**.
 | [TCS-0002](../../data/cards/TCS-0002.json) | NP versus coNP | Computational complexity | existing_detailed_audit |
 | [TCS-0004](../../data/cards/TCS-0004.json) | L versus NL | Computational complexity | existing_detailed_audit |
 | [TCS-0005](../../data/cards/TCS-0005.json) | VP versus VNP | Algebraic computation | existing_detailed_audit |
-| [TCS-0006](../../data/cards/TCS-0006.json) | Unique Games Conjecture | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-0015](../../data/cards/TCS-0015.json) | Superlinear Boolean circuit lower bounds | Computational complexity | existing_detailed_audit |
 | [TCS-0016](../../data/cards/TCS-0016.json) | Exponential circuit lower bounds for 3-SAT | Computational complexity | existing_detailed_audit |
 | [TCS-0310](../../data/cards/TCS-0310.json) | Polynomial-time weighted falsifiability of unambiguous DNFs | Computational complexity | existing_detailed_audit |
