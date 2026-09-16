@@ -1322,6 +1322,13 @@ A maximal matching is a collection of disjoint edges to which no additional edge
 [Read in atlas](index.html#TCS-0519) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [Truly Tight-in-\(\Delta\) Bounds for Bipartite Maximal Matching and Variants](https://arxiv.org/abs/2002.08216v1)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-2233 — Superlinear local certificates for hereditary graph classes
+
+A prover gives each vertex a binary certificate, and each vertex checks only its immediate certified neighborhood. The question asks for a hereditary graph class requiring a fixed polynomial factor more than linear certificate length at some vertex. The lower bound must hold against every correct proof-labeling verifier and every sufficiently large graph size. Known geometric examples require linear certificates, while a quadratic upper bound applies to all graph classes in the source model. The February 2026 revision still asks whether any hereditary class crosses this polynomially superlinear threshold.
+
+[Read in atlas](index.html#TCS-2233) · [Local Certification of Geometric Graph Classes](https://doi.org/10.4230/LIPIcs.MFCS.2024.48) · [Local certification of geometric graph classes](https://arxiv.org/abs/2311.16953)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6125 — Linear CONGEST lower bound with logarithmic LOCAL complexity
 
 An LCL specifies legal output labels by a finite list of constant-radius neighborhoods. The question asks for one problem that is solvable in logarithmic deterministic LOCAL time but needs linear randomized CONGEST time. Both models communicate along the same bounded-degree graph, while CONGEST restricts each message to logarithmically many bits. Such a result would isolate an extreme cost of bandwidth despite local verifiability of solutions. The card requires all connected inputs without additional promises and states the identifiers, private randomness and global error convention explicitly.
@@ -1460,13 +1467,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Continuous chemical reaction networks represent inputs and outputs as nonnegative concentrations evolving under mass-action kinetics. Robust computation requires convergence to the correct answer for every positive choice of reaction-rate constants. The source constructs robust networks for multithreshold predicates and a specified class of piecewise floor-affine functions, where negative affine values are truncated to zero. It conjectures that these constructions describe exactly the predicates and functions the model can compute. A matching impossibility theorem would turn the positive constructions into a complete characterization of computation that is insensitive to kinetic parameters.
 
 [Read in atlas](index.html#TCS-1588) · [Robust Predicate and Function Computation in Continuous Chemical Reaction Networks](https://doi.org/10.4230/LIPIcs.DISC.2025.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2233 — Superlinear local complexity of hereditary graph classes
-
-Local certification gives each graph vertex a certificate that it verifies using only its nearby information. The source asks whether a hereditary graph class can require certificates of size growing faster than linearly in the number of vertices. It also asks for this phenomenon under the stronger requirement of closure under subgraphs. Existing linear lower bounds motivate seeking a larger information barrier. Such examples would show that even deletion-stable structural properties can demand exceptionally large local evidence for a globally correct decision.
-
-[Read in atlas](index.html#TCS-2233) · [Local Certification of Geometric Graph Classes](https://doi.org/10.4230/LIPIcs.MFCS.2024.48)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2470 — Breaking the quadratic color bound for bounded outdegree

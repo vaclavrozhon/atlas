@@ -587,10 +587,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6596 — Orthogonal Vectors Hypothesis
 
-Bichromatic Orthogonal Vectors asks whether two collections of binary vectors contain a pair with disjoint supports. The hypothesis excludes one fixed polynomial saving over quadratic time across all sufficiently large logarithmic dimension constants. Checking a pair is easy, but identifying a compatible pair among quadratically many possibilities is the bottleneck. Fine-grained reductions use this task to transfer precise barriers to geometric, string, and other algorithms. The saved review notes that subquadratic algorithms at each fixed small dimension are compatible with the hypothesis because their exponent savings can deteriorate as the dimension constant increases.
+Bichromatic Orthogonal Vectors asks whether two explicit lists contain binary vectors with disjoint supports. The retained hypothesis says that every proposed fixed saving over quadratic time fails at some fixed logarithmic-dimension constant. It concerns uniform randomized word-RAM algorithms with all preprocessing charged, worst-case running time and bounded error on every input. A complete Lean refutation must provide one positive exponent saving valid for every dimension constant, although its individual programs and time constants may depend on that constant. Known deterministic and randomized dimension-dependent savings, average-case improvements and restricted-model lower bounds leave this full hypothesis unresolved.
 
-[Read in atlas](index.html#TCS-6596) · [More Applications of the Polynomial Method to Algorithm Design](https://theory.stanford.edu/~yuhch123/files/faster-orthog-soda.pdf) · [Conditional Hardness of Earth Mover Distance](https://arxiv.org/abs/1909.11068) · [Faster Algorithms for Average-Case Orthogonal Vectors and Closest Pair Problems](https://arxiv.org/abs/2410.22477) · [Faster Algorithms for k-Orthogonal Vectors in Low Dimension](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.85) · [New and Improved Concrete Lower Bounds for Orthogonal Vectors](https://arxiv.org/abs/2607.23799)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6596) · [More Applications of the Polynomial Method to Algorithm Design](https://theory.stanford.edu/~yuhch123/files/faster-orthog-soda.pdf) · [Deterministic APSP, Orthogonal Vectors, and More: Quickly Derandomizing Razborov–Smolensky](https://people.csail.mit.edu/virgi/6.s078/papers/detapsp_soda.pdf) · [Conditional Hardness of Earth Mover Distance](https://arxiv.org/abs/1909.11068) · [Faster Algorithms for Average-Case Orthogonal Vectors and Closest Pair Problems](https://arxiv.org/abs/2410.22477) · [Faster Algorithms for k-Orthogonal Vectors in Low Dimension](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.85) · [New and Improved Concrete Lower Bounds for Orthogonal Vectors](https://arxiv.org/abs/2607.23799) · [Online Orthogonal Vectors Revisited](https://arxiv.org/abs/2605.04798)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6597 — Algebraic k-Clique Hypothesis
 
@@ -662,6 +662,13 @@ A binary word of length equal to the number of automaton states must be tested f
 [Read in atlas](index.html#TCS-7373) · [The NFA Acceptance Hypothesis: Non-Combinatorial and Dynamic Lower Bounds](https://theoretics.episciences.org/14397) · [Sparse Regular Expression Matching](https://arxiv.org/abs/1907.04752v7)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-5422 — Consequences of linear-time Orthogonal Vectors
+
+Orthogonal Vectors asks whether two lists of Boolean vectors contain a pair with no coordinate equal to one in both vectors. The premise asks for deterministic essentially-linear algorithms in every fixed polylogarithmic dimension regime. The question is whether that premise forces the Exponential Time Hypothesis to fail. Known implications to the stronger SETH assumption and recent low-dimensional algorithms do not settle this precise target. A complete answer must prove the implication or establish both its algorithmic premise and ETH as the full negation.
+
+[Read in atlas](index.html#TCS-5422) · [Superlinear Lower Bounds Based on ETH](https://doi.org/10.4230/LIPIcs.STACS.2022.55) · [Effective Guessing Has Unlikely Consequences](https://doi.org/10.1007/s00224-023-10119-x) · [The Orthogonal Vectors Conjecture and Non-Uniform Circuit Lower Bounds](https://eccc.weizmann.ac.il/report/2024/142/) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489v1) · [Faster Algorithms for \(k\)-Orthogonal Vectors in Low Dimension](https://doi.org/10.4230/LIPIcs.ICALP.2026.85)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0562 — Refuting nondeterministic SETH
 
 Nondeterministic SETH strengthens a satisfiability-based time barrier by allowing a nondeterministic form of computation in its formulation. The recorded question asks how to refute that hypothesis. A nondeterministic certificate can change the cost of establishing an unsatisfiability-type conclusion relative to ordinary deterministic search. A refutation would illuminate barriers to proving some fine-grained reductions from standard satisfiability assumptions. The saved title does not reproduce the exact complement convention or time quantifiers, so those definitions must be recovered before one particular nondeterministic algorithm is claimed to meet the target.
@@ -689,13 +696,6 @@ Multiple-string LCS finds a longest string that occurs as a subsequence of every
 
 [Read in atlas](index.html#TCS-0761) · [Randomization in Parameterized Complexity (Dagstuhl Seminar 17041)](https://doi.org/10.4230/DagRep.7.1.103) · [Tight Hardness Results for LCS and other Sequence Similarity Measures](https://theory.stanford.edu/~virgi/LCS.pdf) · [Exploring the Gap Between LCS and LCStr](https://drops.dagstuhl.de/storage/00lipics/lipics-vol369-cpm2026/html/LIPIcs.CPM.2026.27/LIPIcs.CPM.2026.27.html)
 Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-5422 — Consequences of linear-time Orthogonal Vectors
-
-Orthogonal Vectors asks whether two Boolean vector collections contain a pair with no coordinate where both vectors have a one. The selected question concerns an essentially linear-time algorithm for this problem in the source's setting. It asks whether the existence of such an algorithm would refute the Exponential Time Hypothesis. Known connections to the stronger SETH assumption do not automatically establish that implication. Proving it would ground a basic fine-grained lower bound in a weaker assumption and clarify the role of limited nondeterminism in polynomial-time hardness.
-
-[Read in atlas](index.html#TCS-5422) · [Superlinear Lower Bounds Based on ETH](https://doi.org/10.4230/LIPIcs.STACS.2022.55)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6025 — Treewidth-dependent classification of subgraph isomorphism
 
@@ -1424,6 +1424,13 @@ Euclidean k-means chooses k arbitrary centers to minimize the sum of squared dis
 [Read in atlas](index.html#TCS-7353) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654) · [A (4 + epsilon)-Approximation for Euclidean k-Means via Non-Monotone Dual-Fitting](https://doi.org/10.1145/3798129.3800894)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5407 — Optimal approximation for nonmonotone submodular maximization over a matroid
+
+The input is a nonnegative submodular set function and one matroid, accessed through exact value and independence oracles. The goal is to choose an independent set with a large objective value, even though adding elements can reduce that value. The target is the supremum of expected approximation factors achievable by a uniform randomized algorithm using polynomially many total oracle-model operations. The checked literature gives a 0.401 approximation and a 0.478 value-query barrier, with the general gap explicitly retained in a March 2026 source. A benchmark answer must determine that optimal real ratio within 1/100 and prove the claimed accuracy in Lean without assuming that the supremum is attained.
+
+[Read in atlas](index.html#TCS-5407) · [On Maximizing Sums of Non-Monotone Submodular and Linear Functions](https://doi.org/10.4230/LIPIcs.ISAAC.2022.41) · [On Maximizing Sums of Non-monotone Submodular and Linear Functions](https://doi.org/10.1007/s00453-023-01183-3) · [Submodular Maximization by Simulated Annealing](https://theory.stanford.edu/~jvondrak/data/simulated-annealing.pdf) · [Constrained Submodular Maximization via New Bounds for DR-Submodular Functions](https://arxiv.org/abs/2311.01129v1) · [Deterministic Algorithm for Non-monotone Submodular Maximization under Matroid and Knapsack Constraints](https://arxiv.org/abs/2603.11996v2) · [Online Non-Monotone DR-Submodular Maximization Matching the Offline \(0.401\) Factor](https://arxiv.org/abs/2609.02145v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7358 — Optimal polynomial-time approximation ratio for Steiner Tree
 
 Steiner Tree connects a specified terminal set using optional additional graph vertices. The input graph and its nonnegative rational edge weights are unrestricted. The card asks for the best expected approximation ratio among all uniform randomized polynomial-time algorithms. Different algorithmic approaches reach ln 4 without establishing the optimal threshold. Benchmark acceptance requires a Lean-certified value within absolute error 0.01.
@@ -1479,13 +1486,6 @@ The yes instances become 3-colorable after deleting an arbitrarily small fixed f
 
 [Read in atlas](index.html#TCS-2625) · [NP-Hardness of Almost Coloring Almost 3-Colorable Graphs](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.51)
 Existing status: `source_open` · Summary written: 2026-09-12
-
-### TCS-5407 — Optimal approximation for submodular maximization over a matroid
-
-Constrained submodular maximization chooses an independent set of a matroid to maximize a nonnegative submodular objective. The objective need not be monotone, so adding a feasible element can reduce its value. The extracted question asks for the best possible approximation factor in this general setting. It appears as background to a paper that additionally studies linear regularization, rather than being restricted to that modified objective. Matching oracle algorithms and lower bounds would determine the precise cost of combining diminishing returns, possible negative marginal gains, and matroid feasibility.
-
-[Read in atlas](index.html#TCS-5407) · [On Maximizing Sums of Non-Monotone Submodular and Linear Functions](https://doi.org/10.4230/LIPIcs.ISAAC.2022.41)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5554 — Subquadratic factor-three edit-distance approximation
 
@@ -3154,10 +3154,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1101 — VP factor closure in positive characteristic
 
-VP consists of polynomial-degree polynomial families that have arithmetic circuits of polynomial size. This question asks whether taking polynomial factors preserves that class in positive characteristic. A factor can conceal structure that is inexpensive only after multiplication, so factoring asks whether this apparent compression can be undone without a large circuit blowup. Closure would make efficient algebraic computation more stable under a basic symbolic operation. The saved survey reference specifies a characteristic-sensitive question, and a complete statement must recover its field and degree assumptions rather than importing a characteristic-zero theorem.
+VP consists of polynomial families whose variable count, output degree and algebraic circuit size are polynomially bounded. The question asks whether every factor family of a nonzero VP family also belongs to VP over each fixed field of positive characteristic. Circuits are nonuniform, may use arbitrary constants from that same field, and must compute the formal polynomials exactly. The target includes arbitrary factor multiplicities, whereas several known small-characteristic results compute only powers of factors or place the factors in a larger complexity class. A complete Lean proof must establish this universal closure or exhibit a fixed-field factor family without any polynomial circuit-size bound.
 
-[Read in atlas](index.html#TCS-1101) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1101) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/) · [Algebraic Hardness versus Randomness in Low Characteristic](https://arxiv.org/abs/2005.10885v1) · [Learning the coefficients: A presentable version of border complexity and applications to circuit factoring](https://www.cse.iitk.ac.in/users/nitin/papers/PresentableVNP.pdf) · [Closure under factorization from a result of Furstenberg](https://eccc.weizmann.ac.il/report/2025/084/) · [Constant-depth circuits for polynomial GCD over any characteristic](https://eccc.weizmann.ac.il/report/2025/085/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1102 — VBP factor closure in positive characteristic
 
