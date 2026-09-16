@@ -790,6 +790,13 @@ BPP contains decision problems solved efficiently using random bits with bounded
 [Read in atlas](index.html#TCS-1005) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6879 — Explicit near-optimal vertex expanders
+
+The goal is to construct arbitrarily large regular graphs by a deterministic polynomial-time procedure. Every sufficiently small set must have almost the largest possible number of distinct neighbors outside itself. The original survey asks for the sharp additive expansion factor of the degree minus two minus any fixed positive tolerance. The 2025 lossless-expander breakthrough gives an arbitrarily small fixed relative loss, with a degree threshold depending on that loss. Because these quantified guarantees differ, the precise original target is retained with uncertain current status rather than being marked solved from the relative theorem alone.
+
+[Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/~avi/BOOKS/expanderbookr1.pdf) · [Explicit Lossless Vertex Expanders](https://arxiv.org/abs/2504.15087)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-1018 — Linear-seed hardness-to-randomness sampling
 
 A hard Boolean function can provide pseudorandom bits by being evaluated at carefully correlated inputs. The question asks for a uniform sampler using only a constant multiple of one input length as its random seed. It must produce polynomially many bits in the hardness parameter, each from exactly one evaluation of the original function. Every function with the specified average-case circuit hardness must yield a generator fooling the stated circuits to inverse-output-length error. General short-seed transformations and newer results under stronger hardness assumptions do not automatically preserve this required evaluation form.
@@ -1028,13 +1035,6 @@ A transversal matroid records which subsets can be matched into the opposite sid
 [Read in atlas](index.html#TCS-6729) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6879 — Explicit near-optimal vertex expanders
-
-Vertex expansion measures how many distinct outside neighbors a small vertex set has. The source asks for explicit regular graphs whose small-set expansion approaches \(d- 2\) at degree d. The target concerns neighbor diversity rather than only the number of crossing edges, so ordinary spectral quality may not directly yield the requested sharp bound. Such graphs would strengthen constructive tools where small sets must spread information to many new vertices. The saved question does not preserve the permitted set-size range or approximation slack, so those parameters must be recovered before comparing a graph family with the target.
-
-[Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ## Parameterized complexity and algorithms (40)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
@@ -1095,10 +1095,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7247 — Independent set algorithms from tropical circuit size
 
-A tropical circuit combines vertex weights using only maximum and addition. For each graph, \(\tau\) measures the smallest circuit that computes maximum independent-set weight for every nonnegative weight assignment. The question asks for a uniform algorithm whose runtime is polynomial in \(\tau\) and the input size. The algorithm receives no circuit or decomposition and may use unrestricted deterministic computation. A positive answer would turn the existence of a compact dynamic program into an effective algorithmic guarantee.
+A tropical circuit combines vertex weights using only maximum and addition. For each graph, its minimum circuit size measures how compactly maximum independent-set weight can be represented for every nonnegative weight assignment. The question asks for one deterministic algorithm whose bit cost is polynomial in that circuit size and the input parameters. The algorithm receives only the graph and weights, and may use unrestricted computation to output the exact optimum value. The known construction for restricted graph classes leaves the author’s general polynomial-automatization question open in the sources checked.
 
-[Read in atlas](index.html#TCS-7247) · [Lower Bounds on Dynamic Programming for Maximum Weight Independent Set](https://arxiv.org/abs/2102.06901) · [Open problems: Can dynamic programming for independent set be automated?](https://tuukkakorhonen.com/problems.html)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7247) · [Lower Bounds on Dynamic Programming for Maximum Weight Independent Set](https://arxiv.org/abs/2102.06901v2) · [Open problems: Can dynamic programming for independent set be automated?](https://tuukkakorhonen.com/problems.html)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3480 — Polynomial exact metric sparsifiers with a crossing-edge budget
 
@@ -3476,12 +3476,12 @@ Unique SVP assumes that one shortest lattice direction is separated from other i
 [Read in atlas](index.html#TCS-0648) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0661 — SVP hardness for fixed-rank module lattices
+### TCS-0661 — SVP hardness for fixed-rank cyclotomic modules
 
-Module lattices carry additional algebraic structure beyond an arbitrary integer lattice. The recorded question asks about SVP hardness when the module rank is fixed. A small module rank can coexist with a large underlying integer dimension as the base algebraic field grows. Understanding hardness here would clarify whether the structure used for compact lattice constructions also changes their worst-case geometric difficulty. The saved title does not define the ring, embedding, or approximation factor, so fixed module rank must not be confused with fixed-dimensional Euclidean SVP.
+Cyclotomic module lattices combine integer lattice geometry with multiplication by an algebraic number ring. The question asks whether exact Euclidean shortest-vector decision is NP-hard at some fixed module rank while the conductor and field degree grow. The card specifies the canonical product norm, integral generators and a uniform deterministic polynomial-time many-one reduction. A September 2026 preprint claims this hardness already for rank two over a prime-conductor subfamily, matching the selected formulation. The complete new proof is independently unverified here, and its claim does not imply hardness for every ring family or cryptographic distribution.
 
-[Read in atlas](index.html#TCS-0661) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0661) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [SVP Is NP-Hard for Some Rank-2 Cyclotomic Modules](https://arxiv.org/abs/2609.01469) · [On Module Unique-SVP and NTRU](https://eprint.iacr.org/2022/1203) · [Average hardness of SIVP for module lattices of fixed rank](https://arxiv.org/abs/2511.13659) · [Mildly Short Vectors in Cyclotomic Ideal Lattices in Quantum Polynomial Time](https://ir.cwi.nl/pub/30736/)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-0662 — Unconditional exponential hardness of \(n^{1+\varepsilon}\)-GapSVP
 

@@ -2599,6 +2599,13 @@ Two graphs are isomorphic when a relabeling of vertices preserves every edge. Th
 [Read in atlas](index.html#TCS-6522) · [Ten Semi-Grand Challenges for Quantum Computing Theory](https://www.scottaaronson.com/writings/qchallenge.html) · [A Quantum-Inspired Algorithm for Graph Isomorphism](https://arxiv.org/abs/2512.24423) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/) · [Limitations of Quantum Coset States for Graph Isomorphism](https://arxiv.org/abs/quant-ph/0511148) · [Quantum state isomorphism problems for groups](https://arxiv.org/abs/2605.12615) · [NPA Hierarchy for Quantum Isomorphism and Homomorphism Indistinguishability](https://quantum-journal.org/papers/q-2026-01-28-1989/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6933 — Classical hardness of approximate Boson Sampling
+
+Boson Sampling records the occupations of indistinguishable photons after an ideal passive optical network. The selected question asks whether no uniform classical randomized algorithm can reproduce every such distribution to any requested total-variation error in time polynomial in the input size and inverse error. The distribution includes collisions and is defined by squared permanents with factorial normalization. Known hierarchy-collapse consequences and newer average-case results have explicit assumptions or use different error guarantees. An unconditional answer would establish or refute a fundamental classical limitation for a restricted quantum sampling experiment.
+
+[Read in atlas](index.html#TCS-6933) · [Quantum Algorithms: An Overview](https://arxiv.org/abs/1511.04206) · [The Computational Complexity of Linear Optics](https://theoryofcomputing.org/articles/v009a004/) · [Exponential improvements to the average-case hardness of BosonSampling](https://arxiv.org/abs/2411.04566)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-2229 — QMA versus \(\mathrm{QMA}(2)\)
 
 QMA(2) receives two quantum witnesses that are promised unentangled across a specified division, whereas QMA receives one unrestricted quantum witness. Both use uniform polynomial-time quantum verification with constant completeness and soundness error. The question is whether the promise of unentanglement adds power for ordinary promise problems without an oracle. Known amplification and restricted-phase results do not resolve this comparison, and concatenating honest witnesses does not preserve soundness automatically. A September 2026 manuscript separates the classes relative to a unitary oracle while explicitly leaving their ordinary relationship unresolved.
@@ -2633,6 +2640,13 @@ The question asks for the largest polynomial quantum query advantage over random
 
 [Read in atlas](index.html#TCS-0029) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629) · [k-Forrelation Optimally Separates Quantum and Classical Query Complexity](https://arxiv.org/abs/2008.07003)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6481 — Bosonic quantum computation in PP
+
+The selected question asks whether Gaussian-and-cubic bosonic computation is contained in the classical counting class PP. The model uses coherent input states, polynomial evolution time and a final number measurement with separated acceptance intervals. No exponential bound on intermediate energy is added to the original formal decision model. Later PSPACE and PP simulations require additional energy assumptions and therefore do not settle this target. A resolution would clarify the computational significance of high photon numbers in infinite-dimensional quantum computation.
+
+[Read in atlas](index.html#TCS-6481) · [Bosonic Quantum Computational Complexity](https://doi.org/10.22331/q-2026-05-20-2110) · [Bounding the computational power of bosonic systems](https://doi.org/10.1038/s41534-026-01255-6) · [Energy, Bosons and Computational Complexity](https://arxiv.org/abs/2510.08545)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4811 — Efficient approximation of the optimal dihedral measurement
 
@@ -2829,17 +2843,3 @@ Randomness extractors turn weakly random inputs into nearly uniform bits, often 
 
 [Read in atlas](index.html#TCS-5202) · [Quantum-Proof Multi-Source Randomness Extractors in the Markov Model](https://doi.org/10.4230/LIPIcs.TQC.2016.2)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6481 — Complexity of bosonic quantum computation
-
-Continuous-variable quantum computation uses bosonic modes rather than a finite collection of two-level systems alone. This source studies a model with cubic phase gates and proves an exponential-space upper bound on its computational power. It asks whether that upper bound can be substantially improved, perhaps toward the classical counting classes that contain ordinary qubit quantum computation. Cubic phase gates can rapidly increase the degree and coefficient size of operator expressions, obstructing straightforward simulations. A tighter characterization would clarify which apparent extra power comes from the infinite-dimensional model and which reflects limitations of current analysis.
-
-[Read in atlas](index.html#TCS-6481) · [Bosonic Quantum Computational Complexity](https://doi.org/10.22331/q-2026-05-20-2110)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6933 — Classical hardness of Boson Sampling
-
-Boson sampling asks a device to sample the output pattern of photons passing through a linear-optical network. The cited overview presents the conjecture that classical computers cannot perform this sampling efficiently in the specified regime. The difficulty concerns reproducing a distribution, so computing one output probability is not by itself the same task. Exact sampling, approximate sampling, and experimental noise require different assumptions and must be separated when the conjecture is formalized. Resolving the relevant hardness claim would support a concrete route to quantum sampling advantage without requiring a universal quantum computer.
-
-[Read in atlas](index.html#TCS-6933) · [Quantum Algorithms: An Overview](https://arxiv.org/abs/1511.04206)
-Existing status: `source_open` · Summary written: 2026-09-11
