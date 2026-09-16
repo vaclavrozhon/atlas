@@ -14,10 +14,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6648 — Kolmogorov–Loveland randomness versus Martin-Löf randomness
 
-Kolmogorov–Loveland betting strategies may adaptively inspect previously unseen bits in any order while making fair computable bets. The question asks whether every sequence defeating all such strategies is Martin-Löf random. Martin-Löf randomness instead requires avoidance of every effective sequence of small-measure exceptional sets. Equality would show that flexible computable betting captures the full statistical-test notion of algorithmic randomness. The reviewed model allows partial strategies and unbounded capital success, so limitations for fixed reading orders or weaker betting rules cannot settle the comparison.
+Kolmogorov–Loveland strategies make computable fair bets while adaptively querying previously unseen coordinates of an infinite binary sequence. The problem asks whether defeating every such strategy implies passing every uniform effective null test for fair-coin measure. Strategies may be partial and may omit coordinates forever, but they cannot borrow, revisit observed bits or inspect them through an oracle. A complete Lean answer must prove the implication or exhibit one non-Martin-Löf-random sequence on which every strategy has bounded capital. Known subsequence theorems, nonadaptive-order separations and the 2025 open-set obstruction leave that exact comparison unresolved.
 
-[Read in atlas](index.html#TCS-6648) · [Kolmogorov-Loveland betting strategies lose the Betting game on open sets](https://arxiv.org/abs/2403.19817) · [Kolmogorov–Loveland randomness and stochasticity](https://people.math.wisc.edu/~jsmiller8/Papers/kl.pdf) · [Comparing notions of randomness](https://people.math.wisc.edu/~slempp/papers/injrandom.pdf) · [A universal pair of \(1/2\)-betting strategies](https://www.sciencedirect.com/science/article/pii/S0890540121000183)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6648) · [Kolmogorov-Loveland betting strategies lose the Betting game on open sets](https://arxiv.org/abs/2403.19817) · [Kolmogorov–Loveland randomness and stochasticity](https://people.math.wisc.edu/~jsmiller8/Papers/kl.pdf) · [Comparing notions of randomness](https://people.math.wisc.edu/~slempp/papers/injrandom.pdf) · [A universal pair of \(1/2\)-betting strategies](https://www.sciencedirect.com/science/article/pii/S0890540121000183) · [Key Developments in Algorithmic Randomness](https://arxiv.org/abs/2004.02851)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6647 — Rigidity of the Turing degrees
 
@@ -2474,10 +2474,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7327 — Buffered fully persistent search trees
 
-A search tree keeps all previous versions of its ordered set. A user may start a new branch from any past version. Buffered updates save external-memory transfers by processing writes together. The goal combines these savings with fast historical queries and constant-I/O cloning. The latest cited result supplies this update efficiency only for partial persistence.
+The data structure stores every version of an ordered set and permits a new immutable version to be created from any old one. The target combines buffered insertions and deletions, queries charged by the size of their accessed version, and constant worst-case I/O cost for explicit cloning. All operation bounds must hold jointly over every finite online history with only two blocks of internal memory required and space linear in updates and clones. The 2025 source achieves buffered partial persistence and leaves efficient full-persistence cloning open, while the exact numerical combination here is explicitly editorial. A solution would unite efficient historical branching and buffered storage access without charging an extra constant transfer to every update.
 
-[Read in atlas](index.html#TCS-7327) · [Buffered Partially-Persistent External-Memory Search Trees](https://drops.dagstuhl.de/storage/00lipics/lipics-vol351-esa2025/LIPIcs.ESA.2025.82/LIPIcs.ESA.2025.82.pdf)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7327) · [Buffered Partially-Persistent External-Memory Search Trees](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2025.82) · [External Memory Fully Persistent Search Trees](https://cs.au.dk/~gerth/papers/stoc23.pdf) · [Scalable Algorithms and Persistent Data Structures using Geometric Techniques](https://cs.au.dk/~gerth/advising/thesis/rolf-svenning.pdf) · [An I/O-Efficient Retroactive Buffer Tree for Bulk Operations in Temporal Databases](https://doi.org/10.1007/s10796-026-10782-8)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7330 — Combined depth and size bounds for confluently persistent tries
 
