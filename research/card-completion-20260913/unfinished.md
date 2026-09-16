@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **433**.
+Pending active reviews: **432**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -370,7 +370,6 @@ Pending active reviews: **433**.
 | [TCS-6659](../../data/cards/TCS-6659.json) | Optimal polynomial-time approximation ratio for metric k-Median | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-6661](../../data/cards/TCS-6661.json) | Hyperclique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6662](../../data/cards/TCS-6662.json) | Optimal deterministic restricted-isometry matrices | Pseudorandomness and derandomization | existing_detailed_audit |
-| [TCS-6664](../../data/cards/TCS-6664.json) | Maximum influence of polynomial threshold functions | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6675](../../data/cards/TCS-6675.json) | Search-to-decision equivalence for finite promise CSPs | Constraint satisfaction | existing_detailed_audit |
 | [TCS-6684](../../data/cards/TCS-6684.json) | Computational Kesten–Stigum threshold | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
