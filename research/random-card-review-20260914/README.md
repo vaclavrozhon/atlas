@@ -499,3 +499,27 @@ with seventy-three retained active cards and nine resolved historical records:
 There remain thirty-nine new importance assessments through this draw; all four
 existing scores in this draw were preserved. Checkpoint nineteen is committed as
 01ae2c56 and verified live. Shared reservations and token/hash checks remain in use.
+
+The twenty-first random draw brings this process to eighty-six completed reviews,
+with seventy-six retained active cards and ten resolved historical records:
+
+- TCS-7318: repaired the Dasgupta-cost formula and fixed uniform deterministic
+  bit complexity, explicit vertex/tree encodings and constant-factor quantifiers.
+  Distinguished SSE-hardness, seeded sublinear algorithms and terminal-cluster
+  variants. Existing importance 87 is preserved.
+- TCS-4468: recovered the classical subcube/query separation and archived the
+  resolved exponent-level target after reading the CCC 2016 proof and its
+  supporting randomized composition and framework lemmas. New importance 88.
+- TCS-7259: explicit single-grain infinite-lattice eventual-toppling language,
+  repaired parallel update, fixed binary encoding and logspace-uniform circuits.
+  Distinguished finite boundary sinks and variant rules. Importance 84 retained.
+- TCS-7224: repaired addition-chain formulas and retained exact length-only
+  deterministic optimization in binary-input polynomial time. Recovered the
+  source question in the current author-hosted book. Importance 83 retained.
+
+This makes forty new importance assessments through this draw. Checkpoint twenty
+is committed as 322d0da6. Its successful deployment was followed by a successful
+concurrent deployment containing a documented newer status refresh of TCS-6450;
+that external refresh is preserved and this manifest now tracks its current
+queue-verified hash. Original review and later status-refresh ledger entries
+remain intact. Reservation tokens and input hashes continue to guard every edit.
