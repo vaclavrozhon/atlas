@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-597 five-sentence working summaries, based on saved source material.
+596 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1035,7 +1035,7 @@ Vertex expansion measures how many distinct outside neighbors a small vertex set
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (41)
+## Parameterized complexity and algorithms (40)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1315,13 +1315,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Directed feedback sets remove vertices or arcs until no directed cycle remains. The survey asks for polynomial kernels for both versions, parameterized by the allowed number of removals. The compression must preserve interactions among cycles that may share only selected portions of their routes. Resolving these questions would determine whether small directed cycle-repair budgets imply compact equivalent instances. The vertex and arc variants remain separate tasks, and the saved 2020 formulation supplies neither a current resolution nor a particular optimal polynomial size.
 
 [Read in atlas](index.html#TCS-7033) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7036 — Parameterized complexity of three-pair Directed Edge Multicut
-
-Directed Edge Multicut deletes arcs so that each specified source can no longer reach its paired target. The saved question fixes three terminal pairs and parameterizes the problem by cut size. Three simultaneous reachability constraints can interact even when each individual separation is easy to describe. A classification would locate a precise small-demand boundary for parameterized directed cutting. The survey formulation asks for tractability or hardness rather than a particular running-time base, and the historical source inventory does not decide whether later work has closed that boundary.
-
-[Read in atlas](index.html#TCS-7036) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Approximation algorithms and inapproximability (24)

@@ -984,12 +984,26 @@ MELL asks whether provability in a resource-sensitive propositional logic can al
 [Read in atlas](index.html#TCS-7192) · [Handbook of Linear Logic](https://ll-handbook.pages.math.cnrs.fr/book/ll-handbook-public.pdf) · [On the Decision Problem for MELL](https://www.lix.polytechnique.fr/~lutz/papers/OnDeciMELL.pdf) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://drops.dagstuhl.de/storage/00lipics/lipics-vol345-mfcs2025/html/LIPIcs.MFCS.2025.22/LIPIcs.MFCS.2025.22.html) · [Solving the Reachability Problem for Branching Vector Addition Systems via Semilinear Inductive Invariants](https://arxiv.org/abs/2607.09558v1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-5987 — Decidability of weak bisimulation for normed BPA
+
+Basic Process Algebra represents recursive sequential processes by finite words whose leftmost variable is rewritten using a finite rule system. Normedness requires each variable to have some terminating execution and permits both silent termination and silent divergence. The question asks whether weak bisimilarity of two such processes is decidable when finite silent paths may surround every matched visible action. Known decision procedures for branching bisimilarity or totally normed subclasses do not cover the full weak equivalence defined here. A resolution would locate the algorithmic limit of hiding internal computation during exact comparison of simple infinite-state processes.
+
+[Read in atlas](index.html#TCS-5987) · [Two Lower Bounds for BPA](https://doi.org/10.4230/LIPIcs.CONCUR.2017.20) · [Checking Equality and Regularity for Normed BPA with Silent Moves](https://basics.sjtu.edu.cn/~yuxi/papers/ICALP-2013-Final-Version.pdf) · [Branching Bisimilarity of Normed BPA Processes as a Rational Monoid](https://lmcs.episciences.org/4097/pdf) · [Deciding Weak Bisimilarity of Normed Context-Free Processes Using Tableau](https://link.springer.com/chapter/10.1007/978-3-540-75292-9_23)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7310 — Unconditional decidability of exact time-bounded CTMDP reachability
 
 The input describes a finite controlled stochastic process whose transitions occur in continuous time. A policy chooses actions from the current state and elapsed time, including between jumps. The target is exact comparison of the optimal deadline-reachability probability with rational thresholds for every initial state. The cited theorem decides this question assuming Schanuel’s conjecture. The card asks whether the same strict-threshold language is decidable unconditionally.
 
 [Read in atlas](index.html#TCS-7310) · [On Decidability of Time-Bounded Reachability in CTMDPs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.133)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-5682 — One-dimensional piecewise-affine reachability
+
+A one-dimensional rational piecewise-affine map repeatedly updates one number using the affine expression selected by its interval guards. The question asks whether exact reachability of a rational target from a rational starting point is decidable for every finite description. The number of pieces is unrestricted, all boundary choices are explicit, and any finite number of iterations including zero is allowed. Injective two-piece maps and certain Bellman operators admit decision procedures, but the checked source retains the general question as open. A resolution would locate a basic boundary between finite descriptions of numerical dynamics and algorithmic reachability analysis.
+
+[Read in atlas](index.html#TCS-5682) · [On Piecewise Affine Reachability with Bellman Operators](https://doi.org/10.4230/LIPIcs.MFCS.2025.92) · [Reachability in Injective Piecewise Affine Maps](https://arxiv.org/abs/2301.09752v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6036 — Decidability of restricted elementary real functions
 
@@ -1103,13 +1117,6 @@ Multi-objective probabilistic synthesis asks one strategy to satisfy several qua
 [Read in atlas](index.html#TCS-4302) · [Model Checking and Strategy Synthesis for Stochastic Games: From Theory to Practice (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICALP.2016.4)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5682 — One-dimensional piecewise-affine reachability
-
-A piecewise affine map chooses among finitely many affine update rules according to the region containing the current point. In one dimension, its orbit is obtained by repeatedly applying this update to a rational starting value. The question asks whether exact reachability of a rational target is decidable in the general one-dimensional setting, even with only two pieces. The source contrasts this gap with decidable subclasses and with undecidability already available for unrestricted two-dimensional maps. Resolving the two-piece case would locate a basic boundary between simple numerical iteration and computations complicated enough to defeat algorithmic reachability analysis.
-
-[Read in atlas](index.html#TCS-5682) · [On Piecewise Affine Reachability with Bellman Operators](https://doi.org/10.4230/LIPIcs.MFCS.2025.92)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5817 — Computational interpretation of impredicativity with univalence
 
 Univalent foundations treats equivalence of types as a form of equality while supporting constructive mathematical reasoning. Propositional impredicativity principles allow certain quantifications or size changes for propositions beyond ordinary predicative universe rules. The source identifies the challenge of giving these principles a computational interpretation compatible with univalence. Its domain-theoretic development avoids the resizing axioms, demonstrating that useful semantics can be built while the stronger computational foundation is unsettled. A successful interpretation would explain how proofs using impredicative propositions can retain meaningful computation and would broaden the foundational tools available for constructive domain theory.
@@ -1129,13 +1136,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A probabilistic transition system is decisive for a target when it almost surely eventually reaches either the target or states from which the target is unreachable. This property supports approximation of reachability probabilities in infinite-state models such as probabilistic Petri nets. The source discusses deciding decisiveness for finite targets and for transition weights that depend on the current marking. Its own results resolve a substantial dynamic-weight case negatively, proving undecidability for polynomial weights even with finite or upward-closed targets. The description therefore separates that established limitation from the more specific constant-weight and restricted-model questions motivating the paper.
 
 [Read in atlas](index.html#TCS-5975) · [About Decisiveness of Dynamic Probabilistic Models](https://doi.org/10.4230/LIPIcs.CONCUR.2023.14)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5987 — Decidability of weak bisimulation for normed BPA
-
-Basic Process Algebra describes recursive sequential processes with a stack-like arrangement of process variables. Weak bisimilarity compares their observable behavior while allowing silent transitions to be hidden. The question asks whether this equivalence is decidable even for normed BPA, where each process variable can eventually terminate. The source distinguishes this from branching bisimilarity, a finer equivalence for which decidability and complexity results are available in the normed setting. An answer would clarify whether arbitrary invisible computation can be handled effectively in one of the simplest infinite-state models of recursive behavior.
-
-[Read in atlas](index.html#TCS-5987) · [Two Lower Bounds for BPA](https://doi.org/10.4230/LIPIcs.CONCUR.2017.20)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6245 — Exponential witness bounds for three-dimensional VAS
@@ -1627,10 +1627,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6572 — Polynomial-time simplex pivot rule
 
-The simplex method solves a linear program by moving between feasible bases through legal pivots. This question asks for a deterministic pivot algorithm whose total bit complexity is polynomial for every rational input and supplied feasible starting basis. Finding the optimum by another method does not suffice unless the required sequence of pivots can also be followed efficiently. Degenerate pivots complicate progress because they may change the basis without changing the objective value. A positive answer would provide a worst-case polynomial guarantee for simplex itself, without automatically establishing the stronger arithmetic bound of strongly polynomial linear programming.
+Primal simplex maximizes a rational linear objective by exchanging one entering and one leaving basis column at a time. The question asks for one deterministic rule that reaches an optimality-certifying basis from every supplied feasible basis in polynomial total bit time. Each pivot must have positive entering reduced cost and follow the exact minimum-ratio test, with tied and zero-length degenerate pivots included. The rule may inspect all numerical data and use history, but every computation and basis exchange must fit the same polynomial input-length bound. Smoothed guarantees, local antistalling results, restricted-information lower bounds and hardness of shortest pivot paths do not settle this unrestricted rule-existence target.
 
-[Read in atlas](index.html#TCS-6572) · [Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually Takes Polynomial Time](https://www.cs.yale.edu/homes/spielman/simplex/) · [An unconditional lower bound for the active-set method on the hypercube](https://arxiv.org/abs/2502.18019) · [An Unconditional Lower Bound for the Active-Set Method in Convex Quadratic Maximization](https://epubs.siam.org/doi/10.1137/1.9781611978971.14) · [Lower Bounds for Ranking-Based Pivot Rules](https://drops.dagstuhl.de/storage/00lipics/lipics-vol364-stacs2026/html/LIPIcs.STACS.2026.31/LIPIcs.STACS.2026.31.html) · [On the number of degenerate simplex pivots](https://link.springer.com/article/10.1007/s10107-026-02349-x)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6572) · [Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually Takes Polynomial Time](https://www.cs.yale.edu/homes/spielman/simplex/) · [An unconditional lower bound for the active-set method on the hypercube](https://arxiv.org/abs/2502.18019v1) · [An unconditional lower bound for the active-set method in convex quadratic maximization](https://arxiv.org/abs/2507.16648v2) · [Lower bounds for ranking-based pivot rules](https://arxiv.org/abs/2512.16684v2) · [On the number of degenerate simplex pivots](https://link.springer.com/article/10.1007/s10107-026-02349-x) · [Finding Short Paths on Simple Polytopes](https://arxiv.org/abs/2603.05482v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7314 — Komlós conjecture
 
