@@ -193,7 +193,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 A resolution refutation certifies that no assignment satisfies a Boolean formula. Clause space counts how many clauses must be retained at once, and length counts how many clauses are downloaded or inferred. The question asks whether logarithmic minimum clause space always guarantees polynomial minimum length for formulas with bounded input-clause width. The short proof may use more memory than the small-space proof, so simultaneous time–space tradeoffs are a different question. Known results give polynomial length for constant space and quasipolynomial length for logarithmic space, leaving the requested improvement unresolved in the checked literature.
 
-[Read in atlas](index.html#TCS-6766) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.003)
+[Read in atlas](index.html#TCS-6766) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.006)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0024 — Frege lower bounds from circuit hardness
@@ -380,6 +380,13 @@ The real Grothendieck constant compares the best vector assignment with the best
 [Read in atlas](index.html#TCS-7352) · [The Grothendieck constant is strictly smaller than Krivine’s bound](https://arxiv.org/abs/1103.6161) · [New Lower and Upper Bounds for the Grothendieck Constant](https://arxiv.org/abs/2608.11158)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5326 — Interactive compression with logarithmic input-length overhead
+
+The underlying question concerns two-party interactive communication, even though its source article studies multiparty protocols. A protocol can transmit many more bits than its internal information cost under the input distribution. The proposed precise target allows a logarithmic factor in input bit length and a fixed total-variation error when both parties reconstruct the transcript. Exact compression without loss is already known to fail, while results for external information or independent inputs address different targets. A complete Lean answer must prove this explicitly specified universal simulation bound or a lower bound refuting every proposed universal constant.
+
+[Read in atlas](index.html#TCS-5326) · [Multi-Party Protocols, Information Complexity and Privacy](https://doi.org/10.4230/LIPIcs.MFCS.2016.57) · [Multi-Party Protocols, Information Complexity and Privacy](https://www.irif.fr/~adiro/publ/KRU.pdf) · [Information Complexity and the Quest for Interactive Compression](https://eccc.weizmann.ac.il/report/2015/060/) · [Simplified Separation of Information and Communication](https://eccc.weizmann.ac.il/report/2015/057/) · [Interactive Compression to External Information](https://par.nsf.gov/servlets/purl/10084450) · [Exponential Separation of Communication and External Information](https://eccc.weizmann.ac.il/report/2015/088/) · [Zero-error information equals amortized communication complexity](https://arxiv.org/abs/2608.04141v1)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-6450 — Polynomial relation between classical and quantum communication
 
 Two parties must evaluate a Boolean function when each holds one part of the input. The question asks whether randomized classical communication is polynomially bounded by quantum communication with shared entanglement for every total function. Both models allow bounded error on each input, and their costs count transmitted bits or qubits rather than local computation. August and September 2026 preprints claim total-function families with polylogarithmic quantum cost and polynomial randomized classical cost. Those stated results would refute the conjecture even with the quantum side allowed free entanglement, but their proofs are not independently certified in this review.
@@ -526,13 +533,6 @@ Decision tree complexity measures the worst-case number of adaptive input querie
 
 [Read in atlas](index.html#TCS-5189) · [The Hardness of Decision Tree Complexity](https://doi.org/10.4230/LIPIcs.STACS.2025.66)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5326 — Communication compression to information cost
-
-A communication protocol can transmit many bits while revealing much less information about its participants' private inputs. The saved question asks whether the communication can always be compressed to the protocol's information cost. Such a transformation must preserve the relevant output behavior while coordinating participants who each know only their own input. A general compression theorem would connect information-based lower bounds to the actual communication required by multiparty computation. The excerpt does not specify the information measure, allowed error, or simulation overhead, and those choices are essential because several inequivalent compression questions fit the same informal sentence.
-
-[Read in atlas](index.html#TCS-5326) · [Multi-Party Protocols, Information Complexity and Privacy](https://doi.org/10.4230/LIPIcs.MFCS.2016.57)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5892 — Constant-factor randomized direct sums for total Boolean functions
 
@@ -1412,10 +1412,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7357 — Optimal polynomial-time approximation ratio for asymmetric TSP
 
-Asymmetric TSP allows different costs for the two directions between a pair of vertices. The costs obey the directed triangle inequality and the output visits each vertex once in a cycle. The target is the best expected ratio among all uniform randomized polynomial-time algorithms. A March 2026 result improves the known constant without determining this infimum. The benchmark requires a certified estimate within absolute error 0.01.
+An asymmetric metric TSP instance specifies positive rational directed distances and asks for a minimum-cost tour through all vertices. The target is the infimum of all expected approximation ratios achieved by uniform randomized algorithms that always return a tour and run in polynomial time on every execution. The algorithm and polynomial may depend on the ratio, and an algorithm attaining the infimum need not exist. Known constant-factor algorithms and conditional hardness results leave a substantial gap, even after the improvements reported in March 2026. The benchmark requires a supplied real estimate and a complete Lean proof of absolute error at most one hundredth for the unconditional constant.
 
-[Read in atlas](index.html#TCS-7357) · [Better approximation guarantee for Asymmetric TSP](https://arxiv.org/abs/2603.14334)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7357) · [Better approximation guarantee for Asymmetric TSP](https://arxiv.org/abs/2603.14334v1) · [A Constant-Factor Approximation Algorithm for the Asymmetric Traveling Salesman Problem](https://arxiv.org/abs/1708.04215v4) · [New Inapproximability Bounds for TSP](https://www.lamsade.dauphine.fr/~mlampis/papers/TSP-ISAACj.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7353 — Optimal polynomial-time approximation ratio for Euclidean k-means
 
@@ -3140,10 +3140,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0009 — Explicit univariate arithmetic circuit lower bounds
 
-A polynomial in one variable may have a compact arithmetic description even when its expanded coefficient list is huge. This entry seeks explicit univariate polynomials with provably large arithmetic-circuit complexity. The challenge is to identify concrete algebraic structure that defeats arbitrary sharing of intermediate computations. Such examples would give unusually focused lower-bound targets, removing the many-variable geometry present in other circuit problems. The inherited index supplies neither the required quantitative bound nor the source's explicitness and constant conventions, so those parameters remain essential unfinished parts of the eventual card.
+The question asks for a family of one-variable integer polynomials whose smallest arithmetic circuits cannot all be bounded by a constant times the logarithm of their degree. Each polynomial must have polynomially many bits per coefficient, with any requested coefficient bit and sign computable by one uniform algorithm in time polynomial in the logarithm of the degree. The competing circuits may share intermediate computations and use arbitrary complex constants for free, while every wire into a binary addition or multiplication gate contributes to their size. This explicitness requirement is a disclosed specialization of the original question, whose wording did not fix a coefficient-generation model. A resolution would clarify how far efficiently specified coefficients can force arithmetic complexity beyond the elementary degree bound in a single variable.
 
-[Read in atlas](index.html#TCS-0009) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0009) · [Mathematics and Computation (27 March 2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [A Largish Sum-Of-Squares Implies Circuit Hardness and Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2021.23) · [Partial Derivatives in Arithmetic Complexity and Beyond](https://doi.org/10.1561/0400000043) · [Weighted Sum-of-Squares Lower Bounds for Univariate Polynomials Imply \(\mathrm{VP}\ne\mathrm{VNP}\)](https://doi.org/10.1007/s00037-024-00249-0) · [Polynomial Lower Bounds for Arithmetic Circuits over Non-Commutative Rings](https://eccc.weizmann.ac.il/report/2026/061/) · [Arithmetic circuit lower bounds from sumset expansion](https://arxiv.org/abs/2607.15848v1)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-0046 — Complexity of solving tropical or min-plus linear systems
 
@@ -3604,6 +3604,13 @@ Two independent senders communicate with their own receivers through one interfe
 [Read in atlas](index.html#TCS-7210) · [A New Achievable Rate Region for the Interference Channel](https://doi.org/10.1109/TIT.1981.1056307) · [Wikipedia: List of unsolved problems in information theory](https://en.wikipedia.org/wiki/List_of_unsolved_problems_in_information_theory) · [Wikipedia revision used for discovery](https://en.wikipedia.org/w/index.php?oldid=1351195847) · [Lecture Notes on Network Information Theory](https://arxiv.org/abs/1001.3404v4)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-4524 — Positive-rate binary codes against adversarial deletions
+
+A binary deletion code must identify every transmitted word after an adversary removes an allowed fraction of its bits without revealing their positions. Positive rate means that codebook size grows exponentially along infinitely many block lengths with one fixed positive exponent. The target is the supremum deletion fraction for which such zero-error uniquely decodable code families exist, with no efficiency requirement. The checked bounds run from the square root of two minus one to one half minus ten to the minus fortieth power, and are too far apart to supply the required approximation. An accepted answer must determine this real threshold within 1/100 and prove the accuracy in Lean, without requiring that the supremum be attained.
+
+[Read in atlas](index.html#TCS-4524) · [Deletion Codes in the High-noise and High-rate Regimes](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.867) · [An improved bound on the fraction of correctable deletions](https://arxiv.org/abs/1507.01719v2) · [The zero-rate threshold for adversarial bit-deletions is less than \(1/2\)](https://arxiv.org/abs/2106.05250v2) · [Random Reed-Solomon Codes Achieve the Half-Singleton Bound for Insertions and Deletions over Linear-Sized Alphabets](https://doi.org/10.4230/LIPIcs.ICALP.2025.60)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6609 — Constant-rate binary locally decodable codes with logarithmic query complexity
 
 Can a binary code protect arbitrarily long messages at constant rate while recovering any requested bit with only logarithmically many bit queries? A fixed positive fraction of the stored bits may be corrupted adversarially. The local decoder must return the requested bit with probability at least two thirds for every admissible received word and index. Large-alphabet and list-decoding results satisfy different guarantees. The target asks for existence, without an extra requirement that the code be efficiently constructed.
@@ -3707,13 +3714,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The Ingleton expression is a linear combination of entropies associated with a constraint familiar from linear representations. The recorded question asks for the infimum of its normalized score over the intended distributions. Negative scores quantify how far general information structures can deviate from linear-rank behavior. Determining the extremal value would sharpen a concrete measure of that separation. The saved title does not supply the normalization or admissible alphabet conventions, and an infimum need not be attained by a finite distribution, so those details are essential to an exact-value statement.
 
 [Read in atlas](index.html#TCS-0205) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4524 — Positive-rate binary codes against adversarial deletions
-
-Adversarial deletion codes must distinguish messages after an adversary removes a prescribed fraction of their bits. The source asks for the largest deletion fraction below which binary codes of positive rate can exist. Deleted positions are hidden, allowing different codewords to collapse to the same surviving subsequence. Determining this threshold would identify the ultimate worst-case synchronization tolerance of binary communication. This is an information-theoretic supremum question from the saved 2015 source, distinct from independent random deletions and from the separate requirement of efficient encoding or decoding.
-
-[Read in atlas](index.html#TCS-4524) · [Deletion Codes in the High-noise and High-rate Regimes](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.867)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4802 — Noise tolerance of binary interactive codes

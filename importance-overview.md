@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-901 records have an editorial importance assessment; 125 remain provisional.
+903 records have an editorial importance assessment; 123 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance assessed: 24; provisional: 9.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance assessed: 25; provisional: 8.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -223,9 +223,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 33; importance 
 | 5 | [Maximum influence of polynomial threshold functions](index.html#TCS-6664) | 95 |
 | 6 | [Aanderaa–Karp–Rosenberg conjecture](index.html#TCS-7219) | 94 |
 | 7 | [Real Grothendieck constant](index.html#TCS-7352) | 94 |
-| 8 | [Polynomial relation between classical and quantum communication](index.html#TCS-6450) | 91 |
-| 9 | [Fourier Min-Entropy–Influence conjecture](index.html#TCS-6708) | 88 |
-| 10 | [Multiparty Clique lower bounds in compression games](index.html#TCS-5272) | 86 |
+| 8 | [Interactive compression with logarithmic input-length overhead](index.html#TCS-5326) | 91 |
+| 9 | [Polynomial relation between classical and quantum communication](index.html#TCS-6450) | 91 |
+| 10 | [Fourier Min-Entropy–Influence conjecture](index.html#TCS-6708) | 88 |
 
 ## 4. Fine-grained complexity (small)
 
@@ -483,7 +483,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 
 ## 19. Coding and information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 23; provisional: 5.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 24; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -495,8 +495,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 | 6 | [Binary codes beyond the Gilbert–Varshamov bound](index.html#TCS-7267) | 96 |
 | 7 | [Decidability of unconditional Shannon information inequalities](index.html#TCS-6608) | 95 |
 | 8 | [Capacity of the general two-user interference channel](index.html#TCS-7210) | 95 |
-| 9 | [Constant-rate binary locally decodable codes with logarithmic query complexity](index.html#TCS-6609) | 94 |
-| 10 | [Rate–distortion tradeoff for distributed lossy source coding](index.html#TCS-7214) | 94 |
+| 9 | [Positive-rate binary codes against adversarial deletions](index.html#TCS-4524) | 94 |
+| 10 | [Constant-rate binary locally decodable codes with logarithmic query complexity](index.html#TCS-6609) | 94 |
 
 ## 20. Property testing and distribution learning (small)
 
