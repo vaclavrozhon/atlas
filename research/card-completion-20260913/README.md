@@ -1312,3 +1312,7 @@ The concurrent census is 1,026 active cards: 687 reviewed and 339 pending. The q
 Checkpoint 577. Completed general Directed Steiner approximation formulation and September publication check
 
 The concurrent census is 1,026 active cards: 689 reviewed and 337 pending. The queue has 577 completed records, 537 active and 40 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,026 active cards, covering 28,359 formulas.
+
+Checkpoint 582. Complete the Li-Li conjecture review
+
+The concurrent census is 1,026 active cards: 694 reviewed and 332 pending. The queue has 582 completed records, 542 active and 40 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,026 active cards, covering 28,642 formulas.
