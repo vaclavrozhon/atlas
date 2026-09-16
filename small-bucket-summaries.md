@@ -401,6 +401,13 @@ Alice sees a graph and a requested clique size, but her computation is limited t
 [Read in atlas](index.html#TCS-5272) · [Majority is Incompressible by \(\mathrm{AC}^{0}(p)\) Circuits](https://doi.org/10.4230/LIPIcs.CCC.2015.124)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-6707 — Zero-error query complexity of recursive majority-of-three
+
+Recursive majority-of-three evaluates a complete ternary tree whose internal nodes take majority votes. An algorithm may adaptively inspect leaf bits in any order, but it must always return the exact root value. The cost is its largest expected number of queries over all possible inputs. The task is to determine that optimum as the tree grows, with upper and lower bounds matching up to constant factors. Known lower and upper exponential rates remain different, and a 2026 equality between composition limits does not determine the optimum.
+
+[Read in atlas](index.html#TCS-6707) · [Analysis of Boolean Functions](https://arxiv.org/abs/2105.10386) · [Improved bounds for the randomized decision tree complexity of recursive majority](https://doi.org/10.1002/rsa.20598) · [A Composition Theorem for Conical Juntas](https://doi.org/10.4230/LIPIcs.CCC.2016.5) · [Monte Carlo to Las Vegas for Recursively Composed Functions](https://arxiv.org/abs/2601.08073v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6705 — Sharp low-degree Fourier weight of halfspaces
 
 A halfspace is the sign of a weighted sum of input bits and a threshold. Its degree-zero and degree-one Fourier coefficients measure its mean and coordinate correlations. The question asks whether their squared weight is always at least \(2/\pi\). Majority functions approach that proposed universal constant as dimension grows. The exact inequality is retained because a general algorithm for merely approximating the extremal constant is already known.
@@ -533,13 +540,6 @@ Alice and Bob must jointly compute a total Boolean function of their private inp
 
 [Read in atlas](index.html#TCS-5892) · [Lifting Theorems for Equality](https://doi.org/10.4230/LIPIcs.STACS.2019.50) · [Efficient Communication Using Partial Information](https://eccc.weizmann.ac.il/report/2010/083/) · [Zero-error information equals amortized communication complexity](https://arxiv.org/abs/2608.04141)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-6707 — Randomized query complexity of recursive majority-of-three
-
-Recursive majority-of-three repeatedly applies a three-input majority gate in a tree. The question asks for its asymptotic randomized decision-tree complexity as the recursion grows. An algorithm can adapt its next query to observed values and use randomness to avoid reading subtrees whose outcomes no longer matter. The task therefore offers a concrete test of how recursion, adaptivity, and randomization interact in evaluating a simple formula. The source's error requirement and cost convention must be retained, since expected query cost and worst-case bounded-error complexity need not have the same asymptotic answer.
-
-[Read in atlas](index.html#TCS-6707) · [Analysis of Boolean Functions (updated author edition)](https://arxiv.org/abs/2105.10386)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6710 — Number-on-forehead Disjointness complexity
 
@@ -918,10 +918,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1013 — Optimal-size highly unbalanced lossless expanders
 
-A highly unbalanced expander has a large left side and a much smaller right side while spreading small left subsets broadly. The source asks for near-lossless explicit constructions with optimal size and polylogarithmic degree. The right side acts like a compressed range that must still distinguish many choices from each small input set. Achieving the desired parameters would strengthen lossless condensers and other ways of processing weak randomness. The saved note links these viewpoints but does not reproduce the exact right-side size, expansion error, or subset range defining optimality.
+The problem asks for an explicit bipartite graph for every left-side size and every prescribed exact subset size. Each such subset must reach at least ninety-nine percent of the maximum number of distinct neighbors allowed by the left degree. The left degree must be polynomial in the logarithm of the left-side size, and the right side must have size at most a fixed constant times the subset size times that degree. A single deterministic construction must compute its parameters and any requested neighbor in polylogarithmic time, making the graphs useful as lossless condensers. A complete Lean proof must establish this uniform construction or its negation, while the checked later results do not meet all of its requirements.
 
-[Read in atlas](index.html#TCS-1013) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1013) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf#page=162) · [Unbalanced Expanders from Multiplicity Codes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2022.12) · [Explicit Time and Space Efficient Encoders Exist Only with Random Access](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2024.5) · [Two-Sided Lossless Expanders in the Unbalanced Setting](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2026.34) · [Explicit unbalanced 1-expanders with small degree and right size](https://arxiv.org/abs/2609.14587v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1124 — Optimal PRGs for high-dimensional combinatorial rectangles
 
@@ -2003,10 +2003,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6536 — Deterministic linear-time minimum spanning tree
 
-A minimum spanning tree connects every vertex while minimizing the total weight of its edges. This project asks whether arbitrary real comparison weights admit a deterministic algorithm whose worst-case time is linear in the graph size. Randomized linear expected time and nearly linear deterministic bounds provide contrasting benchmarks. Integer operations on weight representations answer a different model-specific question. A resolution would explain whether the remaining cost comes from essential deterministic comparison work or from limitations of existing graph filtering methods.
+The problem asks for an exact minimum spanning tree of every connected simple undirected graph with arbitrary real edge weights. The target is one uniform deterministic sequential algorithm whose worst-case total running time is linear in the explicitly listed vertices and edges. Weights are opaque comparison keys, while ordinary logarithmic-word computation, preprocessing and writing the output are all charged. A complete Lean proof must establish every correctness and running-time guarantee or rule out all correct algorithms in this model. Randomized linear time, integer-weight algorithms and uniform decision-tree optimality are known, but the checked 2026 literature does not settle deterministic linear time for arbitrary comparison weights.
 
-[Read in atlas](index.html#TCS-6536) · [A Randomized Linear-Time Algorithm to Find Minimum Spanning Trees](https://people.csail.mit.edu/karger/Papers/mst.pdf) · [A Minimum Spanning Tree Algorithm with Inverse-Ackermann Type Complexity](https://www.cs.princeton.edu/~chazelle/pubs/mst.pdf) · [An Optimal Minimum Spanning Tree Algorithm](https://www.cs.princeton.edu/courses/archive/fall05/cos528/handouts/An%20Optimal%20Minimum.pdf) · [Trans-dichotomous algorithms for minimum spanning trees and shortest paths](https://www.sciencedirect.com/science/article/pii/S0022000005800649) · [Minimum Spanning Tree in Deterministic Linear Time For Graphs of High Girth](https://people.csail.mit.edu/dmoshkov/papers/mst/high-girth.pdf) · [Randomized minimum spanning tree algorithms using exponentially fewer random bits](https://web.eecs.umich.edu/~pettie/papers/random-mst.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6536) · [A Randomized Linear-Time Algorithm to Find Minimum Spanning Trees](https://people.csail.mit.edu/karger/Papers/mst.pdf) · [A Minimum Spanning Tree Algorithm with Inverse-Ackermann Type Complexity](https://www.cs.princeton.edu/~chazelle/pubs/mst.pdf) · [An Optimal Minimum Spanning Tree Algorithm](https://www.cs.princeton.edu/courses/archive/fall05/cos528/handouts/An%20Optimal%20Minimum.pdf) · [Trans-dichotomous algorithms for minimum spanning trees and shortest paths](https://www.sciencedirect.com/science/article/pii/S0022000005800649) · [Minimum Spanning Tree in Deterministic Linear Time For Graphs of High Girth](https://people.csail.mit.edu/dmoshkov/papers/mst/high-girth.pdf) · [Randomized minimum spanning tree algorithms using exponentially fewer random bits](https://doi.org/10.1145/1328911.1328916) · [Pseudorandomness Beating the Hybrid Argument for Insensitive Algorithms](https://eccc.weizmann.ac.il/report/2026/082/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6652 — Erdős–Hajnal conjecture
 
