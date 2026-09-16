@@ -1196,3 +1196,7 @@ it; all active completed hashes match. Publication and formula checks passed
 on 1,035 active cards, covering 23,676 formulas. The previous SDP deployment
 succeeded as de24eb0164ebb15ca134, Pages commit
 6b64228839bcf02a45fe76aa3aa836cd784c6559.
+
+Checkpoint 465 completes TCS-4952 (total-function quantum/classical communication gaps) and TCS-7317 (randomized k-server asymptotics). The former now specifies a total Boolean family, all communication conventions and a polylogarithmic-versus-polynomial separation; the matching August/September claims are recorded as uncertain. The latter retains its explicit constant-factor target, all finite metrics and an oblivious adversary; the deterministic factor-k claim does not close its asymptotic gap. TCS-1649 additionally records the extended September BVASS paper, whose conclusion retains the general reachability question and whose structural VASS representation is not a uniform effective reduction.
+
+The concurrent census is 1,032 active cards: 583 reviewed and 449 pending. The queue has 465 completed records, 431 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 24,271 formulas. An earlier unlocked formula run encountered a concurrent retirement; the locked run removes that race. The first recent-arXiv batch was live-verified as 2039431149cf24f51e2b, Pages commit 517d2147ad8c178d64822f4235484193505f6191.

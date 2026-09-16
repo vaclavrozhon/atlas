@@ -42,7 +42,7 @@ Retrieved source PDFs and raw listings stay in the ignored `sources/` directory.
 | [List decoding and linear hashing, 2609.17020](https://arxiv.org/abs/2609.17020) | The abstract concerns random linear codes, not the full-length Reed–Solomon family of TCS-1011. It does not by itself settle that card. |
 | [Planar excluded-grid bound, 2609.15596](https://arxiv.org/abs/2609.15596) | The `4t+4` theorem is for planar graphs. TCS-6683 asks for the all-graphs threshold. |
 | [High-multiplicity bin packing, 2609.16923](https://arxiv.org/abs/2609.16923) | FPT in the number of distinct sizes with binary multiplicities is different from the uniform polynomial-time additive-error guarantees in TCS-6721/TCS-6640. |
-| [BVASS/VASS geometry, 2609.15869](https://arxiv.org/abs/2609.15869) | Extended FOSSACS 2026 paper; the abstract distinguishes reachability-set geometry and effective semilinearity in dimension five. A full theorem/model check is needed before altering TCS-1649's arbitrary-dimensional decidability status. |
+| [BVASS/VASS geometry, 2609.15869](https://arxiv.org/abs/2609.15869) | Full PDF checked: Theorem 5.2 is structural, Remark 5.4 explains the effectiveness gap, and Theorem 7.3 distinguishes 5-BVAS from 2-BVASS. Refreshed TCS-1649; its arbitrary-dimensional problem is explicitly still open in the new conclusion. |
 | [Ideal lattices, 2609.15813](https://arxiv.org/abs/2609.15813), and [cyclic SVP, 2609.16711](https://arxiv.org/abs/2609.16711) | General number rings, canonical versus coefficient embeddings, discriminants, exact versus approximate SVP, and cryptographic parameter restrictions must be separated when completing the broad TCS-6863 draft. These abstracts do not establish hardness for every ring-SIS/LWE cryptographic distribution. |
 | [Randomized queries versus certificates, 2609.15063](https://arxiv.org/abs/2609.15063), and [quantum/certificate separation, 2609.11664](https://arxiv.org/abs/2609.11664) | Claims concern certificate complexity; they cannot be substituted for block sensitivity, randomized complexity of a named function, or communication complexity merely because those quantities are related. |
 
@@ -52,9 +52,12 @@ No direct active target was identified by the title/formulation searches used
 here; existing archive bodies were not consulted. The Friedgut coalition result
 is distinct from the active Fourier Entropy–Influence conjecture.
 
-The active randomized k-server and total-function communication-gap cards are
-reserved for a full follow-up formulation pass. A deterministic factor-k claim
-does not determine the randomized optimal-ratio function. The 2021 communication
-source's title mentions efficient players, but its imported total-function
-question is a background communication-only question; that distinction is being
-checked against the full source before completing the draft.
+The follow-up pass completed TCS-7317 (randomized k-server) and TCS-4952
+(total-function communication gaps). The former retains constant-factor
+asymptotics and source-open status: a deterministic factor-k claim does not
+determine the randomized scale. The latter now has a precise infinite-family
+polylogarithmic-versus-polynomial target and uncertain status matching the two
+new communication claims. The full ITCS 2021 source confirms that efficient
+players belong to its separate partial-function result, rather than its imported
+background question. TCS-1649 was also refreshed after reading the complete
+relevant theorem/model passages in the extended BVASS paper.
