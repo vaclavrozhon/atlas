@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-404 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -905,7 +905,7 @@ A deterministic cellular automaton induces a transformation on probability distr
 [Read in atlas](index.html#TCS-6158) · [Probabilistic cellular automata, invariant measures, and perfect sampling](https://doi.org/10.4230/LIPIcs.STACS.2011.296)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Semantics, logic and verification (39)
+## Semantics, logic and verification (38)
 
 ### TCS-6565 — Positivity problem for linear recurrences
 
@@ -1164,13 +1164,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 For simple linear recurrence sequences, the cited survey distinguishes deciding eventual nonnegativity from computing when it begins. The task asks for an effective threshold N after which every term is nonnegative, whenever such a threshold exists. Available general decidability arguments use noneffective Diophantine approximation bounds and therefore need not produce this numerical witness. Computing it would allow all earlier terms to be checked directly, giving a route to deciding positivity of the entire sequence beyond the established low-order cases. The problem exposes a concrete gap between proving an eventual property algorithmically and extracting a usable bound on its exceptional prefix.
 
 [Read in atlas](index.html#TCS-7154) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7156 — Universal integer termination of affine linear loops
-
-An affine linear loop repeatedly updates an integer vector by a matrix transformation and translation while a conjunction of linear inequalities holds. Universal integer termination asks whether every integer initial vector eventually leaves the guard. The 2015 survey's generalization target removes the assumption that the update matrix is diagonalizable. Its existing results exploit spectral and arithmetic structure in the diagonalizable case, while repeated eigenvalue blocks introduce additional polynomial factors into the trajectories. Understanding the general case would connect the algebra of linear updates with a complete termination analysis over discrete initial states, rather than real or rational starting spaces.
-
-[Read in atlas](index.html#TCS-7156) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7157 — Termination of linear-constraint loops
@@ -1725,10 +1718,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-0673 — First-order convergence to local minimax optima
 
-Minimax optimization models a player minimizing an objective against a second player who maximizes it. In nonconvex–nonconcave problems, stationary points need not represent the intended local minimax behavior. The selected question asks for a first-order method whose stable convergence targets are restricted to local minimax optima. Reversing the players' optimization order or merely driving both gradients toward zero can select inappropriate solutions. A method with the desired guarantee would clarify the dynamics needed for adversarial optimization, including the mathematical problems underlying some generative-model training procedures.
+In sequential minimax optimization, one player minimizes a smooth function of x while a second player maximizes it in y. A local minimax point respects this order using shrinking neighborhoods whose radii may differ for the two players. The selected variant asks for one deterministic method with exact function-value and gradient queries whose finite limits are local minimax points for almost every initialization. The same method must converge locally to every strict local minimax point, so avoiding convergence everywhere is not a valid answer. Existing convergence theorems retain extra hypotheses or weaker derivative-based targets, and the exact variant and limits of the current source review are explicitly recorded.
 
-[Read in atlas](index.html#TCS-0673) · [COLT / PMLR](https://proceedings.mlr.press/v195/chae23a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0673) · [Open Problem: Is There a First-Order Method that Only Converges to Local Minimax Optima?](https://proceedings.mlr.press/v195/chae23a.html) · [What is Local Optimality in Nonconvex-Nonconcave Minimax Optimization?](https://proceedings.mlr.press/v119/jin20e.html) · [Two-timescale Extragradient for Finding Local Minimax Points](https://arxiv.org/abs/2305.16242v2) · [Double-Step Alternating Extragradient with Increasing Timescale Separation for Finding Local Minimax Points: Provable Improvements](https://proceedings.mlr.press/v235/kim24m.html) · [On Solving Minimax Optimization Locally: A Follow-the-Ridge Approach](https://arxiv.org/abs/1910.07512v2) · [A first-order method for constrained nonconvex-nonconcave minimax optimization](https://link.springer.com/article/10.1007/s10107-026-02415-4)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ## Geometry, topology and metric spaces (40)
 
