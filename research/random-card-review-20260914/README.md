@@ -360,3 +360,24 @@ with fifty-one retained active cards and seven resolved historical records:
 There are twenty-six new individual importance assessments through this draw.
 Checkpoint thirteen is committed as 9d30c1a0 and verified live. Reservations and
 completion continue through the shared queue API with token and hash checks.
+
+The fifteenth random draw brings this process to sixty-two completed reviews,
+with fifty-five retained active cards and seven resolved historical records:
+
+- TCS-1109: unrestricted additive mixed-item EF1 and integral Pareto optimality,
+  selecting the source existence question. Preserved assessed importance 78
+  and distinguished the 2025 pure-chores and 2026 alternative-fairness results.
+- TCS-6884: nonuniform semantic versus syntactic multilinear circuit families.
+  Made the implicit ground-field convention an explicit fixed-field existential
+  interpretation and defined all gate and growth conditions. Importance: 88.
+- TCS-5272: growing-round Clique compression games with polynomially many
+  independent Bobs, final constant-depth computation by Alice, and the source's
+  sum-of-round-maxima communication cost. Importance: 86.
+- TCS-5221: sublinear-in-q prophet guarantees for general q-matroid intersections,
+  with independent integrable values and unrestricted online computation.
+  Retained the source's correction of an erroneous earlier linear lower bound.
+  Importance: 87.
+
+There are twenty-nine new individual importance assessments through this draw.
+Checkpoint fourteen is committed as d15bbe9d and verified live. Shared API
+reservations, token checks and pre-write hashes continue to protect parallel work.

@@ -18,7 +18,10 @@ Pending active reviews: **598**.
 | [TCS-1029](../../data/cards/TCS-1029.json) | Sharp graph-removal bounds for fixed patterns | Property testing and distribution learning | top500 |
 | [TCS-0848](../../data/cards/TCS-0848.json) | Testing Submodularity | Property testing and distribution learning | top500 |
 | [TCS-0841](../../data/cards/TCS-0841.json) | Equivalence Testing with Conditional Samples | Property testing and distribution learning | top500 |
+| [TCS-0510](../../data/cards/TCS-0510.json) | Cost of privacy in online learning | Differential privacy | top500 |
 | [TCS-0507](../../data/cards/TCS-0507.json) | Optimal regret for private stochastic online learning | Differential privacy | top500 |
+| [TCS-3312](../../data/cards/TCS-3312.json) | Polynomial-time private convex-hull point selection | Differential privacy | top500 |
+| [TCS-6825](../../data/cards/TCS-6825.json) | Computational versus statistical privacy in the curator model | Differential privacy | top500 |
 | [TCS-1978](../../data/cards/TCS-1978.json) | Search tractability of BLP-solvable promise CSPs | Constraint satisfaction | top500 |
 | [TCS-0441](../../data/cards/TCS-0441.json) | Characterizing CSP languages with linear non-redundancy | Constraint satisfaction | top500 |
 | [TCS-0504](../../data/cards/TCS-0504.json) | Uniform algorithms across tractable CSPs | Constraint satisfaction | top500 |
@@ -46,6 +49,7 @@ Pending active reviews: **598**.
 | [TCS-6832](../../data/cards/TCS-6832.json) | Separations among P, RP and NP | Computational complexity | pool |
 | [TCS-6977](../../data/cards/TCS-6977.json) | Super-near-linear SAT time lower bounds | Computational complexity | pool |
 | [TCS-5651](../../data/cards/TCS-5651.json) | Recognizing good-for-games and good-for-MDP automata | Automata and formal languages | pool |
+| [TCS-5732](../../data/cards/TCS-5732.json) | Regular separability of VASS reachability languages | Automata and formal languages | pool |
 | [TCS-5738](../../data/cards/TCS-5738.json) | Recognizable separability of automatic relations | Automata and formal languages | pool |
 | [TCS-5863](../../data/cards/TCS-5863.json) | Decidability of stochastic resolvability for \(\omega\)-automata | Automata and formal languages | pool |
 | [TCS-5904](../../data/cards/TCS-5904.json) | Equivalence of discounted-sum automata | Automata and formal languages | pool |
@@ -172,7 +176,6 @@ Pending active reviews: **598**.
 | [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
 | [TCS-4771](../../data/cards/TCS-4771.json) | Two-sided versus one-sided randomized communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |
-| [TCS-5272](../../data/cards/TCS-5272.json) | Multiparty Clique lower bounds in compression games | Communication complexity and Boolean function analysis | pool |
 | [TCS-5326](../../data/cards/TCS-5326.json) | Communication compression to information cost | Communication complexity and Boolean function analysis | pool |
 | [TCS-6707](../../data/cards/TCS-6707.json) | Randomized query complexity of recursive majority-of-three | Communication complexity and Boolean function analysis | pool |
 | [TCS-6710](../../data/cards/TCS-6710.json) | Number-on-forehead Disjointness complexity | Communication complexity and Boolean function analysis | pool |
@@ -255,7 +258,6 @@ Pending active reviews: **598**.
 | [TCS-0716](../../data/cards/TCS-0716.json) | Online Local Learning | Online algorithms | pool |
 | [TCS-1241](../../data/cards/TCS-1241.json) | Sublogarithmic competitiveness for online metric TSP | Online algorithms | pool |
 | [TCS-4983](../../data/cards/TCS-4983.json) | Sublinear competitive ratio for randomized k-server | Online algorithms | pool |
-| [TCS-5221](../../data/cards/TCS-5221.json) | Sublinear-in-q prophet inequalities for q-matroid intersection | Online algorithms | pool |
 | [TCS-5252](../../data/cards/TCS-5252.json) | Action-set-dependent regret in bandit combinatorial optimization | Online algorithms | pool |
 | [TCS-5779](../../data/cards/TCS-5779.json) | Constant-factor online contention resolution for matroids | Online algorithms | pool |
 | [TCS-6078](../../data/cards/TCS-6078.json) | Pinwheel Packing in NP | Online algorithms | pool |
@@ -282,7 +284,6 @@ Pending active reviews: **598**.
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
 | [TCS-6928](../../data/cards/TCS-6928.json) | Linear-space representation from smallest string attractors | String algorithms and bioinformatics | pool |
 | [TCS-1115](../../data/cards/TCS-1115.json) | Polynomial-time EF1 and Pareto-optimal goods allocation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-1109](../../data/cards/TCS-1109.json) | EF1 and Pareto optimality for additive mixed items | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-1119](../../data/cards/TCS-1119.json) | Existence of pairwise maximin-share allocations | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-0571](../../data/cards/TCS-0571.json) | Positional Nash Equilibria | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
@@ -314,7 +315,6 @@ Pending active reviews: **598**.
 | [TCS-6493](../../data/cards/TCS-6493.json) | Complexity of tensor orbit-closure intersection | Algebraic computation | pool |
 | [TCS-6882](../../data/cards/TCS-6882.json) | Homogeneous versus unrestricted arithmetic formulas | Algebraic computation | pool |
 | [TCS-6883](../../data/cards/TCS-6883.json) | Multilinear versus general arithmetic circuits | Algebraic computation | pool |
-| [TCS-6884](../../data/cards/TCS-6884.json) | Semantic versus syntactic multilinear circuits | Algebraic computation | pool |
 | [TCS-6885](../../data/cards/TCS-6885.json) | Constant-overhead second differentiation of circuits | Algebraic computation | pool |
 | [TCS-6888](../../data/cards/TCS-6888.json) | Superpolynomial arithmetic formula lower bounds | Algebraic computation | pool |
 | [TCS-6890](../../data/cards/TCS-6890.json) | Superpolynomial noncommutative circuit lower bounds | Algebraic computation | pool |
