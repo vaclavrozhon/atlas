@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **500**.
+Pending active reviews: **499**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -413,7 +413,6 @@ Pending active reviews: **500**.
 | [TCS-6641](../../data/cards/TCS-6641.json) | Word problem for one-relation monoids | Algebraic computation | existing_detailed_audit |
 | [TCS-6642](../../data/cards/TCS-6642.json) | Conjugacy problem for one-relator groups | Algebraic computation | existing_detailed_audit |
 | [TCS-6645](../../data/cards/TCS-6645.json) | Constant-delay conjunctive-query classification | Database theory and finite model theory | existing_detailed_audit |
-| [TCS-6648](../../data/cards/TCS-6648.json) | Kolmogorov–Loveland randomness versus Martin-Löf randomness | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6649](../../data/cards/TCS-6649.json) | Reversal of Hindman’s theorem to the \(\omega\)-jump | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6654](../../data/cards/TCS-6654.json) | Seese’s conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-6657](../../data/cards/TCS-6657.json) | Computational threshold for tensor PCA | Beyond worst-case and average-case analysis | existing_detailed_audit |

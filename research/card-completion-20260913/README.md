@@ -1268,3 +1268,7 @@ The concurrent census is 1,029 active cards: 654 reviewed and 375 pending. The q
 Checkpoint 539. Completed Gyárfás–Sumner review with individually linked source scopes.
 
 The concurrent census is 1,029 active cards: 654 reviewed and 375 pending. The queue has 539 completed records, 502 active and 37 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,029 active cards, covering 26,874 formulas.
+
+Checkpoint 541. Completed Kolmogorov–Loveland randomness definitions and primary-source status review.
+
+The concurrent census is 1,029 active cards: 656 reviewed and 373 pending. The queue has 541 completed records, 504 active and 37 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,029 active cards, covering 26,946 formulas.
