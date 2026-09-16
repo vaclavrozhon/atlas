@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-597 five-sentence working summaries, based on saved source material.
+596 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -2884,7 +2884,7 @@ Mechanism implementation connects an allocation algorithm with strategic behavio
 [Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (61)
+## Algebraic computation (60)
 
 ### TCS-0007 — Matrix multiplication exponent
 
@@ -3067,13 +3067,6 @@ The input consists of two permutations encoding structured distance matrices. Th
 
 [Read in atlas](index.html#TCS-7372) · [Fast Distance Multiplication of Unit-Monge Matrices](https://doi.org/10.1007/s00453-013-9830-z) · [Core-Sparse Monge Matrix Multiplication: Improved Algorithm and Applications](https://arxiv.org/abs/2408.04613v2)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-4949 — Tensor decomposition at Kruskal’s uniqueness threshold
-
-A third-order tensor decomposition expresses an array as a sum of rank-one outer products of three vector families. Kruskal's theorem guarantees uniqueness when the three families' Kruskal ranks sum to at least twice the number of components plus two. The question asks for an efficient decomposition algorithm throughout this uniqueness regime, including cases beyond linear independence of all components. For a cubic tensor, these conditions can certify substantially more components than the dimension, where the familiar simultaneous-diagonalization approach no longer applies directly. An algorithmic proof, especially a robust one, would connect identifiability of latent-variable models with practical recovery from estimated moments.
-
-[Read in atlas](index.html#TCS-4949) · [Open Problem: Tensor Decompositions: Algorithms up to the Uniqueness Threshold?](https://proceedings.mlr.press/v35/bhaskara14b.html)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-4523 — Polynomial-time dimension expansion over finite fields
 
@@ -3969,10 +3962,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7124 — SNP definability of CSPs in NP
 
-Some CSPs lie in NP even when their templates are infinite or structurally general. The historical source asks which of these CSPs can be defined in SNP. A syntactic characterization would identify when constraint satisfiability admits a restricted logical description. This could connect complexity membership with model-theoretic structure and support more systematic classifications. The saved note does not supply a proposed criterion or presentation assumptions for the template, so the question remains a characterization direction rather than a claim that every NP CSP already has such a definition.
+The historical source asks which NP constraint satisfaction problems have an exact SNP definition. SNP guesses fixed-arity relations on the input and checks a fixed universal first-order condition. Known results translate such CSPs exactly into reducts of structures with finitely many forbidden induced patterns. The checked sources do not identify that reformulation as resolving the intended broader classification direction. The card remains pending until a substantive criterion beyond the known equivalence is specified.
 
-[Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [On the Computational Power of Extensional ESO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.LICS.2026.20)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ## Automated reasoning, rewriting and unification (14)
 

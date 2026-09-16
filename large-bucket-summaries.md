@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-401 five-sentence working summaries, based on saved source material.
+402 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -2042,6 +2042,13 @@ The intersection of two halfspaces labels a point positively when both linear in
 [Read in atlas](index.html#TCS-6544) · [Learning Intersections of Two Margin Halfspaces under Factorizable Distributions](https://proceedings.mlr.press/v291/diakonikolas25a.html) · [Learning Functions of Halfspaces](https://arxiv.org/abs/2603.08700v2) · [Tight Bounds for Learning Polyhedra with a Margin](https://arxiv.org/abs/2604.14614v2)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5090 — One-way functions from hardness of learning P/poly
+
+The card asks whether failure of efficient worst-case circuit learning already implies ordinary one-way functions. The learner receives independent noiseless examples under any input distribution and must output a small ordinary Boolean predictor. A one-way function is uniformly easy to evaluate but has negligible inversion probability for every efficient uniform adversary at all sufficiently large lengths. Known reverse connections impose efficiently sampled targets, low computational depth, different learning-length quantifiers or a different description-approximation problem. The completed card preserves the unrestricted implication and records those distinctions while leaving its current status uncertain.
+
+[Read in atlas](index.html#TCS-5090) · [On the Structure of Learnability Beyond P/Poly](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.46) · [On the Structure of Learnability beyond P/poly](https://eccc.weizmann.ac.il/report/2021/173/) · [Learning in Pessiland via Inductive Inference](https://eccc.weizmann.ac.il/report/2023/100/) · [On White-Box Learning and Public-Key Encryption](https://doi.org/10.4230/LIPIcs.ITCS.2025.73) · [A Sharp Characterization of Pessiland](https://eccc.weizmann.ac.il/report/2026/052/) · [On the Structure of Learnability beyond P/poly](https://link.springer.com/article/10.1007/s00037-024-00260-5)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-7293 — Distribution-free improper learning of two unrestricted halfspaces
 
 One threshold is efficiently learnable from labeled examples, but the target here combines two thresholds. Examples follow any fixed distribution on the Boolean cube and no positive margin is promised. The learner receives a bound on target description length and may output any efficiently evaluable classifier. Hardness for proper learners or growing numbers of halfspaces does not settle this two-halfspace target. The question asks for a uniform polynomial-time guarantee across all distributions and permitted target descriptions.
@@ -2175,12 +2182,12 @@ Expected prediction error can increase when a learner receives an additional ind
 [Read in atlas](index.html#TCS-0682) · [Open Problem: Monotonicity of Learning](https://proceedings.mlr.press/v99/viering19a.html) · [Monotone Learning](https://proceedings.mlr.press/v178/bousquet22a.html) · [Monotonic Learning in the PAC Framework: A New Perspective](https://arxiv.org/abs/2501.05493)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0689 — Property Elicitation and Elicitation Complexity
+### TCS-0689 — Identifiable elicitation complexity
 
-A statistical property is elicitable when minimizing an expected loss recovers that property of the underlying distribution. Familiar examples motivate asking which statistics admit such loss functions and how those functions can be characterized. The source also studies elicitation complexity, the number of intermediate real-valued reports needed to recover a desired statistic. Some properties that cannot be elicited directly may become accessible through a richer intermediate prediction. A general characterization would explain the expressive limits of empirical risk minimization and guide the design of objectives for estimating specific distributional quantities.
+The question asks how many real-valued reports are needed to recover an arbitrary statistic by minimizing expected loss. The intermediate prediction must have a unique expected-loss minimizer and an identification function whose expected value vanishes exactly at the correct report. An unrestricted link may then turn that intermediate prediction into the desired statistic. The target covers every finite-dimensional property of a nonempty convex family of real-outcome distributions, with infinity meaning that no finite report dimension works. A full classification would determine the expressive limits of single-observation loss-based prediction beyond the statistic families whose complexities are already known.
 
-[Read in atlas](index.html#TCS-0689) · [COLT / PMLR](https://proceedings.mlr.press/v49/frongillo16.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0689) · [Open Problem: Property Elicitation and Elicitation Complexity](https://proceedings.mlr.press/v49/frongillo16.html) · [Elicitation Complexity of Statistical Properties](https://doi.org/10.1093/biomet/asaa093) · [Recent Trends in Information Elicitation](https://sigecom.org/exchanges/volume_22/1/FRONGILLO.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3391 — Efficient learning of well-separated Gaussian mixtures
 
@@ -2222,13 +2229,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 An intersection of k halfspaces labels a point positively only when it satisfies all k linear inequalities. Even under a Gaussian input distribution or the uniform distribution on the Boolean cube, the source identifies a gap between learning algorithms and fully polynomial efficiency. The question asks whether the dependence on dimension, number of halfspaces, and inverse accuracy can all be polynomial under these distributional assumptions. The surrounding paper studies a restricted two-halfspace setting with margin and factorization assumptions, which illustrates how additional structure can help. Resolving the broader question would clarify whether simple input distributions make learning a growing conjunction of thresholds computationally feasible.
 
 [Read in atlas](index.html#TCS-5088) · [Learning Intersections of Two Margin Halfspaces under Factorizable Distributions](https://proceedings.mlr.press/v291/diakonikolas25a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5090 — One-way functions from hardness of learning P/poly
-
-The class P/poly consists of Boolean functions computable by polynomial-size circuits, and learning it would cover a broad range of efficiently represented prediction rules. This question asks whether worst-case hardness of efficient learning from random labeled examples already implies the existence of one-way functions. One-way functions require average-case resistance to inversion, making this a proposed bridge from learning hardness to a basic cryptographic assumption. The source obtains structural equivalences for stronger concept classes such as PSPACE/poly and EXP/poly, but does not extend this implication to P/poly. A resolution would explain whether difficult circuit learning necessarily contains the kind of average-case hardness needed for cryptography.
-
-[Read in atlas](index.html#TCS-5090) · [On the Structure of Learnability Beyond P/Poly](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.46)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5119 — Sample-optimal Gaussian graphical model learning in polynomial time
@@ -2457,7 +2457,7 @@ Unbounded fully homomorphic encryption supports arbitrarily deep permitted compu
 [Read in atlas](index.html#TCS-6871) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Quantum computation and information (53)
+## Quantum computation and information (54)
 
 ### TCS-6446 — Quantum PCP conjecture with classical reductions
 
@@ -2543,6 +2543,13 @@ A lifting theorem would turn the quantum query complexity of a Boolean promise p
 [Read in atlas](index.html#TCS-3709) · [Quantum Distinguishing Complexity, Zero-Error Algorithms, and Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.TQC.2019.2) · [CS 860: Quantum Lower Bounds — Week 8, Communication Complexity Basics](https://cs.uwaterloo.ca/~s4bendav/CS860/CS860S20week8.pdf) · [On Query-To-Communication Lifting for Adversary Bounds](https://doi.org/10.4230/LIPIcs.CCC.2021.30) · [A Lifting Theorem for Hybrid Classical-Quantum Communication Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.155)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6459 — Entanglement without distillable secret key
+
+Shared quantum states can sometimes be converted into secret classical keys by local operations and public communication. This project asks whether there are entangled states from which no secret key can be distilled. Separable states provide a known class of useless resources, but entanglement alone does not immediately determine the distillable-key rate. The question is also different from asking whether an entangled state can produce maximally entangled pairs. Identifying an entangled key-undistillable state, or proving that none exists, would settle a basic boundary in the resource theory of private communication.
+
+[Read in atlas](index.html#TCS-6459) · [Cost of quantum secret key](https://doi.org/10.22331/q-2026-05-06-2098) · [Secure key from bound entanglement](https://arxiv.org/abs/quant-ph/0309110) · [No-go theorem for heralded exact one-way key distillation](https://doi.org/10.22331/q-2026-03-10-2020) · [Bipartite Bound Information Exists](https://arxiv.org/abs/2607.25838)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6521 — Dihedral hidden subgroup problem in BQP
 
 The dihedral hidden subgroup problem presents a function that is constant on cosets of an unknown subgroup of a dihedral group. The task is to recover generators for that subgroup using quantum access to the function. The target is a uniform algorithm whose total running time is polynomial in the length of the group description and oracle values. Counting only a small number of oracle queries is insufficient if processing the resulting quantum information is expensive. An efficient solution would extend the reach of hidden-subgroup methods beyond the abelian setting and illuminate connections with lattice-related algorithmic problems.
@@ -2562,6 +2569,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 QMA(2) receives two quantum witnesses that are promised unentangled across a specified division, whereas QMA receives one unrestricted quantum witness. Both use uniform polynomial-time quantum verification with constant completeness and soundness error. The question is whether the promise of unentanglement adds power for ordinary promise problems without an oracle. Known amplification and restricted-phase results do not resolve this comparison, and concatenating honest witnesses does not preserve soundness automatically. A September 2026 manuscript separates the classes relative to a unitary oracle while explicitly leaving their ordinary relationship unresolved.
 
 [Read in atlas](index.html#TCS-2229) · [Quantum Merlin-Arthur and Proofs Without Relative Phase](https://doi.org/10.4230/LIPIcs.ITCS.2024.9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimization](https://doi.org/10.1145/2432622.2432625) · [A quantum oracle separation between QMA(2) and QMA](https://arxiv.org/abs/2609.02865v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7308 — Bell nonlocality from finitely many copies of every entangled state
+
+Entanglement and Bell nonlocality are distinct properties of quantum states and measurement correlations. The question asks whether every entangled bipartite state becomes Bell-nonlocal after local filtering of some finite number of copies. The filter must succeed before measurement settings are selected, and no extra shared entangled state is provided. Single-copy counterexamples, auxiliary-state activation and four-party broadcast results address different resource models. A full answer would determine whether repeated copies of the state itself always make its entanglement observable through a conventional bipartite Bell violation.
+
+[Read in atlas](index.html#TCS-7308) · [All entangled states display some hidden nonlocality](https://arxiv.org/abs/1210.0548) · [Entanglement without hidden nonlocality](https://arxiv.org/abs/1606.02215) · [All Entangled States are Nonlocal and Self-Testable in the Broadcast Scenario](https://arxiv.org/abs/2512.15656)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4753 — \(\mathrm{QMA}(2)\) versus NEXP
@@ -2807,13 +2821,6 @@ Existing status: `uncertain` · Summary written: 2026-09-12
 Randomness extractors turn weakly random inputs into nearly uniform bits, often for use as cryptographic keys. Their guarantees must account for information an adversary already holds about the input. The selected passage asks whether general seeded extractors with multiple output bits remain secure against quantum side information with suitable parameter losses. The source contrasts this with more established one-bit guarantees and with specific multibit constructions already known to be quantum-proof. Resolving the general question would determine how freely classical extractor designs can be reused when an adversary stores quantum information.
 
 [Read in atlas](index.html#TCS-5202) · [Quantum-Proof Multi-Source Randomness Extractors in the Markov Model](https://doi.org/10.4230/LIPIcs.TQC.2016.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6459 — Entanglement without distillable secret key
-
-Shared quantum states can sometimes be converted into secret classical keys by local operations and public communication. This project asks whether there are entangled states from which no secret key can be distilled. Separable states provide a known class of useless resources, but entanglement alone does not immediately determine the distillable-key rate. The question is also different from asking whether an entangled state can produce maximally entangled pairs. Identifying an entangled key-undistillable state, or proving that none exists, would settle a basic boundary in the resource theory of private communication.
-
-[Read in atlas](index.html#TCS-6459) · [Cost of quantum secret key](https://doi.org/10.22331/q-2026-05-06-2098)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6481 — Complexity of bosonic quantum computation
