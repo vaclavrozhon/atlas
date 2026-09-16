@@ -3885,9 +3885,9 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6637 — Constant-colour polynomial-time colouring of 3-colourable graphs
 
-The input is a graph known to admit a three-colouring, without a supplied witness. The question asks whether one fixed larger palette permits a randomized polynomial-time algorithm on every such graph. Successful outputs must colour every vertex properly, with probability at least two thirds for each input. Growing-palette algorithms, five-colour hardness, perfect-completeness conjectures and logic-specific lower bounds leave different parts of the gap unresolved. A complete Lean-checked answer must establish such an algorithm or exclude every constant palette in the full randomized model.
+The input is a graph known to admit a three-colouring, without a supplied witness. The question asks whether one fixed larger palette permits a randomized polynomial-time algorithm on every such graph. Successful outputs must colour every vertex properly, with probability at least two thirds for each input. A14September2026 preprint claims all-constant decision hardness, which would still require NP different from RP to exclude the randomized algorithms in this question. A complete Lean-checked answer must establish such an algorithm or exclude every constant palette in the full randomized model.
 
-[Read in atlas](index.html#TCS-6637) · [Better coloring of 3-colorable graphs](https://arxiv.org/abs/2406.00357v1) · [Algebraic Approach to Promise Constraint Satisfaction](https://arxiv.org/abs/1811.00970v3) · [d-To-1 Hardness of Coloring 3-Colorable Graphs with \(O(1)\) Colors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.62) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904v1) · [Undefinability of Approximation of 2-to-2 Games](https://arxiv.org/abs/2504.03523v2)
+[Read in atlas](index.html#TCS-6637) · [Better coloring of 3-colorable graphs](https://arxiv.org/abs/2406.00357v1) · [Algebraic Approach to Promise Constraint Satisfaction](https://arxiv.org/abs/1811.00970v3) · [d-To-1 Hardness of Coloring 3-Colorable Graphs with \(O(1)\) Colors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.62) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904v1) · [Undefinability of Approximation of 2-to-2 Games](https://arxiv.org/abs/2504.03523v2) · [On the Hardness of 4-to-1 Games with Perfect Completeness](https://eccc.weizmann.ac.il/report/2026/179/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6675 — Search-to-decision equivalence for finite promise CSPs
@@ -3906,10 +3906,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7237 — Hardness of 6-coloring 3-colorable graphs
 
-The target is an unconditional polynomial-time reduction that maps satisfiable formulas to three-colourable graphs and unsatisfiable formulas to graphs requiring more than six colours. Graphs needing four, five or six colours are outside the promise and cannot be valid outputs of the reduction. Known unconditional hardness at five colours does not automatically extend to six. Recent algorithms still use a palette growing with the graph size and therefore address a different guarantee. An accepted answer proves existence or nonexistence of the full reduction in Lean.
+The target is an unconditional polynomial-time reduction that maps satisfiable formulas to three-colourable graphs and unsatisfiable formulas to graphs requiring more than six colours. Graphs needing four, five or six colours are outside the promise and cannot be valid outputs of the reduction. Known unconditional hardness at five colours does not automatically extend to six. A14September2026 preprint claims the required gap for every fixed larger palette, but its complete proof has not been independently verified in this review. An accepted answer proves existence or nonexistence of the full reduction in Lean.
 
-[Read in atlas](index.html#TCS-7237) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3) · [Beyond PCSP(1-in-3,NAE)](https://drops.dagstuhl.de/storage/00lipics/lipics-vol198-icalp2021/LIPIcs.ICALP.2021.121/LIPIcs.ICALP.2021.121.pdf) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904v1)
-Existing status: `source_open` · Summary written: 2026-09-16
+[Read in atlas](index.html#TCS-7237) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3) · [Beyond PCSP(1-in-3,NAE)](https://drops.dagstuhl.de/storage/00lipics/lipics-vol198-icalp2021/LIPIcs.ICALP.2021.121/LIPIcs.ICALP.2021.121.pdf) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904v1) · [On the Hardness of 4-to-1 Games with Perfect Completeness](https://eccc.weizmann.ac.il/report/2026/179/)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-1173 — NP-intermediate \(\omega\)-categorical CSPs
 

@@ -2641,6 +2641,13 @@ The question asks for the largest polynomial quantum query advantage over random
 [Read in atlas](index.html#TCS-0029) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629) · [k-Forrelation Optimally Separates Quantum and Classical Query Complexity](https://arxiv.org/abs/2008.07003)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-1961 — One-way state generators versus EFI pairs
+
+EFI pairs are easy to generate quantum states that are statistically different but computationally difficult to distinguish. One-way state generators instead hide a classical key while allowing an efficient quantum verifier to check candidate keys. This card asks whether existence of EFI pairs already guarantees such an efficiently verifiable generator in the ordinary model. The adversary may have polynomial classical advice and polynomially many independently generated copies of the hidden-key state. Known equivalence with unlimited verification and separation relative to a quantum oracle leave distinct issues from this precisely selected implication.
+
+[Read in atlas](index.html#TCS-1961) · [One-Wayness in Quantum Cryptography](https://doi.org/10.4230/LIPIcs.TQC.2024.4) · [Commitments are equivalent to statistically-verifiable one-way state generators](https://arxiv.org/abs/2404.03220v4) · [A New World in the Depths of Microcrypt: Separating OWSGs and Quantum Money from QEFID](https://arxiv.org/abs/2410.03453v3) · [Equivalence Between Average-Case Hardness of Learning and Cryptography for Mixed Quantum States](https://arxiv.org/abs/2608.14331v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6481 — Bosonic quantum computation in PP
 
 The selected question asks whether Gaussian-and-cubic bosonic computation is contained in the classical counting class PP. The model uses coherent input states, polynomial evolution time and a final number measurement with separated acceptance intervals. No exponential bound on intermediate energy is added to the original formal decision model. Later PSPACE and PP simulations require additional energy assumptions and therefore do not settle this target. A resolution would clarify the computational significance of high photon numbers in infinite-dimensional quantum computation.
@@ -2773,13 +2780,6 @@ The question asks whether every quantum-verifiable problem has a short classical
 
 [Read in atlas](index.html#TCS-1324) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15) · [The status of the quantum PCP conjecture (games version)](https://arxiv.org/abs/2403.13084v1)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-1961 — One-way state generators versus EFI pairs
-
-One-way state generators produce quantum states whose generating secrets are hard to recover. EFI pairs and pseudorandom state generators express related forms of quantum indistinguishability. This question asks whether these search-type and decision-type cryptographic resources can be constructed from one another. The classical analogy between one-way functions and pseudorandom generators motivates the comparison, but quantum outputs introduce separate issues of verification and access to copies. Establishing equivalences or separations would organize the basic assumptions needed for computational quantum cryptography.
-
-[Read in atlas](index.html#TCS-1961) · [One-Wayness in Quantum Cryptography](https://doi.org/10.4230/LIPIcs.TQC.2024.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2408 — Remote state preparation from quantum-secure one-way functions
 
