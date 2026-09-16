@@ -582,3 +582,22 @@ assessments. The four scores and categories in this batch were retained.
 Checkpoint twenty-three was committed as c8a7ccd6 and verified live at
 c775247f80c5092d4151. Source research for this batch was delegated only on
 reserved cards; canonical changes used shared claims and input-hash validation.
+
+Checkpoint twenty-five brings this process to 102 completed reviews:
+92 retained active cards, ten retirements and 44 new importance assessments.
+Existing scores and categories were preserved for all four cards in this batch.
+
+- TCS-0522: sub-log-star quantum LOCAL cycle coloring; precise finite-gate,
+  product-state and bidirectional communication conventions; September 2026
+  one-way one-round hardness kept distinct from the full target.
+- TCS-0816: exact shortest common superstring in O*(1.99^n) deterministic
+  classical time; no length bound or hidden restriction to equal-length strings.
+- TCS-7337: minimum register count for one-shot obstruction-free k-set agreement;
+  real-valued 1/100 tolerance, prefix safety and n-valued input domain specified.
+- TCS-0409: exact planar minimum-link paths in literal o(n^2) time; closed
+  free space and unrestricted bends; conditional 3SUM-hardness distinguished
+  from impossibility and from fixed-power savings.
+
+Checkpoint twenty-four was committed as fd1449e9 and verified live at
+1dd25b4a847cfab0731e. All canonical completions used shared reservations and
+input-hash validation. Source research was delegated only for reserved cards.
