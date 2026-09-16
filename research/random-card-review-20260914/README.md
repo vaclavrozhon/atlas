@@ -699,3 +699,23 @@ Existing scores and categories were preserved.
 TCS-4185 remains reserved while its source's missing quantifier regime is clarified;
 this checkpoint does not count that card as completed. Checkpoint twenty-nine was
 committed as 2fd23d0d and verified live at version 4754f6c3a738f2d1a51a.
+
+Checkpoint thirty-one brings this process to 126 completed reviews:
+114 retained active cards, twelve retirements and 51 new importance assessments.
+
+- TCS-1101: retained nonuniform VP factor closure over each fixed arbitrary
+  positive-characteristic field, based on the explicitly open June 2026 revision.
+- TCS-5407: recovered general nonmonotone submodular maximization under one
+  matroid, specified the oracle model and real-valued approximation frontier,
+  and updated the conservative known bounds to 0.401–0.478.
+- TCS-5422: specified the source's essentially-linear deterministic OV implication
+  to failure of ETH, including both exponent quantifier orders and full negation.
+  A second reviewer checked the original source/model match independently.
+
+TCS-0009 and TCS-4185 remain reserved for outstanding formulation choices and are
+not counted as completed. Subsequent random draws use the same shared claims.
+Checkpoint thirty was committed as 981fdd3f. Its tested version was
+5aef5f32deae770db5ba; a successful concurrent publication 4347e155f05942555df2
+retained all 111 active reviewed card contents apart from derived ranking changes,
+all twelve retirements, and byte-identical core reader assets. The deployment
+guard prevented overwriting the parallel process's newer reviews.
