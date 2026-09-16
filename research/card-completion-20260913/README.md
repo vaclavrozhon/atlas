@@ -1236,3 +1236,7 @@ The concurrent census is 1,031 active cards: 624 reviewed and 407 pending. The q
 Checkpoint 512. Completed exact weighted TSP model and 2026 algorithm-status review.
 
 The concurrent census is 1,031 active cards: 629 reviewed and 402 pending. The queue has 512 completed records, 477 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 25,960 formulas.
+
+Checkpoint 513. Completed Asser spectrum-complement review with exact fragment and complexity boundaries.
+
+The concurrent census is 1,031 active cards: 630 reviewed and 401 pending. The queue has 513 completed records, 478 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 25,980 formulas.
