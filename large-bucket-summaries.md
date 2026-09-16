@@ -1914,6 +1914,13 @@ A three-dimensional subdivision divides space into labelled polyhedral regions. 
 [Read in atlas](index.html#TCS-0411) · [The Open Problems Project: Point Location in 3D Subdivision](https://topp.openproblem.net/p13) · [Point location](https://www.csun.edu/~ctoth/Handbook/chap38.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6880 — Efficient constant-distortion cut-cone approximation
+
+The cut cone consists of nonnegative sums of the distance vectors defined by graph cuts. The target is an outer convex cone whose every semimetric lies within one absolute distortion factor of a cut-cone semimetric. One uniform algorithm must decide exact membership and return exact rational separating hyperplanes in polynomial bit time. The negative-type candidate is known to fail at constant distortion, and its classical relaxation has a sharp square-root-logarithmic gap. The question permits other cone families and remains unresolved in the sources checked by this review.
+
+[Read in atlas](index.html#TCS-6880) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974) · [Expander Graphs and Their Applications — draft PDF](https://www.math.ias.edu/~avi/BOOKS/expanderbookr1.pdf) · [Optimal Rounding for Sparsest Cut](https://web.math.princeton.edu/~naor/homepage%20files/local-growth-STOC.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0430 — NP-hardness of three-manifold homeomorphism
 
 Deciding whether two triangulated three-manifolds are homeomorphic has algorithms, but decidability alone says little about feasible running time. This question seeks an NP-hardness lower bound for the general decision problem. A reduction would have to encode arbitrary instances of a known hard problem into pairs of manifolds. Hardness of related knot or triangulation optimization tasks does not immediately supply that encoding. Such a result would locate manifold equivalence more precisely among familiar computational problems and constrain expectations for general-purpose recognition algorithms.
@@ -1997,13 +2004,6 @@ The input is a finite simplicial complex made of vertices, edges and triangles. 
 
 [Read in atlas](index.html#TCS-6199) · [Parametrized Complexity of Expansion Height](https://doi.org/10.4230/LIPIcs.ESA.2019.13) · [Random simple-homotopy theory](https://doi.org/10.1007/s41468-023-00139-4)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6880 — Efficient constant-distortion cut-cone approximation
-
-The cut cone consists of nonnegative combinations of cut metrics and provides a geometric formulation of several graph-cut optimization problems. Direct membership testing is difficult, so the source asks for a tractable approximating cone. The preferred guarantee is constant distortion together with membership and separation algorithms polynomial in the dimension. A separation algorithm must either recognize membership or produce a hyperplane certifying exclusion. Such a cone could support efficient convex optimization for cut problems, while the source explicitly notes that its proposed negative-type-metric candidate does not achieve the desired constant-distortion guarantee.
-
-[Read in atlas](index.html#TCS-6880) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Learning theory (36)
 
