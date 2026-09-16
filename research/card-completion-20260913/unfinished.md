@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **427**.
+Pending active reviews: **425**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -81,7 +81,6 @@ Pending active reviews: **427**.
 | [TCS-0970](../../data/cards/TCS-0970.json) | Fast JL Transform for Sparse Vectors | Computational geometry and metric spaces | pool |
 | [TCS-0398](../../data/cards/TCS-0398.json) | Planar Euclidean Maximum TSP | Computational geometry and metric spaces | pool |
 | [TCS-0327](../../data/cards/TCS-0327.json) | Simple Polygonalizations | Computational geometry and metric spaces | pool |
-| [TCS-5875](../../data/cards/TCS-5875.json) | Hausdorff distance between semialgebraic sets | Computational geometry and metric spaces | pool |
 | [TCS-6880](../../data/cards/TCS-6880.json) | Efficient constant-distortion cut-cone approximation | Computational geometry and metric spaces | pool |
 | [TCS-3177](../../data/cards/TCS-3177.json) | Learning PH/poly from learning NP/poly | Learning theory | pool |
 | [TCS-3391](../../data/cards/TCS-3391.json) | Efficient learning of well-separated Gaussian mixtures | Learning theory | pool |
@@ -365,7 +364,6 @@ Pending active reviews: **427**.
 | [TCS-6654](../../data/cards/TCS-6654.json) | Seese’s conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-6657](../../data/cards/TCS-6657.json) | Computational threshold for tensor PCA | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-6659](../../data/cards/TCS-6659.json) | Optimal polynomial-time approximation ratio for metric k-Median | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-6661](../../data/cards/TCS-6661.json) | Hyperclique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6675](../../data/cards/TCS-6675.json) | Search-to-decision equivalence for finite promise CSPs | Constraint satisfaction | existing_detailed_audit |
 | [TCS-6684](../../data/cards/TCS-6684.json) | Computational Kesten–Stigum threshold | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |

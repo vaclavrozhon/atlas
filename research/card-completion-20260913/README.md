@@ -1380,3 +1380,7 @@ The concurrent census is 1,023 active cards: 745 reviewed and 278 pending. The q
 Checkpoint 638. Complete optimal deterministic RIP construction review
 
 The concurrent census is 1,023 active cards: 747 reviewed and 276 pending. The queue has 638 completed records, 595 active and 43 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,023 active cards, covering 31,602 formulas.
+
+Checkpoint 640. Complete randomized Hyperclique Hypothesis model and recent source review
+
+The concurrent census is 1,022 active cards: 748 reviewed and 274 pending. The queue has 640 completed records, 596 active and 44 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,022 active cards, covering 31,660 formulas.
