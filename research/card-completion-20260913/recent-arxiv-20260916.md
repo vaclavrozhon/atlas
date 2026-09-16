@@ -73,3 +73,11 @@ truthfulness in expectation. Finite outcome support at each fixed report does
 not supply that additional hypothesis. The card therefore remains source-open;
 the new result is recorded as restricted progress, without independent proof
 certification. No other active card with this scheduling target was found.
+
+The general-allocation pass completed TCS-6639 and checked the
+[14 September revision of Distributed Santa Claus via Global Rounding](https://arxiv.org/abs/2604.27983v2).
+Its full introduction and main model use restricted assignment and CONGEST
+communication rounds. Section 1.3.2 separately retains the unrestricted
+agent-specific valuation problem as open. The card remains source-open; neither
+the distributed theorem nor the restricted valuation promise resolves its
+centralized constant-factor target.

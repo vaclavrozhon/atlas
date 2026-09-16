@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **499**.
+Pending active reviews: **497**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -157,7 +157,6 @@ Pending active reviews: **499**.
 | [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
 | [TCS-6935](../../data/cards/TCS-6935.json) | Randomized Strong Exponential Time Hypothesis | Fine-grained complexity | pool |
 | [TCS-6937](../../data/cards/TCS-6937.json) | Randomized APSP hypothesis | Fine-grained complexity | pool |
-| [TCS-6940](../../data/cards/TCS-6940.json) | Tree edit distance versus APSP | Fine-grained complexity | pool |
 | [TCS-6942](../../data/cards/TCS-6942.json) | Hitting Set hardness from Orthogonal Vectors | Fine-grained complexity | pool |
 | [TCS-6945](../../data/cards/TCS-6945.json) | Exact-Weight k-Clique hypothesis | Fine-grained complexity | pool |
 | [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
@@ -408,7 +407,6 @@ Pending active reviews: **499**.
 | [TCS-6633](../../data/cards/TCS-6633.json) | Polynomial query complexity of exact envy-free cake cutting | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6636](../../data/cards/TCS-6636.json) | Bodirsky–Pinsker conjecture | Constraint satisfaction | existing_detailed_audit |
 | [TCS-6637](../../data/cards/TCS-6637.json) | Constant-colour polynomial-time colouring of 3-colourable graphs | Constraint satisfaction | existing_detailed_audit |
-| [TCS-6639](../../data/cards/TCS-6639.json) | Constant-factor approximation for Santa Claus | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6640](../../data/cards/TCS-6640.json) | Constant additive error for one-dimensional bin packing | Online algorithms | existing_detailed_audit |
 | [TCS-6641](../../data/cards/TCS-6641.json) | Word problem for one-relation monoids | Algebraic computation | existing_detailed_audit |
 | [TCS-6642](../../data/cards/TCS-6642.json) | Conjugacy problem for one-relator groups | Algebraic computation | existing_detailed_audit |
