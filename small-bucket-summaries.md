@@ -175,6 +175,13 @@ A disjoint NP pair consists of two nonoverlapping sets of binary strings, each w
 [Read in atlas](index.html#TCS-7273) · [Incompleteness in the finite domain](https://arxiv.org/abs/1601.01487v2) · [P-Optimal Proof Systems for Each NP-Set but no Complete Disjoint NP-Pairs Relative to an Oracle](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2019.47) · [Recursive Jump Operators and Optimal Proof Systems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.88)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6771 — Linear versus general resolution
+
+General resolution refutes a Boolean CNF by combining and reusing clauses in an arbitrary acyclic proof. Linear resolution without restarts keeps one main chain, using the preceding clause together with an input clause or an earlier main clause at every inference. The question asks whether this restriction causes a superpolynomial increase in refutation length on some formulas, with length counted by resolution inferences. The source definition requires an explicit correction to exclude restarts, and the bounded later review found no verified resolution of the intended same-formula comparison. A complete Lean answer must prove either failure of every polynomial size bound or one universal polynomial simulation, without an extra requirement to find the converted proofs efficiently.
+
+[Read in atlas](index.html#TCS-6771) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913v3) · [On Linear Resolution](https://www.ifi.lmu.de/institut/personen/jjohannsen/jj_papers/linres.pdf) · [The Complexity of Linear Resolution, in Proof Complexity (Dagstuhl Seminar 18051)](https://doi.org/10.4230/DagRep.8.1.124) · [A comment on the paper Linear and Negative Resolution are Weaker than Resolution](https://eccc.weizmann.ac.il/report/2001/074/comment/1/download/) · [Regular resolution effectively simulates resolution](https://arxiv.org/abs/2402.15871v1) · [Exponential Separation Between Powers of Regular and General Resolution over Parities](https://doi.org/10.4230/LIPIcs.CCC.2024.23)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-5333 — Linear-space Cutting Planes refutations
 
 Cutting Planes refutes a Boolean CNF by deriving integer linear inequalities until it obtains a contradiction. Total space counts the binary digits of coefficients and right-hand constants stored simultaneously, with the source's convention that variable names and signs are not charged. The question is whether one constant times the number of variables always suffices, with no limit on proof length or coefficient magnitude. The source gives a quadratic universal upper bound, and the bounded later-source review found no resolution of the remaining linear-space question. An accepted answer must prove the universal linear bound or its fully quantified failure in Lean for the exact rules and space measure stated here.
@@ -315,13 +322,6 @@ Cutting Planes reasons with integer linear inequalities, and its coefficients ca
 [Read in atlas](index.html#TCS-6770) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6771 — Linear versus general resolution
-
-Linear resolution restricts how successive resolution steps may depend on earlier clauses. General resolution permits a more flexible directed acyclic structure of reused deductions. The saved question asks whether the linear restriction yields a strictly weaker proof system. A separation would identify a genuine cost of forcing proofs into a more sequential form. The source summary does not reproduce the exact linear-resolution convention or simulation measure, so the working account cannot equate the question with tree-like resolution or a particular proof-length lower bound.
-
-[Read in atlas](index.html#TCS-6771) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ## Communication complexity and Boolean function analysis (33)
 
 ### TCS-6603 — Log-rank conjecture
@@ -421,6 +421,13 @@ The problem concerns symmetric convex sets under standard Gaussian measure. A sp
 
 [Read in atlas](index.html#TCS-2664) · [Convex Influences](https://doi.org/10.4230/LIPIcs.ITCS.2022.53) · [Convex Influences — full version](https://arxiv.org/abs/2109.03107)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-6711 — Deterministic communication versus monochromatic partition size
+
+Alice and Bob must compute a Boolean function of their separate inputs by exchanging bits. A monochromatic partition divides its entire communication matrix into disjoint rectangles on which the output is constant. The question asks for the greatest possible deterministic communication cost when the logarithm of that partition size is at most t. A quadratic upper bound and nearly quadratic separations determine the optimal exponent, but do not by themselves settle all nonconstant factors. This card asks for upper and lower bounds on the full worst-case rate that match up to multiplicative constants.
+
+[Read in atlas](index.html#TCS-6711) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf) · [Nearly Optimal Separations Between Communication (or Query) Complexity and Partitions](https://doi.org/10.4230/LIPIcs.CCC.2016.4)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0220 — External Information and Amortized Expected Communication
 
@@ -546,13 +553,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 Number-on-forehead communication gives each player access to all input blocks except the one associated with that player. The source asks for tight randomized communication bounds for set disjointness in this multiparty model. Overlapping knowledge makes the problem structurally different from the ordinary two-party split-input version. Matching bounds would clarify how the number of players affects the cost of detecting a common intersection. The saved note does not retain the player-count regime, error convention, or target precision, so the full book formulation is needed before proposing an asymptotic expression.
 
 [Read in atlas](index.html#TCS-6710) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6711 — Deterministic communication versus monochromatic partition size
-
-A deterministic protocol partitions a communication matrix into monochromatic regions corresponding to its transcripts. The source asks for the optimal gap between communication cost and the logarithm of the smallest monochromatic partition. A small partition provides a static decomposition but may not supply an efficient interactive method for locating the right piece. The gap measures precisely that additional organizational cost. The saved note requires the source's partition conventions and asymptotic parameterization, and bounds for covers or nondeterministic certificates should not be substituted for the disjoint partition measure.
-
-[Read in atlas](index.html#TCS-6711) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Fine-grained complexity (26)
@@ -1128,6 +1128,13 @@ Hitting Set asks whether at most k elements can intersect every set in an explic
 [Read in atlas](index.html#TCS-4289) · [Hitting Set for Hypergraphs of Low VC-dimension](https://doi.org/10.4230/LIPIcs.ESA.2016.23) · [The PACE 2025 Parameterized Algorithms and Computational Experiments Challenge: Dominating Set and Hitting Set](https://doi.org/10.4230/LIPIcs.IPEC.2025.32) · [The Parameterized Complexity of Independent Set and More when Excluding a Half-Graph, Co-Matching, or Matching](https://arxiv.org/abs/2602.07606v1) · [Fixed Budget vs. Covering Target: The Partial Set Cover Boundary for Bounded VC-Dimension](https://arxiv.org/abs/2608.03801v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-7022 — Polynomial kernel for Planar Edge Deletion
+
+Planar Edge Deletion asks whether at most k edges can be removed from an arbitrary graph to make it planar. The question is whether deterministic polynomial-time preprocessing always produces one equivalent instance whose total size is polynomial in k. Both the deletion budget and the complete output encoding are bounded, with no randomness, approximation or oracle queries. Fixed-parameter algorithms and approximate vertex-deletion kernels have different guarantees and do not settle this exact edge problem. A complete Lean answer must establish such a uniform kernel or prove that every deterministic polynomial-time exact preprocessor fails a polynomial size bound.
+
+[Read in atlas](index.html#TCS-7022) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867v2) · [A survey of parameterized algorithms and the complexity of edge modification](https://fedorvf.github.io/articles/2023/2023e.pdf) · [A Unified FPT Framework for Crossing Number Problems](https://arxiv.org/abs/2410.00206v4) · [Kernelization Dichotomies for Hitting Minors Under Structural Parameterizations](https://doi.org/10.4230/LIPIcs.STACS.2026.17)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3480 — Polynomial exact metric sparsifiers with a crossing-edge budget
 
 A graph with terminals is queried by choosing labels for the terminals and a metric on the labels. The goal is a small retained edge set that supports an optimal extension for every such query. Only labelings with at most p crossing edges are compared, and the retained set must have size polynomial in p plus the number of terminals. The original claimed quasipolynomial metric-sparsifier result was explicitly retracted in the corrected paper. Ordinary multicut sparsifiers preserve a different collection of values and do not settle this universal metric question.
@@ -1308,13 +1315,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Boolean formula satisfiability asks whether some assignment makes a formula true. With n variables, exhaustive search checks all \(2^{n}\) assignments, paying an additional cost to evaluate the formula. The selected research direction seeks an algorithm that improves this worst-case search bound for general formulas. Restrictions on clause width, depth, or size can change which techniques apply, so gains for specialized families do not automatically answer it. A successful approach would identify exploitable structure in arbitrary formulas even when polynomial-time solvability remains out of reach.
 
 [Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7022 — Polynomial kernels for Planar Deletion
-
-The edge-modification survey's Planar Deletion problem asks whether a small number of edges can be removed to obtain a planar graph. The saved question asks for a polynomial kernel in the modification budget. Such preprocessing would preserve whether the graph can be made planar while discarding material irrelevant to a small repair. The main structural issue is that nonplanarity can arise through large interacting configurations. The source inventory retains the 2020 question historically and does not itself establish whether later work has supplied the requested kernel.
-
-[Read in atlas](index.html#TCS-7022) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7027 — Fixed-parameter tractability of Perfect Deletion
@@ -3550,10 +3550,10 @@ Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-1010 — Optimal asymptotic binary rate–distance tradeoff
 
-A binary code is any subset of binary strings of one length with a prescribed minimum pairwise Hamming distance. The function \(R_{2}(\delta )\) is the limsup of the best achievable rate at relative distance \(\delta\). Determine this tradeoff for every real \(\delta\) between zero and one half, allowing nonlinear codes and arbitrary block lengths. The benchmark accepts a Lean-certified curve with absolute rate error at most 0.01 bits per transmitted bit. The original limsup convention and the distinction between existence and efficient coding are retained.
+A binary code is any nonempty set of equal-length bit strings with a prescribed minimum pairwise Hamming distance. The function \(R_2(\delta)\) is the limsup of the maximum information rate at relative distance \(\delta\), allowing nonlinear codes and arbitrary subsequences of block lengths. Determine this function at every real distance strictly between zero and one half, with absolute error at most 0.01 information bits per transmitted bit. A complete Lean proof must establish both lower and upper guarantees throughout the domain, without any code-construction or evaluation-time bound. The checked 2026 papers improve the upper bounds but do not supply this certified whole-curve approximation; polynomial code-size improvements also leave the leading rate unchanged.
 
 [Read in atlas](index.html#TCS-1010) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/) · [New upper bounds on the rate of a code via the Delsarte–MacWilliams inequalities](https://doi.org/10.1109/TIT.1977.1055688) · [Asymptotic Improvement of the Gilbert–Varshamov Bound on the Size of Binary Codes](https://arxiv.org/abs/math/0404325) · [Improvement of the Gilbert-Varshamov Bound for Linear Codes and Quantum Codes](https://arxiv.org/abs/2601.18590) · [Binary code rate bounds via classical–quantum channels](https://arxiv.org/abs/2608.09347) · [Comments on the recent improvements of the MRRW bounds](https://arxiv.org/abs/2609.01860)
-Existing status: `source_open` · Summary written: 2026-09-12
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6665 — Capacity of the general broadcast channel
 
@@ -3690,10 +3690,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0184 — Entropic matroid approximations approaching unit ratio
 
-Matroid rank functions describe an abstract notion of independence among a finite set of elements. The recorded question concerns approximating these ranks by entropic constructions with a ratio approaching one. An entropic representation would realize the abstract dependence pattern through actual random variables. Near-exact approximation could connect combinatorial independence with information-theoretic feasibility and its applications. The saved title does not specify the class of matroids, normalization, or which direction the ratio measures, so it does not justify assuming that every matroid admits an exact entropy representation.
+The input is an integer-valued polymatroid exactly represented by the joint entropies of finite random variables. After multiplying its values by an integer, the free expansion replaces each coordinate by a block of independent matroid elements. The question asks whether an arbitrarily large fraction of every block can be retained so that the resulting matroid has an exact entropy representation up to one common scaling factor. This would connect entropy functions with exact combinatorial independence while preserving the specific expansion structure. A complete Lean proof must establish this approximation for every admissible input and every precision or give an input with a fixed positive retention gap.
 
-[Read in atlas](index.html#TCS-0184) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0184) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [On entropic and almost multilinear representability of matroids](https://arxiv.org/abs/2206.03465v3) · [Partition-Symmetrical Entropy Functions](https://arxiv.org/abs/1407.7405v2) · [On the recognition problem for limits of entropy functions](https://arxiv.org/abs/2509.06302v1) · [Entropy approximations of algebraic matroids over finite fields](https://arxiv.org/abs/2509.15348v1) · [Four-Entropic Matroids Are Quaternary](https://arxiv.org/abs/2608.20553v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0187 — Field dependence of linear-rank inequalities
 

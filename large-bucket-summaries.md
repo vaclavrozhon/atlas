@@ -1837,6 +1837,13 @@ Given an even number of planar points, a perfect matching pairs every point with
 [Read in atlas](index.html#TCS-0408) · [The Open Problems Project: Minimum Euclidean Matching in 2D](https://topp.openproblem.net/p6) · [A divide-and-conquer algorithm for min-cost perfect matching in the plane](https://homepage.divms.uiowa.edu/~kvaradar/paps/main-focs.pdf) · [Fast Approximation Algorithms for Euclidean Minimum Weight Perfect Matching](https://doi.org/10.1007/s00224-025-10254-7)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-0381 — Flip graph connectivity in three dimensions
+
+A tetrahedralization divides the convex hull of a fixed three-dimensional point set into tetrahedra. A local flip replaces two tetrahedra by three, or reverses that replacement, while retaining the same five vertices. The question asks whether every pair of tetrahedralizations can be joined by such moves when no four input points are coplanar. All intermediate meshes must keep every original point as a vertex at its original coordinates. Regular tetrahedralizations are known to be connected, but the unrestricted geometric question remains open in the checked sources.
+
+[Read in atlas](index.html#TCS-0381) · [The Open Problems Project, Problem 28: Flip Graph Connectivity in 3D](https://topp.openproblem.net/p28) · [Constrained paths in the flip-graph of regular triangulations](https://doi.org/10.1016/j.comgeo.2006.07.001) · [Connectivity of Triangulation Flip Graphs in the Plane](https://doi.org/10.1007/s00454-022-00436-2)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0427 — NP certificates for homeomorphism of three-manifolds
 
 Two triangulations can describe the same three-dimensional manifold while looking combinatorially unrelated. This question asks whether every homeomorphic pair has a certificate whose size and verification time are polynomial in the input. Such a certificate need not be found efficiently by the verifier itself. The challenge is to encode the necessary topological equivalence without an excessively long sequence of transformations. An NP upper bound would distinguish the difficulty of discovering a homeomorphism from the difficulty of checking convincing evidence that one exists.
@@ -1934,13 +1941,6 @@ The input describes a compact connected three-manifold by gluing faces of finite
 
 [Read in atlas](index.html#TCS-0428) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0381 — Flip Graph Connectivity in 3D
-
-Fix a set of points in three dimensions with no four coplanar and consider all its geometric tetrahedralizations. Two tetrahedralizations are adjacent when a local configuration of two tetrahedra is replaced by three, or conversely. The question asks whether these moves connect the entire collection. Results for topological triangulations, additional vertices, or higher dimensions do not answer this precise geometric case. Connectivity would justify navigating among all tetrahedralizations by local modifications alone, a principle underlying many mesh improvement procedures.
-
-[Read in atlas](index.html#TCS-0381) · [The Open Problems Project](https://topp.openproblem.net/p28)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0382 — General Unfoldings of Nonconvex Polyhedra
 
