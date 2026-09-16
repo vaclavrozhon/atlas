@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **446**.
+Pending active reviews: **445**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -380,7 +380,6 @@ Pending active reviews: **446**.
 | [TCS-6675](../../data/cards/TCS-6675.json) | Search-to-decision equivalence for finite promise CSPs | Constraint satisfaction | existing_detailed_audit |
 | [TCS-6677](../../data/cards/TCS-6677.json) | Isomorphism problem for one-relator groups | Algebraic computation | existing_detailed_audit |
 | [TCS-6679](../../data/cards/TCS-6679.json) | Universality of Turing equivalence | Computability and algorithmic information | existing_detailed_audit |
-| [TCS-6680](../../data/cards/TCS-6680.json) | Decidability of conjunctive-query entailment in SROIQ | Database theory and finite model theory | existing_detailed_audit |
 | [TCS-6684](../../data/cards/TCS-6684.json) | Computational Kesten–Stigum threshold | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |

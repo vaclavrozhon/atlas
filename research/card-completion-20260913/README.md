@@ -1356,3 +1356,7 @@ The concurrent census is 1,025 active cards: 725 reviewed and 300 pending. The q
 Checkpoint 617. Complete exact directed maximum-flow RAM model and current bounds
 
 The concurrent census is 1,024 active cards: 727 reviewed and 297 pending. The queue has 617 completed records, 575 active and 42 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,024 active cards, covering 30,519 formulas.
+
+Checkpoint 622. Complete all-model SROIQ query syntax semantics and decidability review
+
+The concurrent census is 1,024 active cards: 732 reviewed and 292 pending. The queue has 622 completed records, 580 active and 42 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,024 active cards, covering 30,856 formulas.
