@@ -1066,3 +1066,21 @@ the subsequent formula check passed on all 1,042 active cards and 20,838 formula
 The preceding LP deployment was live-verified as e05b5289554899663ac6,
 published 2026-09-16T02:00:12+00:00, Pages commit
 701e93140ce3b0c64e8e40e910d46766ee45eb65.
+
+Checkpoint 376 includes TCS-0673, previously a title-only first-order minimax
+question. Its explicitly identified editorial variant now defines the original
+asymmetric-neighborhood optimality notion, a uniform exact first-order oracle
+program, common-null-set correctness of finite limits and mandatory local
+attraction at strict local minimax points. The latter prevents a vacuous
+never-convergent method. Sources distinguish true local optimality from necessary
+derivative conditions, Hessian-assisted methods and restricted 2024/2026 results.
+An inaccessible OpenReview submission is recorded only as a status-review limit;
+its indexed claim is not treated as a verified theorem. The card remains uncertain.
+
+The concurrent census is 1,040 active cards: 502 completed/reviewed and 538
+pending. The queue has 376 completed records, 350 active and 26 inactive;
+152 active cards are outside the queue. All active completed hashes match.
+Publication and mathematical rendering checks passed, covering 21,189 formulas.
+The preceding simplex publication was live-verified as 516e0db87c7ebe31aa41,
+published 2026-09-16T02:04:57+00:00, Pages commit
+5497f2232c95f272a797e9791188ec9f24da83b4.

@@ -5,12 +5,11 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **583**.
+Pending active reviews: **580**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
 | [TCS-3655](../../data/cards/TCS-3655.json) | Inductive-inductive types from inductive types without UIP | Semantics, logic and verification | top500 |
-| [TCS-0673](../../data/cards/TCS-0673.json) | First-order convergence to local minimax optima | Optimization and numerics | top500 |
 | [TCS-0689](../../data/cards/TCS-0689.json) | Property Elicitation and Elicitation Complexity | Learning theory | top500 |
 | [TCS-5406](../../data/cards/TCS-5406.json) | Optimization and certification in sparse random CSPs | Beyond worst-case and average-case analysis | top500 |
 | [TCS-0949](../../data/cards/TCS-0949.json) | Data Structure Lower Bound in the Cell Probe Model | Data structures | top500 |
@@ -61,7 +60,6 @@ Pending active reviews: **583**.
 | [TCS-6359](../../data/cards/TCS-6359.json) | Decidability and completeness of concurrent Kleene algebra | Semantics, logic and verification | pool |
 | [TCS-7153](../../data/cards/TCS-7153.json) | Ultimate Positivity problem | Semantics, logic and verification | pool |
 | [TCS-7154](../../data/cards/TCS-7154.json) | Effective ultimate-positivity thresholds for simple recurrences | Semantics, logic and verification | pool |
-| [TCS-7156](../../data/cards/TCS-7156.json) | Universal integer termination of affine linear loops | Semantics, logic and verification | pool |
 | [TCS-7157](../../data/cards/TCS-7157.json) | Termination of linear-constraint loops | Semantics, logic and verification | pool |
 | [TCS-0993](../../data/cards/TCS-0993.json) | Graph Distances | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0954](../../data/cards/TCS-0954.json) | Metric TSP Cost Approximation | Distributed, parallel and sublinear algorithms | pool |
@@ -103,7 +101,6 @@ Pending active reviews: **583**.
 | [TCS-4592](../../data/cards/TCS-4592.json) | Time complexity of Gaussian agnostic halfspace learning | Learning theory | pool |
 | [TCS-4792](../../data/cards/TCS-4792.json) | Multiclass sample compression from binary compression | Learning theory | pool |
 | [TCS-5031](../../data/cards/TCS-5031.json) | Littlestone-dimension regret bounds for unrestricted classes | Learning theory | pool |
-| [TCS-5061](../../data/cards/TCS-5061.json) | Computable PAC learning versus effective sample bounds | Learning theory | pool |
 | [TCS-5087](../../data/cards/TCS-5087.json) | Polynomial-time robust spectral estimation | Learning theory | pool |
 | [TCS-5088](../../data/cards/TCS-5088.json) | Learning halfspace intersections under factorizable distributions | Learning theory | pool |
 | [TCS-5090](../../data/cards/TCS-5090.json) | One-way functions from hardness of learning P/poly | Learning theory | pool |
