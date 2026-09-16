@@ -1321,10 +1321,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
-Densest k-Subgraph asks which exactly k vertices of a graph contain the most internal edges. The target is a polynomial-time algorithm whose edge count stays within one universal constant of optimum. Fixing the number of vertices prevents using a larger, moderately dense region as a substitute. Such a guarantee would clarify a central gap in approximation theory and influence several related network problems. The saved review describes strong conditional hardness under ETH, while distinguishing this evidence from hardness based only on \(\mathrm{P}\ne \mathrm{NP}\).
+Densest k-Subgraph asks which exactly k vertices contain the most internal edges. The target is one deterministic polynomial-time algorithm that always returns a k-set within one universal constant of optimum. The card fixes explicit graph encoding, bit cost, output cardinality and a guarantee on every input. ETH already excludes this guarantee conditionally, while ordinary NP-hardness of even a 1.001 approximation remains absent in the inspected 2026 source. Recent continuous-optimization and at-least-k density results address different guarantees and do not resolve this target.
 
-[Read in atlas](index.html#TCS-6587) · [Detecting High Log-Densities — an \(O(n^{1}/4)\) Approximation for Densest k-Subgraph](https://arxiv.org/abs/1001.2891) · [Polynomial integrality gaps for strong SDP relaxations of Densest k-subgraph](https://arxiv.org/abs/1110.1360) · [Almost-Polynomial Ratio ETH-Hardness of Approximating Densest k-Subgraph](https://arxiv.org/abs/1611.05991) · [A New Conjecture on Hardness of 2-CSP’s with Implications to Hardness of Densest k-Subgraph and Other Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2023.38) · [A Scalable and Exact Relaxation for Densest k-Subgraph via Error Bounds](https://ojs.aaai.org/index.php/AAAI/article/view/38562) · [A Note on Approximability of Densest At-Least-k-Subgraph](https://arxiv.org/abs/2605.25464)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6587) · [Detecting High Log-Densities — an \(O(n^{1/4})\) Approximation for Densest k-Subgraph](https://arxiv.org/abs/1001.2891) · [Polynomial integrality gaps for strong SDP relaxations of Densest k-subgraph](https://arxiv.org/abs/1110.1360) · [Almost-Polynomial Ratio ETH-Hardness of Approximating Densest k-Subgraph](https://arxiv.org/abs/1611.05991) · [A New Conjecture on Hardness of 2-CSP’s with Implications to Hardness of Densest k-Subgraph and Other Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2023.38) · [Sum-of-Squares Lower Bounds for Densest k-Subgraph](https://arxiv.org/abs/2303.17506) · [A Scalable and Exact Relaxation for Densest k-Subgraph via Error Bounds](https://ojs.aaai.org/index.php/AAAI/article/view/38562) · [A Note on Approximability of Densest At-Least-k-Subgraph](https://arxiv.org/abs/2605.25464) · [A Linear-Time Approximation Scheme for the Densest Subgraph Problem](https://arxiv.org/abs/2608.11094)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0006 — Unique Games Conjecture
 
@@ -3005,6 +3005,13 @@ Two finite groups are supplied by complete tables describing their multiplicatio
 [Read in atlas](index.html#TCS-6615) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2024.4)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6895 — Explicit three-dimensional tensors of superlinear rank
+
+A three-way tensor is a cubic array, and its ordinary rank is the fewest rank-one arrays whose sum equals it. The selected branch asks for rational entries written by one deterministic algorithm in polynomial time in the dimension. Rank is measured over the complex numbers, and its ratio to the side length must tend to infinity. The algorithm must produce every dimension without advice, symbolic number-field entries or uncharged output bits. Known explicit linear border-rank bounds and recent semi-explicit high-rank constructions do not meet this superlinear rational-output target.
+
+[Read in atlas](index.html#TCS-6895) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Towards Finding Hay in a Haystack: Explicit Tensors of Border Rank Greater Than 2.02m in the Triple Tensor Product of m-Dimensional Complex Spaces](https://doi.org/10.4086/toc.2025.v021a013) · [Arithmetic circuit lower bounds from sumset expansion](https://arxiv.org/abs/2607.15848v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6898 — Derandomizing black-box depth-four PIT
 
 The question asks for a deterministic polynomial-time construction of evaluation points that detect every nonzero polynomial computed by a size-bounded depth-four arithmetic circuit. The same generated set must work for every circuit of the given size without seeing its coefficients or gates. The model charges field operations and output length, and explicitly permits a sufficiently large working field. There is no constant bound on the top fan-in or bottom degree and no homogeneity or multilinearity assumption. Recent polynomial-time results impose fixed fan-in, quadratic factors or powering restrictions, while the general target remains unresolved in the checked literature.
@@ -3304,13 +3311,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Multilinear arithmetic circuits keep variable exponents at most one in their intermediate polynomials. The saved question seeks superpolynomial lower bounds against this circuit model. Unlike formulas, these circuits can share partial computations, which creates the central obstacle when transferring tree-based arguments. A lower bound would quantify the power still available under multilinearity and provide a stronger benchmark for algebraic complexity techniques. The short survey note does not select the explicit polynomial family or settle semantic versus syntactic conventions, so those details remain required before the question becomes a complete research card.
 
 [Read in atlas](index.html#TCS-6893) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6895 — Explicit three-dimensional tensors of superlinear rank
-
-A three-dimensional tensor is an array whose rank is the minimum number of rank-one tensors summing to it. The source asks for explicit tensor families with rank growing superlinearly in the relevant dimension. The requirement of explicitness rules out relying only on counting arguments that establish hard tensors exist somewhere. Such constructions would provide concrete obstacles for bilinear computation and sharpen tensor-based lower-bound methods. The saved note leaves the field, dimension format, and exact construction requirement in the survey, so those parameters must be restored before a candidate family can be evaluated against the target.
-
-[Read in atlas](index.html#TCS-6895) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6897 — Permanent lower bounds from identity testing

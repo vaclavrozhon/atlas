@@ -1005,6 +1005,13 @@ A simple rational linear recurrence has a characteristic polynomial with distinc
 [Read in atlas](index.html#TCS-7154) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html) · [Ultimate Positivity is Decidable for Simple Linear Recurrence Sequences](https://www.cs.ox.ac.uk/james.worrell/ultimate4.pdf) · [On the Positivity Problem for Simple Linear Recurrence Sequences](https://people.mpi-sws.org/~joel/publications/simple_positivity14.pdf) · [Quantitative growth of linear recurrences](https://arxiv.org/abs/2504.09519v1) · [Positivity of arbitrary-order P-recursive sequences with a unique dominant root](https://arxiv.org/abs/2605.17013v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-5915 — Constructive simplicial model with univalent universes
+
+The question asks for a constructive simplicial interpretation of dependent type theory with univalent universes. The selected metatheory is CZF with a sequence of constructive inaccessible sets and the explicit principle that every subset of a small set is small. The model must interpret the stated dependent type formers and make all operations commute strictly with substitution. Existing constructive simplicial work provides substantial weakly stable structure but leaves the strict coherence issue open in the checked sources. A full construction would connect simplicial homotopy theory with constructive univalent foundations without importing excluded middle or choice.
+
+[Read in atlas](index.html#TCS-5915) · [From Cubes to Twisted Cubes via Graph Morphisms in Type Theory](https://doi.org/10.4230/LIPIcs.TYPES.2019.5) · [Towards a constructive simplicial model of Univalent Foundations](https://doi.org/10.1112/jlms.12532) · [Towards a constructive simplicial model of Univalent Foundations — author version](https://arxiv.org/abs/1905.06281v3) · [The equivariant model structure on cartesian cubical sets](https://doi.org/10.1016/j.aim.2026.110965) · [The equivariant model structure on cartesian cubical sets — published full text](https://research.chalmers.se/publication/551789/file/551789_Fulltext.pdf) · [A constructive model of infinity-groupoids — TYPES 2025 slides](https://msp.cis.strath.ac.uk/types2025/slides/TYPES2025-slidesSattler.pdf) · [Constructive higher sheaf models with applications to synthetic mathematics](https://arxiv.org/abs/2605.15126v2) · [Notes on Constructive Set Theory](https://michrathjen.github.io/book.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6245 — Exponential witness bounds for three-dimensional VASS
 
 A three-dimensional vector addition system with states combines a finite control graph with three nonnegative integer counters. The question asks whether every reachable pair of configurations has an actual run whose length is singly exponential in the binary input size. The same exponent bound must work for all inputs, including unbounded control graphs and arbitrary binary counter values. Published triply-exponential and subsequently claimed doubly-exponential witness bounds leave this stronger target unresolved. A resolution would clarify the structural and algorithmic change between exact reachability with two counters and with three.
@@ -1017,6 +1024,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 A finite stochastic game combines controller choices, adversary choices and rational chance transitions. The selected question asks whether one randomized strategy can meet all supplied rational probability bounds for LTL properties against every adversary. Both players may depend on the whole history, and the existential strategy need not have an effective finite representation. The decision must distinguish actual exact threshold attainment from approximate or limit-sure guarantees. This user-selected decision subproblem makes one part of the broader multi-objective synthesis programme precise.
 
 [Read in atlas](index.html#TCS-4302) · [Model Checking and Strategy Synthesis for Stochastic Games: From Theory to Practice (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICALP.2016.4) · [Solving Qualitative Multi-Objective Stochastic Games](https://arxiv.org/abs/2602.12927v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-5817 — Effective homotopy canonicity with propositional resizing
+
+The selected question adds individual propositional resizing to a fixed univalent De Morgan cubical calculus. Each homotopy proposition in one universe must have an equivalent representative in the adjacent smaller universe. The requested result combines consistency with an algorithm that turns every closed natural-number derivation into a numeral and an object-theory path proof. Existing canonicity theorems for the base calculus and models separating resizing principles do not establish this extension’s computational guarantee. A resolution would clarify whether this useful size principle can retain effective natural-number observations without demanding full normalization.
+
+[Read in atlas](index.html#TCS-5817) · [Domain Theory in Constructive and Predicative Univalent Foundations](https://doi.org/10.4230/LIPIcs.CSL.2021.28) · [Continuous and algebraic domains in univalent foundations](https://doi.org/10.1016/j.jpaa.2025.108072) · [Continuous and algebraic domains in univalent foundations — accepted manuscript](https://martinescardo.github.io/papers/continuous-algebraic-domains-in-uf.pdf) · [Cubical Assemblies, a Univalent and Impredicative Universe and a Failure of Propositional Resizing](https://doi.org/10.4230/LIPIcs.TYPES.2018.7) · [Cubical Type Theory: a constructive interpretation of the univalence axiom](https://arxiv.org/abs/1611.02108v1) · [Canonicity and homotopy canonicity for cubical type theory](https://lmcs.episciences.org/9043) · [A Modal Deconstruction of Löb Induction](https://doi.org/10.1145/3704866)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5987 — Decidability of weak bisimulation for normed BPA
@@ -1158,20 +1172,6 @@ The machine combines finite nondeterministic choices with rational probabilistic
 
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-5817 — Computational interpretation of impredicativity with univalence
-
-Propositional resizing and impredicativity alter which proposition types can be represented in a small universe. The source asks for a computational interpretation of such axioms compatible with univalence. It distinguishes smallness of the whole type of small propositions from resizing each proposition from a larger universe. The 2025 follow-up retains the question, while the checked cubical-assembly model separates an impredicative universe from a resizing principle. The card still needs a selected axiom scheme and computational guarantee before it defines one complete Lean benchmark target.
-
-[Read in atlas](index.html#TCS-5817) · [Domain Theory in Constructive and Predicative Univalent Foundations](https://doi.org/10.4230/LIPIcs.CSL.2021.28) · [Continuous and algebraic domains in univalent foundations](https://doi.org/10.1016/j.jpaa.2025.108072) · [Continuous and algebraic domains in univalent foundations — accepted manuscript](https://martinescardo.github.io/papers/continuous-algebraic-domains-in-uf.pdf) · [Cubical Assemblies, a Univalent and Impredicative Universe and a Failure of Propositional Resizing](https://doi.org/10.4230/LIPIcs.TYPES.2018.7)
-Existing status: `uncertain` · Summary written: 2026-09-16
-
-### TCS-5915 — Constructive simplicial models with univalent universes
-
-Simplicial sets describe geometry through simplices and their face and degeneracy maps. The source asks for a constructive model of dependent type theory with univalent universes using this geometry. Gambino–Henry construct substantial weakly stable structure but explicitly leave the strict coherence issue open. Checked 2025–2026 cubical results and presentations do not by themselves supply the requested strict simplicial model. The card retains the full question while awaiting explicit choices of constructive metatheory, universe assumptions and closure requirements.
-
-[Read in atlas](index.html#TCS-5915) · [From Cubes to Twisted Cubes via Graph Morphisms in Type Theory](https://doi.org/10.4230/LIPIcs.TYPES.2019.5) · [Towards a constructive simplicial model of Univalent Foundations](https://doi.org/10.1112/jlms.12532) · [Towards a constructive simplicial model of Univalent Foundations — author version](https://arxiv.org/abs/1905.06281v3) · [The equivariant model structure on cartesian cubical sets](https://doi.org/10.1016/j.aim.2026.110965) · [The equivariant model structure on cartesian cubical sets — published full text](https://research.chalmers.se/publication/551789/file/551789_Fulltext.pdf) · [A constructive model of infinity-groupoids — TYPES 2025 slides](https://msp.cis.strath.ac.uk/types2025/slides/TYPES2025-slidesSattler.pdf) · [Constructive higher sheaf models with applications to synthetic mathematics](https://arxiv.org/abs/2605.15126v2)
-Existing status: `uncertain` · Summary written: 2026-09-16
 
 ## Distributed, parallel and sublinear algorithms (59)
 
@@ -2655,6 +2655,13 @@ The selected question asks for efficient approximation of one explicitly defined
 [Read in atlas](index.html#TCS-4811) · [How Hard Is Deciding Trivial Versus Nontrivial in the Dihedral Coset Problem?](https://doi.org/10.4230/LIPIcs.TQC.2016.6) · [Optimal measurements for the dihedral hidden subgroup problem](https://arxiv.org/abs/quant-ph/0501044) · [The dihedral hidden subgroup problem](https://doi.org/10.1515/jmc-2022-0029) · [The Hidden Subgroup Problem in Semidirect Products and Quasi-Hamiltonian Groups](https://arxiv.org/abs/2608.05321)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-4894 — Parity versus \(\mathrm{AC}^{0}\) with shallow quantum preprocessing
+
+Parity is a basic function that small constant-depth classical circuits cannot approximate well on uniformly random inputs. This project asks whether a shallow quantum preprocessing stage can remove that limitation when its measured output is passed to a classical AC0 circuit. The conjecture concerns constant-depth quantum circuits with bounded-fan-in gates, followed by the specified classical postprocessing. Any approximation guarantee must account for both the random input and the randomness of quantum measurement. Establishing the conjecture would place a concrete limit on hybrid computation and help clarify the power of weak classical procedures that use shallow quantum devices.
+
+[Read in atlas](index.html#TCS-4894) · [Parity vs. AC0 with Simple Quantum Preprocessing](https://doi.org/10.4230/LIPIcs.ITCS.2024.92) · [Unconditional Pseudorandomness Against Shallow Quantum Circuits](https://doi.org/10.4230/LIPIcs.ITCS.2026.70)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6449 — Quantum versus classical nonuniform advice
 
 Quantum and classical advice supply information fixed for an entire input length to an efficient quantum computation. The selected advice must decide every binary input of that length correctly with bounded error, and can be arbitrarily hard to prepare. The question asks whether quantum advice increases the resulting ordinary class of total languages. A known simulation by PP with classical advice uses a different error and computation model, while successive oracle separations retain their black boxes. The latest standard classical-oracle separation does not resolve the ordinary equality, and fresh-copy advice remains distinct from untrusted per-instance witnesses.
@@ -2807,13 +2814,6 @@ Existing status: `source_open` · Summary written: 2026-09-13
 Gap amplification increases the separation between satisfiable and unsatisfiable instances in a verification problem. The cited quantum construction can amplify a Hamiltonian promise gap repeatedly, but its terms act on progressively more qubits. This growing locality obstructs the composition steps used in the classical PCP strategy. The question asks for a quantum analogue that retains the important structural features of Dinur's classical amplification procedure. Such an operation would address a concrete missing ingredient in efforts to make quantum proofs locally checkable with a constant gap.
 
 [Read in atlas](index.html#TCS-4734) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4894 — Parity versus \(\mathrm{AC}^{0}\) with shallow quantum preprocessing
-
-Parity is a basic function that small constant-depth classical circuits cannot approximate well on uniformly random inputs. This project asks whether a shallow quantum preprocessing stage can remove that limitation when its measured output is passed to a classical AC0 circuit. The conjecture concerns constant-depth quantum circuits with bounded-fan-in gates, followed by the specified classical postprocessing. Any approximation guarantee must account for both the random input and the randomness of quantum measurement. Establishing the conjecture would place a concrete limit on hybrid computation and help clarify the power of weak classical procedures that use shallow quantum devices.
-
-[Read in atlas](index.html#TCS-4894) · [Parity vs. AC0 with Simple Quantum Preprocessing](https://doi.org/10.4230/LIPIcs.ITCS.2024.92)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4927 — Classification of quantum gate sets
