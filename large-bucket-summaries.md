@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-404 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1730,7 +1730,7 @@ In sequential minimax optimization, one player minimizes a smooth function of x 
 [Read in atlas](index.html#TCS-0673) · [Open Problem: Is There a First-Order Method that Only Converges to Local Minimax Optima?](https://proceedings.mlr.press/v195/chae23a.html) · [What is Local Optimality in Nonconvex-Nonconcave Minimax Optimization?](https://proceedings.mlr.press/v119/jin20e.html) · [Two-timescale Extragradient for Finding Local Minimax Points](https://arxiv.org/abs/2305.16242v2) · [Double-Step Alternating Extragradient with Increasing Timescale Separation for Finding Local Minimax Points: Provable Improvements](https://proceedings.mlr.press/v235/kim24m.html) · [On Solving Minimax Optimization Locally: A Follow-the-Ridge Approach](https://arxiv.org/abs/1910.07512v2) · [A first-order method for constrained nonconvex-nonconcave minimax optimization](https://link.springer.com/article/10.1007/s10107-026-02415-4)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Geometry, topology and metric spaces (41)
+## Geometry, topology and metric spaces (40)
 
 ### TCS-6523 — Kannan–Lovász–Simonovits conjecture
 
@@ -1997,13 +1997,6 @@ The question asks whether every finite metric becomes a bounded-distortion subse
 
 [Read in atlas](index.html#TCS-4454) · [Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost](https://doi.org/10.4230/LIPIcs.ICALP.2016.83) · [Snowflake universality of Wasserstein spaces](https://doi.org/10.24033/asens.2363) · [Coarse Embeddability of Wasserstein Space and the Space of Persistence Diagrams](https://doi.org/10.1007/s00454-024-00674-6)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5875 — Hausdorff distance between semialgebraic sets
-
-The Hausdorff distance compares two sets by taking the worst nearest-neighbor distance in both directions. The extracted question asks for the complexity of computing this distance when both inputs are general semialgebraic sets, described by polynomial conditions. Algorithms for finite point sets or polygonal objects do not settle that broader representation model. The surrounding paper studies intermediate shapes and cites polynomial-time computation for general semialgebraic inputs as an unresolved background issue. A precise solution would need to specify the dimension, algebraic input encoding, and output representation as well as control the running time.
-
-[Read in atlas](index.html#TCS-5875) · [Between Shapes, Using the Hausdorff Distance](https://doi.org/10.4230/LIPIcs.ISAAC.2020.13)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6199 — Decidability of contractibility for finite two-dimensional complexes
 
