@@ -5,13 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **249**.
+Pending active reviews: **243**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-0163](../../data/cards/TCS-0163.json) | Complexity of satisfiable word equations | Automated reasoning and unification | top500 |
-| [TCS-0171](../../data/cards/TCS-0171.json) | Complexity of word unification | Automated reasoning and unification | top500 |
-| [TCS-0834](../../data/cards/TCS-0834.json) | Estimating a Graph's Degree Distribution | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-1588](../../data/cards/TCS-1588.json) | Characterizing robustly computable predicates and functions | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-2753](../../data/cards/TCS-2753.json) | Fully adaptive strong Byzantine agreement with optimal resilience | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-3384](../../data/cards/TCS-3384.json) | Approximate matching and set packing in \(\mathrm{AC}^{0}\) | Distributed, parallel and sublinear algorithms | pool |
@@ -20,7 +17,6 @@ Pending active reviews: **249**.
 | [TCS-5427](../../data/cards/TCS-5427.json) | Characterizing multipass turnstile streaming | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-6206](../../data/cards/TCS-6206.json) | Clique detection in CONGEST | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-6380](../../data/cards/TCS-6380.json) | Load-optimal parallel natural joins | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-6880](../../data/cards/TCS-6880.json) | Efficient constant-distortion cut-cone approximation | Computational geometry and metric spaces | pool |
 | [TCS-5015](../../data/cards/TCS-5015.json) | Foundations of quantum cryptography from EFI pairs | Cryptography | pool |
 | [TCS-5793](../../data/cards/TCS-5793.json) | Pseudorandom functions from hardness of learning | Cryptography | pool |
 | [TCS-6692](../../data/cards/TCS-6692.json) | Linear-seed pseudorandom generators from one-way functions | Cryptography | pool |
@@ -36,8 +32,6 @@ Pending active reviews: **249**.
 | [TCS-2202](../../data/cards/TCS-2202.json) | NP-hardness of conditional polynomial-time pKt | Computability and algorithmic information | pool |
 | [TCS-5010](../../data/cards/TCS-5010.json) | Unconditional coding theorem for randomized Kolmogorov complexity | Computability and algorithmic information | pool |
 | [TCS-6105](../../data/cards/TCS-6105.json) | Computability of the Mandelbrot set | Computability and algorithmic information | pool |
-| [TCS-0071](../../data/cards/TCS-0071.json) | \(\mathrm{NC}^{0}\) proof systems | Proof complexity | pool |
-| [TCS-5114](../../data/cards/TCS-5114.json) | Lovász–Schrijver versus cutting planes | Proof complexity | pool |
 | [TCS-0220](../../data/cards/TCS-0220.json) | External Information and Amortized Expected Communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-1059](../../data/cards/TCS-1059.json) | Linearizing arbitrary depth-two circuits efficiently | Communication complexity and Boolean function analysis | pool |
 | [TCS-0540](../../data/cards/TCS-0540.json) | Communication Complexity of Max-Flow | Communication complexity and Boolean function analysis | pool |

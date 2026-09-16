@@ -67,6 +67,16 @@ Completed in this continuation:
   combinatorial-rectangle generators.
 - TCS-1122: logarithmic-degree binary polynomial tests, with the user's
   explicit one-bit-saving and constant-error convention.
+- TCS-0163 and TCS-0171: the approved merge into the NP-membership question
+  for plain word equations; TCS-0171 is preserved intact in the archive.
+- TCS-0071: nonuniform constant-depth proof systems for directed reachability,
+  with exact range equality and the correct scope of known positive results.
+- TCS-5114: existential polynomial-line Lovász–Schrijver simulation of
+  Cutting Planes over real coefficients.
+- TCS-6880: a constant-distortion cut-cone approximation with exact rational
+  membership and strong separation in polynomial bit time.
+- TCS-0834: the full four-parameter degree-distribution query function,
+  with only the vertex count supplied to the algorithm.
 
 The six scope answers received during this continuation are preserved in
 [current-user-decisions.json](current-user-decisions.json). They authorize the
@@ -120,3 +130,9 @@ After twenty-one completions the queue contains 665 completed records,
 desktop/mobile reader checks passed after completion twenty; the formula check
 covered 32,518 expressions at that checkpoint. Local publication after
 completion twenty-one is 3ce330c4c952990b9552.
+
+After twenty-seven queue dispositions, including the word-equation duplicate,
+the queue contains 671 completed records, 243 pending records and one outside
+active scope. Of 1,018 active cards, 775 have completed individual reviews.
+The formula check passed on all active cards and 32,748 expressions.
+All six user scope choices received during recovery have now been applied.
