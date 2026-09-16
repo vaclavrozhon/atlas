@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-602 five-sentence working summaries, based on saved source material.
+603 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1035,7 +1035,7 @@ A transversal matroid records which subsets can be matched into the opposite sid
 [Read in atlas](index.html#TCS-6729) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (40)
+## Parameterized complexity and algorithms (41)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1098,6 +1098,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 A tropical circuit combines vertex weights using only maximum and addition. For each graph, its minimum circuit size measures how compactly maximum independent-set weight can be represented for every nonnegative weight assignment. The question asks for one deterministic algorithm whose bit cost is polynomial in that circuit size and the input parameters. The algorithm receives only the graph and weights, and may use unrestricted computation to output the exact optimum value. The known construction for restricted graph classes leaves the author’s general polynomial-automatization question open in the sources checked.
 
 [Read in atlas](index.html#TCS-7247) · [Lower Bounds on Dynamic Programming for Maximum Weight Independent Set](https://arxiv.org/abs/2102.06901v2) · [Open problems: Can dynamic programming for independent set be automated?](https://tuukkakorhonen.com/problems.html)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7312 — Fixed-parameter tractability of graph isomorphism by rank-width
+
+Rank-width measures the ranks of adjacency cuts in an optimally chosen decomposition tree. Graph isomorphism asks whether a bijection of vertices preserves all edges. This card asks for one deterministic algorithm whose polynomial exponent is independent of the rank-width. The parameter-dependent multiplier may be any total computable function, and no decomposition is supplied. Known fixed-width polynomial algorithms and faster decomposition methods do not by themselves give the required uniform isomorphism bound.
+
+[Read in atlas](index.html#TCS-7312) · [Parameterized complexity of graph isomorphism testing](https://epub.uni-regensburg.de/78630/1/1-s2.0-S1574013726000274-main.pdf) · [Canonisation and Definability for Graphs of Bounded Rank Width](https://arxiv.org/abs/1901.10330v2) · [Canonizing Graphs of Bounded Rank-Width in Parallel via Weisfeiler–Leman](https://doi.org/10.4230/LIPIcs.SWAT.2024.32) · [Branch-width of connectivity functions is fixed-parameter tractable](https://arxiv.org/abs/2601.04756v2)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3480 — Polynomial exact metric sparsifiers with a crossing-edge budget
@@ -1789,10 +1796,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6621 — Rapid mixing of Glauber dynamics with \(\Delta +2\) colours
 
-Glauber dynamics samples graph colorings by repeatedly selecting a vertex and choosing a color allowed by its neighbors. The reviewed question asks for polynomial-time convergence to the uniform distribution whenever the palette has at least two more colors than the maximum degree. That amount of slack makes the state space connected, but connectivity alone does not exclude bottlenecks that trap a random walk. A universal mixing bound would show that the simplest local sampler works throughout this universally convergent range. The saved progress covers restricted graph classes or larger relative color slack, whose parameter dependence does not establish the additive two-color target for every graph.
+The question concerns a local Markov chain that recolours one vertex uniformly from its currently available colours. It asks for one polynomial mixing bound for every graph and every palette with at least two more colours than the maximum degree. The stationary law is uniform on all proper labelled colourings and the bound must hold from the worst initial colouring. Known general-graph and recent near-threshold results retain larger palette slack, structural assumptions or parameter-dependent qualifications. Resolving the uniform additive-threshold conjecture would clarify the power of elementary local sampling for constrained spin systems.
 
 [Read in atlas](index.html#TCS-6621) · [Glauber dynamics for colourings of chordal graphs and graphs of bounded treewidth](https://arxiv.org/abs/2010.16158) · [Sampling Colorings with Fixed Color Class Sizes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.134) · [Flip Dynamics for Sampling Colorings: Improving \((11/6- \varepsilon )\) Using a Simple Metric](https://arxiv.org/abs/2407.04870) · [Sampling Colorings Close to the Maximum Degree: Non-Markovian Coupling and Local Uniformity](https://arxiv.org/abs/2604.11938) · [A Spectral Local-to-Global Principle for Spin Systems on Graphs with Girth At Least Five](https://arxiv.org/abs/2608.25491)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6622 — Kannan–Tetali–Vempala conjecture
 
@@ -2695,10 +2702,10 @@ Existing status: `uncertain` · Summary written: 2026-09-13
 
 ### TCS-0467 — Linear-space LZ77 random access
 
-An LZ77 parse represents repeated text through references to earlier occurrences, possibly allowing overlap. The reviewed question asks for random character access in logarithmic time using space linear in the number of phrases. The original uncompressed string is unavailable when queries arrive. A solution must navigate arbitrary chains of copied material while keeping every stored shortcut inside the compressed-space budget. The saved record distinguishes ordinary LZ77 from restricted parsing variants and notes that converting to a larger grammar does not automatically preserve the required linear space.
+A greedy LZ77 parse stores a string as literals and references to earlier material, including overlapping copies. The task is to return any chosen character in logarithmic worst-case time while using only a constant number of words per phrase. All stored input, auxiliary tables and query memory count toward that space bound. One deterministic construction may use polynomial time in the uncompressed length, and queries cannot consult the uncompressed text. Results for grammars, LZ-End and LZBE use different compressed-size parameters and do not automatically meet this target.
 
-[Read in atlas](index.html#TCS-0467) · [Adaptive and Scalable Data Structures — Two problems on Lempel-Ziv compression](https://doi.org/10.4230/DagRep.15.5.1) · [Balancing Straight-Line Programs](https://arxiv.org/abs/1902.03568) · [Random Access to LZ-End: Faster and Deterministic](https://arxiv.org/abs/2607.14923)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0467) · [Adaptive and Scalable Data Structures — Two problems on Lempel-Ziv compression](https://doi.org/10.4230/DagRep.15.5.1) · [Balancing Straight-Line Programs](https://arxiv.org/abs/1902.03568v5) · [Random Access to LZ-End: Faster and Deterministic](https://arxiv.org/abs/2607.14923v1) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86) · [LZBE: An LZ-Style Compressor Supporting O(log n)-Time Random Access](https://doi.org/10.4230/LIPIcs.CPM.2026.34)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7368 — Faster elastic-degenerate string intersection
 
