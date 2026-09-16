@@ -1012,6 +1012,13 @@ A three-dimensional vector addition system with states combines a finite control
 [Read in atlas](index.html#TCS-6245) · [Involved VASS Zoo (Invited Talk)](https://doi.org/10.4230/LIPIcs.CONCUR.2022.5) · [Reachability in 3-VASS Is Elementary](https://drops.dagstuhl.de/storage/00lipics/lipics-vol334-icalp2025/LIPIcs.ICALP.2025.153/LIPIcs.ICALP.2025.153.pdf) · [3-VASS Reachability is in EXPSPACE](https://arxiv.org/abs/2607.14983v1) · [Reachability in 3-VAS](https://arxiv.org/abs/2608.04786v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-4302 — Exact multi-objective LTL achievability in stochastic games
+
+A finite stochastic game combines controller choices, adversary choices and rational chance transitions. The selected question asks whether one randomized strategy can meet all supplied rational probability bounds for LTL properties against every adversary. Both players may depend on the whole history, and the existential strategy need not have an effective finite representation. The decision must distinguish actual exact threshold attainment from approximate or limit-sure guarantees. This user-selected decision subproblem makes one part of the broader multi-objective synthesis programme precise.
+
+[Read in atlas](index.html#TCS-4302) · [Model Checking and Strategy Synthesis for Stochastic Games: From Theory to Practice (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICALP.2016.4) · [Solving Qualitative Multi-Objective Stochastic Games](https://arxiv.org/abs/2602.12927v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-5987 — Decidability of weak bisimulation for normed BPA
 
 Basic Process Algebra represents recursive sequential processes by finite words whose leftmost variable is rewritten using a finite rule system. Normedness requires each variable to have some terminating execution and permits both silent termination and silent divergence. The question asks whether weak bisimilarity of two such processes is decidable when finite silent paths may surround every matched visible action. Known decision procedures for branching bisimilarity or totally normed subclasses do not cover the full weak equivalence defined here. A resolution would locate the algorithmic limit of hiding internal computation during exact comparison of simple infinite-state processes.
@@ -1151,13 +1158,6 @@ The machine combines finite nondeterministic choices with rational probabilistic
 
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-4302 — Strategy synthesis for multi-objective probabilistic LTL
-
-Multi-objective probabilistic synthesis asks one strategy to satisfy several quantitative requirements simultaneously in a stochastic game. When the requirements are probabilistic LTL properties, each combines an infinite-run temporal condition with a probability constraint. The source identifies strategy synthesis for these objectives in general stochastic games as the missing case beyond its restricted algorithms. A controller may need to balance conflicting objectives while accounting for both random transitions and adversarial choices. Resolving the problem would extend automated construction of strategies that meet several reliability or performance requirements, with explicit control over their achievable tradeoffs.
-
-[Read in atlas](index.html#TCS-4302) · [Model Checking and Strategy Synthesis for Stochastic Games: From Theory to Practice (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICALP.2016.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5817 — Computational interpretation of impredicativity with univalence
 

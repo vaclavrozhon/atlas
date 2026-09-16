@@ -3399,6 +3399,13 @@ The target is a conditional quantum lower bound for the Euclidean gap version of
 [Read in atlas](index.html#TCS-0658) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Quantum Meets the Minimum Circuit Size Problem](https://eccc.weizmann.ac.il/report/2021/116/revision/1/) · [Deterministic Hardness of Approximation of Unique-SVP and GapSVP in \(\ell_p\) Norms for \(p>2\)](https://doi.org/10.1145/3798129.3800803) · [NP-hardness of SVP in Euclidean Space](https://arxiv.org/abs/2603.27398)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6863 — Polynomial-factor approximation of cyclotomic ideal SVP
+
+An ideal in a power-of-two cyclotomic ring is a full integer lattice closed under multiplication by the ring. The selected question asks for a classical randomized polynomial-time algorithm returning an actual nonzero vector within a fixed polynomial factor of the shortest length. One program and fixed exponents must work for every dimension and every explicitly supplied ideal basis, with all preprocessing and output charged. This is an expressly labeled specialization of Peikert’s broad question about algorithmic advantages of ideal-lattice structure. Conditional quantum algorithms, easy prime-ideal classes and the new exact-hardness claims in other rings do not determine this all-ideals target.
+
+[Read in atlas](index.html#TCS-6863) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939) · [Mildly Short Vectors in Cyclotomic Ideal Lattices in Quantum Polynomial Time](https://ir.cwi.nl/pub/30736/) · [On the ideal shortest vector problem over random rational primes](https://par.nsf.gov/servlets/purl/10322409) · [Some Easy Instances of Ideal-SVP and Implications on the Partial Vandermonde Knapsack Problem](https://eprint.iacr.org/2022/709) · [Principal ideal problem and ideal shortest vector over rational primes in power-of-two cyclotomic fields](https://arxiv.org/abs/2601.07511) · [NP-hardness of ideal lattice problems](https://arxiv.org/abs/2609.15813) · [Euclidean SVP is NP-hard for Cyclic Lattices](https://arxiv.org/abs/2609.16711)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0659 — Stronger worst-case reductions to SIS and LWE
 
 SIS and LWE are average-case lattice-related problems used as foundations for cryptographic constructions. The source asks for stronger reductions connecting their difficulty to worst-case lattice problems. Such reductions translate a solver on typical generated instances into a solver for every input of a geometric problem. Improved parameters could strengthen security interpretations or broaden the range of useful cryptographic settings. The title does not identify the desired approximation, dimension, modulus, or noise improvement, so a full formulation must specify which loss in the reduction is being reduced.
@@ -3509,13 +3516,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Learning With Errors asks for hidden linear information obscured by small random noise. The saved survey question seeks classical reductions matching the full worst-case hardness guarantees of a quantum reduction. A reduction may invoke quantum computation even when the resulting average-case problem is presented to classical algorithms. Matching it classically would clarify which security connections require quantum machinery rather than only lattice geometry. The historical note does not reproduce the approximation, modulus, or noise parameters, so a weaker classical reduction or a restricted regime does not automatically meet the full target.
 
 [Read in atlas](index.html#TCS-6861) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6863 — Algorithmic advantages of ideal-lattice structure
-
-Ideal lattices have algebraic symmetries that support compact representations and fast operations. The survey asks whether those structures permit faster algorithms than general lattices, including attacks on ring-SIS and ring-LWE. The same regularity that improves implementation might also expose relationships a solver can exploit. Understanding the comparison would clarify the computational price of choosing structured lattice assumptions. The saved historical question does not fix field families or parameters, so isolated speedups or practical attacks must be distinguished from a universal asymptotic advantage for all ideal-lattice problems.
-
-[Read in atlas](index.html#TCS-6863) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6864 — Classical worst-case reductions for ring-LWE
@@ -3885,10 +3885,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6637 — Constant-colour polynomial-time colouring of 3-colourable graphs
 
-The input graph is promised to admit a proper coloring with three colors. The question asks whether some fixed constant number of colors can always be found in randomized polynomial time. The promise hides a small partition into independent sets, while the algorithm may use a larger palette. A positive result would show that a fixed relaxation of the domain makes this central promise problem tractable. The saved review distinguishes hardness for small output palettes and restricted logical models from hardness for every constant, while polynomially growing color counts remain short of the target.
+The input is a graph known to admit a three-colouring, without a supplied witness. The question asks whether one fixed larger palette permits a randomized polynomial-time algorithm on every such graph. Successful outputs must colour every vertex properly, with probability at least two thirds for each input. Growing-palette algorithms, five-colour hardness, perfect-completeness conjectures and logic-specific lower bounds leave different parts of the gap unresolved. A complete Lean-checked answer must establish such an algorithm or exclude every constant palette in the full randomized model.
 
-[Read in atlas](index.html#TCS-6637) · [Better coloring of 3-colorable graphs](https://arxiv.org/abs/2406.00357) · [Algebraic Approach to Promise Constraint Satisfaction](https://arxiv.org/abs/1811.00970) · [d-To-1 Hardness of Coloring 3-Colorable Graphs with \(O(1)\) Colors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.62) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904) · [Undefinability of Approximation of 2-to-2 Games](https://arxiv.org/abs/2504.03523)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6637) · [Better coloring of 3-colorable graphs](https://arxiv.org/abs/2406.00357v1) · [Algebraic Approach to Promise Constraint Satisfaction](https://arxiv.org/abs/1811.00970v3) · [d-To-1 Hardness of Coloring 3-Colorable Graphs with \(O(1)\) Colors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.62) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904v1) · [Undefinability of Approximation of 2-to-2 Games](https://arxiv.org/abs/2504.03523v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6675 — Search-to-decision equivalence for finite promise CSPs
 
