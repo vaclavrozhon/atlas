@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **534**.
+Pending active reviews: **533**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -393,7 +393,6 @@ Pending active reviews: **534**.
 | [TCS-6546](../../data/cards/TCS-6546.json) | One-way permutations from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6547](../../data/cards/TCS-6547.json) | Collision-resistant hashing from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6548](../../data/cards/TCS-6548.json) | Chosen-ciphertext security from ordinary public-key encryption | Cryptography | existing_detailed_audit |
-| [TCS-6549](../../data/cards/TCS-6549.json) | Oblivious transfer from public-key encryption | Cryptography | existing_detailed_audit |
 | [TCS-6551](../../data/cards/TCS-6551.json) | Unleveled fully homomorphic encryption from LWE alone | Cryptography | existing_detailed_audit |
 | [TCS-6552](../../data/cards/TCS-6552.json) | Noninteractive zero knowledge from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6562](../../data/cards/TCS-6562.json) | Word equations with linear length constraints | Automated reasoning and unification | existing_detailed_audit |

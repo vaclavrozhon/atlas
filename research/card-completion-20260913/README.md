@@ -1220,3 +1220,7 @@ The concurrent census is 1,032 active cards: 604 reviewed and 428 pending. The q
 Checkpoint 490. Completed the fixed polynomial-hard LWE-to-iO implication, precise security quantifiers, and strengthened-assumption versus heuristic boundaries through September 2026.
 
 The concurrent census is 1,032 active cards: 608 reviewed and 424 pending. The queue has 490 completed records, 456 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 25,153 formulas.
+
+Checkpoint 496. Completed arbitrary IND-CPA encryption to semi-honest OT with explicit simulation quantifiers, uniformity qualifications and 2026 source boundaries.
+
+The concurrent census is 1,032 active cards: 614 reviewed and 418 pending. The queue has 496 completed records, 462 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 25,467 formulas.
