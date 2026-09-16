@@ -4,17 +4,25 @@
   "area": "Data structures",
   "criterion": "resources",
   "question_type": "yes_no",
-  "formal": "Does a deterministic online BST algorithm exist with total access cost \\(O(n\\log(2+n)+U(X))\\) for every sequence \\(X=(x_1,\\ldots,x_m)\\in[n]^m\\), where \\[U(X)=\\sum_{t=1}^{m}\\log_2\\!\\left(2+\\min\\left\\{n,\\min_{1\\le s<t}(t-s+|x_t-x_s|)\\right\\}\\right)?\\] The minimum over an empty set is \\(+\\infty\\); the initialization term is independent of \\(m\\).",
-  "definitions": "The keys are the fixed ranks \\([n]=\\{1,\\ldots,n\\}\\). A BST has one node per key in symmetric order. Each access begins with a pointer at the root; primitive costs are moving it to a parent or child, performing a rotation incident to the pointer, and visiting the requested key. Other input-dependent state must be kept in the tree with constant-size fields per node. The algorithm sees requests only as they arrive; it may restructure the tree but may not use arbitrary jumps, an auxiliary search structure or advance knowledge. Begin with a balanced tree, constructed within the initialization allowance. There are no insertions or deletions. The target uses the elapsed-access definition of the unified bound in the 2024 paper; the cap by \\(n\\) and the additive constants cover first accesses. A uniform algorithm and universal multiplicative constant must work for all \\(n,m,X\\).",
-  "why": "The unified bound asks one search tree to exploit temporal and rank locality together, beyond proving separate working-set and dynamic-finger guarantees.",
+  "formal": "Does there exist one uniform deterministic online binary-search-tree program \\(A\\) in the model below and one integer \\(C\\ge1\\) such that, for every integer \\(n\\ge1\\), every integer \\(m\\ge0\\), and every request sequence \\(X=(x_1,\\ldots,x_m)\\in[n]^m\\), the program correctly completes all requests and\n\\[\nT_A(n,X)\\le C\\bigl(n\\log_2(n+2)+U_n(X)\\bigr),\n\\qquad\nU_n(X)=\\sum_{t=1}^{m}\\log_2\\!\\left(2+\\min\\left\\{n,\\min_{1\\le s<t}(t-s+|x_t-x_s|)\\right\\}\\right)?\n\\]\nHere \\([n]=\\{1,\\ldots,n\\}\\), an empty minimum is \\(+\\infty\\), an empty sum is zero, and \\(T_A\\) includes initialization and all computation. The same program, its fixed storage constants, and \\(C\\) must work for all \\(n,m,X\\). The guarantee is total amortized cost for every finite sequence, including every finite prefix, with no worst-case bound on an individual request.",
+  "definitions": "There is exactly one node for each key in \\([n]\\). Each node has an immutable key and parent, left-child and right-child pointers, any of which may be null. At all times these pointers describe one rooted binary tree in symmetric order: every key in a left subtree is smaller than its root key and every key in a right subtree is larger. An access to \\(x\\) must visit its node with the cursor and signal completion before the next request is revealed. The cursor starts at the current root for each access. There are no key insertions or deletions during the request sequence.\n\nThe program has finite control and fixed positive integers \\(c,d,r\\). A word has exactly \\(w=d\\lceil\\log_2(n+2)\\rceil\\) bits. Each node has \\(c\\) additional mutable words; outside the tree there are at most \\(r\\) word registers, a root pointer and one cursor. The constants and program are independent of \\(n,m,X\\). The input supplies \\(n\\) and then one key at a time; it supplies neither \\(m\\) nor a free time counter. Registers may retain data between accesses. Earlier requests are accessible only through this charged state. There are no other memory records, random bits, advice, or oracles.\n\nThe following instructions each cost one unit: copy a word or a program constant into a register; compare two unsigned words; add, subtract or multiply words modulo \\(2^w\\); unsigned integer quotient or remainder, returning zero when the divisor is zero; bitwise Boolean operations; logical shifts, with a shift by at least \\(w\\) giving zero; and conditional or unconditional branching. Each instruction has only a fixed finite number of operands. Reading the current node's key or one of its additional words, writing one of its additional words, and testing one of its three pointers for null each cost one unit. The finite instruction set is fixed; there is no instruction for arbitrary functions of a word. Root and cursor pointers cannot be converted to words, ordered or computed arithmetically. A numerical key or a number stored in metadata cannot be used as a memory address.\n\nMoving the cursor along one parent or child edge costs one unit. A rotation between the current node and its nonnull parent costs one unit, updates the usual constant number of structural pointers, preserves symmetric order, and leaves the cursor at the same key. These are the only changes to the tree during accesses. Reading another node's key or metadata requires moving the cursor there; rotations do not provide free access to that metadata. There are no auxiliary pointer fields, persistent fingers, arbitrary node jumps or cursor resets during an access. At the start of each access, receiving its key and placing the cursor at the root is one charged instruction; acknowledging successful completion is another. A null-edge move, invalid rotation, premature acknowledgement, or broken tree invariant is an incorrect execution.\n\nInitialization precedes all requests, sees only \\(n\\), and counts toward \\(T_A\\), also when \\(m=0\\). It starts with no nodes and zeroed registers except the input \\(n\\). Only during this phase, a unit-cost allocation instruction may create a zeroed node with a supplied key as the root of an empty tree or as a null left or right child of the current node, placing the cursor at the new node. Each allocation must preserve symmetric order; at most \\(n\\) nodes may be allocated, and no nodes are reclaimed. The other instructions and storage restrictions remain as above. Initialization must terminate with all keys present in the canonical balanced tree \\(B_n\\): for an interval \\([a,b]\\), its root is \\(\\lfloor(a+b)/2\\rfloor\\), its left subtree recursively represents \\([a,\\lfloor(a+b)/2\\rfloor-1]\\), and its right subtree represents \\([\\lfloor(a+b)/2\\rfloor+1,b]\\); an empty interval has no node. Any initialized metadata and registers must be computed by the same program at charged cost. Thus neither constructing the initial tree nor preprocessing is free.\n\nThe bound uses elapsed access indices \\(t-s\\), exactly as in Definition 2 of the 2024 source. It does not substitute the number of distinct intervening keys. For \\(t\\ge2\\), taking \\(s=t-1\\) shows that the inner minimum is at most \\(n\\), so the cap has no effect. When \\(m\\ge1\\), the \\(t=1\\) term is \\(\\log_2(n+2)\\); the source omits that term, which is absorbed by the initialization allowance. Logarithms and indices in the displayed bound are mathematical quantities, not free machine operations.\n\nThis fixes the existing card's bounded-storage BST interpretation as a real-world BST with all local computation charged. The classical geometric BST cost counts touched nodes or cursor moves and rotations, and can leave the computation choosing those operations uncharged; its bounds are not automatically full-runtime bounds in the model fixed here.",
+  "why": "The unified bound asks one search tree to exploit temporal and rank locality together, beyond separate working-set and dynamic-finger guarantees. Resolving whether that combined access bound is achievable would clarify a central limit of adaptive binary search trees.",
   "context_blocks": [
     {
-      "text": "Iacono introduced comparison-based structures satisfying the unified bound. Achieving it within a single BST remains the source question.",
+      "text": "The 2024 paper states the elapsed-access version of the unified bound and reports \\(O(U_n(X)+m\\log\\log n)\\) BST access bounds, apart from initialization. Its conclusion explicitly retains the question of removing the extra per-access term.",
       "citation": "primary"
     },
     {
-      "text": "Skip-splay and the group-access construction obtain \\(O(U(X)+m\\log\\log n)\\), apart from initialization. The 2024 paper explicitly notes that an older cache-tree claim was questioned and retains the exact BST target as open.",
-      "citation": "primary"
+      "text": "The real-world BST definition uses a constant number of logarithmic-bit registers and logarithmic extra bits per node. The card makes this storage convention and the cost of local computation explicit; it does not transfer a geometric access-cost theorem to full runtime without an implementation proof.",
+      "citation": "model"
+    },
+    {
+      "text": "Derryberry's thesis claimed a BST achieving the unified bound. Iacono's 2013 survey describes that claim as potentially faulty, and the 2024 paper again calls it questioned. The 2011 workshop abstract itself claims success; it is not a published correction or an independently verified resolution.",
+      "citation": "survey"
+    },
+    {
+      "text": "A preprint dated 14 April 2026 introduces a different unified bound for heaps and still says that no BST achieving the search-tree unified bound is known. Its positive tree result permits arbitrary internal remodeling and leaves outside sorted order, so it does not meet this card's BST model. The preprint's proofs were not independently verified.",
+      "citation": "later"
     }
   ],
   "references": [
@@ -23,18 +31,65 @@
       "title": "The Group Access Bounds for Binary Search Trees",
       "authors": "Parinya Chalermsook; Manoj Gupta; Wanchote Jiamjitrak; Akash Pareek; Sorrachai Yingchareonthawornchai",
       "year": 2024,
-      "url": "https://drops.dagstuhl.de/storage/00lipics/lipics-vol297-icalp2024/LIPIcs.ICALP.2024.38/LIPIcs.ICALP.2024.38.pdf",
-      "locator": "Definition 2, pp. 3 and 8; disputed cache-tree claim and concluding open question."
+      "url": "https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.38",
+      "locator": "ICALP 2024, Article 38, published 2 July 2024; DOI 10.4230/LIPIcs.ICALP.2024.38. Definition 2 and historical claim discussion, p. 38:3; Theorems 5–6, p. 38:5; Table 1, p. 38:6; concluding question and Lemma 10's geometric cost convention, p. 38:8; Theorem 17, p. 38:10. Full version arXiv:2312.15426v1, 24 December 2023, Sections 1.4 and 6."
+    },
+    {
+      "id": "model",
+      "title": "Combining Binary Search Trees",
+      "authors": "Erik D. Demaine; John Iacono; Stefan Langerman; Özgür Özkan",
+      "year": 2013,
+      "url": "https://erikdemaine.org/papers/ComboBST_ICALP2013/",
+      "locator": "ICALP 2013, pp. 388–399; DOI 10.1007/978-3-642-39206-1_33. Author PDF Section 1.1, p. 3, defines BST primitives and the real-world storage convention; arXiv:1304.7604v1 dated 29 April 2013."
+    },
+    {
+      "id": "survey",
+      "title": "In pursuit of the dynamic optimality conjecture",
+      "authors": "John Iacono",
+      "year": 2013,
+      "url": "https://arxiv.org/abs/1306.0207v1",
+      "locator": "Version 1, 2 June 2013. Introduction, pp. 1–2, distinguishes unconstrained computation in the online BST model from the real-world model; Section 4.1, p. 8, questions the Derryberry claim; bibliography [Der09] and [Sle11], p. 13."
+    },
+    {
+      "id": "claim",
+      "title": "Achieving the Unified Bound in the BST Model",
+      "authors": "Daniel Sleator",
+      "year": 2011,
+      "url": "https://www.diag.uniroma1.it/~demetres/events/ads11/abstracts/index.shtml",
+      "locator": "5th Bertinoro Workshop on Algorithms and Data Structures, 2011; abstract headed Danny Sleator. This abstract claims a cache-splay result; the later 2013 and 2024 sources question the earlier claim. Only the workshop abstract was inspected, not a complete proof or correction."
+    },
+    {
+      "id": "later",
+      "title": "Sorting under Partial Information with Optimal Preprocessing Time via Unified Bound Heaps",
+      "authors": "Daniel Rutschmann",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2604.12653v1",
+      "locator": "Version 1, 14 April 2026, latest displayed revision checked 16 September 2026. Definition 1 and Theorem 2, p. 4, concern heaps; Section 2.2, pp. 6–7, discusses distinct meanings of unified bound and retains BST openness; Theorem 12, p. 10, allows unsorted leaves; Section 5.1, p. 11, describes the BST extension as open."
     }
   ],
   "progress": [
     {
-      "date": "2024",
-      "text": "The source matches the unified bound with an additive logarithmic-logarithmic charge per access and explicitly retains its removal as open.",
+      "date": "2013-06-02",
+      "text": "Iacono's survey records doubts about the earlier BST claim and distinguishes geometric access cost from implementable real-world BSTs.",
+      "citation": "survey"
+    },
+    {
+      "date": "2024-07-02",
+      "text": "The ICALP paper uses the elapsed-access definition, reports the additive \\(O(m\\log\\log n)\\) overhead and explicitly retains the full unified-bound question.",
+      "citation": "primary"
+    },
+    {
+      "date": "2026-04-14",
+      "text": "A later primary preprint on unified-bound heaps again distinguishes its heap result from the unresolved BST bound.",
+      "citation": "later"
+    },
+    {
+      "date": "2026-09-16",
+      "text": "Rechecked the source definitions, the older claim and the later heap result; specified uniformity, word storage, charged local computation, canonical initialization and the full negation.",
       "citation": "primary"
     }
   ],
-  "answer_criterion": "Give a complete Lean-checked proof of the stated existence claim or its logical negation, with the same inputs, computation model, space allowance, quantifiers and cost guarantees. A result for a restricted input family or a different model does not decide the full target.",
+  "answer_criterion": "Give a complete mathematically correct Lean proof of the stated existence claim, including the uniform program, fixed storage constants, initialization, online correctness and total cost bound, or a complete Lean proof of its full logical negation. The negation says that for every candidate program with every allowed choice of its fixed storage constants and every integer \\(C\\ge1\\), there exist \\(n\\ge1\\), \\(m\\ge0\\), and \\(X\\in[n]^m\\) for which initialization or a request fails to finish correctly, or \\(T_A(n,X)>C(n\\log_2(n+2)+U_n(X))\\). Refuting one proposed tree, bounding only restricted sequences, or proving a conditional lower bound does not establish this universal nonexistence claim. The Lean theorem must use precisely the stated elapsed-access bound, storage and computation model.",
   "related": [],
   "related_problem_ids": [
     "TCS-6498",
@@ -43,18 +98,16 @@
   "year": 2024,
   "evidence": "reviewed",
   "status": "source_open",
-  "status_note": "Open in the cited dated sources. The bounded source and subsequent-result review on 13 September 2026 found no verified resolution of this target; this is not exhaustive certification of current openness.",
+  "status_note": "Source-open: ICALP 2024 explicitly retains the elapsed-access unified-bound question, and arXiv:2604.12653v1 of 14 April 2026 again reports that no BST with the unified bound is known. The earlier cache-splay claim is questioned in the checked 2013 and 2024 sources; the 2026 positive result concerns a different heap model. A bounded review through 16 September 2026 found no verified resolution. The card fixes an explicit real-world implementation model with charged computation; geometric access-cost bounds alone do not establish its full-runtime guarantee.",
   "model_self_contained": true,
   "requires_context": false,
-  "formulation_reviewed_on": "2026-09-13",
+  "formulation_reviewed_on": "2026-09-16",
   "statement_review": {
     "status": "revised",
-    "reviewed_on": "2026-09-13",
+    "reviewed_on": "2026-09-16",
     "remaining_issue": "",
-    "notes": [
-      "Restores the historical unified-bound identity at the user’s request. Uses the elapsed-access formulation in Definition 2, with explicit initialization and first-access conventions."
-    ],
-    "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+    "notes": "Preserved importance 84, category, related-problem IDs and the existing elapsed-access target. The cap by n is redundant at every noninitial access, and the first term is covered by initialization. Made the existing bounded-state model precise using logarithmic-bit words, a single root-start cursor, constant node fields and registers, and charged local computation. Specified the exact initial balanced tree, a charged uniform construction phase, all online boundary operations, and the full quantified negation. Recorded this operational real-world interpretation explicitly instead of claiming equivalence to the more permissive geometric cost model. Distinguished the questioned cache-splay claim and the 2026 heap result from a verified solution.",
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
   "importance": {
     "score": 84,
@@ -68,17 +121,21 @@
   },
   "working_summary": {
     "sentences": [
-      "A search should be cheap when its key is close in rank to a recently requested key.",
-      "The unified bound combines this spatial locality with temporal locality.",
-      "The target requires a single online binary search tree.",
-      "Known BST bounds include an extra logarithmic-logarithmic term per access.",
-      "The cited source distinguishes an earlier disputed claim from an established solution."
+      "The unified bound makes an access inexpensive when its key is close in rank to a recently accessed key.",
+      "This card uses the 2024 elapsed-access definition and asks for a single deterministic online binary search tree.",
+      "The target is total cost within a constant factor of that bound plus one initialization allowance.",
+      "The fixed program uses a constant number of logarithmic-bit fields and registers, and all local computation is charged.",
+      "The checked 2024 and 2026 sources retain the BST question, while the older cache-splay claim and the newer heap result do not provide a verified resolution in this model."
     ],
     "basis": "saved_sources",
-    "source_basis": "source-text",
-    "written_on": "2026-09-13",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-16",
     "source_refs": [
-      "primary"
+      "primary",
+      "model",
+      "survey",
+      "claim",
+      "later"
     ]
   },
   "researcher_import": {
@@ -88,9 +145,24 @@
     ],
     "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
   },
-  "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-16; see research/card-completion-20260913/reviews.jsonl.",
   "id": "TCS-5706",
   "published_at": "2026-09-13T09:26:53+00:00",
-  "updated_at": "2026-09-13T09:26:53+00:00",
-  "is_new": true
+  "updated_at": "2026-09-16T05:13:30+00:00",
+  "is_new": true,
+  "quality_review": {
+    "reviewed_on": "2026-09-16",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": "Preserved importance 84, category, related-problem IDs and the existing elapsed-access target. The cap by n is redundant at every noninitial access, and the first term is covered by initialization. Made the existing bounded-state model precise using logarithmic-bit words, a single root-start cursor, constant node fields and registers, and charged local computation. Specified the exact initial balanced tree, a charged uniform construction phase, all online boundary operations, and the full quantified negation. Recorded this operational real-world interpretation explicitly instead of claiming equivalence to the more permissive geometric cost model. Distinguished the questioned cache-splay claim and the 2026 heap result from a verified solution.",
+    "checked_sources": [
+      "Read ICALP 2024 publisher PDF Definition 2, p. 38:3, and the adjacent definition of the distinct-key working-set number. The unified bound here uses elapsed t-s. For t>=2, s=t-1 proves the card's cap by n is redundant; its first term is log2(n+2). Read Theorems 5-6, Table 1, Section 1.4 and Theorem 17. The paper explicitly retains the question, and Lemma 10 counts geometric points rather than all computation. No independent full-proof audit of its upper bounds is claimed.",
+      "Downloaded the full arXiv:2312.15426v1 PDF, dated 24 December 2023. The arXiv landing page still displayed only v1 on 16 September 2026. Read the corresponding introduction, concluding question and Section 6 discussion; the canonical formulation cites the later publisher version.",
+      "Read Demaine, Iacono, Langerman and Özkan, Combining Binary Search Trees, author PDF Section 1.1, p. 3: parent/child cursor moves and cursor-parent rotations, augmented state at touched nodes, and real-world space of O(log n) bits per node and globally. Read Iacono2013 introduction, pp. 1-2, which explicitly says the broad online BST model allows unlimited computation to choose primitives and distinguishes real-world implementations. The finite word instruction set and charging all operations are an explicit completion of this card's existing operational interpretation, not a claim that the broad geometric and full-runtime models are equivalent.",
+      "Read Iacono2013 Section 4.1, p. 8: the thesis BST claim is described as potentially buggy and linked to Sleator2011. ICALP2024 p. 38:3 repeats that it was questioned. The official 2011 Bertinoro abstract, inspected through indexed primary text after a direct fetch timed out, itself claims success and provides no correction. The draft attributes uncertainty to the later sources rather than asserting an independently located counterexample or verified flaw.",
+      "Read Daniel Rutschmann, arXiv:2604.12653v1, 14 April 2026: Definition1/Theorem2 p. 4, Section2.2 pp. 6-7, Theorem12 p. 10 and Section5.1 p. 11. It reports a heap result, states there are no known BSTs with the relevant bound, and leaves extending its construction to BSTs open. Its leaves may be out of order and internal nodes remodeled arbitrarily; it is not a result in the card's fixed single-BST access model. Its full proof was not audited.",
+      "Bounded searches through 16 September 2026 used the exact unified-bound/BST terminology with 2025/2026 and post-ICALP2024 date filters, checked the 2024 full-version revision history and the 2026 primary heap paper, and searched the cache-splay claim provenance. No matching resolution was found. Search indexes include unrelated meanings of unified bound; the 2013 working-set equivalence concerns the older Sleator-Tarjan minimum-of-three bound, not the target retained here. This review is not exhaustive certification of current openness."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }

@@ -4,17 +4,37 @@
   "area": "Distributed, parallel and sublinear algorithms",
   "criterion": "models",
   "question_type": "yes_no",
-  "formal": "For every fixed integer \\(n\\ge3\\), is there a deterministic linearizable wait-free implementation of an unbounded FIFO queue for \\(n\\) asynchronous processes using only atomic read/write registers and one-shot test-and-set objects?",
-  "definitions": "Processes have distinct identifiers, arbitrary private memory and no timing information. The shared primitives are atomic registers supporting Read and Write of finite values, and test-and-set bits initially zero: TAS returns the old bit and sets it to one. An unbounded supply of fresh primitives is permitted; stronger atomic operations are not. Each process can repeatedly invoke either Enqueue(v), for any finite binary string \\(v\\), or Dequeue(). Sequential queue semantics append at the tail, remove and return the oldest item at the head, and return a distinguished empty marker immediately when empty. Linearizability requires each concurrent history to admit a sequential ordering of completed operations and a subset of pending operations that obeys these semantics and respects real-time precedence of nonoverlapping operations. Wait-freedom requires every operation of a process that continues taking steps to complete after finitely many of its own steps, regardless of delays or crashes of others. There is no restriction to designated enqueuers or dequeuers and no bound on the number of operations. Algorithms may depend on \\(n\\); they receive no random coins.",
-  "why": "The queue question tests whether consensus number alone captures the strength of basic concurrent data types, and whether weak primitives can provide per-process progress.",
+  "formal": "Is the following proposition true?\n\\[\n\\forall n\\in\\mathbb N,\\ n\\ge3\\quad\n\\exists A_n:\\quad A_n\\text{ implements a linearizable wait-free FIFO queue for }n\\text{ processes}\n\\]\nusing only the atomic read/write registers and one-shot test-and-set bits defined below? The queue is initially empty and has no capacity bound. Every process may perform arbitrarily many operations of either kind, with arbitrary finite binary strings as enqueued values. Each \\(A_n\\) is deterministic and has finite code; it may depend on \\(n\\). The quantifiers do not additionally require one compiler producing all \\(A_n\\).",
+  "definitions": "Fix \\(n\\ge3\\). There are \\(n\\) named sequential processes with identifiers \\(1,\\ldots,n\\), each knowing \\(n\\) and its own identifier. A process has unbounded private storage, initially containing only its identifier, \\(n\\), and its fixed program data. Its local computation is given by a deterministic finite Turing program on finite strings. Shared communication is confined to two countable arrays with natural-number addresses: registers \\(R_0,R_1,\\ldots\\), initially containing the empty binary string, and bits \\(B_0,B_1,\\ldots\\), initially zero. A register read atomically returns its whole current finite string; a write atomically replaces that string and returns an acknowledgement. The primitive \\(\\operatorname{TAS}(j)\\) atomically returns the old value of \\(B_j\\) and changes it to one. A bit is never reset, and every later test-and-set on that bit returns one. Any process can access any address; using a previously unused address does not require an allocation oracle. There is no fixed bound on addresses used, register bit lengths, private storage or total operations over a whole execution. A finite execution prefix uses only finite data and finitely many primitive calls.\n\nThe scheduler interleaves individual local computation steps and atomic primitive calls. Each scheduled process chooses its next action from its private state, its current invocation and previous primitive responses. Processes receive no randomness, clock, failure detector, schedule information or noncomputable oracle. They can be delayed arbitrarily and can stop forever at any point. No fairness assumption constrains other processes. Local Turing steps, primitive invocations and operation responses count as that process's own steps; no bounded step complexity is demanded.\n\nThe sequential queue state is a finite sequence of finite binary strings, initially empty. \\(\\operatorname{Enqueue}(v)\\) appends one occurrence of \\(v\\) at the end and returns a distinguished acknowledgement. \\(\\operatorname{Dequeue}()\\) removes and returns the first occurrence if the sequence is nonempty; otherwise it returns a distinguished \\(\\mathsf{Empty}\\) value without changing the state. Empty, acknowledgement and string-valued responses have separate tags, so the empty binary string is an ordinary possible item. Repeated equal values represent separate occurrences. Each process can invoke either operation whenever its previous invocation has returned, so it has at most one pending invocation. Clients may choose later invocations from earlier responses; there are no designated enqueuer or dequeuer roles, no bound on the number of calls and no promise that a dequeue finds an item.\n\nLinearizability is required for every finite execution prefix. Take its history of queue invocations and responses. Append responses to any chosen subset of pending invocations and discard the other pending invocations. There must be a total order of the resulting completed operations that preserves each process's order, respects every real-time precedence in the completed history, and gives exactly their responses under the sequential queue specification. Here real-time precedence means that one operation's response occurs before the other's invocation. The choice of this total order may differ between different execution prefixes; it is not required to preserve earlier choices when a history is extended. Infinite executions must satisfy this safety condition at every finite prefix.\n\nWait-freedom is the following per-process termination property: from any reachable configuration with a pending operation of process \\(p\\), every continuation in which \\(p\\) takes infinitely many of its own steps contains a response to that operation after finitely many such steps, regardless of all other processes' delays, crashes or continuing operations. Thus an infinite execution in which one process's pending operation never finishes despite that process continuing to take steps is forbidden, even if other operations keep completing. These definitions specify ordinary linearizability and wait-freedom, with unlimited resource capacity; they impose neither strong linearizability nor a resource bound uniform over all histories.",
+  "why": "A queue orders work shared by concurrent processes. This question asks whether very weak synchronization suffices to guarantee that each continuing process finishes, even while others stop or interfere. It tests the distinction between consensus power and the ability to implement a reusable data type.",
   "context_blocks": [
     {
-      "text": "Stacks belong to Common2, but this does not give a queue implementation. Restricted one- or two-enqueuer/dequeuer queues leave the unrestricted many-process interface unresolved.",
+      "text": "The OPODIS 2015 paper, published in 2016, explicitly asks whether an \\(n\\)-process ordinary linearizable wait-free queue can be built from test-and-set and registers for every \\(n\\ge3\\). This card retains that quantifier order and the unrestricted repeated-operation interface, with finite-string values and explicit deterministic computation conventions.",
       "citation": "primary"
     },
     {
-      "text": "The source explicitly identifies the open question with an n-process linearizable wait-free queue built from test-and-set and registers. Lock-free system-wide progress is a weaker guarantee.",
-      "citation": "primary"
+      "text": "The consensus number of an object type is the largest number of processes for which copies of that type together with registers can solve wait-free consensus: every continuing process decides one proposed input value and all decisions agree. Test-and-set and queues have consensus number two. That agreement capability by itself does not supply a many-process queue implementation. Common2 is the historical class of types implementable in a wait-free manner from any object type of consensus number two.",
+      "citation": "two"
+    },
+    {
+      "text": "Stacks admit Common2 implementations. This result concerns last-in-first-out removal and does not supply the first-in-first-out semantics of the target. The source also studies unbounded numbers of participating processes; the present question allows a separate implementation for each fixed finite process count.",
+      "citation": "stacks"
+    },
+    {
+      "text": "Eisenstat gives a Common2 queue for at most two enqueuing processes and any number of dequeuing processes. The stated restriction on who can enqueue leaves the unrestricted interface in this card unanswered.",
+      "citation": "two"
+    },
+    {
+      "text": "The OPODIS 2022 article, published in February 2023, explicitly repeats the open Common2 queue question. Its efficient exact queue uses compare-and-swap, which atomically checks an expected value and conditionally writes a replacement; that primitive is unavailable here. Its separate multiplicity variant relaxes removal semantics.",
+      "citation": "queue2023"
+    },
+    {
+      "text": "Strong linearizability requires one choice of linearizations that preserves prefixes across histories. The 2025 paper proves an impossibility for strongly linearizable queues from the relevant weak primitives. Its progress condition is lock-freedom, meaning that infinitely many steps yield infinitely many completed operations somewhere in the system. The stronger correctness requirement prevents this result from being an impossibility for ordinary linearizability.",
+      "citation": "hyper"
+    },
+    {
+      "text": "The PODC 2026 paper extends impossibility results for strongly linearizable queues, including settings with additional primitives and at least four processes. Those results continue to assume strong linearizability. The checked full version therefore does not refute the ordinary wait-free target.",
+      "citation": "referee"
     }
   ],
   "references": [
@@ -22,19 +42,84 @@
       "id": "primary",
       "title": "Nontrivial and Universal Helping for Wait-Free Queues and Stacks",
       "authors": "Hagit Attiya; Armando Castañeda; Danny Hendler",
-      "year": 2015,
-      "url": "https://drops.dagstuhl.de/storage/00lipics/lipics-vol046-opodis2015/LIPIcs.OPODIS.2015.31/LIPIcs.OPODIS.2015.31.pdf",
-      "locator": "§1, particularly p. 2, and the model definitions."
+      "year": 2016,
+      "url": "https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2015.31",
+      "locator": "OPODIS 2015, article 31, published 13 October 2016; Section 1, page 31:2, explicit queue question; Section 2, pages 31:3–4, computation model, progress, linearizability and consensus number"
+    },
+    {
+      "id": "stacks",
+      "title": "Common2 Extended to Stacks and Unbounded Concurrency",
+      "authors": "Yehuda Afek; Eli Gafni; Adam Morrison",
+      "year": 2006,
+      "url": "https://www.cs.tau.ac.il/~mad/publications/podc06.pdf",
+      "locator": "PODC 2006, pages 218–227; abstract and Introduction, pages 218–219; Section 2, page 219; Corollary 2, page 220. Journal version: Distributed Computing 20 (2007), pages 239–252, DOI 10.1007/s00446-007-0023-3"
+    },
+    {
+      "id": "two",
+      "title": "Two-enqueuer queue in Common2",
+      "authors": "David Eisenstat",
+      "year": 2009,
+      "url": "https://arxiv.org/abs/0805.0444v2",
+      "locator": "Version 2, 7 April 2009; first posted 4 May 2008; Introduction and Table 1, pages 1–2; Section 2 and Table 2, pages 2–3, interface and model"
+    },
+    {
+      "id": "queue2023",
+      "title": "Efficient Wait-Free Queue Algorithms with Multiple Enqueuers and Multiple Dequeuers",
+      "authors": "Colette Johnen; Adnane Khattabi; Alessia Milani",
+      "year": 2023,
+      "url": "https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2022.4",
+      "locator": "OPODIS 2022, article 4, published 15 February 2023; Table 1 and Section 1.2, page 4:2; Section 2, page 4:3; Section 3.2, page 4:5, CAS-based timestamp tree"
+    },
+    {
+      "id": "hyper",
+      "title": "Preserving hyperproperties of programs using primitives with consensus number 2",
+      "authors": "Hagit Attiya; Armando Castañeda; Constantin Enea",
+      "year": 2025,
+      "url": "https://doi.org/10.1007/s00236-025-00500-3",
+      "locator": "Acta Informatica 62, article 29, published 6 August 2025; Section 8, queues as 1-ordering objects, page 29; Theorem 26, page 33; Theorem 20, page 28, is a multiset result"
+    },
+    {
+      "id": "referee",
+      "title": "Impossibility Results for Strong Linearizability: The Difficulty of Consistent Refereeing",
+      "authors": "Hagit Attiya; Armando Castañeda; Constantin Enea",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2506.18401v3",
+      "locator": "Full version 3, 10 June 2026; Section 2, pages 4–5; Theorem 1, page 5; Corollary 12, page 10. PODC 2026, pages 445–455, published 1 July 2026, DOI 10.1145/3796701.3815906"
     }
   ],
   "progress": [
     {
-      "date": "2015",
-      "text": "The source explicitly retains Common2 membership of a fully accessible FIFO queue as open.",
+      "date": "2006",
+      "text": "Stacks are shown to belong to Common2; the queue question is kept separate.",
+      "citation": "stacks"
+    },
+    {
+      "date": "2009-04-07",
+      "text": "The revised preprint provides a queue with two enqueuers and any number of dequeuers.",
+      "citation": "two"
+    },
+    {
+      "date": "2016-10-13",
+      "text": "The published OPODIS 2015 article explicitly states the unrestricted ordinary wait-free queue question.",
       "citation": "primary"
+    },
+    {
+      "date": "2023-02-15",
+      "text": "The published OPODIS 2022 article still identifies Common2 queue membership as open while giving bounds with stronger primitives.",
+      "citation": "queue2023"
+    },
+    {
+      "date": "2025-08-06",
+      "text": "An impossibility theorem excludes strongly linearizable lock-free queues from the stated weak primitives.",
+      "citation": "hyper"
+    },
+    {
+      "date": "2026-07-01",
+      "text": "The PODC paper extends strong-linearizability impossibilities; the checked full version retains that stronger hypothesis.",
+      "citation": "referee"
     }
   ],
-  "answer_criterion": "Give a complete Lean-checked proof of the stated existence claim or its logical negation, with the same inputs, computation model, space allowance, quantifiers and cost guarantees. A result for a restricted input family or a different model does not decide the full target.",
+  "answer_criterion": "Give a complete mathematically correct Lean proof of the displayed proposition, including both safety and per-process termination for every \\(n\\ge3\\), or a complete Lean proof of its logical negation: there is an integer \\(n\\ge3\\) for which no permitted implementation exists. A result confined to restricted process roles, stronger primitives, a stronger correctness condition, or system-wide progress alone does not settle this proposition.",
   "related": [],
   "related_problem_ids": [
     "TCS-3792",
@@ -43,18 +128,16 @@
   "year": 2015,
   "evidence": "reviewed",
   "status": "source_open",
-  "status_note": "Explicitly open in the cited primary source. The bounded 13 September 2026 literature search found no later general resolution; the source date is retained rather than presented as a 2026 theorem.",
+  "status_note": "Explicitly open in the OPODIS 2015 article published in 2016 and again in the OPODIS 2022 article published in February 2023. The bounded source and subsequent-result review on 16 September 2026 found no resolution of the unrestricted ordinary linearizable wait-free queue target. The checked 2025 and 2026 impossibility theorems assume strong linearizability; they are not refutations of this card. This status records dated source evidence, not exhaustive current-openness certification.",
   "model_self_contained": true,
   "requires_context": false,
-  "formulation_reviewed_on": "2026-09-13",
+  "formulation_reviewed_on": "2026-09-16",
   "statement_review": {
     "status": "revised",
-    "reviewed_on": "2026-09-13",
+    "reviewed_on": "2026-09-16",
     "remaining_issue": "",
-    "notes": [
-      "Individual formulation, model, duplicate and category review for the user-requested researcher list."
-    ],
-    "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+    "notes": "Retained the original every-fixed-n ordinary linearizable wait-free queue target, without adding uniform compilation across n. Specified finite deterministic local programs, fixed initial shared memory, binary-string values, repeated unrestricted operations, exact prefix safety and per-process termination. Distinguished shared capacity from quantitative space/step bounds, empty queue responses from constant-time claims, and ordinary linearizability from prefix-preserving strong linearizability. Preserved importance 86 and category. Corrected the reference publication year: OPODIS 2015 article 31 was published on 13 October 2016.",
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
   "importance": {
     "score": 86,
@@ -68,17 +151,22 @@
   },
   "working_summary": {
     "sentences": [
-      "Several processes concurrently insert and remove items from a FIFO queue.",
-      "Every continuing process must complete its own operation despite arbitrary delays of others.",
-      "Only read/write registers and test-and-set primitives are available.",
-      "Known restricted queue implementations do not cover the full interface.",
-      "The question separates the synchronization power of a queue from that of weaker shared objects."
+      "Several named processes repeatedly insert arbitrary items into a first-in-first-out queue and remove the oldest remaining item.",
+      "Only atomic read/write registers and initially unused test-and-set bits are available, with no fixed memory-capacity limit.",
+      "For every fixed process count, the question asks for a deterministic implementation in which every continuing process finishes each operation despite arbitrary interference or crashes.",
+      "Correctness requires ordinary linearizability, allowing a legal sequential explanation of every history without demanding one prefix-preserving choice across histories.",
+      "Known restricted-role queues and impossibility theorems under strong linearizability do not settle this unrestricted target."
     ],
     "basis": "saved_sources",
-    "source_basis": "source-text",
-    "written_on": "2026-09-13",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-16",
     "source_refs": [
-      "primary"
+      "primary",
+      "stacks",
+      "two",
+      "queue2023",
+      "hyper",
+      "referee"
     ]
   },
   "researcher_import": {
@@ -88,9 +176,25 @@
     ],
     "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
   },
-  "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-16; see research/card-completion-20260913/reviews.jsonl.",
   "id": "TCS-7336",
   "published_at": "2026-09-13T09:26:53+00:00",
-  "updated_at": "2026-09-13T09:26:53+00:00",
-  "is_new": true
+  "updated_at": "2026-09-16T05:08:15+00:00",
+  "is_new": true,
+  "quality_review": {
+    "reviewed_on": "2026-09-16",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": "Retained the original every-fixed-n ordinary linearizable wait-free queue target, without adding uniform compilation across n. Specified finite deterministic local programs, fixed initial shared memory, binary-string values, repeated unrestricted operations, exact prefix safety and per-process termination. Distinguished shared capacity from quantitative space/step bounds, empty queue responses from constant-time claims, and ordinary linearizability from prefix-preserving strong linearizability. Preserved importance 86 and category. Corrected the reference publication year: OPODIS 2015 article 31 was published on 13 October 2016.",
+    "checked_sources": [
+      "Read OPODIS 2015 article 31, Section 1 page 31:2 and Section 2 pages 31:3–4, plus publisher metadata. The source explicitly identifies the same n>=3 question with registers/Test&Set. Its helping results were not inserted as solver hints. Finite-string deterministic-program and initial-state conventions are explicit editorial encodings of the retained interface, not a new bounded-space requirement.",
+      "Read Afek–Gafni–Morrison PODC2006 author PDF abstract, Introduction, Section 2 and Corollary 2 pages 218–220. Confirmed stacks, fixed n versus unbounded concurrency and the distinct queue conjecture; did not audit all stack proofs.",
+      "Read Eisenstat arXiv0805.0444v2 dated 7 April2009, Introduction, Table1 and Section2/Table2 pages1–3. Confirmed two-enqueuer restriction, ordinary FIFO empty behavior, no fairness and consensus number context. No claim that its algorithm covers all roles.",
+      "Individually checked OPODIS2022 article4, published15February2023: Section1.2 and Table1 page4:2 explicitly retain Common2 open and show CAS in the new exact queue; Section3.2 page4:5 uses CAS nodes. The relaxed multiplicity result changes queue semantics.",
+      "Checked Acta Informatica2025 paper Section8, queue example page29 and Theorem26 page33: no lock-free strongly-linearizable 1-ordering object for n>=3 from test&set/swap/fetch&add. This excludes a stronger correctness target, not ordinary linearizability. Section7.3 Theorem20 page28 concerns a multiset, not FIFO.",
+      "Checked PODC2026 publisher metadata/abstract (ACM PDF403), and full arXiv2506.18401v3 dated10June2026 Section2 pages4–5, Theorem1 page5 and Corollary12 page10. Strong linearizability remains assumed, including the expanded primitive families. Conference publication is1July2026 pages445–455.",
+      "Bounded later-result searches through16September2026 included the2022 separation paper, 2023 multiple-role queues, 2025 hyperproperty paper and2026 strong-linearizability paper. No matching ordinary wait-free Common2 FIFO implementation or impossibility was found. This is not an exhaustive openness certificate or an independent proof audit of every cited theorem."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }

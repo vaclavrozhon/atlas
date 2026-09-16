@@ -601,3 +601,22 @@ Existing scores and categories were preserved for all four cards in this batch.
 Checkpoint twenty-four was committed as fd1449e9 and verified live at
 1dd25b4a847cfab0731e. All canonical completions used shared reservations and
 input-hash validation. Source research was delegated only for reserved cards.
+
+Checkpoint twenty-six brings this process to 106 completed reviews:
+96 retained active cards, ten retirements and 44 new importance assessments.
+Existing scores and categories were preserved.
+
+- TCS-7336: unrestricted ordinary linearizable wait-free FIFO from registers
+  and test-and-set; stronger 2025/2026 linearizability impossibilities separated.
+- TCS-7244: Boolean dimension for planar undirected cover graphs; corrected
+  historical scope relative to the original planar-diagram question.
+- TCS-5706: elapsed-access unified bound in the explicit bounded-state BST
+  model, including charged computation and initialization; later heap result
+  and questioned cache-tree claim distinguished.
+- TCS-7297: retained constant-factor asymptotic l1 distortion of binary edit
+  distance with substitutions; corrected bounds and comparison with newer
+  pairwise-distance and similarity-measure results.
+
+Checkpoint twenty-five was committed as 868826fa and verified live at
+32a178c2a013de8a4e78. Source reading, reservations and input-hash checks remain
+individual; no completed review was inferred from publication validation.
