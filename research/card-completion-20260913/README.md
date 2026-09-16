@@ -1137,3 +1137,21 @@ formula checks passed on 1,037 active cards, covering 22,013 formulas. The prior
 ordinary-PRG snapshot was live-verified as b8d03e8a8af45e6bbc20, published
 2026-09-16T02:28:21+00:00, Pages commit
 7b083ccda5c699d30ff767272ee31e926b8a4843.
+
+Checkpoint 410 includes TCS-5358, distribution-free PAC learning of DNF.
+The review fixes one uniform polynomial clock, integer accuracy/confidence
+inputs, charged independent-example access, arbitrary distributions and fully
+written Boolean-circuit hypotheses. The former generic explicitness sentence
+contradicted circuit output and is removed. Complete Lean acceptance now covers
+improper learning and its full negation. Source checks retain the assumptions
+of the 2016/2021 improper lower bounds and distinguish the current exact-query,
+relative-error testing and uniform-training PQ results. The 2026 query-learning
+talk is matched to its 2025 paper rather than recorded as a new theorem.
+
+The concurrent census is 1,036 active cards: 532 completed/reviewed and 504
+pending. The queue has 410 completed records, 380 active and 30 inactive, plus
+152 active cards outside it; all active completed hashes match. Publication and
+formula checks passed on 1,036 active cards, covering 22,335 formulas. The prior
+average-case/OWF deployment was live-verified as c2665f8788b3706648c1, published
+2026-09-16T02:37:24+00:00, Pages commit
+317209ab28143dcb9ee06040fb15601b4168152f.
