@@ -1256,3 +1256,7 @@ The concurrent census is 1,031 active cards: 645 reviewed and 386 pending. The q
 Checkpoint 530. Individually completed TCS-6676: infimum approximation ratio, binary scheduling model, unattained optima and unconditional 1/100 acceptance versus conditional hardness.
 
 The concurrent census is 1,031 active cards: 647 reviewed and 384 pending. The queue has 530 completed records, 495 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,583 formulas.
+
+Checkpoint 536. Completed unrestricted truthful-in-expectation scheduling review and checked September universal-truthfulness preprint.
+
+The concurrent census is 1,029 active cards: 651 reviewed and 378 pending. The queue has 536 completed records, 499 active and 37 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,029 active cards, covering 26,742 formulas.
