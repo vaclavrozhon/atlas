@@ -453,3 +453,26 @@ with sixty-five retained active cards and nine resolved historical records:
 There are thirty-six new individual importance assessments through this draw.
 Checkpoint seventeen is committed as 8a2759c2 and verified live. The shared
 reservation API, token/hash guards and publication lock remain in use.
+
+The nineteenth random draw brings this process to seventy-eight completed reviews,
+with sixty-nine retained active cards and nine resolved historical records:
+
+- TCS-0196: finite polyhedral description of the linear-rank inequality cone for
+  every fixed number of subspaces, over all fields. Distinguished an unbounded
+  number of variables from a counterexample at one fixed dimension.
+  Existing importance 79 is preserved.
+- TCS-1241: deterministic sublogarithmic competitive ratio for unrestricted online
+  metric ordering, with exact prefix distances and irreversible old order.
+  Limited-array lower bounds do not settle this target. New importance: 85.
+- TCS-3513: explicit positive-rate codes for the source's fixed adversarial-channel
+  model. Specified rational polyhedral constraints, the completely positive
+  promise, polynomial-time encoding and an infinite effective length set.
+  Later derandomization theorems change the alphabet. New importance: 88.
+- TCS-5797: the full certificate-size versus radius function, explicitly selecting
+  anonymous unlabeled graph properties with graph-order-independent certificate
+  bounds. Documented the authorized threshold-to-function broadening and applied
+  pointwise real 1/100 acceptance. New importance: 84.
+
+There are thirty-nine new individual importance assessments through this draw.
+Checkpoint eighteen is committed as 72e59c0d and verified live. Every card uses the
+shared reservation API and completion token/hash guards; comments are preserved.
