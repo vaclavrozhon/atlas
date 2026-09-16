@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **472**.
+Pending active reviews: **471**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -365,7 +365,6 @@ Pending active reviews: **472**.
 | [TCS-6542](../../data/cards/TCS-6542.json) | Learning parity with noise in polynomial time | Learning theory | existing_detailed_audit |
 | [TCS-6543](../../data/cards/TCS-6543.json) | Learning Boolean juntas from uniform random examples | Learning theory | existing_detailed_audit |
 | [TCS-6546](../../data/cards/TCS-6546.json) | One-way permutations from one-way functions | Cryptography | existing_detailed_audit |
-| [TCS-6547](../../data/cards/TCS-6547.json) | Collision-resistant hashing from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6548](../../data/cards/TCS-6548.json) | Chosen-ciphertext security from ordinary public-key encryption | Cryptography | existing_detailed_audit |
 | [TCS-6551](../../data/cards/TCS-6551.json) | Unleveled fully homomorphic encryption from LWE alone | Cryptography | existing_detailed_audit |
 | [TCS-6552](../../data/cards/TCS-6552.json) | Noninteractive zero knowledge from one-way functions | Cryptography | existing_detailed_audit |
