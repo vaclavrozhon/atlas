@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **449**.
+Pending active reviews: **448**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -386,7 +386,6 @@ Pending active reviews: **449**.
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7228](../../data/cards/TCS-7228.json) | Exact directed maximum flow in \(O((m+n) \operatorname{polylog} n)\) time | Structural graph theory | existing_detailed_audit |
-| [TCS-7231](../../data/cards/TCS-7231.json) | P-matrix linear complementarity in polynomial time | Optimization and numerics | existing_detailed_audit |
 | [TCS-7236](../../data/cards/TCS-7236.json) | Polynomial-time private release of all marginals | Differential privacy | existing_detailed_audit |
 | [TCS-7237](../../data/cards/TCS-7237.json) | Hardness of 6-coloring 3-colorable graphs | Constraint satisfaction | existing_detailed_audit |
 | [TCS-7238](../../data/cards/TCS-7238.json) | Polynomial-time refutation of random 3-SAT at constant density | Beyond worst-case and average-case analysis | existing_detailed_audit |
