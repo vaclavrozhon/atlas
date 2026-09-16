@@ -1320,3 +1320,7 @@ The concurrent census is 1,026 active cards: 694 reviewed and 332 pending. The q
 Checkpoint 586. Complete the OWF-to-CRH implication review
 
 The concurrent census is 1,026 active cards: 698 reviewed and 328 pending. The queue has 586 completed records, 546 active and 40 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,026 active cards, covering 28,867 formulas.
+
+Checkpoint 589. Complete exact general-graph matching review
+
+The concurrent census is 1,025 active cards: 700 reviewed and 325 pending. The queue has 589 completed records, 548 active and 41 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,025 active cards, covering 28,972 formulas.

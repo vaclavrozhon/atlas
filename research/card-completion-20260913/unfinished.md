@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **471**.
+Pending active reviews: **469**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -130,7 +130,6 @@ Pending active reviews: **471**.
 | [TCS-5275](../../data/cards/TCS-5275.json) | Supercritical proof size–depth tradeoffs | Proof complexity | pool |
 | [TCS-5333](../../data/cards/TCS-5333.json) | Linear-space Cutting Planes refutations | Proof complexity | pool |
 | [TCS-6759](../../data/cards/TCS-6759.json) | PSPACE-completeness of resolution space | Proof complexity | pool |
-| [TCS-6764](../../data/cards/TCS-6764.json) | Quadratic resolution space for linear-size CNFs | Proof complexity | pool |
 | [TCS-6766](../../data/cards/TCS-6766.json) | Polynomial resolution length from logarithmic clause space | Proof complexity | pool |
 | [TCS-6767](../../data/cards/TCS-6767.json) | Resolution length–width tradeoffs | Proof complexity | pool |
 | [TCS-6770](../../data/cards/TCS-6770.json) | Cutting Planes versus polynomial-coefficient Cutting Planes | Proof complexity | pool |
@@ -359,7 +358,6 @@ Pending active reviews: **471**.
 | [TCS-6528](../../data/cards/TCS-6528.json) | Unknot recognition in polynomial time | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6533](../../data/cards/TCS-6533.json) | NL versus UL | Computational complexity | existing_detailed_audit |
 | [TCS-6536](../../data/cards/TCS-6536.json) | Deterministic linear-time minimum spanning tree | Structural graph theory | existing_detailed_audit |
-| [TCS-6538](../../data/cards/TCS-6538.json) | Almost-linear-time exact maximum matching in general graphs | Structural graph theory | existing_detailed_audit |
 | [TCS-6539](../../data/cards/TCS-6539.json) | Almost-linear triangle detection | Structural graph theory | existing_detailed_audit |
 | [TCS-6541](../../data/cards/TCS-6541.json) | Linear-size sample compression | Learning theory | existing_detailed_audit |
 | [TCS-6542](../../data/cards/TCS-6542.json) | Learning parity with noise in polynomial time | Learning theory | existing_detailed_audit |
