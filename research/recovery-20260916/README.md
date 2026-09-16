@@ -77,6 +77,10 @@ Completed in this continuation:
   membership and strong separation in polynomial bit time.
 - TCS-0834: the full four-parameter degree-distribution query function,
   with only the vertex count supplied to the algorithm.
+- TCS-1588: the joint continuous chemical-reaction classification, with
+  fixed arbitrary positive rate constants and the exact source output classes.
+- TCS-2753: the historical fault-adaptive binary Byzantine agreement question,
+  completed and archived after matching published PODC 2026 Theorem 3.1.
 
 The six scope answers received during this continuation are preserved in
 [current-user-decisions.json](current-user-decisions.json). They authorize the
@@ -136,3 +140,18 @@ the queue contains 671 completed records, 243 pending records and one outside
 active scope. Of 1,018 active cards, 775 have completed individual reviews.
 The formula check passed on all active cards and 32,748 expressions.
 All six user scope choices received during recovery have now been applied.
+
+After twenty-nine dispositions the queue contains 673 completed records,
+241 pending records and one outside active scope. Of 1,017 active cards,
+776 have completed individual reviews. The formula check passed with 32,788
+expressions. Source checkpoint f12a0d73 covers the first twenty-seven
+dispositions and was pushed. Its publication c63459973fda7453a902 passed
+the offline checks and was deployed.
+
+Other user work concurrently changed the reader and contribution service.
+Those uncommitted source changes are not part of these editorial commits.
+An isolated publication initially replaced the newer live frontend; the six
+affected assets were immediately restored byte-for-byte from the preceding
+deployment, retaining the new card data. The corrected deployment is
+6f9a99dc41c90f8e162b32a05a7407833b7f23f8. Those frontend files also match
+the shared working copy as checked on 16 September 2026.

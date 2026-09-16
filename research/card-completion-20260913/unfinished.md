@@ -5,12 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **243**.
+Pending active reviews: **241**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-1588](../../data/cards/TCS-1588.json) | Characterizing robustly computable predicates and functions | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-2753](../../data/cards/TCS-2753.json) | Fully adaptive strong Byzantine agreement with optimal resilience | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-3384](../../data/cards/TCS-3384.json) | Approximate matching and set packing in \(\mathrm{AC}^{0}\) | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-4231](../../data/cards/TCS-4231.json) | Complexity of general subgraph detection | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-4763](../../data/cards/TCS-4763.json) | Work-efficient parallel approximate flow | Distributed, parallel and sublinear algorithms | pool |
