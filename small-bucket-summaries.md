@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-608 five-sentence working summaries, based on saved source material.
+609 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1999,7 +1999,7 @@ The source asks to separate both polynomial-delay and incremental-polynomial enu
 [Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Structural graph theory and graph algorithms (51)
+## Structural graph theory and graph algorithms (52)
 
 ### TCS-6651 — Hadwiger’s conjecture
 
@@ -2084,6 +2084,13 @@ MSO1 permits quantification over vertices and vertex sets in a graph. Seese's co
 
 [Read in atlas](index.html#TCS-6654) · [Forbidden Induced Subgraphs for Bounded Shrub-Depth and the Expressive Power of MSO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.167) · [The structure of the models of decidable monadic theories of graphs](https://doi.org/10.1016/0168-0072(91)90054-P) · [Vertex-minors, monadic second-order logic, and a conjecture by Seese](https://www.labri.fr/perso/courcell/Textes1/BC-Oum%282007%29.pdf) · [MSO undecidability for hereditary classes of unbounded clique-width](https://doi.org/10.1016/j.ejc.2023.103700) · [Hereditary 2-WQO Graph Classes Have Bounded Clique-Width](https://arxiv.org/abs/2607.10939)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7228 — Exact directed maximum flow in \(O((m+n) \operatorname{polylog} n)\) time
+
+An exact maximum flow routes the largest possible integral amount between two terminals while obeying every arc capacity and intermediate conservation law. For each fixed polynomial bound on capacities, the question asks for one algorithm whose time is input size times a single fixed power of a logarithm. The specified randomized word-RAM must respect that total time on every execution and return a complete optimal flow with probability at least two thirds on each valid input. A complete Lean proof must supply the algorithm and both guarantees or rule out all such algorithms for some fixed capacity exponent. The checked exact almost-linear algorithms and undirected approximation results do not establish this fixed-polylogarithmic exact directed-flow target.
+
+[Read in atlas](index.html#TCS-7228) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671) · [A Deterministic Almost-Linear Time Algorithm for Minimum-Cost Flow](https://arxiv.org/abs/2309.16629) · [Almost-Linear Time Algorithms for Decremental Graphs: Min-Cost Flow and More via Duality](https://arxiv.org/abs/2407.10830) · [Maximum Flow Without the Outer IPM](https://arxiv.org/abs/2608.17384) · [Faster Weak Expander Decompositions and Approximate Max Flow](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.91)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6655 — Cereceda’s conjecture
 

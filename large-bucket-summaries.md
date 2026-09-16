@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-404 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1159,7 +1159,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (59)
+## Distributed, parallel and sublinear algorithms (58)
 
 ### TCS-6553 — P versus NC
 
@@ -1447,13 +1447,6 @@ The output is a single estimate of the largest absolute coordinate of a streamed
 
 [Read in atlas](index.html#TCS-0985) · [Open Problem 3: L-infinity Estimation](https://sublinear.info/3) · [An Optimal Algorithm for l1-Heavy Hitters in Insertion Streams and Related Problems](https://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/bdw16.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-14
-
-### TCS-0988 — Deterministic Summary Structures
-
-A turnstile stream adds and subtracts from item frequencies, and the algorithm must later estimate individual frequencies with error proportional to the final l1 norm. Randomized summaries achieve small memory by hashing items into shared counters. The source asks whether a deterministic summary can match that space usage. It describes deterministic constructions with larger dependence on the accuracy parameters and conjectures that the gap may be necessary. An algorithm or lower bound would clarify whether randomness is essential for compact frequency summaries under cancellations and adversarial updates.
-
-[Read in atlas](index.html#TCS-0988) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:4)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0834 — Estimating a Graph's Degree Distribution
 
@@ -1951,10 +1944,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-0432 — Polynomial flip-distance bounds for three-manifold triangulations
 
-Triangulations of the same compact three-manifold are connected by local bistellar flips. The question asks whether two triangulations can always be connected using polynomially many such moves in their input sizes. The polynomial is initially allowed to depend on the fixed manifold. A path may temporarily use different numbers of tetrahedra, so connectivity alone provides no useful quantitative bound. The result would control the amount of local rewriting needed to pass between alternative finite descriptions of one topological space.
+A compact connected three-manifold can be represented by many finite simplicial triangulations. The question asks whether each fixed manifold admits a polynomial bound, in the two endpoint tetrahedron counts, on the number of local moves connecting any pair of its triangulations. The specified convention permits both interior bistellar flips and elementary boundary shellings and their inverses, explicitly repairing the boundary ambiguity in the original source. Such a bound would give short certificates connecting finite descriptions of the same space without requiring an efficient method to find them or a single polynomial for every manifold. A complete Lean answer must prove the bound for every fixed manifold type or exhibit one fixed type whose triangulation distances defeat every polynomial.
 
-[Read in atlas](index.html#TCS-0432) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0432) · [The homeomorphism problem, in Triangulations in Geometry and Topology (Dagstuhl Seminar 24072)](https://doi.org/10.4230/DagRep.14.2.120) · [K3: A New Problem List in Low-Dimensional Topology, Problem 3.28](https://math.berkeley.edu/sites/default/files/surv-295-ruberman-watermarked-author-pdf.pdf) · [An upper bound on Pachner moves relating geometric triangulations](https://arxiv.org/abs/1902.02163v3)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0428 — NP recognition of closed hyperbolic three-manifolds
 
