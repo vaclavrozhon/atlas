@@ -1173,3 +1173,26 @@ formulas. The completion checkpoint has 416 finished queue records, including
 and 498 pending at that completion. The prior DNF snapshot was live-verified as
 119e25635e8119e36b9c, published 2026-09-16T02:42:21+00:00, Pages commit
 b07615d7bdf8bb0386e45832d87d7d1564ece453.
+
+Checkpoint 447 completes TCS-6585 (general sparse linear systems),
+TCS-7316 (matroid secretary) and TCS-5779 (correlated contention resolution).
+The sparse-system card fixes every word-RAM, input, precision, clock and output
+convention and the full Lean quantifiers. The two online-selection cards now
+have complete models, expected/per-element guarantees and known-prior scope.
+
+The user-requested recent-arXiv intake additionally refreshes TCS-6575
+(deterministic k-server), TCS-4737 (Clifford+T QMA perfect completeness) and
+TCS-6450 (classical/quantum communication). Matching new proof claims change
+these and the two secretary-related cards to uncertain, with theorem/model
+matches and explicit independent-verification limits. The new communication
+source corrects an earlier bounded search that missed the August exponential
+claim. See recent-arxiv-20260916.md for coverage, dated sources and boundaries.
+No existing archived bodies were reviewed.
+
+The concurrent census is 1,035 active cards: 568 reviewed and
+467 pending. The queue has 447 completed records,
+416 active and 31 inactive, plus 152 active cards outside
+it; all active completed hashes match. Publication and formula checks passed
+on 1,035 active cards, covering 23,676 formulas. The previous SDP deployment
+succeeded as de24eb0164ebb15ca134, Pages commit
+6b64228839bcf02a45fe76aa3aa836cd784c6559.
