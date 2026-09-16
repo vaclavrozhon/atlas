@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-401 five-sentence working summaries, based on saved source material.
+400 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1159,7 +1159,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (56)
+## Distributed, parallel and sublinear algorithms (55)
 
 ### TCS-6553 — P versus NC
 
@@ -1392,6 +1392,13 @@ A 2-ruling set is independent and covers every graph vertex within distance two.
 [Read in atlas](index.html#TCS-4193) · [Symmetry Breaking in the Congest Model: Time- and Message-Efficient Algorithms for Ruling Sets](https://doi.org/10.4230/LIPIcs.DISC.2017.38) · [Distributed Lower Bounds for Ruling Sets](https://arxiv.org/abs/2004.08282v4) · [Near-Optimal Distributed 2-Ruling Sets on Graphs with Low Arboricity](https://arxiv.org/abs/2606.11974v3)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-4763 — Work-efficient parallel approximate flow
+
+The question concerns parallel approximation of single-commodity flow in undirected graphs. It asks for an algorithm for at least one of two full classes: edge-capacitated flow under a cost budget, or vertex-capacitated maximum flow. The output must be a feasible flow with value within a factor of one plus the requested inverse-polylogarithmic error of optimum. The target combines nearly-linear total work with polylogarithmic depth, improving on general results with subpolynomial overhead. The checked 2026 expander result addresses a restricted case and does not settle this general graph question.
+
+[Read in atlas](index.html#TCS-4763) · [Parallel (1+ε)-Approximate Multi-Commodity Min-Cost Flow in Almost Optimal Depth and Work](https://doi.org/10.1109/FOCS63196.2025.00099) · [Parallel (1+ε)-Approximate Multi-Commodity Mincost Flow in Almost Optimal Depth and Work](https://arxiv.org/abs/2510.20456v1) · [Parallel Approximate Maximum Flows in Near-Linear Work and Polylogarithmic Depth](https://doi.org/10.1137/1.9781611977912.140) · [Back in the Saddle: Toward Parallel Approximate Minimum-Cost Flow](https://doi.org/10.4230/LIPIcs.ICALP.2026.136) · [Parallel Minimum Cost Flow in Near-Linear Work and Square Root Depth for Dense Instances](https://arxiv.org/abs/2503.13274)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7337 — Register space of obstruction-free set agreement
 
 Each process proposes a value and must decide one of the values proposed by participating processes. At most k distinct values may be decided, and a process must finish if it continues alone long enough. The resource is the number of atomic read/write registers, whose individual capacities are unrestricted. Known bounds range from the ceiling of n/k to n-k+1; consensus and (n-1)-set agreement have exact values. The target is the full register-space function for all n>k>=1, with the atlas's pointwise 1/100-register acceptance tolerance.
@@ -1524,20 +1531,6 @@ The question asks whether any fixed 2-vertex-connected graph can be detected in 
 
 [Read in atlas](index.html#TCS-4274) · [Lower Bounds for Subgraph Detection in the CONGEST Model](https://doi.org/10.4230/LIPIcs.OPODIS.2017.6) · [Distributed Subgraph Finding: Progress and Challenges](https://arxiv.org/abs/2203.06597) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-4763 — Work-efficient parallel approximate flow
-
-Parallel flow algorithms seek small total work and short dependency depth while approximating an optimum flow value or cost. The question asks for nearly linear work and polylogarithmic depth for either edge-capacitated minimum-cost flow or vertex-capacitated maximum flow with approximation \(1 + \varepsilon\). The source works on undirected graphs and obtains almost-linear work with subpolynomial depth, leaving a gap between subpolynomial and polylogarithmic guarantees. Existing shortest-path and edge-capacitated maximum-flow results motivate trying to remove that gap. A solution would make richer capacity and cost models as parallelizable as these more established flow primitives.
-
-[Read in atlas](index.html#TCS-4763) · [Parallel \((1+e)\)-Approximate Multi-Commodity Min-Cost Flow in Almost Optimal Depth and Work](https://doi.org/10.1109/FOCS63196.2025.00099)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5427 — Characterizing multipass turnstile streaming
-
-Turnstile streaming algorithms process positive and negative updates to an underlying vector while storing a compact state. For one pass, the source discusses a characterization showing that general algorithms can be replaced by suitable linear sketches under stated correctness assumptions. The question asks whether a comparable characterization exists when several passes over the stream are allowed. Later passes can adapt to information gathered earlier, so a fixed linear summary may no longer capture all useful interactions. A structural theorem would simplify lower bounds and explain whether repeated access fundamentally expands the kinds of compact information a streaming algorithm needs.
-
-[Read in atlas](index.html#TCS-5427) · [New Characterizations in Turnstile Streams with Applications](https://doi.org/10.4230/LIPIcs.CCC.2016.20)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6206 — Clique detection in CONGEST
 
