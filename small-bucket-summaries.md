@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-607 five-sentence working summaries, based on saved source material.
+608 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -753,7 +753,7 @@ SETH, the APSP hypothesis, and the 3SUM hypothesis assert precise barriers for t
 [Read in atlas](index.html#TCS-6950) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Pseudorandomness and derandomization (41)
+## Pseudorandomness and derandomization (42)
 
 ### TCS-0003 — P versus BPP
 
@@ -788,6 +788,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 The hypothesis says that some exponential-time language resists randomized subexponential-time algorithms. The question asks whether this uniform hardness yields a single generator with only polylogarithmically many seed bits. Its output must fool each fixed linear-time probabilistic distinguisher on infinitely many output lengths. The generator may take quasipolynomial time, but it must be uniform and independent of the distinguisher. Known low-end and more structured high-end results leave this general hardness-to-randomness implication distinct.
 
 [Read in atlas](index.html#TCS-6696) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Pseudorandomness and Average-Case Complexity via Uniform Reductions](https://people.seas.harvard.edu/~salil/research/uniform-cc.pdf) · [Unstructured Hardness to Average-Case Randomness](https://eccc.weizmann.ac.il/report/2022/097/) · [Derandomization vs. Lower Bounds for Arthur-Merlin Protocols](https://pages.cs.wisc.edu/~dieter/Papers/sdroievski-dissertation.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7271 — Two-source extraction at log n plus constant entropy
+
+Two arbitrary independent distributions on n-bit strings each have min-entropy at least log base two of n plus one fixed additive constant. The question asks for one deterministic polynomial-time algorithm that turns one string from each source into a bit with bias at most one hundredth. The same program and time bound must work at every length without an extra seed, advice or descriptions of the distributions. Li’s checked theorem achieves a constant multiple of log n entropy, while his source explicitly leaves the additive threshold as a further question. Matching that threshold efficiently would sharpen a central randomness-extraction result and have consequences for explicit Ramsey graphs.
+
+[Read in atlas](index.html#TCS-7271) · [Two Source Extractors for Asymptotically Optimal Entropy, and (Many) More](https://arxiv.org/abs/2303.06802v2) · [Two-Source and Affine Non-Malleable Extractors for Small Entropy](https://arxiv.org/abs/2404.17013v1) · [Extractors for Samplable Distributions from the Two-Source Extractor Recipe](https://eccc.weizmann.ac.il/report/2025/107/revision/3/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1005 — Unconditional subexponential simulation of BPP
@@ -1207,10 +1214,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0799 — Converting CNF to DNF
 
-Conjunctive normal form combines clauses with conjunction, whereas disjunctive normal form combines terms with disjunction. The saved problem concerns converting a Boolean representation of the first kind into an equivalent representation of the second. Equivalent output can grow substantially because distribution expands combinations of choices across clauses. Understanding the best conversion cost would illuminate how representation size limits symbolic Boolean computation. The inherited label does not specify whether the goal is minimum output size, output-sensitive running time, or restricted formulas, so this draft retains those distinct possibilities.
+For each variable count n and clause width k, the target is the largest minimum number of DNF terms needed to represent an n-variable k-CNF function. The DNF must agree on every assignment using the same variables, while its terms may overlap and may have arbitrary width. The source leaves a gap between exponential upper and lower bounds, and later improvements for monotone formulas do not determine the general case. The card explicitly extends that asymptotic question to a real-valued description of the extremal function within one hundredth of a term at every admissible pair. A complete Lean proof must certify the universal upper and extremal lower bounds, thereby identifying the inherent representation cost rather than a conversion algorithm’s running time.
 
-[Read in atlas](index.html#TCS-0799) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0799) · [Converting CNF to DNF, in Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [On converting CNF to DNF: BRICS RS-03-45](https://www.brics.dk/RS/03/45/BRICS-RS-03-45.pdf) · [On converting CNF to DNF](https://doi.org/10.1016/j.tcs.2005.07.029) · [A Generalization of the Satisfiability Coding Lemma and Its Applications](https://doi.org/10.4230/LIPIcs.SAT.2022.9) · [A Formalization of the Exponential Blowup in the Transformations between CNF and DNF](https://isa-afp.org/entries/CNF_DNF_Exp_Blowup.html)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1945 — Parameterized Nearest Codeword hardness beyond Gap-ETH
 
@@ -2052,10 +2059,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6653 — Gyárfás–Sumner conjecture
 
-The Gyárfás–Sumner conjecture considers graphs excluding a fixed tree as an induced subgraph. It asks whether bounding clique number then also bounds chromatic number, independently of graph size. The proposed principle says that high coloring complexity with no large clique must eventually force every prescribed induced tree. This would organize a large collection of hereditary coloring classes through one structural mechanism. The saved review distinguishes genuinely induced trees from weaker path-induced copies and ordinary coloring from fractional results, while allowing an arbitrary bound rather than demanding polynomial growth.
+The Gyárfás–Sumner conjecture asks whether excluding any fixed induced tree makes chromatic number bounded at each fixed clique bound. The host is an arbitrary finite simple undirected graph, and the bound may depend on the tree and clique bound but not on host size. An accepted answer requires a complete Lean proof, or one fixed tree and clique bound supporting graphs of unbounded chromatic number. Path-induced copies, fractional colouring and subpolynomial size-dependent bounds are distinct from the selected ordinary-colouring statement. The conjecture would identify forests as the precise single forbidden-pattern boundary for this form of hereditary graph colouring.
 
-[Read in atlas](index.html#TCS-6653) · [A Note on the Gyárfás–Sumner Conjecture](https://arxiv.org/abs/2302.08922) · [Radius two trees specify \(\chi\)-bounded classes](https://doi.org/10.1002/jgt.3190180203) · [Polynomial bounds for chromatic number. V. Excluding a tree of radius two and a complete multipartite graph](https://arxiv.org/abs/2202.05557) · [Trees and near-linear stable sets](https://link.springer.com/article/10.1007/s00493-025-00177-9) · [Polynomial Gyárfás–Sumner conjecture for graphs of bounded boxicity](https://igt.centre-mersenne.org/articles/10.5802/igt.17/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6653) · [A Note on the Gyárfás–Sumner Conjecture](https://arxiv.org/abs/2302.08922) · [Radius two trees specify \(\chi\)-bounded classes](https://doi.org/10.1002/jgt.3190180203) · [Polynomial bounds for chromatic number. V. Excluding a tree of radius two and a complete multipartite graph](https://arxiv.org/abs/2202.05557) · [Trees and near-linear stable sets](https://link.springer.com/article/10.1007/s00493-025-00177-9) · [Polynomial Gyárfás–Sumner conjecture for graphs of bounded boxicity](https://igt.centre-mersenne.org/articles/10.5802/igt.17/) · [Clique Number of Tournaments II](https://arxiv.org/abs/2609.07481) · [A Domatic Analogue of \(\chi\)-Bounded Graph Classes and the Gyárfás–Sumner Conjecture](https://arxiv.org/abs/2606.02030)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6683 — Optimal bounds in the Excluded Grid Theorem
 
