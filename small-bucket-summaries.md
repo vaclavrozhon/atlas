@@ -175,12 +175,26 @@ A disjoint NP pair consists of two nonoverlapping sets of binary strings, each w
 [Read in atlas](index.html#TCS-7273) · [Incompleteness in the finite domain](https://arxiv.org/abs/1601.01487v2) · [P-Optimal Proof Systems for Each NP-Set but no Complete Disjoint NP-Pairs Relative to an Oracle](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2019.47) · [Recursive Jump Operators and Optimal Proof Systems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.88)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-5333 — Linear-space Cutting Planes refutations
+
+Cutting Planes refutes a Boolean CNF by deriving integer linear inequalities until it obtains a contradiction. Total space counts the binary digits of coefficients and right-hand constants stored simultaneously, with the source's convention that variable names and signs are not charged. The question is whether one constant times the number of variables always suffices, with no limit on proof length or coefficient magnitude. The source gives a quadratic universal upper bound, and the bounded later-source review found no resolution of the remaining linear-space question. An accepted answer must prove the universal linear bound or its fully quantified failure in Lean for the exact rules and space measure stated here.
+
+[Read in atlas](index.html#TCS-5333) · [The Space Complexity of Cutting Planes Refutations](https://doi.org/10.4230/LIPIcs.CCC.2015.433) · [Proof Complexity and SAT Solving](https://jakobnordstrom.se/docs/publications/ProofComplexityChapter.pdf) · [How Limited Interaction Hinders Real Communication (and What It Means for Proof and Circuit Complexity)](https://eccc.weizmann.ac.il/report/2021/006/) · [Lifting with Simple Gadgets and Applications to Circuit and Proof Complexity](https://arxiv.org/abs/2001.02144v1) · [Truly Supercritical Trade-offs for Resolution, Cutting Planes, Monotone Circuits, and Weisfeiler-Leman](https://arxiv.org/abs/2411.14267v1) · [Average-Case Hardness of Binary-Encoded Clique in Proof and Communication Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.151)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7163 — Effective polynomial simulation of Extended Frege by Resolution
 
 Resolution refutes inconsistent clauses, while Extended Frege permits named intermediate Boolean formulas. Ordinary proof-size comparisons keep the statement fixed and separate these systems. This question allows a polynomial-time transformation of the statement, given a unary bound on an EF proof’s length. Whenever that bound is sufficient, the transformed CNF must have a comparably short Resolution refutation, while correctness must be preserved for every input. An answer would clarify whether efficient preprocessing can overcome the proof-size gap between these systems.
 
 [Read in atlas](index.html#TCS-7163) · [Effectively polynomial simulations](https://www.cs.toronto.edu/~toni/Papers/effsimulation.pdf) · [Regular resolution effectively simulates resolution](https://arxiv.org/abs/2402.15871)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6766 — Polynomial resolution length from logarithmic clause space
+
+A resolution refutation certifies that no assignment satisfies a Boolean formula. Clause space counts how many clauses must be retained at once, and length counts how many clauses are downloaded or inferred. The question asks whether logarithmic minimum clause space always guarantees polynomial minimum length for formulas with bounded input-clause width. The short proof may use more memory than the small-space proof, so simultaneous time–space tradeoffs are a different question. Known results give polynomial length for constant space and quasipolynomial length for logarithmic space, leaving the requested improvement unresolved in the checked literature.
+
+[Read in atlas](index.html#TCS-6766) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.003)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0024 — Frege lower bounds from circuit hardness
 
@@ -280,13 +294,6 @@ The input is a CNF formula and a proof-length budget written in unary. The algor
 [Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1) · [Regular resolution effectively simulates resolution](https://doi.org/10.1016/j.ipl.2024.106489) · [Automating Resolution is NP-Hard](https://arxiv.org/abs/1904.02991) · [The Proof Analysis Problem](https://arxiv.org/abs/2506.16956)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-5333 — Linear-space Cutting Planes refutations
-
-Cutting Planes refutes unsatisfiable Boolean formulas using linear inequalities and arithmetic inference. The saved question asks whether every unsatisfiable CNF has such a refutation using linear total space. Total space accounts for the information simultaneously stored, making coefficient encoding potentially relevant. An affirmative result would show that powerful arithmetic reasoning can always be carried out with modest memory, regardless of proof length. The excerpt does not define the reference input-size measure or coefficient accounting, so those conventions are still required before interpreting the linear bound precisely.
-
-[Read in atlas](index.html#TCS-5333) · [The Space Complexity of Cutting Planes Refutations](https://doi.org/10.4230/LIPIcs.CCC.2015.433)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6759 — PSPACE-completeness of resolution space
 
 Resolution clause space counts simultaneously retained clauses, whereas total space also reflects their sizes. The saved question asks whether deciding the corresponding bounded-space refutation problems is PSPACE-complete. A classification would separate memory needed to search for a space-efficient proof from memory used by the proof itself. The two measures can impose different constraints even on the same formula. The survey note records both decision questions historically, so a complete statement still needs the space-budget encoding and should not infer current completeness from the dated formulation alone.
@@ -299,13 +306,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 A fixed-width CNF has a constant bound on literals per clause. The saved question asks for linear-size unsatisfiable formulas of this kind that require quadratic total resolution space. Small input clauses would make the large simultaneous memory requirement arise from reasoning rather than a bloated starting representation. Such examples would give a strong separation between formula size and the storage demands of every refutation. The source note does not specify the indexing conventions for linear and quadratic growth, so these must be fixed consistently in a completed statement.
 
 [Read in atlas](index.html#TCS-6764) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6766 — Polynomial resolution length from logarithmic clause space
-
-Resolution clause space measures the maximum number of clauses kept at once. The saved question asks whether a logarithmic clause-space refutation guarantees the existence of a polynomial-length refutation. Low memory does not immediately rule out a long process that repeatedly recomputes discarded information. An affirmative implication would link two independently useful forms of proof efficiency. The source question concerns existence of a short proof and does not by itself require that the polynomial-length refutation also retain the original logarithmic space bound.
-
-[Read in atlas](index.html#TCS-6766) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6767 — Resolution length–width tradeoffs
@@ -3571,10 +3571,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6584 — Li–Li conjecture
 
-In an undirected communication network, routing sends independent messages along paths and may split each message among several routes. Network coding additionally allows intermediate nodes to combine information from different messages. The Li-Li conjecture says that coding does not enlarge the achievable rate region for independent unicast sessions beyond fractional multicommodity routing. The saved formulation uses zero-error causal coding and one shared capacity budget for both directions of each edge. A proof or counterexample would determine whether coding provides a fundamental throughput advantage in undirected networks after routing has already been optimized globally.
+An undirected network carries independent messages, each from one source to one destination, with a common capacity budget for both directions of every edge. The Li–Li conjecture asks whether arbitrary causal zero-error network coding has exactly the same closed rate region as optimal fractional multicommodity routing. The card fixes independent finite uniform messages, deterministic encoding, exact decoding and the sum of the two whole-transcript entropies on each edge. A complete Lean proof must establish the universal equality or certify a finite coding instance whose supported rate is outside the fractional routing region. Recent restricted topology results and a corrected session-interaction framework leave the general question open, while undirected multicast separations rely on shared messages with multiple receivers.
 
 [Read in atlas](index.html#TCS-6584) · [On the Capacity of Multiple Unicast Sessions in Undirected Graphs](https://ics.uci.edu/~vazirani/isit.pdf) · [Coding in Undirected Graphs Is Either Very Helpful or Not Helpful at All](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2017.18) · [Lower Bounds for Multiplication via Network Coding](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.10) · [On the Capacity of Undirected Multiple Unicast Layered Networks with Asymmetric Demands](https://ieeexplore.ieee.org/document/11195643/) · [Undirected Multicast Network Coding Gaps via Locally Decodable Codes](https://arxiv.org/abs/2510.18737) · [On the Multiple-Unicast Conjecture: Beyond Cut Metrics](https://arxiv.org/abs/2608.06070) · [A Session Interaction Framework for The Multiple-Unicast Conjecture](https://arxiv.org/abs/2608.06042)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6607 — Capacity of the binary deletion channel
 

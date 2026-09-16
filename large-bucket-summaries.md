@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-402 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1273,6 +1273,13 @@ The VOLUME model measures how many graph vertices an adaptive local algorithm in
 [Read in atlas](index.html#TCS-0515) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [The randomized local computation complexity of the Lovász local lemma](https://arxiv.org/abs/2103.16251v2) · [The Landscape of Distributed Complexities on Trees and Beyond](https://arxiv.org/abs/2202.04724v2) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [New Complexity Classes in Locally Checkable Labeling for Local Computation Algorithms](https://arxiv.org/abs/2607.09626v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7010 — Linear-sketch complexity of the nuclear norm
+
+The nuclear norm of a matrix is the sum of its singular values. The question asks for the smallest number of randomized exact real linear measurements that suffice to approximate this norm for every fixed input matrix. The requested answer must give matching upper and lower bounds up to constant factors for each fixed relative accuracy. Published results separate this matrix problem from ordinary vector norms, bilinear sketches and finite-bit streaming complexity. An August 2026 preprint claims near-quadratic bounds but leaves logarithmic factors unresolved, and its proof is not independently verified by this review.
+
+[Read in atlas](index.html#TCS-7010) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357) · [On Approximating Matrix Norms in Data Streams](https://doi.org/10.1137/17M1152255) · [Near-Optimal Bounds for Sketching the Schatten Norms](https://arxiv.org/abs/2608.22247v3)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-5795 — One-pass semi-streaming depth-first search
 
 The input is an arbitrary-order stream of edges of a connected undirected graph. The task is to output any DFS spanning tree in one pass using nearly linear bit memory. The tree must place the endpoints of every graph edge in an ancestor relationship, beyond ordinary connectivity. The original paper gives many-pass tradeoffs, while practical one-pass observations apply only to evaluated or special inputs. Current status remains uncertain because a later introductory lower-bound assertion was not substantiated by its cited results.
@@ -1566,13 +1573,6 @@ A natural join combines database relations by matching equal values on shared at
 
 [Read in atlas](index.html#TCS-6380) · [A Simple Parallel Algorithm for Natural Joins on Binary Relations](https://doi.org/10.4230/LIPIcs.ICDT.2020.25)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-7010 — Linear-sketch complexity of the nuclear norm
-
-The nuclear norm of a matrix is the sum of its singular values and measures a different aspect of size from the Frobenius or spectral norm. A linear sketch compresses the matrix through linear measurements before estimating this norm. The source asks for the optimal sketch dimension needed for a constant-factor approximation. Its discussion places nuclear-norm sketching between neighboring norms with very different behavior: constant dimension for the Frobenius norm and essentially full matrix dimension for the spectral norm. Tight bounds would show whether low-dimensional linear summaries can preserve this important aggregate of singular-value information.
-
-[Read in atlas](index.html#TCS-7010) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Optimization and numerical computation (21)
 
@@ -2266,7 +2266,7 @@ The question asks whether a weak passive learner with a superpolynomial saving o
 [Read in atlas](index.html#TCS-4186) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18) · [Conspiracies between Learning Algorithms, Circuit Lower Bounds and Pseudorandomness — full preprint](https://arxiv.org/abs/1611.01190) · [Learning algorithms from circuit lower bounds](https://doi.org/10.1007/s00037-024-00261-4)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Cryptography (29)
+## Cryptography (30)
 
 ### TCS-6545 — Public-key encryption from one-way functions
 
@@ -2400,6 +2400,13 @@ Learning parity with noise asks for information about hidden binary linear equat
 
 [Read in atlas](index.html#TCS-6454) · [Towards Worst-case Hardness for Low-Noise LPN](https://eccc.weizmann.ac.il/report/2026/095/)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7274 — One-way functions in \(\mathrm{NC}^{0}\) from one-way functions
+
+A one-way function is easy to evaluate but resists inversion on a uniformly chosen input by every polynomial-size adversary. The question asks whether the existence of any such function guarantees one whose Boolean circuits have a single constant depth bound. The circuits must be generated deterministically in polynomial time, while inversion security is required against nonuniform polynomial-size classical circuits. Known theorems establish this implication under restricted computational assumptions, and a 2025 source still explicitly lists the general implication as open. A complete Lean proof must establish the implication or prove both that general one-way functions exist and that every eligible local family is insecure.
+
+[Read in atlas](index.html#TCS-7274) · [Cryptography in \(\mathrm{NC}^{0}\)](https://doi.org/10.1137/S0097539705446950) · [Hardness of KT Characterizes Parallel Cryptography](https://eccc.weizmann.ac.il/report/2021/057/) · [Non-Adaptive Universal One-Way Hash Functions from Arbitrary One-Way Functions](https://eccc.weizmann.ac.il/report/2022/049/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7278 — Identity-based encryption from arbitrary public-key encryption
 
