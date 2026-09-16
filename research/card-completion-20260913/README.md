@@ -1364,3 +1364,7 @@ The concurrent census is 1,024 active cards: 732 reviewed and 292 pending. The q
 Checkpoint 625. Completed Turing equivalence universality formulation and source review
 
 The concurrent census is 1,024 active cards: 735 reviewed and 289 pending. The queue has 625 completed records, 583 active and 42 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,024 active cards, covering 30,997 formulas.
+
+Checkpoint 628. Complete one-relator group isomorphism formulation and current-source pass
+
+The concurrent census is 1,024 active cards: 738 reviewed and 286 pending. The queue has 628 completed records, 586 active and 42 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,024 active cards, covering 31,093 formulas.

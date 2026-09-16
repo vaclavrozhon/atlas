@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **436**.
+Pending active reviews: **435**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -374,7 +374,6 @@ Pending active reviews: **436**.
 | [TCS-6664](../../data/cards/TCS-6664.json) | Maximum influence of polynomial threshold functions | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6670](../../data/cards/TCS-6670.json) | Polylogarithmic maintenance of the exact global minimum cut | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6675](../../data/cards/TCS-6675.json) | Search-to-decision equivalence for finite promise CSPs | Constraint satisfaction | existing_detailed_audit |
-| [TCS-6677](../../data/cards/TCS-6677.json) | Isomorphism problem for one-relator groups | Algebraic computation | existing_detailed_audit |
 | [TCS-6684](../../data/cards/TCS-6684.json) | Computational Kesten–Stigum threshold | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
