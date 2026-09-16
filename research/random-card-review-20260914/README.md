@@ -403,3 +403,29 @@ with fifty-nine retained active cards and seven resolved historical records:
 There are thirty-one new individual importance assessments through this draw.
 Checkpoint fifteen is committed as c76710dc and verified live. Shared API
 reservations and token/hash checks remain in use for concurrent work.
+
+The seventeenth random draw brings this process to seventy completed reviews,
+with sixty-two retained active cards and eight resolved historical records:
+
+- TCS-6696: the high-end uniform EXP hardness-to-randomness implication, with
+  polylogarithmic seed length, mild explicitness, output-only distinguishing and
+  per-program infinitely-often security. Checked the 2024 primary discussion and
+  distinguished structured/advice-using partial results. Importance: 92.
+- TCS-0815: explicit fine-grained comparability of binary permanent and SETH,
+  retaining both source directions and distinguishing their clause-width
+  quantifiers. Exact oracle cost and canonical encodings are stated; assessed
+  importance 76 is preserved.
+- TCS-7036: resolved three-pair unweighted Directed Edge Multicut, archived after
+  checking Hatzel et al., SODA 2023, Theorem 1.1, its proof and edge/vertex model
+  transfer. The result is randomized FPT, without a claimed deterministic or
+  single-exponential strengthening. Historical importance: 87.
+- TCS-3709: full bounded-error quantum query-to-communication lifting for partial
+  Boolean functions, with a universal gadget family and common polylogarithmic
+  losses. Shared entanglement is explicit; the 2026 hybrid result remains
+  distinct from full lifting. Importance: 94.
+
+There are thirty-four new individual importance assessments through this draw.
+Checkpoint sixteen is committed as c27aea24. Its deployment was superseded by a
+successful concurrent deployment retaining every reviewed card; only two derived
+ranks changed, and the live reader assets matched the tested snapshot. Shared
+API reservations and token/hash checks remain in use for concurrent work.

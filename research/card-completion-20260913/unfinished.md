@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **580**.
+Pending active reviews: **584**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -17,7 +17,10 @@ Pending active reviews: **580**.
 | [TCS-1029](../../data/cards/TCS-1029.json) | Sharp graph-removal bounds for fixed patterns | Property testing and distribution learning | top500 |
 | [TCS-0848](../../data/cards/TCS-0848.json) | Testing Submodularity | Property testing and distribution learning | top500 |
 | [TCS-0841](../../data/cards/TCS-0841.json) | Equivalence Testing with Conditional Samples | Property testing and distribution learning | top500 |
+| [TCS-0510](../../data/cards/TCS-0510.json) | Cost of privacy in online learning | Differential privacy | top500 |
 | [TCS-0507](../../data/cards/TCS-0507.json) | Optimal regret for private stochastic online learning | Differential privacy | top500 |
+| [TCS-3312](../../data/cards/TCS-3312.json) | Polynomial-time private convex-hull point selection | Differential privacy | top500 |
+| [TCS-6825](../../data/cards/TCS-6825.json) | Computational versus statistical privacy in the curator model | Differential privacy | top500 |
 | [TCS-1978](../../data/cards/TCS-1978.json) | Search tractability of BLP-solvable promise CSPs | Constraint satisfaction | top500 |
 | [TCS-0441](../../data/cards/TCS-0441.json) | Characterizing CSP languages with linear non-redundancy | Constraint satisfaction | top500 |
 | [TCS-0504](../../data/cards/TCS-0504.json) | Uniform algorithms across tractable CSPs | Constraint satisfaction | top500 |
@@ -45,6 +48,7 @@ Pending active reviews: **580**.
 | [TCS-6832](../../data/cards/TCS-6832.json) | Separations among P, RP and NP | Computational complexity | pool |
 | [TCS-6977](../../data/cards/TCS-6977.json) | Super-near-linear SAT time lower bounds | Computational complexity | pool |
 | [TCS-5651](../../data/cards/TCS-5651.json) | Recognizing good-for-games and good-for-MDP automata | Automata and formal languages | pool |
+| [TCS-5732](../../data/cards/TCS-5732.json) | Regular separability of VASS reachability languages | Automata and formal languages | pool |
 | [TCS-5738](../../data/cards/TCS-5738.json) | Recognizable separability of automatic relations | Automata and formal languages | pool |
 | [TCS-5863](../../data/cards/TCS-5863.json) | Decidability of stochastic resolvability for \(\omega\)-automata | Automata and formal languages | pool |
 | [TCS-5904](../../data/cards/TCS-5904.json) | Equivalence of discounted-sum automata | Automata and formal languages | pool |
@@ -60,6 +64,7 @@ Pending active reviews: **580**.
 | [TCS-6359](../../data/cards/TCS-6359.json) | Decidability and completeness of concurrent Kleene algebra | Semantics, logic and verification | pool |
 | [TCS-7153](../../data/cards/TCS-7153.json) | Ultimate Positivity problem | Semantics, logic and verification | pool |
 | [TCS-7154](../../data/cards/TCS-7154.json) | Effective ultimate-positivity thresholds for simple recurrences | Semantics, logic and verification | pool |
+| [TCS-7156](../../data/cards/TCS-7156.json) | Universal integer termination of affine linear loops | Semantics, logic and verification | pool |
 | [TCS-7157](../../data/cards/TCS-7157.json) | Termination of linear-constraint loops | Semantics, logic and verification | pool |
 | [TCS-0993](../../data/cards/TCS-0993.json) | Graph Distances | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0954](../../data/cards/TCS-0954.json) | Metric TSP Cost Approximation | Distributed, parallel and sublinear algorithms | pool |
@@ -99,8 +104,10 @@ Pending active reviews: **580**.
 | [TCS-3177](../../data/cards/TCS-3177.json) | Learning PH/poly from learning NP/poly | Learning theory | pool |
 | [TCS-3391](../../data/cards/TCS-3391.json) | Efficient learning of well-separated Gaussian mixtures | Learning theory | pool |
 | [TCS-4592](../../data/cards/TCS-4592.json) | Time complexity of Gaussian agnostic halfspace learning | Learning theory | pool |
+| [TCS-4672](../../data/cards/TCS-4672.json) | Price of bandit information in multiclass learning | Learning theory | pool |
 | [TCS-4792](../../data/cards/TCS-4792.json) | Multiclass sample compression from binary compression | Learning theory | pool |
 | [TCS-5031](../../data/cards/TCS-5031.json) | Littlestone-dimension regret bounds for unrestricted classes | Learning theory | pool |
+| [TCS-5061](../../data/cards/TCS-5061.json) | Computable PAC learning versus effective sample bounds | Learning theory | pool |
 | [TCS-5087](../../data/cards/TCS-5087.json) | Polynomial-time robust spectral estimation | Learning theory | pool |
 | [TCS-5088](../../data/cards/TCS-5088.json) | Learning halfspace intersections under factorizable distributions | Learning theory | pool |
 | [TCS-5090](../../data/cards/TCS-5090.json) | One-way functions from hardness of learning P/poly | Learning theory | pool |
@@ -118,7 +125,6 @@ Pending active reviews: **580**.
 | [TCS-2229](../../data/cards/TCS-2229.json) | QMA versus \(\mathrm{QMA}(2)\) | Quantum computation | pool |
 | [TCS-2408](../../data/cards/TCS-2408.json) | Remote state preparation from quantum-secure one-way functions | Quantum computation | pool |
 | [TCS-2707](../../data/cards/TCS-2707.json) | Quantum partition functions from zero-freeness | Quantum computation | pool |
-| [TCS-3709](../../data/cards/TCS-3709.json) | Lifting quantum query complexity to communication | Quantum computation | pool |
 | [TCS-4615](../../data/cards/TCS-4615.json) | Quantum entropy inequalities beyond strong subadditivity | Quantum computation | pool |
 | [TCS-4734](../../data/cards/TCS-4734.json) | Locality-preserving quantum gap amplification | Quantum computation | pool |
 | [TCS-4737](../../data/cards/TCS-4737.json) | QMA versus \(\mathrm{QMA}_{1}\) | Quantum computation | pool |
@@ -172,7 +178,6 @@ Pending active reviews: **580**.
 | [TCS-6711](../../data/cards/TCS-6711.json) | Deterministic communication versus monochromatic partition size | Communication complexity and Boolean function analysis | pool |
 | [TCS-0562](../../data/cards/TCS-0562.json) | Refuting nondeterministic SETH | Fine-grained complexity | pool |
 | [TCS-0560](../../data/cards/TCS-0560.json) | Fine-grained reductions from Hitting Set to 3SUM | Fine-grained complexity | pool |
-| [TCS-0815](../../data/cards/TCS-0815.json) | Relation between permanent computation and SETH | Fine-grained complexity | pool |
 | [TCS-5422](../../data/cards/TCS-5422.json) | Consequences of linear-time Orthogonal Vectors | Fine-grained complexity | pool |
 | [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
 | [TCS-6935](../../data/cards/TCS-6935.json) | Randomized Strong Exponential Time Hypothesis | Fine-grained complexity | pool |
@@ -204,7 +209,6 @@ Pending active reviews: **580**.
 | [TCS-6686](../../data/cards/TCS-6686.json) | P versus RP | Pseudorandomness and derandomization | pool |
 | [TCS-6689](../../data/cards/TCS-6689.json) | Simultaneously optimal averaging samplers | Pseudorandomness and derandomization | pool |
 | [TCS-6693](../../data/cards/TCS-6693.json) | Subpolynomial-seed pseudorandom generators for \(\mathrm{AC}^{0}[2]\) | Pseudorandomness and derandomization | pool |
-| [TCS-6696](../../data/cards/TCS-6696.json) | Uniform PRGs from exponential-time hardness | Pseudorandomness and derandomization | pool |
 | [TCS-6699](../../data/cards/TCS-6699.json) | AM versus NP | Pseudorandomness and derandomization | pool |
 | [TCS-6729](../../data/cards/TCS-6729.json) | Deterministic linear representations of transversal matroids | Pseudorandomness and derandomization | pool |
 | [TCS-6879](../../data/cards/TCS-6879.json) | Explicit near-optimal vertex expanders | Pseudorandomness and derandomization | pool |
