@@ -640,3 +640,23 @@ Checkpoint twenty-six was committed as 06b0fbd7. Its 96 retained cards were
 verified unchanged in the successful concurrent publication df47adef6a21bdcbfb42
 following the deployment guard's rejection of a stale TCS-6683 version.
 Source reading, reservations and input-hash checks remain individual.
+
+Checkpoint twenty-eight brings this process to 115 completed reviews:
+104 retained active cards, eleven retirements and 46 new importance assessments.
+Existing scores and categories were preserved.
+
+- TCS-6940: archived the resolved general weighted ordered-tree edit-distance
+  equivalence with APSP; retained the full record and documented the survey's
+  fixed-alphabet wording mismatch with its cited hardness theorem.
+- TCS-5287: specified the forward formula-hardness-to-subexponential-PIT branch
+  and disclosed its scope relative to the source's informal two-way question.
+- TCS-0799: recovered minimum DNF term count, with the authorized explicit
+  finite-parameter quantitative extension and separate monotone results.
+- TCS-7271: preserved the coefficient-one plus additive-constant entropy target
+  and the distinction from multiplicative logarithmic entropy.
+- TCS-7327: made the retained combined buffering and full-persistence resource
+  target explicit, including per-update immutable versions and clone costs.
+
+Checkpoint twenty-seven was committed as dc29b313 and verified live at
+13a3e773d70ccc2fc344. Individual source review and input-hash claims precede
+every completion; structural and browser checks do not certify mathematics.

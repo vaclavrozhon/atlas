@@ -4,17 +4,29 @@
   "area": "Data structures",
   "criterion": "resources",
   "question_type": "yes_no",
-  "formal": "For every fixed \\(0<\\varepsilon<1\\), can deterministic fully persistent comparison search trees in external memory support amortized update cost \\(O(B^{\\varepsilon-1}L_v)\\), amortized successor queries \\(O(L_v)\\), sorted range reporting \\(O(L_v+K/B)\\), and cloning an arbitrary historical version in \\(O(1)\\) I/Os, with linear total space? Here \\(L_v=1+\\log_B(2+N_v)\\), \\(N_v\\) is the size of the accessed version and \\(K\\) is the output size.",
-  "definitions": "The I/O model has block size \\(B\\ge2\\), internal memory \\(M\\ge2B\\) and unlimited external memory; only transfers of blocks between them are charged. Keys and version handles occupy constant space, and keys support comparisons only. Begin with an empty version. A branch may be extended by inserting or deleting a key, preserving every preceding version; cloning an arbitrary version creates a new independently extendible branch with the same set. All historical versions remain queryable. Search returns the least key at least the supplied key, or an empty marker; Range returns keys in a closed supplied interval. Require correctness for every online sequence. For \\(U\\) updates and \\(C\\) clones, linear total space means \\(O(1+(U+C)/B)\\) external blocks, including version metadata. All bounds may depend on the fixed \\(\\varepsilon\\), but not on sizes, block parameters or the operation sequence. Amortized bounds must hold jointly over every finite history; buffering cannot postpone a query answer past its operation.",
-  "why": "Efficient historical branching together with buffered writes would combine two major capabilities of storage indexes without sacrificing their I/O savings.",
+  "formal": "For every fixed real \\(0<\\varepsilon<1\\), does there exist one uniform deterministic comparison-based external-memory data structure and a constant \\(c\\ge1\\) that maintain the fully persistent ordered-set interface below, for every integer block size \\(B\\ge2\\), internal-memory capacity \\(M\\ge2B\\), and every online operation history? Require correctness and termination, worst-case at most \\(c\\) I/Os for each explicit \\(\\operatorname{Clone}\\), and the following joint amortized bound on every finite history \\(H\\):\n\\[\n\\operatorname{IO}(H)\\le c\\!\\left(1+C_H+\\sum_{j\\in\\mathcal U_H}B^{\\varepsilon-1}L_j+\\sum_{j\\in\\mathcal Q_H}L_j+\\sum_{j\\in\\mathcal R_H}\\frac{K_j}{B}\\right),\n\\qquad L_j=1+\\log_B(2+N_j).\n\\]\nHere \\(\\mathcal U_H\\) indexes insertions and deletions, \\(\\mathcal Q_H\\) indexes successor and range queries, \\(\\mathcal R_H\\subseteq\\mathcal Q_H\\) indexes range queries, \\(C_H\\) counts explicit clones, \\(N_j\\) is the size of the version accessed by operation \\(j\\), and \\(K_j\\) is that range query’s output size. At every point require at most\n\\[\nc\\!\\left(1+\\frac{U+C}{B}\\right)\n\\]\nexternal-memory blocks, including metadata and temporary storage, where \\(U,C\\) count update and clone operations begun by that point. The constants and program may depend on \\(\\varepsilon\\), but not on the block parameters, history, keys or version sizes. This retains the card’s stated simultaneous quantitative sharpening of the source’s broader question about buffered full persistence and efficient cloning.",
+  "definitions": "Keys are indivisible atoms from an arbitrary totally ordered set. A version stores a finite set of keys, without multiplicities. Initially version \\(0\\) is empty. Each insertion, deletion and explicit clone creates a distinct new immutable version, assigned the next unused nonnegative integer handle. Every existing version remains available indefinitely. Operations are:\n\n\\(\\operatorname{Insert}(v,x)\\) returns a new handle \\(w\\) with \\(S_w=S_v\\cup\\{x\\}\\). It creates a version even if \\(x\\in S_v\\).\n\n\\(\\operatorname{Delete}(v,x)\\) returns a new handle \\(w\\) with \\(S_w=S_v\\setminus\\{x\\}\\). It creates a version even if \\(x\\notin S_v\\).\n\n\\(\\operatorname{Clone}(v)\\) returns a new handle \\(w\\) with \\(S_w=S_v\\).\n\n\\(\\operatorname{Search}(v,x)\\) returns \\(\\min\\{y\\in S_v:x\\le y\\}\\), or a distinguished empty marker when that set is empty.\n\n\\(\\operatorname{Range}(v,a,b)\\), for \\(a\\le b\\), reports every key in \\(S_v\\cap[a,b]\\) once, in increasing order. An empty result is permitted.\n\nIn every operation, \\(v\\) can be any previously returned handle, including an ancestor or a version used many times before. The sizes \\(N_j=|S_v|\\) are measured before the operation. No version is overwritten or merged with another. In particular, an update already preserves its parent and must meet its update charge without an additional explicit clone charge. An explicit clone is a separate requested operation. Every operation must finish and return its full answer before the next is received. Later requests may depend on earlier answers; no future operations or length of the history are known to the data structure.\n\nThe I/O model has at most \\(M\\) internal cells and an initially blank external array partitioned into blocks of \\(B\\) consecutive cells. A cell holds one key atom or one metadata word. Data can be inspected or changed only in internal memory. One I/O transfers one entire block between internal and external memory and costs one. Reads and writes both count, including all preprocessing, rebuilding, buffer flushing and version metadata access. Computation on resident data is free for the I/O measure but must terminate. Keys may only be copied, stored, output or compared for order/equality; their bit representation cannot be inspected, arithmetically manipulated, packed with other keys into one cell or used as an address. Metadata words encode integers, addresses, handles and finite tags; each contains at most \\(d\\lceil\\log_2(t+M+B+2)\\rceil\\) bits during the \\(t\\)-th operation, for one fixed integer \\(d\\ge1\\) chosen with the program. All program work storage and persistent metadata count toward the stated memories. Fixed finite control is not a source of growing storage. Apart from the supplied current operation, the program cannot read past inputs, old outputs or the caller’s collection of handles without having stored the needed information itself.\n\nThe program knows \\(B,M\\), so cache obliviousness is not required. It is a finite deterministic algorithm, with no advice, randomness, oracle or input-dependent precomputed tables. For each fixed \\(\\varepsilon\\) there must be a single such program for all \\(B,M\\); no algorithm taking an arbitrary real \\(\\varepsilon\\) as input is requested. There is no separate internal computation-time bound or prescribed B-tree layout.\n\nOperation arguments and a constant-size returned handle/key are presented through the interface without an extra compulsory I/O. A range answer is written to an output-only stream in blocks; each flushed full or final partial output block counts as an I/O. The stream is unavailable for later reads and is excluded from retained data-structure space. Internal output buffering counts toward \\(M\\). Allocated external storage, including partially filled blocks, is charged; freed blocks cease to count. The space bound holds throughout an operation using the number of updates/clones already begun, and at every completed prefix. No deletion of historical versions or garbage collection of their logical contents is allowed.\n\n\\(\\operatorname{IO}(H)\\) counts all transfers from initialization through completion of \\(H\\). The displayed single inequality defines amortization jointly across operation types and every prefix. Its additive constant covers initialization and rounding; it does not add one to the charge of each update. The clone bound is additionally a per-operation worst-case bound. The space bound concerns the whole retained history, not the sum of the sizes of its sets, and is independent of the number of queries.",
+  "why": "Buffering reduces storage transfers for updates, while full persistence permits new branches from historical states. Combining them with queries measured by the accessed version’s size and space measured by the update history would provide both capabilities in one comparison-based storage index.",
   "context_blocks": [
     {
-      "text": "The 2025 result obtains the buffered bounds with partial persistence: every historical version can be queried, but only the newest can be extended.",
+      "text": "The ESA 2025 paper permits queries at every old version while allowing updates only at the newest version. Its Theorem 1 proves buffered update cost \\(O(B^{\\varepsilon-1}\\log_B N_v)\\), successor-query cost \\(O(\\log_B N_v)\\), range-reporting cost \\(O(\\log_B N_v+K/B)\\), and space linear in the update history for fixed \\(\\varepsilon\\). Its model needs only \\(M\\ge2B\\).",
       "citation": "primary"
     },
     {
-      "text": "The paper separately describes constant-I/O cloning for unbuffered fully persistent trees and leaves efficient cloning with buffered full persistence open. This card fixes the simultaneous target rather than treating persistence and buffering separately.",
+      "text": "The source’s Section 4 explicitly leaves efficient cloning with buffered full persistence open. It does not conjecture the entire numerical combination on this card. The retained editorial target adds the exact per-version bounds, worst-case constant cloning, immutable versions after every update and linear total history space. In particular, it does not hide a constant clone charge inside each subconstant amortized update.",
       "citation": "primary"
+    },
+    {
+      "text": "The STOC 2023 result provides full persistence with \\(O(1)\\) worst-case cloning, \\(O(\\log_BN_v)\\) amortized updates and \\(O(\\log_BN_v+K/B)\\) worst-case range reporting. It has no buffering factor in its update bound. Its interface uses mutable leaves and explicit cloning to preserve a version before modifying it.",
+      "citation": "full"
+    },
+    {
+      "text": "Svenning’s dissertation, dated 4 October 2025, includes the buffered partial-persistence work and repeats the open question about efficient cloning. This is a later copy of the same research question rather than an independent proof of the combined target.",
+      "citation": "thesis"
+    },
+    {
+      "text": "A July 2026 paper on a retroactive buffer tree describes batched edits to a temporal history using partial persistence. Its inspected publisher abstract does not claim the immutable branching interface and simultaneous bounds required here. Retroactivity changes later states along a history, whereas this card preserves every existing version.",
+      "citation": "retroactive"
     }
   ],
   "references": [
@@ -23,37 +35,74 @@
       "title": "Buffered Partially-Persistent External-Memory Search Trees",
       "authors": "Gerth Stølting Brodal; Casper Moldrup Rysgaard; Rolf Svenning",
       "year": 2025,
-      "url": "https://drops.dagstuhl.de/storage/00lipics/lipics-vol351-esa2025/LIPIcs.ESA.2025.82/LIPIcs.ESA.2025.82.pdf",
-      "locator": "§§1.1–1.4, Theorem 1 and concluding discussion on p. 16."
+      "url": "https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2025.82",
+      "locator": "ESA 2025 article 82, published 1 October 2025. Section 1.1 p.82:2: I/O and comparison model, M >= 2B; Section 1.2 pp.82:2–82:3: immutable partial-persistence interface; Theorem 1 p.82:4: amortized bounds; Section 4 p.82:16: efficient cloning with buffered full persistence left open. Locators refer to the inspected publisher PDF, not the differently numbered author manuscript."
+    },
+    {
+      "id": "full",
+      "title": "External Memory Fully Persistent Search Trees",
+      "authors": "Gerth Stølting Brodal; Casper Moldrup Rysgaard; Rolf Svenning",
+      "year": 2023,
+      "url": "https://cs.au.dk/~gerth/papers/stoc23.pdf",
+      "locator": "Author-hosted STOC 2023 conference paper, June 20–23; DOI 10.1145/3564246.3585140. Section 1.1 PDF p.1 gives the mutable-leaf and explicit-clone interface; Theorem 1.1 PDF p.2 gives the final unbuffered bounds; Section 7 PDF pp.12–13 treats constant-I/O cloning. The newer full manuscript in the dissertation has separate pagination."
+    },
+    {
+      "id": "thesis",
+      "title": "Scalable Algorithms and Persistent Data Structures using Geometric Techniques",
+      "authors": "Rolf Svenning",
+      "year": 2025,
+      "url": "https://cs.au.dk/~gerth/advising/thesis/rolf-svenning.pdf",
+      "locator": "PhD dissertation, Aarhus University; title page dated 4 October 2025. Included buffered-persistence paper, Section 4, internal paper p.17 / dissertation PDF p.94 repeats the efficient-cloning open question. Only the relevant included papers and front matter were examined."
+    },
+    {
+      "id": "retroactive",
+      "title": "An I/O-Efficient Retroactive Buffer Tree for Bulk Operations in Temporal Databases",
+      "authors": "Santosh Verma; Suman Saha; Sanjay Goel",
+      "year": 2026,
+      "url": "https://doi.org/10.1007/s10796-026-10782-8",
+      "locator": "Information Systems Frontiers 28, pp.1723–1737; published online 6 July 2026, August issue. Publisher metadata and abstract inspected: batched retroactive operations with partial persistence. The subscription-only full article was not read; no claim about its complete proof or all its parameters is made."
     }
   ],
   "progress": [
     {
-      "date": "2025",
-      "text": "Optimal partial persistence is achieved; the conclusion leaves buffered full persistence with efficient cloning open.",
+      "date": "2023-06",
+      "text": "The STOC paper gives fully persistent unbuffered search trees with constant worst-case cloning and per-version logarithmic updates.",
+      "citation": "full"
+    },
+    {
+      "date": "2025-10-01",
+      "text": "The ESA paper proves the buffered bounds for partial persistence and explicitly leaves the combination with efficient cloning open.",
       "citation": "primary"
+    },
+    {
+      "date": "2025-10-04",
+      "text": "Svenning’s dissertation repeats the buffered full-persistence cloning question in its included paper.",
+      "citation": "thesis"
+    },
+    {
+      "date": "2026-07-06",
+      "text": "The later retroactive buffer-tree abstract concerns batched temporal-history edits with partial persistence, not this immutable branching target.",
+      "citation": "retroactive"
     }
   ],
-  "answer_criterion": "Give a complete Lean-checked proof of the stated existence claim or its logical negation, with the same inputs, computation model, space allowance, quantifiers and cost guarantees. A result for a restricted input family or a different model does not decide the full target.",
+  "answer_criterion": "Give a complete mathematically correct Lean proof of the displayed universal existence statement, supplying for every \\(0<\\varepsilon<1\\) a finite algorithm and constants that satisfy correctness, termination, the memory model, the prefix I/O inequality, the individual clone bound and the space bound for every admissible \\(B,M\\) and online history. Alternatively, give a complete Lean proof of its negation: there is a fixed \\(\\varepsilon\\in(0,1)\\) for which no finite algorithm and fixed constants satisfy all these requirements. The negative result must quantify over all algorithms in the specified comparison model, not just a particular representation. Partial persistence, a bound in terms of the total history in place of \\(N_j\\), an additive constant I/O per update, or a theorem requiring more than \\(M\\ge2B\\) does not alone establish the positive target.",
   "related": [],
   "related_problem_ids": [
     "TCS-7330"
   ],
   "year": 2025,
   "evidence": "reviewed",
-  "status": "source_open",
-  "status_note": "Open in the cited dated sources. The bounded source and subsequent-result review on 13 September 2026 found no verified resolution of this target; this is not exhaustive certification of current openness.",
+  "status": "uncertain",
+  "status_note": "The broad question of buffered full persistence with efficient cloning is explicitly open in ESA 2025 Section 4 and repeated in Svenning’s October 2025 dissertation. The exact simultaneous target retained here is an editorial sharpening, including immutable versions after every update, the subconstant amortized update charge, constant worst-case cloning and linear history space. A bounded later-source review through 16 September 2026 found no verified resolution of that combination. Status is uncertain for this precise formulation; source openness is not an independent certificate of every sharpened requirement, and the 2026 retroactive-paper check was limited to publisher metadata and abstract.",
   "model_self_contained": true,
   "requires_context": false,
-  "formulation_reviewed_on": "2026-09-13",
+  "formulation_reviewed_on": "2026-09-16",
   "statement_review": {
     "status": "revised",
-    "reviewed_on": "2026-09-13",
+    "reviewed_on": "2026-09-16",
     "remaining_issue": "",
-    "notes": [
-      "The source asks for efficient cloning without a single numerical combined theorem. This card makes the desired combination explicit using its buffered partial-persistence bounds, constant-I/O cloning benchmark and linear-history-space convention; it is a stated editorial sharpening, not a verbatim theorem conjectured in the paper."
-    ],
-    "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+    "notes": "Preserved the admitted simultaneous bounds, score 76 and Data structures category, while exposing the exact editorial sharpening already recorded in the earlier formulation review. Defined immutable per-update versions, total set semantics, all-prefix joint amortization, per-clone worst-case cost, chronological operation counts, output costs, comparison atoms and charged metadata. Explicitly excluded an extra constant clone charge from the subconstant update bound. Separated the source’s partial-persistence theorem, the older mutable-leaf full-persistence interface and newer retroactive indexing work. Classified the exact combined target as uncertain rather than presenting the broad source question as a certificate for every numerical requirement.",
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
   "importance": {
     "score": 76,
@@ -67,17 +116,20 @@
   },
   "working_summary": {
     "sentences": [
-      "A search tree keeps all previous versions of its ordered set.",
-      "A user may start a new branch from any past version.",
-      "Buffered updates save external-memory transfers by processing writes together.",
-      "The goal combines these savings with fast historical queries and constant-I/O cloning.",
-      "The latest cited result supplies this update efficiency only for partial persistence."
+      "The data structure stores every version of an ordered set and permits a new immutable version to be created from any old one.",
+      "The target combines buffered insertions and deletions, queries charged by the size of their accessed version, and constant worst-case I/O cost for explicit cloning.",
+      "All operation bounds must hold jointly over every finite online history with only two blocks of internal memory required and space linear in updates and clones.",
+      "The 2025 source achieves buffered partial persistence and leaves efficient full-persistence cloning open, while the exact numerical combination here is explicitly editorial.",
+      "A solution would unite efficient historical branching and buffered storage access without charging an extra constant transfer to every update."
     ],
     "basis": "saved_sources",
-    "source_basis": "source-text",
-    "written_on": "2026-09-13",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-16",
     "source_refs": [
-      "primary"
+      "primary",
+      "full",
+      "thesis",
+      "retroactive"
     ]
   },
   "researcher_import": {
@@ -87,9 +139,25 @@
     ],
     "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
   },
-  "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-16; see research/card-completion-20260913/reviews.jsonl.",
   "id": "TCS-7327",
   "published_at": "2026-09-13T09:26:53+00:00",
-  "updated_at": "2026-09-13T09:26:53+00:00",
-  "is_new": true
+  "updated_at": "2026-09-16T05:47:28+00:00",
+  "is_new": true,
+  "quality_review": {
+    "reviewed_on": "2026-09-16",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": "Preserved the admitted simultaneous bounds, score 76 and Data structures category, while exposing the exact editorial sharpening already recorded in the earlier formulation review. Defined immutable per-update versions, total set semantics, all-prefix joint amortization, per-clone worst-case cost, chronological operation counts, output costs, comparison atoms and charged metadata. Explicitly excluded an extra constant clone charge from the subconstant update bound. Separated the source’s partial-persistence theorem, the older mutable-leaf full-persistence interface and newer retroactive indexing work. Classified the exact combined target as uncertain rather than presenting the broad source question as a certificate for every numerical requirement.",
+    "checked_sources": [
+      "Read the complete TCS-7327 record and its 13 September 2026 formulation review: it already identifies the simultaneous target as an editorial sharpening of the source’s qualitative efficient-cloning question. Preserved its resource target, linear history space, all historical versions, score 76 and category. Making this caveat visible in formal, context and status avoids silently attributing the full theorem-shaped conjecture to the paper.",
+      "Downloaded and read the actual ESA 2025 publisher PDF for DOI 10.4230/LIPIcs.ESA.2025.82. Section 1.1 p.82:2 specifies free internal computation, comparison-only keys, transfers of B consecutive elements, M >= 2B and external blocks as space. Section 1.2 pp.82:2–82:3 gives idempotent insert/delete and sorted range/successor answers. Theorem 1 p.82:4 supplies the buffered amortized bounds for partial persistence. The 1/epsilon constants are absorbed only because epsilon is fixed. Section 4 p.82:16 asks for efficient cloning with buffered full persistence without prescribing the exact joint target. Publisher date verified as 1 October 2025; the author-hosted manuscript has different article numbering and was not used for publisher locators.",
+      "Read the actual author-hosted STOC 2023 paper stoc23.pdf: Section 1.1 p.1 permits in-place updates to unlocked leaves and requires an explicit clone to preserve the old version; Theorem 1.1 p.2 gives constant worst-case cloning and unbuffered amortized updates; Section 7 explains that clone work can be postponed and charged to an update. This does not yield the card’s buffered immutable-per-update bound by simply adding one clone per update, because that adds constant cost even when B^{epsilon-1} L_v is o(1). No such reduction or equivalence is claimed.",
+      "Downloaded Svenning’s dissertation, whose title page is dated 4 October 2025. Inspected front matter and the included buffered-persistence Section 4 (internal paper p.17, PDF p.94), where the same cloning question remains explicit. This is a later version of the same source, not a new independent resolution. Its displayed comparison factor has a transcription difference from the final ESA version, so numerical bounds in the card cite the actual publisher theorem instead.",
+      "Checked the publisher abstract and metadata for Verma–Saha–Goel DOI 10.1007/s10796-026-10782-8, published 6 July 2026. It describes a retroactive buffer tree based on batch updates and partial persistence; it does not state the immutable full-branching interface and complete set of bounds here. The full subscription article was unavailable and was not claimed to have been read. Nearby work on buffered durability in nonvolatile memory concerns crash persistence, a different use of persistence, and was not treated as a solution.",
+      "Bounded later searches through 16 September 2026 combined buffered full persistence, efficient cloning, comparison search trees and external memory, including 2026 dates. The author CV and publisher records were checked for later relevant items. No verified theorem or impossibility matching the exact editorial combination was found. Because the source asks a broader qualitative question and the existing card combines several stronger requirements, use uncertain with explicit source-open provenance, not a current-open certificate.",
+      "The model normalization makes version handles consecutive integers, prohibits key encoding into arithmetic metadata and includes all growing algorithm state in memory. The finite deterministic program is uniform in block size and memory size, with epsilon a fixed choice rather than a real oracle input. The aggregate inequality preserves the original joint amortization convention; it is supplemented by the explicit worst-case clone guarantee. Initial additive constant, empty-set logarithm convention, idempotent updates, positive and negative answers, sorted output transfers and temporary external space are specified. No internal-time bound or particular tree layout was added."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }
