@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **598**.
+Pending active reviews: **593**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -18,10 +18,7 @@ Pending active reviews: **598**.
 | [TCS-1029](../../data/cards/TCS-1029.json) | Sharp graph-removal bounds for fixed patterns | Property testing and distribution learning | top500 |
 | [TCS-0848](../../data/cards/TCS-0848.json) | Testing Submodularity | Property testing and distribution learning | top500 |
 | [TCS-0841](../../data/cards/TCS-0841.json) | Equivalence Testing with Conditional Samples | Property testing and distribution learning | top500 |
-| [TCS-0510](../../data/cards/TCS-0510.json) | Cost of privacy in online learning | Differential privacy | top500 |
 | [TCS-0507](../../data/cards/TCS-0507.json) | Optimal regret for private stochastic online learning | Differential privacy | top500 |
-| [TCS-3312](../../data/cards/TCS-3312.json) | Polynomial-time private convex-hull point selection | Differential privacy | top500 |
-| [TCS-6825](../../data/cards/TCS-6825.json) | Computational versus statistical privacy in the curator model | Differential privacy | top500 |
 | [TCS-1978](../../data/cards/TCS-1978.json) | Search tractability of BLP-solvable promise CSPs | Constraint satisfaction | top500 |
 | [TCS-0441](../../data/cards/TCS-0441.json) | Characterizing CSP languages with linear non-redundancy | Constraint satisfaction | top500 |
 | [TCS-0504](../../data/cards/TCS-0504.json) | Uniform algorithms across tractable CSPs | Constraint satisfaction | top500 |
@@ -49,7 +46,6 @@ Pending active reviews: **598**.
 | [TCS-6832](../../data/cards/TCS-6832.json) | Separations among P, RP and NP | Computational complexity | pool |
 | [TCS-6977](../../data/cards/TCS-6977.json) | Super-near-linear SAT time lower bounds | Computational complexity | pool |
 | [TCS-5651](../../data/cards/TCS-5651.json) | Recognizing good-for-games and good-for-MDP automata | Automata and formal languages | pool |
-| [TCS-5732](../../data/cards/TCS-5732.json) | Regular separability of VASS reachability languages | Automata and formal languages | pool |
 | [TCS-5738](../../data/cards/TCS-5738.json) | Recognizable separability of automatic relations | Automata and formal languages | pool |
 | [TCS-5863](../../data/cards/TCS-5863.json) | Decidability of stochastic resolvability for \(\omega\)-automata | Automata and formal languages | pool |
 | [TCS-5904](../../data/cards/TCS-5904.json) | Equivalence of discounted-sum automata | Automata and formal languages | pool |
@@ -419,7 +415,6 @@ Pending active reviews: **598**.
 | [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6507](../../data/cards/TCS-6507.json) | Work-efficient parallel directed reachability | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6508](../../data/cards/TCS-6508.json) | Deque conjecture | Data structures | existing_detailed_audit |
-| [TCS-6510](../../data/cards/TCS-6510.json) | Truly subcubic APSP | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6511](../../data/cards/TCS-6511.json) | Deterministic Exact Matching | Structural graph theory | existing_detailed_audit |
 | [TCS-6513](../../data/cards/TCS-6513.json) | Constant-factor approximation of the smallest grammar | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-6515](../../data/cards/TCS-6515.json) | Asymptotically good quantum locally testable stabilizer codes | Quantum computation | existing_detailed_audit |

@@ -994,3 +994,20 @@ all active completed hashes match. Publication and active formula validation
 passed with 19,646 expressions. The preceding mean-payoff deployment was
 live-verified as f2fd10d437d5a2c8a7f5, published 2026-09-15T18:17:33+00:00,
 Pages commit bcd9c2ed28a23f1c5b396ced017685fccf8798ed.
+
+Checkpoint 335 includes TCS-6510, truly subcubic APSP, completed on
+16 September using primary-source checks conducted on 15 September. The review
+retains arbitrary real edge weights and the randomized uniform real-RAM target,
+fixes exact primitive operations and joint output probability, and distinguishes
+worst-case time from expected time. It specifies graph corner cases, finite
+shortest-distance semantics and both complete Lean answer directions. Source
+scope now separates integer-range reductions from strongly polynomial ones,
+node/few-weight algorithms, supplied prediction certificates and the August
+barrier for reductions uniform over arbitrary triangle relations.
+
+The concurrent census is 1,044 active cards: 466 completed/reviewed and
+578 pending. The queue has 335 completed records, 313 still active and
+22 inactive; all active completed hashes match. Publication and active
+formula validation passed, covering 19,867 expressions. The preceding BPP
+publication was live-verified as 92a5b7fbb208a199edc6, published
+2026-09-15T18:28:51+00:00, Pages commit ff245fa7b4f3c51a20ae724a50912271efcd1e3b.
