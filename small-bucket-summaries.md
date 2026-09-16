@@ -566,10 +566,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6510 — Truly subcubic APSP
 
-All-pairs shortest paths asks for the exact distance between every ordered pair of vertices in a weighted directed graph. The graph may contain negative edges but no negative cycle. The target is an algorithm with a fixed positive improvement over the cubic exponent in the specified comparison-addition model. Small subpolynomial savings do not meet that target. The question matters both as a basic graph optimization problem and as the organizing hypothesis behind many conditional running-time lower bounds.
+The input is a directed graph with arbitrary exact real edge weights and no negative cycle, and the output gives the shortest distance for every ordered vertex pair. The target is one uniform randomized algorithm with a fixed positive saving below the cubic exponent, correct on the entire output matrix with probability at least two thirds. Time is charged in a specified comparison-addition real RAM that also permits ordinary logarithmic-size word operations, including all preprocessing and output. Known general algorithms achieve subpolynomial savings, while faster restricted results concern node weights, few outgoing weights, or supplied predictions. Recent restrictions on black-box reductions do not rule out all APSP algorithms, and the inspected sources retain the full target as unresolved.
 
-[Read in atlas](index.html#TCS-6510) · [Subcubic Equivalences between Path, Matrix and Triangle Problems](https://doi.org/10.1109/FOCS.2010.67) · [Faster all-pairs shortest paths via circuit complexity](https://arxiv.org/abs/1312.6680) · [Node-Weighted Triangles: Faster and Simpler](https://arxiv.org/abs/2605.08588)
-Existing status: `open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6510) · [Subcubic Equivalences Between Path, Matrix, and Triangle Problems](https://people.csail.mit.edu/virgi/tria-mmult-jv.pdf) · [Faster all-pairs shortest paths via circuit complexity](https://arxiv.org/abs/1312.6680v2) · [All-Pairs Shortest Paths with Few Weights per Node](https://arxiv.org/abs/2506.20017) · [Node-Weighted Triangles: Faster and Simpler](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.10) · [Warm-Starting All-Pairs Shortest Paths with Predictions](https://arxiv.org/abs/2607.00857) · [The Limits of Black-Box Reductions for All-Pairs Triangle Detection](https://arxiv.org/abs/2608.19092)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6596 — Orthogonal Vectors Hypothesis
 
