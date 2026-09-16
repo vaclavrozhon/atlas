@@ -543,3 +543,24 @@ with eighty retained active cards and ten resolved historical records:
 There are forty-three new importance assessments through this draw. Checkpoint
 twenty-one is committed as 73200c56 and deployed successfully. All card changes
 used shared reservations and token/hash checks; no community comments were removed.
+
+Checkpoint twenty-three brings this process to ninety-four completed reviews,
+eighty-four retained active cards and ten retired historical records.
+
+- TCS-0467: explicit uniform greedy-overlapping LZ77 access, full storage and
+  word-RAM costs, retained polynomial-in-uncompressed-length preprocessing.
+  Primary 2026 grammar/LZ-End/LZBE results use distinct parameters. Score83 retained.
+- TCS-7312: strongly uniform rank-width isomorphism, computable parameter factor,
+  graph encoding and complete Lean criterion. Score88 retained.
+- TCS-1098: explicit syntactic PV1 axioms and arithmetic SAT relation, correct
+  nonprovability direction and finite-proof target. Score79 retained.
+- TCS-6734: the user explicitly selected NP-complete source languages after the
+  naturalness ambiguity was identified. Deterministic compression and a conditional
+  kernel obstruction are spelled out and labelled as the selected refinement.
+  Exact-scope current status remains uncertain; new importance86.
+
+There are forty-four new importance assessments through this checkpoint. The
+scope discussion is retained in scope-TCS-6734.md. Checkpoint twenty-two was
+committed as d56ea7d8 and verified live at fb674265a53cf2c26ba0. Further source
+research was delegated only for already reserved cards; all canonical edits and
+completion records continued through the shared token/hash infrastructure.

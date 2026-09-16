@@ -4,24 +4,39 @@
   "area": "String algorithms and bioinformatics",
   "criterion": "resources",
   "question_type": "yes_no",
-  "formal": "Given the greedy LZ77 parse with z phrases of a string $S[1..N]$ over an integer alphabet of size at most N, is there a deterministic word-RAM data structure using \\(O(z)\\) words in total that returns \\(S[i]\\) for any $1\\le i\\le N$ in worst-case \\(O(\\log  N)\\) time? Words have $\\Theta(\\log N)$ bits. A phrase is a new literal or a longest prefix of the unparsed suffix having an occurrence starting earlier in S; overlapping copies are allowed. Space includes the stored parse and all query-support information. The uncompressed string is unavailable at query time.",
-  "answer_criterion": "Construct a uniform data structure meeting both bounds for every greedy LZ77 parse, or prove that no such structure exists in the stated model. Linear space measured by a larger grammar or an LZ-End parse does not meet the \\(O(z)\\) requirement.",
-  "why": "I include this because compression is most useful when a small representation remains usable for selective queries. This question asks whether an extra logarithmic storage cost is an inherent price of navigating repeated data or a consequence of converting to a more convenient representation.",
-  "definitions": "All asymptotic constants are universal. The model permits standard arithmetic, multiplication, shifts, bitwise operations, comparisons, and indirect addressing on a constant number of words. A copied phrase beginning at b and referring to \\(a<b\\) is decoded sequentially, so self-overlap is well-defined. Preprocessing may take polynomial time in N; the target concerns final storage and query time, not construction in compressed time. Use \\(1+\\log  N\\) at the smallest lengths.",
+  "formal": "Do there exist uniform deterministic preprocessing and query algorithms and absolute constants \\(C,K>0\\), integers \\(a\\ge1,b\\ge2\\), such that, for every string \\(S\\in[1..N]^N\\) with \\(N\\ge1\\), its greedy overlapping LZ77 parse with \\(z\\) phrases can be preprocessed in at most \\(K(N+1)^a\\) bit operations into a representation supporting every character query \\(i\\in[1..N]\\) with exact answer \\(S[i]\\), worst-case query time at most \\(C(1+\\log_2 N)\\), and at most \\(Cz\\) machine words in total at query time? A word has \\(w=b\\lceil\\log_2(N+2)\\rceil\\) bits, and query time counts the word-RAM operations below.",
+  "answer_criterion": "Give a complete mathematically correct Lean proof of a uniform scheme with all the stated construction, space, correctness and worst-case query bounds, or a complete Lean proof that no such scheme exists in this model. Space proportional to a larger grammar or to an LZ-End or LZBE parse is insufficient unless the required bound in terms of this greedy LZ77 phrase count is also established. The target is exact access with asymptotic resource guarantees, not numerical approximation of a character.",
+  "why": "Random access is a basic interface for computation on compressed texts. Linear storage in the LZ77 phrase count would preserve the benefit of repetition while making individual characters accessible without expanding the text.",
+  "definitions": "The notation \\([1..N]\\) means the integers from 1 to \\(N\\). The input is \\(N\\) and a list of phrases, each either a literal character or a pair consisting of a source position and a positive length. Each tag, character, position and length occupies a constant number of words and is given explicitly in binary. The phrases concatenate to \\(S\\). At an unparsed position \\(p\\), if \\(S[p]\\) has no earlier occurrence, the next phrase is that literal. Otherwise its length is the maximum \\(\\ell\\le N-p+1\\) such that there exists \\(s<p\\) with\n\\[\nS[s..s+\\ell-1]=S[p..p+\\ell-1].\n\\]\nThe copied phrase stores any such source \\(s\\); every choice among tied sources is allowed. Copying is sequential: its \\(j\\)-th character is the character already decoded at position \\(s+j\\), for \\(0\\le j<\\ell\\). Thus a source may overlap the destination. The input promise is a valid greedy parse in this convention; malformed encodings need no guarantee. The phrase count \\(z\\), rather than the uncompressed length or a different parser's output size, is the space parameter.\n\nPreprocessing is performed by one deterministic multitape Turing machine on the binary input. Its polynomial bound is in the uncompressed length \\(N\\); it need not be polynomial in the shorter compressed input length. Temporary preprocessing storage and even decompression are allowed within that time, but only the final representation is retained for queries. This preserves the existing card's polynomial-in-\\(N\\) construction convention; the source's brief question does not separately prescribe a compressed-time construction bound.\n\nThe query algorithm is one fixed finite word-RAM program. Registers and memory cells hold \\(w\\)-bit unsigned integers. Unit-cost operations are copying, addition, subtraction and multiplication modulo \\(2^w\\), integer quotient and remainder for a nonzero divisor, bitwise Boolean operations, left and right shifts, unsigned comparisons, conditional branches, and reading or writing a word at an address stored in a word. Left shifts discard high bits, right shifts fill with zeros, and shifts by at least \\(w\\) return zero. An operation uses only a fixed constant number of words; longer computations pay for every operation. Access to a precomputed table is allowed only when its storage is charged.\n\nEach query begins with the retained representation and its index and must return the exact character. The space bound includes all retained input, auxiliary tables, query work cells and registers. Any information about \\(N\\), phrase boundaries or the alphabet must fit there. All query computations count, and the bound applies to every query, not merely to an average over positions. The uncompressed string is unavailable except to the extent encoded in the charged representation. The algorithms have no advice, randomness, oracle or uncharged global table. The constants and programs are independent of \\(N,z,S\\) and the query position; the fixed word-size multiplier \\(b\\) is part of the scheme.",
   "progress": [
     {
       "date": "2019 / 2021",
-      "text": "Ganardi, Jeż, and Lohrey show that a straight-line grammar can be balanced to logarithmic derivation depth with only constant-factor size growth. This settles the corresponding logarithmic-access target in terms of grammar size.",
+      "text": "Grammar balancing with constant-factor size growth is established at FOCS 2019 and in the JACM 2021 publication.",
       "citation": "balance"
     },
     {
       "date": "2025-05",
-      "text": "Gawrychowski explicitly asks for linear space in the Lempel–Ziv representation and logarithmic-time character access.",
+      "text": "The Dagstuhl question asks for linear-space logarithmic-time access to Lempel–Ziv compressed strings.",
       "citation": "question"
     },
     {
-      "date": "2026-07",
-      "text": "Boneh and Gawrychowski obtain deterministic \\(O(z_{\\mathrm{end}})\\)-space random access in $O(1+\\log^2(N/z_{\\rm end}))$ time for LZ-End. Their introduction retains classical LZ77 random access as open and records $O(z\\log(N/z))$-space solutions for it.",
+      "date": "2026-06-08",
+      "text": "The CPM paper obtains logarithmic access in linear space for the restricted LZBE representation.",
+      "citation": "beginend"
+    },
+    {
+      "date": "2026",
+      "text": "The ICALP grammar trade-off paper explicitly distinguishes the remaining ordinary-LZ77 linear-space question.",
+      "citation": "grammar"
+    },
+    {
+      "date": "2026-07-16",
+      "text": "The LZ-End preprint gives deterministic construction and improved access bounds for that different parsing scheme.",
+      "citation": "lz-end"
+    },
+    {
+      "date": "2026-09-16",
+      "text": "Completed the uniform word-RAM and preprocessing formulation and checked later results without transferring bounds between different compression parameters.",
       "citation": "lz-end"
     }
   ],
@@ -32,47 +47,69 @@
       "authors": "Paweł Gawrychowski",
       "year": 2025,
       "url": "https://doi.org/10.4230/DagRep.15.5.1",
-      "locator": "Section 5.4, second question"
+      "locator": "Seminar 25191, May 2025; Section 5.4, second question, printed page 17"
     },
     {
       "id": "balance",
       "title": "Balancing Straight-Line Programs",
-      "authors": "Moses Ganardi, Artur Jeż, and Markus Lohrey",
-      "year": 2019,
-      "url": "https://arxiv.org/abs/1902.03568",
-      "locator": "FOCS 2019; JACM 2021; main balancing theorem"
+      "authors": "Moses Ganardi; Artur Jeż; Markus Lohrey",
+      "year": 2021,
+      "url": "https://arxiv.org/abs/1902.03568v5",
+      "locator": "FOCS 2019; JACM 68(4), Article 27 (2021); revision 5, 1 July 2020; Introduction, Theorems 1.1–1.2, pages 1–2"
     },
     {
       "id": "lz-end",
       "title": "Random Access to LZ-End: Faster and Deterministic",
-      "authors": "Itai Boneh and Paweł Gawrychowski",
+      "authors": "Itai Boneh; Paweł Gawrychowski",
       "year": 2026,
-      "url": "https://arxiv.org/abs/2607.14923",
-      "locator": "Introduction and main random-access theorem"
+      "url": "https://arxiv.org/abs/2607.14923v1",
+      "locator": "Posted 16 July 2026; Introduction, pages 2–3, Theorem 1.1; Section 2, parsing and computational model, page 4"
+    },
+    {
+      "id": "grammar",
+      "title": "Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes",
+      "authors": "Anouk Duyster; Tomasz Kociumaka",
+      "year": 2026,
+      "url": "https://doi.org/10.4230/LIPIcs.ICALP.2026.86",
+      "locator": "Introduction, Theorem 1.1, page 86:3; discussion of other compression measures and Section 1.3, page 86:8"
+    },
+    {
+      "id": "beginend",
+      "title": "LZBE: An LZ-Style Compressor Supporting O(log n)-Time Random Access",
+      "authors": "Hiroki Shibata; Yuto Nakashima; Yutaro Yamaguchi; Shunsuke Inenaga",
+      "year": 2026,
+      "url": "https://doi.org/10.4230/LIPIcs.CPM.2026.34",
+      "locator": "Published 8 June 2026; Abstract and Introduction, pages 34:1–34:3; restricted LZ-Begin-End parsing and random-access guarantee"
     }
   ],
   "status": "source_open",
-  "status_note": "Reviewed 10 September 2026, including the July LZ-End result. The stated parse convention, space parameter, and deterministic query guarantee are explicit.",
+  "status_note": "Source-open in the May2025 question and explicitly retained in the July2026 LZ-End paper and ICALP2026 discussion. Checked through 2026-09-16 against those sources and the restricted LZBE result; no matching general-LZ77 resolution was located in bounded later searches. This does not independently certify exhaustive current openness or every cited proof.",
   "key": "lz77-linear-space-random-access",
   "context_blocks": [
     {
-      "text": "Lempel–Ziv compression replaces a repeated block by its earlier starting position and length. This can encode a long text with few phrases, but a position inside one copied phrase may lead to another copy, and then another. Random access asks for just one character without expanding the whole text."
+      "text": "Section 5.4 asks for storage linear in the Lempel–Ziv representation and logarithmic-time character indexing. This card retains the existing deterministic, greedy, overlapping-LZ77 interpretation, integer alphabet and polynomial-in-uncompressed-length preprocessing, and spells out the previously implicit word operations and quantifiers.",
+      "citation": "question"
     },
     {
-      "text": "The challenge is not that every deeply referenced string is hard. A long run of one repeated character can be accessed immediately once its simple structure is recognized. The target must work for arbitrary mixtures of copied material, where both the reference chains and the phrase lengths vary. Any shortcuts used to navigate those chains must fit in the compressed-space budget."
-    },
-    {
-      "text": "Converting the parse to a balanced grammar supplies a route to fast navigation, but the grammar can be larger than the original parse by a logarithmic factor. A space bound proportional to that grammar therefore need not be linear in z. Balancing a grammar already supplied as input is a different, solved representation problem.",
+      "text": "A straight-line grammar is a finite acyclic set of concatenation rules generating exactly one string. Ganardi, Jeż and Lohrey prove that a supplied grammar can be balanced with only constant-factor growth, giving logarithmic access in space proportional to its grammar size. That parameter can be larger than the greedy LZ77 phrase count.",
       "citation": "balance"
     },
     {
-      "text": "The July 2026 LZ-End result is close in spirit: it obtains linear space and improved polylogarithmic access for a variant that restricts copy endpoints. Its parameter counts LZ-End phrases. Since the parsing rule and the number of phrases differ, those guarantees cannot be substituted directly for the classical LZ77 target.",
+      "text": "The July 2026 LZ-End paper reports the familiar classical-LZ77 bound \\(O(z(1+\\log(N/z)))\\) in space and retains linear-space efficient access as a major open issue. Its new theorem uses \\(O(z_{\\mathrm{end}})\\) words and \\(O(1+\\log^2(N/z_{\\mathrm{end}}))\\) query time, where \\(z_{\\mathrm{end}}\\) counts phrases subject to a different endpoint restriction.",
       "citation": "lz-end"
+    },
+    {
+      "text": "The 2026 grammar trade-off paper explicitly retains efficient access in space linear in ordinary LZ77 size as unknown. Its sharper bounds for grammars do not identify grammar size with LZ77 size.",
+      "citation": "grammar"
+    },
+    {
+      "text": "LZBE supports logarithmic access with linear space in its own factor count, but requires copied material to consist of complete preceding factors. That restriction changes the compressed representation and its size parameter.",
+      "citation": "beginend"
     }
   ],
   "year": 2026,
   "is_new": false,
-  "review_note": "Individually written from the cited primary sources. The importance assessment is editorial. New preprint proofs have not been independently verified.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-16; see research/card-completion-20260913/reviews.jsonl.",
   "reviewed_on": "2026-09-10",
   "published_at": "2026-09-10T08:20:07+00:00",
   "evidence": "reviewed",
@@ -93,7 +130,7 @@
       }
     ]
   },
-  "updated_at": "2026-09-13T11:10:27+00:00",
+  "updated_at": "2026-09-16T04:13:08+00:00",
   "importance": {
     "score": 83,
     "method": "editorial",
@@ -107,18 +144,21 @@
   },
   "working_summary": {
     "sentences": [
-      "An LZ77 parse represents repeated text through references to earlier occurrences, possibly allowing overlap.",
-      "The reviewed question asks for random character access in logarithmic time using space linear in the number of phrases.",
-      "The original uncompressed string is unavailable when queries arrive.",
-      "A solution must navigate arbitrary chains of copied material while keeping every stored shortcut inside the compressed-space budget.",
-      "The saved record distinguishes ordinary LZ77 from restricted parsing variants and notes that converting to a larger grammar does not automatically preserve the required linear space."
+      "A greedy LZ77 parse stores a string as literals and references to earlier material, including overlapping copies.",
+      "The task is to return any chosen character in logarithmic worst-case time while using only a constant number of words per phrase.",
+      "All stored input, auxiliary tables and query memory count toward that space bound.",
+      "One deterministic construction may use polynomial time in the uncompressed length, and queries cannot consult the uncompressed text.",
+      "Results for grammars, LZ-End and LZBE use different compressed-size parameters and do not automatically meet this target."
     ],
     "basis": "saved_sources",
-    "written_on": "2026-09-11",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-16",
     "source_refs": [
       "question",
       "balance",
-      "lz-end"
+      "lz-end",
+      "grammar",
+      "beginend"
     ]
   },
   "related_problem_ids": [
@@ -139,5 +179,28 @@
       "proposal": "research/author-problems-20260913/proposal.md",
       "approved_on": "2026-09-13"
     }
-  ]
+  ],
+  "requires_context": false,
+  "formulation_reviewed_on": "2026-09-16",
+  "statement_review": {
+    "status": "revised",
+    "reviewed_on": "2026-09-16",
+    "remaining_issue": "",
+    "notes": "Repaired remaining dollar-delimited formulas and reconstructed all LZ77, word-RAM, uniformity, space and preprocessing conventions. Preserved the existing greedy overlapping parse and polynomial-in-N construction target, assessed importance 83 and category. Added complete Lean acceptance, dated primary-source progress and explicit distinctions from grammar, LZ-End and LZBE size bounds.",
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
+  },
+  "quality_review": {
+    "reviewed_on": "2026-09-16",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": "Repaired remaining dollar-delimited formulas and reconstructed all LZ77, word-RAM, uniformity, space and preprocessing conventions. Preserved the existing greedy overlapping parse and polynomial-in-N construction target, assessed importance 83 and category. Added complete Lean acceptance, dated primary-source progress and explicit distinctions from grammar, LZ-End and LZBE size bounds.",
+    "checked_sources": [
+      "Read Gawrychowski Dagstuhl 25191 Section 5.4 printed page17, second question. The terse source does not separately fix construction cost; retained and explicitly attributed the existing card convention rather than silently demanding compressed-time preprocessing.",
+      "Read Ganardi–Jez–Lohrey arXiv1902.03568v5 (1 July2020), Introduction and Theorems1.1–1.2. The theorem balances a supplied grammar with constant-factor growth; it does not remove the gap between grammar size and LZ77 size. Full proof not re-audited.",
+      "Read Boneh–Gawrychowski2607.14923v1 Introduction pages2–3, Theorem1.1 and Section2 page4. Its linear-space parameter is LZ-End phrase count, its query time is squared logarithmic, and the introduction retains ordinary LZ77 random access as a major open problem.",
+      "Read Duyster–Kociumaka ICALP2026 Introduction/Theorem1.1 and other-compressibility discussion. It expressly says efficient ordinary-LZ77 access in O(z) space is unknown. Read Shibata et al.CPM2026 abstract/introduction to verify LZBE factor-boundary restriction; no wholesale proof audit claimed.",
+      "Bounded later searches through 2026-09-16 also inspected Shavidze2609.16731v1 Abstract, Introduction and SectionII.A. Its measured block-based format restricts match search across block boundaries, not a universal O(z)-word structure for arbitrary greedy parses. It was not adopted as a matching resolution or added as a required solver reference."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }
