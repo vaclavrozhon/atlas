@@ -1212,3 +1212,7 @@ The concurrent census is 1,032 active cards: 596 reviewed and 436 pending. The q
 Checkpoint 484. Completed the deterministic constant-factor Densest k-Subgraph formulation, exact output and bit model, with dated approximation and hardness boundaries.
 
 The concurrent census is 1,032 active cards: 602 reviewed and 430 pending. The queue has 484 completed records, 450 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 24,982 formulas.
+
+Checkpoint 486. Completed the single-prover classical verification question with uniform resource bounds, unbounded-strategy soundness and 2026 model distinctions.
+
+The concurrent census is 1,032 active cards: 604 reviewed and 428 pending. The queue has 486 completed records, 452 active and 34 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,032 active cards, covering 25,051 formulas.
