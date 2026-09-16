@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-834 records have an editorial importance assessment; 204 remain provisional.
+838 records have an editorial importance assessment; 200 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -59,7 +59,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 32; importance 
 
 ## 4. Semantics, logic and verification (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance assessed: 31; provisional: 7.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance assessed: 33; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 41; importance 
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance assessed: 27; provisional: 9.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance assessed: 28; provisional: 8.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -140,7 +140,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance 
 | 7 | [Distribution-free improper learning of two unrestricted halfspaces](index.html#TCS-7293) | 90 |
 | 8 | [Optimal multiclass regret versus Littlestone dimension](index.html#TCS-2336) | 88 |
 | 9 | [Memory–sample tradeoffs for noisy parity learning](index.html#TCS-3117) | 87 |
-| 10 | [Proper decision-tree learning in polynomial time](index.html#TCS-0677) | 86 |
+| 10 | [Learning PH/poly from learning NP/poly](index.html#TCS-3177) | 87 |
 
 ## 9. Cryptography (large)
 
@@ -528,7 +528,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 4; importance a
 
 ## 22. Constraint satisfaction (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 13; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 14; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -539,9 +539,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance 
 | 5 | [Hardness of 6-coloring 3-colorable graphs](index.html#TCS-7237) | 94 |
 | 6 | [Boolean decision-Holant dichotomy](index.html#TCS-6748) | 86 |
 | 7 | [Exact exponential-time equivalence for nonnegative Boolean Max-CSP](index.html#TCS-3585) | 85 |
-| 8 | [Dichotomy for finite-domain restricted CSPs](index.html#TCS-1807) | 83 |
-| 9 | [Search tractability of BLP-solvable promise CSPs](index.html#TCS-1978) | 83 |
-| 10 | [Characterizing CSP languages with linear non-redundancy](index.html#TCS-0441) | 76 |
+| 8 | [Universal representation of NP by \\(\\omega\\)-categorical CSPs](index.html#TCS-7116) | 84 |
+| 9 | [Dichotomy for finite-domain restricted CSPs](index.html#TCS-1807) | 83 |
+| 10 | [Search tractability of BLP-solvable promise CSPs](index.html#TCS-1978) | 83 |
 
 ## 23. Automated reasoning, rewriting and unification (small)
 

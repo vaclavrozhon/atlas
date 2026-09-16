@@ -984,6 +984,13 @@ A rational linear recurrence describes an infinite sequence using finitely many 
 [Read in atlas](index.html#TCS-7153) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html) · [Positivity Problems for Low-Order Linear Recurrence Sequences](https://www.cs.ox.ac.uk/james.worrell/pos12.pdf) · [Ultimate Positivity is Decidable for Simple Linear Recurrence Sequences](https://www.cs.ox.ac.uk/james.worrell/ultimate4.pdf) · [Termination Analysis of Linear-Constraint Programs](https://arxiv.org/abs/2509.06752v3) · [Positivity of arbitrary-order P-recursive sequences with a unique dominant root](https://arxiv.org/abs/2605.17013v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-7157 — Termination of linear-constraint loops
+
+A single-path linear-constraint loop permits exactly those successive state pairs satisfying one finite conjunction of rational linear inequalities. Termination means that no infinite execution exists from any initial state under any allowed sequence of choices. The question asks for the decidability status separately over integer, rational and real state spaces, with unrestricted dimension. Affine subclasses and the two-variable real case are decidable, while a 2026 result for one integer variable remains conditional on a generalized Collatz conjecture. A resolution would locate the algorithmic boundary between deterministic affine dynamics and more general nondeterministic linear programs.
+
+[Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html) · [Termination Analysis of Linear-Constraint Programs](https://arxiv.org/abs/2509.06752v3) · [Loop Termination and Generalized Collatz Sequences](https://drops.dagstuhl.de/storage/00lipics/lipics-vol374-icalp2026/LIPIcs.ICALP.2026.175/LIPIcs.ICALP.2026.175.pdf) · [The 2-Dimensional Constraint Loop Problem is Decidable](https://arxiv.org/abs/2405.12992v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7192 — Decidability of multiplicative-exponential linear logic
 
 MELL asks whether provability in a resource-sensitive propositional logic can always be decided. Its multiplicative connectives combine resources, while exponential modalities permit controlled reuse. The card specifies the entire finite proof calculus, including units and the conditions on contraction and promotion. Proof checking alone does not guarantee that a search can terminate on an unprovable input. A July 2026 preprint claims a positive resolution through general branching vector addition systems, which is recorded here without independent proof verification.
@@ -1046,6 +1053,13 @@ A branching vector addition system combines finite control with nonnegative inte
 
 [Read in atlas](index.html#TCS-1649) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://doi.org/10.4230/LIPIcs.MFCS.2025.22)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-5975 — Decisiveness of static probabilistic Petri nets for finite targets
+
+A static probabilistic Petri net randomly chooses an enabled transition according to its fixed positive weight. Decisiveness for a finite target means that almost every run eventually reaches either the target or a marking from which the target is unreachable. The question asks whether this property is decidable from the net, one initial marking and an explicit finite target set. Known upward-closed-target guarantees and undecidability with marking-dependent weights do not settle this constant-weight finite-target case. A resolution would clarify when a general guarantee supporting certified probability approximation can be recognized in an ordinary probabilistic counter model.
+
+[Read in atlas](index.html#TCS-5975) · [About Decisiveness of Dynamic Probabilistic Models](https://doi.org/10.4230/LIPIcs.CONCUR.2023.14) · [Tightening the Frontier of Decidability for Decisiveness](https://home.lmf.cnrs.fr/downloads/SergeHaddad/A25-QEST.pdf) · [Tightening the Frontier of Decidability for Decisiveness — presentation](https://lmf.cnrs.fr/downloads/Perso/talkqf.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0632 — Linear-length witnesses for reachability in each fixed vector addition system
 
@@ -1152,26 +1166,12 @@ Simplicial sets describe spaces through points, edges, triangles, and their high
 [Read in atlas](index.html#TCS-5915) · [From Cubes to Twisted Cubes via Graph Morphisms in Type Theory](https://doi.org/10.4230/LIPIcs.TYPES.2019.5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5975 — Decidability of decisiveness in probabilistic transition systems
-
-A probabilistic transition system is decisive for a target when it almost surely eventually reaches either the target or states from which the target is unreachable. This property supports approximation of reachability probabilities in infinite-state models such as probabilistic Petri nets. The source discusses deciding decisiveness for finite targets and for transition weights that depend on the current marking. Its own results resolve a substantial dynamic-weight case negatively, proving undecidability for polynomial weights even with finite or upward-closed targets. The description therefore separates that established limitation from the more specific constant-weight and restricted-model questions motivating the paper.
-
-[Read in atlas](index.html#TCS-5975) · [About Decisiveness of Dynamic Probabilistic Models](https://doi.org/10.4230/LIPIcs.CONCUR.2023.14)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6359 — Decidability and completeness of concurrent Kleene algebra
 
 Concurrent Kleene algebra represents executions as partially ordered multisets of events, preserving distinctions between sequential and parallel behavior. Refinement compares such executions by allowing additional ordering, and the interchange law captures a basic relationship between sequential and parallel composition. The quoted question concerns decidability and completeness for refinement of expressions with iteration. The source itself settles the decision problem for series-rational expressions without parallel iteration, proving EXPSPACE-completeness, while the broader signature and axiomatization questions are distinct. This distinction matters when deciding whether a concurrent specification permits an implementation with a greater degree of sequentialization.
 
 [Read in atlas](index.html#TCS-6359) · [On Decidability of Concurrent Kleene Algebra](https://doi.org/10.4230/LIPIcs.CONCUR.2017.28)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-7157 — Termination of linear-constraint loops
-
-A linear-constraint loop specifies its next state by a conjunction of linear inequalities relating the old and new variable values. This permits several possible successors, unlike a loop whose body is a single fixed affine assignment. The source asks for a decision procedure for termination in this more general relational model. It identifies octagonal constraints as a positive special case, where the transition relation has an effectively semilinear transitive closure. Extending beyond that fragment would show whether unbounded executions can still be characterized effectively when each iteration chooses among all numerical updates satisfying general linear constraints.
-
-[Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Distributed, parallel and sublinear algorithms (58)
 
@@ -2063,6 +2063,13 @@ A hidden binary vector is observed through uniformly random parity equations wit
 [Read in atlas](index.html#TCS-3117) · [Memory-Sample Lower Bounds for Learning Parity with Noise](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.60) · [Toward Lower Bounds on Memory-Sample Tradeoffs for Learning Parity with Noise](https://dimacs.rutgers.edu/reu-project-detail/toward-lower-bounds-on-memory-sample-tradeoffs-for)
 Existing status: `source_open` · Summary written: 2026-09-12
 
+### TCS-3177 — Learning PH/poly from learning NP/poly
+
+The question asks whether efficient PAC learning of NP/poly would imply efficient PAC learning at every fixed level of the polynomial hierarchy. Targets are small circuits with alternating witness tests, while the learner sees only independent labeled examples from an arbitrary unknown distribution. The output must be an ordinary efficiently evaluatable Boolean circuit, with polynomial time also accounting for samples, randomness and the public target-size bound. Known structural equivalences for stronger classes and ordinary circuit-representation collapses do not establish this learning implication. The full 2021 source explicitly asks the question, while the bounded later-status review supplies no matching resolution and leaves present status uncertain.
+
+[Read in atlas](index.html#TCS-3177) · [On the Structure of Learnability Beyond P/Poly](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.46) · [On the Structure of Learnability beyond P/poly](https://eccc.weizmann.ac.il/report/2021/173/) · [On the Structure of Learnability beyond P/poly](https://link.springer.com/article/10.1007/s00037-024-00260-5)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-0677 — Proper decision-tree learning in polynomial time
 
 Proper learning of decision trees requires the learner to output a decision tree, preserving the target representation's simple branching structure. The source asks for a polynomial-time algorithm under the uniform input distribution with membership queries available. Those queries let the learner choose inputs and observe their target labels, making this different from learning from random examples alone. Existing algorithms in the source are faster than earlier quasipolynomial approaches but still fall short of polynomial time. A solution would provide an efficient way to recover an interpretable tree hypothesis without abandoning the tree representation during learning.
@@ -2173,13 +2180,6 @@ Existing status: `source_open` · Summary written: 2026-09-14
 A statistical property is elicitable when minimizing an expected loss recovers that property of the underlying distribution. Familiar examples motivate asking which statistics admit such loss functions and how those functions can be characterized. The source also studies elicitation complexity, the number of intermediate real-valued reports needed to recover a desired statistic. Some properties that cannot be elicited directly may become accessible through a richer intermediate prediction. A general characterization would explain the expressive limits of empirical risk minimization and guide the design of objectives for estimating specific distributional quantities.
 
 [Read in atlas](index.html#TCS-0689) · [COLT / PMLR](https://proceedings.mlr.press/v49/frongillo16.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3177 — Learning PH/poly from learning NP/poly
-
-Learning complexity asks whether examples can be converted efficiently into predictors for an entire class of computational functions. The source considers the nonuniform classes NP/poly and PH/poly, which permit polynomial-size advice. It asks whether polynomial-time learnability of the first would imply polynomial-time learnability throughout the polynomial hierarchy. The analogy is with structural collapse theorems, but the learning setting introduces distributional and oracle issues. A proof or barrier would clarify whether learning a nondeterministic level is powerful enough to handle repeated alternations, rather than merely yielding faster algorithms for isolated concept classes.
-
-[Read in atlas](index.html#TCS-3177) · [On the Structure of Learnability Beyond P/Poly](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.46)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3391 — Efficient learning of well-separated Gaussian mixtures
@@ -2492,7 +2492,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Entangled states can sometimes be converted into nearly perfect shared Bell pairs using many copies and local operations with classical communication. Bound entanglement means that this distillation remains impossible despite the presence of entanglement. The question asks whether such states can have a negative partial transpose, a spectral property associated with distillability in simpler settings. Failure of a protocol on one copy or any fixed number of copies does not establish the required obstruction for every number of copies. Resolving the question would sharpen the distinction between entanglement as a property and entanglement as a usable communication resource.
 
 [Read in atlas](index.html#TCS-6518) · [Mixed-state entanglement and distillation: is there a “bound” entanglement in nature?](https://arxiv.org/abs/quant-ph/9801069) · [Evidence for Bound Entangled States with Negative Partial Transpose](https://arxiv.org/abs/quant-ph/9910026) · [A solution to 2-copy distillability of Werner states](https://arxiv.org/abs/2607.21367) · [On the two-copy distillability of Werner states and a new partial trace inequality](https://arxiv.org/abs/2607.24309) · [Two-copy nondistillability of Werner states: sharp partial-trace inequalities and finite-copy extensions](https://arxiv.org/abs/2607.24479) · [Sharp Plucker Geometry for Three-Copy Werner Distillation](https://arxiv.org/abs/2608.02647)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6515 — Asymptotically good quantum locally testable stabilizer codes
 

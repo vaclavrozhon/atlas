@@ -757,10 +757,10 @@ Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-6600 — Optimal explicit pseudorandom generators for read-once branching programs
 
-An ordered read-once branching program processes input bits sequentially while retaining only one of a bounded number of states. The target is an explicit pseudorandom generator with seed length \(O(\log  n+\log  w+\log (1/\varepsilon ))\). One generated distribution must approximate acceptance probabilities for every length-n, width-w program without inspecting that program. Such a generator would provide a strong route to removing randomness from logarithmic-space computation. The saved review stresses that weighted pseudodistributions, hitting sets, and generators for permutation programs do not directly supply the ordinary distribution required for arbitrary merging transitions.
+An ordered read-once branching program reads each input bit in order while retaining one of a bounded number of states, with arbitrary merging transitions allowed. The question asks for one ordinary uniform-seed generator family that simultaneously approximates the acceptance probability of every such program. Seed length and worst-case workspace must be linear in the logarithms of length and width plus the error parameter, with a uniform polynomial-in-length,width,inverse-error time bound. Recent weighted generators, permutation-program PRGs and width-three hitting sets retain guarantees or hypotheses different from this unrestricted target. A solution requires a complete Lean proof constructing the uniform family with all resource and error bounds, or ruling out every such program and universal constants.
 
-[Read in atlas](index.html#TCS-6600) · [Pseudorandom generators for space-bounded computation](https://mathweb.ucsd.edu/~sbuss/CourseWeb/Math268_2013W/Nisan_PRG.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2021.28) · [Hitting Sets Give Two-Sided Derandomization of Small Space](https://theoryofcomputing.org/articles/v018a021/) · [Weighted Pseudorandom Generators for Read-Once Branching Programs via Weighted Pseudorandom Reductions](https://epubs.siam.org/doi/10.1137/1.9781611978971.124) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/) · [A Forward-Backward Weight Analysis of INW for Permutation Branching Programs](https://eccc.weizmann.ac.il/report/2026/123/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6600) · [Pseudorandom generators for space-bounded computation](https://mathweb.ucsd.edu/~sbuss/CourseWeb/Math268_2013W/Nisan_PRG.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2021.28) · [Hitting Sets Give Two-Sided Derandomization of Small Space](https://theoryofcomputing.org/articles/v018a021/) · [Weighted Pseudorandom Generators for Read-Once Branching Programs via Weighted Pseudorandom Reductions](https://arxiv.org/abs/2502.08272v5) · [Improved Error Reduction for Weighted PRGs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2026.39) · [A Forward-Backward Weight Analysis of INW for Permutation Branching Programs](https://eccc.weizmann.ac.il/report/2026/123/) · [Optimal Hitting Set Generators via A Potential-Descent Framework](https://eccc.weizmann.ac.il/report/2026/178/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0026 — L versus BPL
 
@@ -3857,10 +3857,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6636 — Bodirsky–Pinsker conjecture
 
-Infinite-domain CSPs assign variables values from a fixed countable structure while satisfying finitely listed constraints. The conjecture asks for a P-versus-NP-complete dichotomy for reducts of finitely bounded homogeneous structures. These restrictions provide symmetry and a finite description of forbidden patterns despite the unbounded value domain. A classification would show whether this structural description rules out intermediate complexity across many logical and combinatorial problems. The saved review identifies the missing general algorithmic step and separates special subclasses, lower logical dichotomies, and meta-problem decidability from a proof of the full conjecture.
+The conjecture asks for a P-versus-NP-complete dichotomy for all finite-signature first-order reducts of countable finitely bounded homogeneous structures. Inputs are finite constraint systems, while their possible values lie in a fixed domain that may be infinite. Homogeneity provides symmetry, and finitely many forbidden induced patterns provide polynomial-size certificates despite the infinite domain. Recent results simplify the conjecture’s scope or classify lower complexity boundaries, while the full tractability implication remains open in the checked sources. A resolution would determine whether this broad structural framework rules out intermediate NP complexity.
 
-[Read in atlas](index.html#TCS-6636) · [A Proof of the CSP Dichotomy Conjecture](https://arxiv.org/abs/1704.01914) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [Topology Is Irrelevant (In a Dichotomy Conjecture for Infinite Domain Constraint Satisfaction Problems)](https://doi.org/10.1137/18M1216213) · [Three Fundamental Questions in Modern Infinite-Domain Constraint Satisfaction](https://arxiv.org/abs/2502.06621) · [Constraint Satisfaction Problems over Finitely Bounded Homogeneous Structures: a Dichotomy between FO and L-hard](https://arxiv.org/abs/2601.22691) · [Decidability of Interpretability](https://arxiv.org/abs/2602.02302)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6636) · [A Proof of the CSP Dichotomy Conjecture](https://arxiv.org/abs/1704.01914) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [Topology Is Irrelevant (In a Dichotomy Conjecture for Infinite Domain Constraint Satisfaction Problems)](https://doi.org/10.1137/18M1216213) · [Three Fundamental Questions in Modern Infinite-Domain Constraint Satisfaction](https://arxiv.org/abs/2502.06621v4) · [Constraint Satisfaction Problems over Finitely Bounded Homogeneous Structures: a Dichotomy between FO and L-hard](https://arxiv.org/abs/2601.22691v3) · [Decidability of Interpretability](https://arxiv.org/abs/2602.02302v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6637 — Constant-colour polynomial-time colouring of 3-colourable graphs
 
@@ -3889,6 +3889,13 @@ A Boolean Max-CSP instance asks for an assignment satisfying constraints of maxi
 
 [Read in atlas](index.html#TCS-3585) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.4230/LIPIcs.ESA.2020.63) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.1145/3624704)
 Existing status: `open` · Summary written: 2026-09-12
+
+### TCS-7116 — Universal representation of NP by \(\omega\)-categorical CSPs
+
+The question asks whether every NP language is polynomial-time Turing equivalent to a CSP with a fixed omega-categorical template. Omega-categoricity means that each finite tuple length has only finitely many symmetry orbits, even when the domain is infinite. The reductions may use adaptive exact membership queries, and no uniform template-construction algorithm or effective template presentation is required. Universality is known for unrestricted infinite templates, while the known omega-categorical construction gives a weaker oracle upper bound. A resolution would determine whether this symmetry condition limits computational representation of NP problems.
+
+[Read in atlas](index.html#TCS-7116) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf) · [Non-dichotomies in Constraint Satisfaction Complexity](https://www.lix.polytechnique.fr/~bodirsky/publications/nodich.pdf) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [Three Fundamental Questions in Modern Infinite-Domain Constraint Satisfaction](https://arxiv.org/abs/2502.06621v4)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1807 — Dichotomy for finite-domain restricted CSPs
 
@@ -3958,13 +3965,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only \(O(\log  n)\) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
 
 [Read in atlas](index.html#TCS-6725) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7116 — Universal representation of NP by \(\omega\)-categorical CSPs
-
-The source asks whether every problem in NP is polynomial-time equivalent to a CSP with an \(\omega\)-categorical template. Such templates may be infinite while retaining a strong symmetry property on finite tuples. A representation theorem would show that local constraint solving over this structured universe captures all nondeterministic polynomial-time tasks. It would also clarify how broad infinite-template CSP theory can be compared with finite-template classifications. The saved formulation is historical and does not specify its reduction conventions or effective template presentation, which remain relevant before one uniform encoding claim is made.
-
-[Read in atlas](index.html#TCS-7116) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7124 — SNP definability of CSPs in NP
