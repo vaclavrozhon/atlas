@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-608 five-sentence working summaries, based on saved source material.
+607 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -131,7 +131,7 @@ The Mandelbrot set consists of complex parameters for which repeatedly applying 
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Proof complexity (27)
+## Proof complexity (26)
 
 ### TCS-6601 — Superpolynomial Extended Frege lower bounds
 
@@ -187,6 +187,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 General resolution refutes a Boolean CNF by combining and reusing clauses in an arbitrary acyclic proof. Linear resolution without restarts keeps one main chain, using the preceding clause together with an input clause or an earlier main clause at every inference. The question asks whether this restriction causes a superpolynomial increase in refutation length on some formulas, with length counted by resolution inferences. The source definition requires an explicit correction to exclude restarts, and the bounded later review found no verified resolution of the intended same-formula comparison. A complete Lean answer must prove either failure of every polynomial size bound or one universal polynomial simulation, without an extra requirement to find the converted proofs efficiently.
 
 [Read in atlas](index.html#TCS-6771) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913v3) · [On Linear Resolution](https://www.ifi.lmu.de/institut/personen/jjohannsen/jj_papers/linres.pdf) · [The Complexity of Linear Resolution, in Proof Complexity (Dagstuhl Seminar 18051)](https://doi.org/10.4230/DagRep.8.1.124) · [A comment on the paper Linear and Negative Resolution are Weaker than Resolution](https://eccc.weizmann.ac.il/report/2001/074/comment/1/download/) · [Regular resolution effectively simulates resolution](https://arxiv.org/abs/2402.15871v1) · [Exponential Separation Between Powers of Regular and General Resolution over Parities](https://doi.org/10.4230/LIPIcs.CCC.2024.23)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-1253 — Superpolynomial \(\mathrm{Res}(\oplus)\) lower bounds
+
+Resolution over parities extends ordinary resolution by allowing disjunctions of linear equations modulo two. The question asks whether unsatisfiable CNF formulas can require more proof lines than every universal polynomial bound in their input size. Proofs may reuse earlier lines without any restriction on depth, width, regularity or space. Recent strong lower bounds for restricted proofs and the known unrestricted quadratic bound do not settle this question. A resolution would locate a central limitation, or unexpected strength, of propositional reasoning with parity.
+
+[Read in atlas](index.html#TCS-1253) · [Hardness of Range Avoidance and Proof Complexity Generators from Demi-Bits](https://doi.org/10.4230/LIPIcs.ITCS.2026.111) · [Supercritical Tradeoff Between Size and Depth for Resolution over Parities](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.81) · [Lower Bounds for Regular Resolution over Parities](https://doi.org/10.1137/24M1696640) · [New Polynomial-Depth Res(+) Lower Bounds](https://eccc.weizmann.ac.il/report/2026/007/) · [Resolution Width Lifts to Near-Quadratic-Depth \(\mathrm{Res}(\oplus)\) Size](https://eccc.weizmann.ac.il/report/2026/018/) · [Strong ETH Holds for Bounded-Depth Resolution over Parities](https://doi.org/10.1145/3798129.3800804)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5333 — Linear-space Cutting Planes refutations
@@ -245,12 +252,12 @@ For each fixed polynomial exponent, the question asks for a polynomial-time pred
 [Read in atlas](index.html#TCS-1096) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416) · [Bounded Arithmetic, Propositional Logic, and Complexity Theory](https://www.karlin.mff.cuni.cz/~krajicek/kniha.pdf) · [Parallelism and Adaptivity in Student-Teacher Witnessing](https://arxiv.org/abs/2602.19934) · [From Gödel incompleteness to the consistency of circuit lower bounds](https://arxiv.org/abs/2604.25251)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1097 — Unprovability of NP circuit upper bounds in \(T_{2}^{1}\)
+### TCS-1097 — Unprovability of NP circuit upper bounds in \(T_2^1\)
 
-Polynomial circuit upper bounds for NP would assert small nonuniform computations for nondeterministically verifiable problems. The saved question concerns whether such bounds are unprovable in \(T_{2}^{1}\). It studies limitations of a formal arithmetic theory rather than directly proving that the circuit upper bounds are false. A separation between truth and available formal proof would clarify which reasoning principles are needed for major complexity assertions. The inherited label does not preserve the exact upper-bound schema or metatheoretic assumptions, so the intended unprovability statement remains to be specified.
+For each fixed polynomial exponent, the question asks for an NP predicate whose circuit upper bounds cannot be proved in T-two-one. One represented predicate must resist every fixed multiplicative coefficient at that exponent. The theory uses successor induction for NP formulas, and the card fixes its axioms and the precise circuit upper-bound sentence. Known results concern NP in a weaker theory or a larger complexity class in T-two-one. A resolution would clarify limits on formal proofs about efficient nonuniform computation without itself asserting a standard-model circuit lower bound.
 
-[Read in atlas](index.html#TCS-1097) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1097) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416) · [Bounded Arithmetic, Propositional Logic, and Complexity Theory](https://www.karlin.mff.cuni.cz/~krajicek/kniha.pdf) · [Consistency of circuit lower bounds with bounded theories](https://lmcs.episciences.org/6576) · [LEARN-Uniform Circuit Lower Bounds and Provability in Bounded Arithmetic](https://eccc.weizmann.ac.il/report/2021/095/) · [Parallelism and Adaptivity in Student-Teacher Witnessing](https://arxiv.org/abs/2602.19934)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1098 — \(PV_1\) nonprovability of polynomial-time SAT solvers
 
@@ -273,13 +280,6 @@ A propositional proof system maps proof strings to valid statements and must rep
 [Read in atlas](index.html#TCS-0071) · [Circuits, Logic and Games](https://doi.org/10.4230/DagRep.5.9.105)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1253 — Superpolynomial Res\([\oplus ]\) lower bounds
-
-Resolution over parities allows proof lines to describe linear equations modulo two. The saved passage identifies superpolynomial lower bounds for this stronger resolution system as unresolved in its source. Parity reasoning can compress constraints that ordinary clauses express only indirectly. A general size lower bound would therefore push beyond limitations of weaker proof languages. The cited work connects this direction with range avoidance and proof-complexity generators, but the excerpt does not specify a hard formula family or establish that the source's historical status remains current.
-
-[Read in atlas](index.html#TCS-1253) · [Hardness of Range Avoidance and Proof Complexity Generators from Demi-Bits](https://doi.org/10.4230/LIPIcs.ITCS.2026.111)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2889 — Short tree-like resolution from small proof space
 
 The source compares working memory in refutations with the logarithm of minimum tree-like resolution size. Its two memory measures are stored clauses in resolution and distinct monomials in polynomial calculus with resolution. The comparison allows polynomial losses and powers of log n, so it is much coarser than a constant-factor identity. A length-penalized version of space is already known to satisfy the comparison. The unresolved issue is whether ordinary space can be substantially smaller on this scale.
@@ -300,13 +300,6 @@ Lovász–Schrijver and cutting-planes systems are two ways to prove infeasibili
 
 [Read in atlas](index.html#TCS-5114) · [Representations of Monotone Boolean Functions by Linear Programs](https://doi.org/10.4230/LIPIcs.CCC.2017.3)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5275 — Supercritical proof size–depth tradeoffs
-
-Proof size counts the extent of a derivation, while depth measures the longest chain of dependent inferences. The source asks for a supercritical size-depth tradeoff even in a weaker system such as resolution. The target is to show that keeping one resource small forces the other far beyond what separate efficient proofs suggest. Such a construction would clarify limitations of branch-and-cut reasoning and simpler underlying proof methods. The saved excerpt does not define supercritical quantitatively or provide a formula family, so the precise tradeoff curve remains part of the source's model.
-
-[Read in atlas](index.html#TCS-5275) · [On the Power and Limitations of Branch and Cut](https://doi.org/10.4230/LIPIcs.CCC.2021.6)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5292 — Optimal proof systems outside NP
 
@@ -867,12 +860,12 @@ Derandomization replaces efficient bounded-error randomized algorithms by determ
 [Read in atlas](index.html#TCS-1021) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1022 — Derandomization implying exponential nondeterministic circuit hardness
+### TCS-1022 — \(\mathrm{NEXP}\) circuit hardness from promise derandomization
 
-The source studies what circuit lower bounds follow if every promise-BPP problem can be derandomized. This question asks for a nondeterministic exponential-time problem requiring circuits of size exponential in a positive power of the input length. Merely proving a superpolynomial lower bound does not meet that quantitative target. The circuit designs are nonuniform, so they need not be efficiently generated. The project seeks a stronger converse to the principle that hard functions can supply pseudorandomness for efficient algorithms.
+Promise derandomization says that every efficiently randomized promise problem also has a deterministic polynomial-time solver. The question asks whether this forces a total language in NEXP to require Boolean circuits of size exponential in a positive power of input length. The circuits are ordinary deterministic nonuniform circuits, while nondeterminism belongs to the language class. Known superpolynomial lower bounds and later time-size or restricted-circuit refinements do not directly supply the requested quantitative conclusion. A resolution would sharpen a fundamental connection between eliminating randomness and proving circuit hardness.
 
-[Read in atlas](index.html#TCS-1022) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1022) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/) · [In search of an easy witness: Exponential time vs. probabilistic polynomial time](https://www.cs.sfu.ca/~kabanets/Research/ikw.html) · [Tighter Connections between Derandomization and Circuit Lower Bounds](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX-RANDOM.2015.645) · [Proving that \(\mathrm{prBPP}=\mathrm{prP}\) is as hard as proving that “almost NP” is not contained in \(\mathrm{P/poly}\)](https://eccc.weizmann.ac.il/report/2018/003/revision/5/download/) · [Almost-Everywhere Circuit Lower Bounds from Non-Trivial Derandomization](https://eccc.weizmann.ac.il/report/2020/150/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1125 — Sub-log-squared seeds for width-four ordered branching programs
 
