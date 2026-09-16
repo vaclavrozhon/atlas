@@ -50,6 +50,9 @@
     else{
       const space=text.lastIndexOf(' ',cut);
       if(space>0)cut=space;
+      // Moving back to a word boundary can land inside the preceding formula.
+      const previous=parts(text).find(part=>part.math&&part.start<cut&&part.end>cut);
+      if(previous)cut=previous.end;
     }
     return text.slice(0,cut).trimEnd()+(cut<text.length?' […]':'');
   }
