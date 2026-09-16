@@ -299,6 +299,13 @@ UL contains languages decided with logarithmic work space and at most one accept
 [Read in atlas](index.html#TCS-6285) · [Depth-First Search in Directed Planar Graphs, Revisited](https://doi.org/10.4230/LIPIcs.MFCS.2021.7) · [Nondeterministic Space is Closed under Complementation](https://doi.org/10.1137/0217058) · [Parameterizing the Complexity of Finding Long Paths in DAGs](https://doi.org/10.4230/LIPIcs.MFCS.2026.73)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-2425 — Closure of SZK under truth-table reductions
+
+The question asks whether statistical zero knowledge is closed under arbitrary polynomial-time nonadaptive truth-table reductions. The reduction prepares all queries first and combines their answers with a polynomial-size Boolean circuit. Promise-violating queries are handled by the source’s explicit gate-by-gate three-valued logic. Closure is known for Boolean formulas and logarithmic-depth circuits, leaving general circuit composition unresolved in the source. The card defines SZK through Statistical Difference and requires a complete proof or counterexample to the full closure statement.
+
+[Read in atlas](index.html#TCS-2425) · [Kolmogorov Complexity Characterizes Statistical Zero Knowledge](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2023.3) · [A Complete Problem for Statistical Zero Knowledge](https://www.cs.ucla.edu/~sahai/work/web/2003%20Publications/J.ACM2003.pdf) · [Robustness for Space-Bounded Statistical Zero Knowledge](https://doi.org/10.1145/3708508)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-3886 — \(\exists\!\cdot\!\mathrm{BPP}\) versus MA
 
 The question asks whether existential quantification over an ordinary BPP language has exactly the power of Merlin–Arthur verification. Both settings use a polynomial-size witness chosen before a uniform randomized polynomial-time check. Existential BPP additionally requires a bounded-error gap for every input-witness pair, even for unsuccessful witnesses on yes-instances. Equality permits changing the verifier, so one verifier with intermediate probabilities is not a counterexample. An oracle separation is known, while the ordinary class equality remains the source’s unresolved target.
@@ -424,13 +431,6 @@ The question asks whether some zero-one matrices are arbitrarily more costly to 
 
 [Read in atlas](index.html#TCS-1036) · [Complexity of Linear Boolean Operators](https://doi.org/10.1561/0400000063) · [Separating OR, SUM, and XOR Circuits](https://doi.org/10.1016/j.jcss.2016.01.001)
 Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-2425 — Closure of SZK under truth-table reductions
-
-Statistical zero knowledge captures problems that can be verified interactively while revealing essentially no additional information even to a powerful observer. This project asks whether the class SZK is closed under polynomial-time truth-table reductions. Such a reduction prepares its oracle questions without depending on their answers and then combines the answers using polynomial-time computation. The source discusses closure under more restricted ways of combining answers, which do not automatically give this general closure property. A resolution would clarify whether nonadaptive composition preserves statistical zero knowledge across the full range of efficient postprocessing.
-
-[Read in atlas](index.html#TCS-2425) · [Kolmogorov Complexity Characterizes Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.ITCS.2023.3)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2532 — Circuit lower bounds from indistinguishability obfuscation
 
