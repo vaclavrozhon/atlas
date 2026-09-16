@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **593**.
+Pending active reviews: **591**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -378,8 +378,6 @@ Pending active reviews: **593**.
 | [TCS-0016](../../data/cards/TCS-0016.json) | Exponential circuit lower bounds for 3-SAT | Computational complexity | existing_detailed_audit |
 | [TCS-0022](../../data/cards/TCS-0022.json) | One-way functions from \(\mathrm{P} \ne  \mathrm{NP}\) | Cryptography | existing_detailed_audit |
 | [TCS-0026](../../data/cards/TCS-0026.json) | L versus BPL | Pseudorandomness and derandomization | existing_detailed_audit |
-| [TCS-0036](../../data/cards/TCS-0036.json) | BPP versus BQP | Quantum computation | existing_detailed_audit |
-| [TCS-0037](../../data/cards/TCS-0037.json) | NP outside BQP | Quantum computation | existing_detailed_audit |
 | [TCS-0310](../../data/cards/TCS-0310.json) | Polynomial-time weighted falsifiability of unambiguous DNFs | Computational complexity | existing_detailed_audit |
 | [TCS-0318](../../data/cards/TCS-0318.json) | Planar k-set extremal function | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-0466](../../data/cards/TCS-0466.json) | Certifying Karp–Rabin fingerprints | String algorithms and bioinformatics | existing_detailed_audit |

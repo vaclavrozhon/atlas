@@ -1011,3 +1011,22 @@ The concurrent census is 1,044 active cards: 466 completed/reviewed and
 formula validation passed, covering 19,867 expressions. The preceding BPP
 publication was live-verified as 92a5b7fbb208a199edc6, published
 2026-09-15T18:28:51+00:00, Pages commit ff245fa7b4f3c51a20ae724a50912271efcd1e3b.
+
+Checkpoint 347 includes individual completions of TCS-0036 and TCS-0037.
+Both quantum comparisons now specify finite H/T/CNOT gate matrices, exact
+measurement probabilities, uniform classical circuit generation, polynomial
+register/gate bounds and the full Lean answer directions. The NP card additionally
+has a classical certificate model and an explicit total 3-SAT encoding. Their
+source reviews distinguish noncontainment from mere inequality, total languages
+from promises, and unrestricted computation from oracle and sampling models.
+The September 2026 promise/oracle result is included in BPP versus BQP; the NP
+card checks the June Pauli-coefficient reduction and the separate nonlinear
+coprocessor proposal. Old solver walkthroughs are removed. Both book conjecture
+numbers now match the inspected August 2019 edition.
+
+The concurrent census is 1,044 active cards: 478 completed/reviewed and
+566 pending. The queue has 347 completed records, 325 still active and
+22 inactive; all active completed hashes match. Publication and formula
+validation passed, covering 20,304 expressions. The prior APSP publication was
+live-verified as a071023def5d48a2da62, published 2026-09-16T01:36:55+00:00,
+Pages commit cee6cabfb9167624717d374aac628ebfad9d58d0.
