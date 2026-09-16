@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **478**.
+Pending active reviews: **477**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -380,7 +380,6 @@ Pending active reviews: **478**.
 | [TCS-6584](../../data/cards/TCS-6584.json) | Li–Li conjecture | Coding and information theory | existing_detailed_audit |
 | [TCS-6588](../../data/cards/TCS-6588.json) | Polylogarithmic approximation for Directed Steiner Tree | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-6589](../../data/cards/TCS-6589.json) | Subtour-LP integrality gap for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-6596](../../data/cards/TCS-6596.json) | Orthogonal Vectors Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
 | [TCS-6614](../../data/cards/TCS-6614.json) | Deterministic polynomial-time factorization over finite fields | Algebraic computation | existing_detailed_audit |
