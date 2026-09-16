@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-606 five-sentence working summaries, based on saved source material.
+605 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -131,7 +131,7 @@ The Mandelbrot set consists of complex parameters for which repeatedly applying 
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Proof complexity (28)
+## Proof complexity (27)
 
 ### TCS-6601 — Superpolynomial Extended Frege lower bounds
 
@@ -299,13 +299,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Resolution clause space counts simultaneously retained clauses, whereas total space also reflects their sizes. The saved question asks whether deciding the corresponding bounded-space refutation problems is PSPACE-complete. A classification would separate memory needed to search for a space-efficient proof from memory used by the proof itself. The two measures can impose different constraints even on the same formula. The survey note records both decision questions historically, so a complete statement still needs the space-budget encoding and should not infer current completeness from the dated formulation alone.
 
 [Read in atlas](index.html#TCS-6759) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6764 — Quadratic resolution space for linear-size CNFs
-
-A fixed-width CNF has a constant bound on literals per clause. The saved question asks for linear-size unsatisfiable formulas of this kind that require quadratic total resolution space. Small input clauses would make the large simultaneous memory requirement arise from reasoning rather than a bloated starting representation. Such examples would give a strong separation between formula size and the storage demands of every refutation. The source note does not specify the indexing conventions for linear and quadratic growth, so these must be fixed consistently in a completed statement.
-
-[Read in atlas](index.html#TCS-6764) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6767 — Resolution length–width tradeoffs
@@ -2045,10 +2038,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6538 — Almost-linear-time exact maximum matching in general graphs
 
-Maximum matching chooses as many mutually vertex-disjoint edges as possible in an undirected graph. The target is an exact randomized algorithm with expected running time almost linear in the explicit input size. General graphs introduce odd cycles and the blossom structures needed to manage them. A fast maximal matching or an approximation does not guarantee the same answer. Progress would clarify whether finding the globally best pairing can approach the cost of simply reading all vertices and edges.
+Maximum-cardinality matching selects as many pairwise vertex-disjoint edges as possible in an arbitrary finite simple undirected graph. The target is one uniform randomized word-RAM algorithm that constructs an optimum matching with probability at least two thirds on every input. It must halt almost surely, always return a valid matching when it halts, and have expected time within every fixed positive exponent slack above the full explicit input size. A complete Lean proof must establish the algorithm and all these guarantees or rule out every permitted randomized program with this expected-time behavior. Known almost-linear bipartite algorithms, approximation schemes and catalytic-space results do not settle the general exact target, and the older Glauber-dynamics claim has an acknowledged error.
 
-[Read in atlas](index.html#TCS-6538) · [A Theory of Alternating Paths and Blossoms from the Perspective of Minimum Length](https://pubsonline.informs.org/doi/abs/10.1287/moor.2020.0388) · [Maximum Matchings via Gaussian Elimination](https://www.mimuw.edu.pl/~mucha/pub/mucha_sankowski_focs04.pdf) · [Scaling algorithms for approximate and exact maximum weight matching](https://arxiv.org/abs/1112.0790) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671) · [Gabow’s Cardinality Matching Algorithm in General Graphs: Implementation and Experiments](https://arxiv.org/abs/2409.14849) · [Maximum Matching and Related Problems in Catalytic Logspace](https://eccc.weizmann.ac.il/report/2026/080/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6538) · [A Theory of Alternating Paths and Blossoms from the Perspective of Minimum Length](https://pubsonline.informs.org/doi/abs/10.1287/moor.2020.0388) · [Maximum Matchings via Gaussian Elimination](https://www.mimuw.edu.pl/~mucha/pub/mucha_sankowski_focs04.pdf) · [Scaling algorithms for approximate and exact maximum weight matching](https://arxiv.org/abs/1112.0790) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671) · [Gabow’s Cardinality Matching Algorithm in General Graphs: Implementation and Experiments](https://arxiv.org/abs/2409.14849) · [Maximum Matching and Related Problems in Catalytic Logspace](https://eccc.weizmann.ac.il/report/2026/080/) · [Maximum Matchings via Glauber Dynamics](https://arxiv.org/abs/1107.2482)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6653 — Gyárfás–Sumner conjecture
 
