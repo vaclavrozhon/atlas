@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **435**.
+Pending active reviews: **433**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -253,7 +253,6 @@ Pending active reviews: **435**.
 | [TCS-6914](../../data/cards/TCS-6914.json) | Multivariate polynomial factorization from PIT derandomization | Algebraic computation | pool |
 | [TCS-0659](../../data/cards/TCS-0659.json) | Stronger worst-case reductions to SIS and LWE | Lattices and computational number theory | pool |
 | [TCS-0656](../../data/cards/TCS-0656.json) | Reducing factoring or discrete logarithms to approximate SVP | Lattices and computational number theory | pool |
-| [TCS-0651](../../data/cards/TCS-0651.json) | Deterministic NP-hardness reductions for Euclidean SVP | Lattices and computational number theory | pool |
 | [TCS-0655](../../data/cards/TCS-0655.json) | Polynomial-factor SVP hardness from standard assumptions | Lattices and computational number theory | pool |
 | [TCS-0648](../../data/cards/TCS-0648.json) | Constant-gap hardness of unique SVP | Lattices and computational number theory | pool |
 | [TCS-0657](../../data/cards/TCS-0657.json) | Smaller-factor coNP or coAM certificates for SVP | Lattices and computational number theory | pool |
@@ -372,7 +371,6 @@ Pending active reviews: **435**.
 | [TCS-6661](../../data/cards/TCS-6661.json) | Hyperclique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6662](../../data/cards/TCS-6662.json) | Optimal deterministic restricted-isometry matrices | Pseudorandomness and derandomization | existing_detailed_audit |
 | [TCS-6664](../../data/cards/TCS-6664.json) | Maximum influence of polynomial threshold functions | Communication complexity and Boolean function analysis | existing_detailed_audit |
-| [TCS-6670](../../data/cards/TCS-6670.json) | Polylogarithmic maintenance of the exact global minimum cut | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6675](../../data/cards/TCS-6675.json) | Search-to-decision equivalence for finite promise CSPs | Constraint satisfaction | existing_detailed_audit |
 | [TCS-6684](../../data/cards/TCS-6684.json) | Computational Kesten–Stigum threshold | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |

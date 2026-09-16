@@ -1368,3 +1368,7 @@ The concurrent census is 1,024 active cards: 735 reviewed and 289 pending. The q
 Checkpoint 628. Complete one-relator group isomorphism formulation and current-source pass
 
 The concurrent census is 1,024 active cards: 738 reviewed and 286 pending. The queue has 628 completed records, 586 active and 42 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,024 active cards, covering 31,093 formulas.
+
+Checkpoint 633. Complete exact fully dynamic minimum-cut model and 2026 source review
+
+The concurrent census is 1,023 active cards: 742 reviewed and 281 pending. The queue has 633 completed records, 590 active and 43 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,023 active cards, covering 31,348 formulas.
