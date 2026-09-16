@@ -381,3 +381,25 @@ with fifty-five retained active cards and seven resolved historical records:
 There are twenty-nine new individual importance assessments through this draw.
 Checkpoint fourteen is committed as d15bbe9d and verified live. Shared API
 reservations, token checks and pre-write hashes continue to protect parallel work.
+
+The sixteenth random draw brings this process to sixty-six completed reviews,
+with fifty-nine retained active cards and seven resolved historical records:
+
+- TCS-7243: exact linear Boolean-circuit size for stable ternary compaction.
+  Preserved assessed importance 89 and the complete community comment/response.
+  Checked the original 2007 problem and 2021/2022 non-stable sorting results.
+- TCS-1047: polynomial equivalence of De Morgan leaf size and coordinate-rectangle
+  partition number. Preserved importance 77 and checked the author's current
+  second-edition draft dated 14 September 2026, Research Problem 6.1.
+- TCS-7035: the general deterministic Directed Feedback Vertex Set branch of
+  survey Open Problem 3.3, with uniform bit cost and exact single-exponential
+  parameter dependence. The SOSA 2025 algorithm retains k!. Importance: 90.
+- TCS-6064: exact ordinary limit-set realizability for two-dimensional cellular
+  automata with finite transient alphabet extensions, explicitly documenting
+  this version of the broad source question. Defined the full-domain indicator
+  and Lean characterization criterion; distinguished the source's solved
+  measure-based theorem and later computational-invariant results. Importance: 82.
+
+There are thirty-one new individual importance assessments through this draw.
+Checkpoint fifteen is committed as c76710dc and verified live. Shared API
+reservations and token/hash checks remain in use for concurrent work.
