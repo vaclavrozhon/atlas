@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **462**.
+Pending active reviews: **461**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -326,7 +326,6 @@ Pending active reviews: **462**.
 | [TCS-0515](../../data/cards/TCS-0515.json) | Deterministic volume gap | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0524](../../data/cards/TCS-0524.json) | LOCAL coloring below square-root degree dependence | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0611](../../data/cards/TCS-0611.json) | Bipartite Exact Matching: deterministic polynomial time | Structural graph theory | existing_detailed_audit |
-| [TCS-1010](../../data/cards/TCS-1010.json) | Optimal asymptotic binary rate–distance tradeoff | Coding and information theory | existing_detailed_audit |
 | [TCS-1033](../../data/cards/TCS-1033.json) | Polynomial testability versus distance estimation | Property testing and distribution learning | existing_detailed_audit |
 | [TCS-2997](../../data/cards/TCS-2997.json) | Triangle detection in CONGEST | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6447](../../data/cards/TCS-6447.json) | Strong quantum IOPs with polynomial communication | Quantum computation | existing_detailed_audit |

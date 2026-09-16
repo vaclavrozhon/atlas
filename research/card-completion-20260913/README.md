@@ -1328,3 +1328,7 @@ The concurrent census is 1,025 active cards: 700 reviewed and 325 pending. The q
 Checkpoint 591. Complete deterministic linear-time MST review
 
 The concurrent census is 1,025 active cards: 702 reviewed and 323 pending. The queue has 591 completed records, 550 active and 41 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,025 active cards, covering 29,062 formulas.
+
+Checkpoint 598. Completed binary rate-distance curve review and 2026 tolerance check
+
+The concurrent census is 1,025 active cards: 709 reviewed and 316 pending. The queue has 598 completed records, 557 active and 41 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,025 active cards, covering 29,471 formulas.
