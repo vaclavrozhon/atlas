@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-404 five-sentence working summaries, based on saved source material.
+403 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (71)
+## Computational complexity (70)
 
 ### TCS-0001 — P versus NP
 
@@ -444,13 +444,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Zero-knowledge protocols are usually framed around deciding whether a statement is true. Search zero knowledge instead concerns interactions that produce a valid solution while controlling what additional information is revealed. The selected problem asks whether these search classes have complete problems in either the computational or statistical security setting. A complete problem would serve as a universal representative to which other search-zero-knowledge tasks can be reduced under suitable definitions. Finding one would organize the new model and help transfer general techniques from the better-developed theory of decision zero knowledge.
 
 [Read in atlas](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://doi.org/10.4230/LIPIcs.ICALP.2018.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4468 — Subcube partition complexity versus query complexity
-
-A subcube partition divides all Boolean inputs into monochromatic pieces, each specified by fixing some coordinates. Unlike a decision tree, the pieces need not arise from one sequential hierarchy of queries. The source separates this partition model from randomized decision trees and asks for the strongest possible gap between their complexities. Even the comparison with deterministic query complexity is included in the question. Determining the extremal separation would quantify how much harder it is to discover an input's certificate adaptively than merely to exhibit a globally consistent collection of certificates.
-
-[Read in atlas](index.html#TCS-4468) · [Separating Decision Tree Complexity from Subcube Partition Complexity](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.915)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4786 — Complexity of Minimum Circuit Size
@@ -1070,10 +1063,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-1649 — Decidability of branching-VASS reachability
 
-A branching vector addition system combines finite control with nonnegative integer resources. Rules can combine several already derived configurations by adding their resource vectors and a fixed displacement. Reachability asks whether a finite valid derivation tree produces exactly a supplied target. The dimension is part of the input, and every branch must be fully justified. The 2025 two-dimensional decidability theorem does not settle the arbitrary-dimensional problem.
+A branching vector addition system combines finite control with nonnegative integer resources. Rules can combine several already derived configurations by adding their resource vectors and a fixed displacement. Reachability asks whether a finite valid derivation tree produces exactly a supplied target. The dimension is part of the input, and every branch must be fully justified. The September 2026 structural and low-dimensional results explicitly leave arbitrary-dimensional reachability open.
 
-[Read in atlas](index.html#TCS-1649) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://doi.org/10.4230/LIPIcs.MFCS.2025.22)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-1649) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://doi.org/10.4230/LIPIcs.MFCS.2025.22) · [Bridging the Gap Between Plain VASS and Branching VASS](https://arxiv.org/abs/2609.15869)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5975 — Decisiveness of static probabilistic Petri nets for finite targets
 
@@ -1180,7 +1173,7 @@ Simplicial sets describe geometry through simplices and their face and degenerac
 [Read in atlas](index.html#TCS-5915) · [From Cubes to Twisted Cubes via Graph Morphisms in Type Theory](https://doi.org/10.4230/LIPIcs.TYPES.2019.5) · [Towards a constructive simplicial model of Univalent Foundations](https://doi.org/10.1112/jlms.12532) · [Towards a constructive simplicial model of Univalent Foundations — author version](https://arxiv.org/abs/1905.06281v3) · [The equivariant model structure on cartesian cubical sets](https://doi.org/10.1016/j.aim.2026.110965) · [The equivariant model structure on cartesian cubical sets — published full text](https://research.chalmers.se/publication/551789/file/551789_Fulltext.pdf) · [A constructive model of infinity-groupoids — TYPES 2025 slides](https://msp.cis.strath.ac.uk/types2025/slides/TYPES2025-slidesSattler.pdf) · [Constructive higher sheaf models with applications to synthetic mathematics](https://arxiv.org/abs/2605.15126v2)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Distributed, parallel and sublinear algorithms (58)
+## Distributed, parallel and sublinear algorithms (59)
 
 ### TCS-6553 — P versus NC
 
@@ -1299,6 +1292,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Local certification assigns a short proof string to every vertex so that a global graph property can be checked from nearby information. The selected model has no identifiers or input labels, and certificate bounds must hold uniformly over all finite graphs. For each initial bit budget and verification radius, the target is the largest minimum certificate size among properties certifiable within that budget at radius one. The source asks whether certificate size always scales inversely with radius; this card explicitly asks for the full underlying worst-case function. Determining the function would quantify when greater local visibility can replace stored proof information, with a Lean-certified error of at most one hundredth of a bit at every parameter pair.
 
 [Read in atlas](index.html#TCS-5797) · [Local Certification of Local Properties: Tight Bounds, Trade-Offs and New Parameters](https://doi.org/10.4230/LIPIcs.STACS.2024.21) · [Decreasing verification radius in local certification](https://doi.org/10.1016/j.tcs.2025.115520) · [Complexity Landscape for Local Certification](https://doi.org/10.4230/LIPIcs.DISC.2025.18)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7259 — Two-dimensional sandpile prediction in NC
+
+A stable rectangular array contains at most three grains at each cell and is surrounded by an infinite empty lattice. Adding one grain triggers simultaneous topplings, each sending one grain in each of the four cardinal directions. The question asks whether a specified cell ever topples, without giving a time bound in the input. The desired computation uses one uniform family of polynomial-size, polylogarithmic-depth Boolean circuits on the full explicit input. Known results for other dimensions, weighted grids, boundary sinks or alternating update schemes do not settle this precisely specified planar question.
+
+[Read in atlas](index.html#TCS-7259) · [Timed Prediction Problem for Sandpile Models](https://arxiv.org/abs/2506.21084v1) · [The Computational Complexity of Sandpiles](https://arxiv.org/abs/cond-mat/9808183) · [Non-Uniform and Weighted Crossing Gates in Two-Dimensional Sandpiles](https://arxiv.org/abs/2606.26943v1) · [Embedding arbitrary Boolean circuits into fungal automata with arbitrary update sequences](https://arxiv.org/abs/2602.19477v3)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0986 — Characterizing separable distances approximable in small streaming space
@@ -2049,6 +2049,13 @@ A DNF is a disjunction of conjunctions of possibly negated Boolean variables, wi
 [Read in atlas](index.html#TCS-5358) · [Learning DNF Expressions from Fourier Spectrum](https://proceedings.mlr.press/v23/feldman12b.html) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791v1) · [Complexity Theoretic Limitations on Learning DNF’s](https://proceedings.mlr.press/v49/daniely16.html) · [From Local Pseudorandom Generators to Hardness of Learning](https://proceedings.mlr.press/v134/daniely21a.html) · [Faster exact learning of k-term DNFs with membership and equivalence queries](https://arxiv.org/abs/2507.20336v1) · [Iterative Chow Filtering for Learning with Distribution Shift](https://arxiv.org/abs/2605.17251v1) · [DNF formulas are efficiently testable with relative error](https://arxiv.org/abs/2601.16076v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-3391 — Efficient learning of well-separated Gaussian mixtures
+
+The card asks for globally learning well-separated spherical Gaussian mixtures with both polynomial samples and polynomial computation. The weights, centers and unequal component scales are hidden, and all must be recovered to the source’s stated relative accuracy up to one permutation. The source’s efficient local refinement requires initialization that its sample-efficient procedure does not find in polynomial time. Later algorithms improve separation or dimension dependence but retain assumptions or parameter costs that do not meet the full target. A Lean resolution must establish or refute one uniform end-to-end learner under the explicit separation, access and arithmetic-cost conventions.
+
+[Read in atlas](index.html#TCS-3391) · [The EM Algorithm gives Sample-Optimality for Learning Mixtures of Well-Separated Gaussians](https://proceedings.mlr.press/v125/kwon20a.html) · [Clustering Mixtures with Almost Optimal Separation in Polynomial Time](https://arxiv.org/abs/2112.00706) · [A Fourier Approach to Mixture Learning](https://arxiv.org/abs/2210.02415) · [Learning Mixture Models via Efficient High-dimensional Sparse Fourier Transforms](https://arxiv.org/abs/2601.05157) · [Dimension Reduction via Sum-of-Squares and Improved Clustering Algorithms for Non-Spherical Mixtures](https://proceedings.mlr.press/v336/anderson26a.html)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-5088 — Fully polynomial learning of halfspace intersections under Gaussian and uniform inputs
 
 The card asks separately whether intersections of a variable number of affine halfspaces can be learned efficiently under Gaussian and uniform Boolean-cube inputs. The desired polynomial bounds cover dimension, intersection size, inverse accuracy, training and prediction. Labels come only from independent noiseless examples, and the output predictor may lie outside the target class. The surrounding margin theorem and newer subexponential, bounded-width and proper-learning results do not supply the requested uniform polynomial guarantee. A Lean resolution must prove or refute the full learner-existence statement in each explicitly defined computational model.
@@ -2082,6 +2089,13 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 The card asks for a polynomial-time learner for every small Boolean decision tree from independent uniform labeled examples. The tree is hidden and the learner receives neither chosen-input labels nor its representation. A successful learner may return any efficient Boolean circuit with the requested prediction error and two-thirds confidence. Known smoothed, query-based and representation-aware results provide different guarantees and do not settle this passive learning target. The completed card preserves its importance and scope while making the accuracy encoding, resource bounds and full Lean proof criterion explicit.
 
 [Read in atlas](index.html#TCS-7294) · [Decision trees are PAC-learnable from most product distributions: a smoothed analysis](https://arxiv.org/abs/0812.0933) · [Backdoor Defense, Learnability and Obfuscation](https://doi.org/10.4230/LIPIcs.ITCS.2025.38) · [The Probably Approximately Correct Learning Model in Computational Learning Theory](https://arxiv.org/abs/2511.08791) · [Decision Tree Learning on Product Spaces](https://arxiv.org/abs/2605.12983)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
+### TCS-5119 — Sample-optimal Gaussian graphical model learning in polynomial time
+
+The problem asks whether sparse Gaussian conditional-independence graphs can be recovered in polynomial time with an information-theoretically optimal number of independent samples. The statement allows arbitrary means and condition numbers and requires every edge and nonedge to be identified correctly. Sample optimality is defined by a minimax benchmark that retains degree, normalized edge strength and confidence without assuming a universally sharp formula. Known degree-dependent algorithms, structural-subclass results, conditional hardness and trajectory-based algorithms each address a different part of the question. A Lean resolution must establish or refute one uniform algorithm with both a universal sample factor and a fixed polynomial arithmetic-time bound.
+
+[Read in atlas](index.html#TCS-5119) · [Information Theoretic Optimal Learning of Gaussian Graphical Models](https://proceedings.mlr.press/v125/misra20a.html) · [Learning Some Popular Gaussian Graphical Models without Condition Number Bounds](https://proceedings.neurips.cc/paper_files/paper/2020/hash/7cc980b0f894bd0cf05c37c246f215f3-Abstract.html) · [Lasso with Latents: Efficient Estimation, Covariate Rescaling, and Computational-Statistical Gaps](https://proceedings.mlr.press/v247/kelner24a.html) · [Learning Gaussian Graphical Models from a Glauber Trajectory Without Mixing](https://arxiv.org/abs/2606.31230)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7293 — Distribution-free improper learning of two unrestricted halfspaces
@@ -2139,6 +2153,13 @@ The question asks whether SAT reduces to agnostic learning of general polynomial
 
 [Read in atlas](index.html#TCS-1573) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34) · [Non-Levin NP-Hardness of Implicit MCSP and PAC Learning under Few Assumptions](https://eccc.weizmann.ac.il/report/2026/091/)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-5087 — Polynomial-time robust spectral estimation
+
+The card asks for polynomial-time recovery of a robust low-rank representation when every training point may have been adversarially perturbed. The output must approximate the unknown clean matrix in spectral norm while respecting the rank budget and induced-norm robustness bound. The source proves that such recovery is information-theoretically possible but its efficient spectral method may only certify severe poisoning. The statement preserves the full range of fixed norm exponents and the same-output error tradeoff in an explicit real-arithmetic model. A Lean resolution must prove or refute guaranteed recovery with the stated approximation and computational costs, without extra distributional assumptions.
+
+[Read in atlas](index.html#TCS-5087) · [Adversarially Robust Low Dimensional Representations](https://proceedings.mlr.press/v134/awasthi21a.html) · [Estimating Principal Components under Adversarial Perturbations](https://proceedings.mlr.press/v125/awasthi20a.html) · [Adversarially Robust Low Dimensional Representations: manuscript history](https://arxiv.org/abs/1911.13268)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-3787 — Proper unlabeled compression of ample classes
 
@@ -2238,13 +2259,6 @@ The question asks how many real-valued reports are needed to recover an arbitrar
 [Read in atlas](index.html#TCS-0689) · [Open Problem: Property Elicitation and Elicitation Complexity](https://proceedings.mlr.press/v49/frongillo16.html) · [Elicitation Complexity of Statistical Properties](https://doi.org/10.1093/biomet/asaa093) · [Recent Trends in Information Elicitation](https://sigecom.org/exchanges/volume_22/1/FRONGILLO.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-3391 — Efficient learning of well-separated Gaussian mixtures
-
-Learning a well-separated spherical Gaussian mixture requires estimating the component parameters from unlabeled samples. The source establishes favorable sample complexity and local convergence of expectation maximization once initialization is sufficiently good. It asks for an algorithm with both polynomial running time and polynomial sample complexity under the stated separation regime. Local refinement does not by itself supply an efficient global initialization procedure. Closing this gap would show whether enough statistical separation to identify the mixture also suffices for efficient end-to-end recovery, without quasipolynomial dependence on the number of components.
-
-[Read in atlas](index.html#TCS-3391) · [The EM Algorithm gives Sample-Optimality for Learning Mixtures of Well-Separated Gaussians](https://proceedings.mlr.press/v125/kwon20a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3691 — Uniform convergence under Dobrushin dependence
 
 A dependent training sample has identical marginal distributions and a bounded total influence on every coordinate. Uniform convergence requires every hypothesis’s empirical zero-one loss to approximate its population loss. The card asks whether every finite-VC class has the usual square-root rate when the ordinary Dobrushin coefficient stays below one. The source already proves learnability under that condition, but its uniform-convergence theorem requires stronger logarithmic influences. The formulation makes the iid-order rate and fixed dependence slack explicit, without claiming an optimal constant near the boundary.
@@ -2258,20 +2272,6 @@ The question asks whether a weak passive learner with a superpolynomial saving o
 
 [Read in atlas](index.html#TCS-4186) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18) · [Conspiracies between Learning Algorithms, Circuit Lower Bounds and Pseudorandomness — full preprint](https://arxiv.org/abs/1611.01190) · [Learning algorithms from circuit lower bounds](https://doi.org/10.1007/s00037-024-00261-4)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5087 — Polynomial-time robust spectral estimation
-
-Adversarially robust dimension reduction seeks a low-rank projection that both approximates a dataset and limits the effect of small perturbations to individual data points. Here even the training matrix is corrupted, so the approximation must be good for an unknown original matrix rather than merely the observed one. The source gives stronger recovery guarantees in Frobenius norm, while its efficient spectral-norm method may instead certify substantial poisoning. It asks for a polynomial-time estimator achieving the stronger spectral guarantee already available information theoretically. The difficulty is that many small coordinate changes can accumulate into a large matrix perturbation and obscure which subspace represents the clean data.
-
-[Read in atlas](index.html#TCS-5087) · [Adversarially Robust Low Dimensional Representations](https://proceedings.mlr.press/v134/awasthi21a.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5119 — Sample-optimal Gaussian graphical model learning in polynomial time
-
-A Gaussian graphical model encodes conditional dependencies through the nonzero entries of the inverse covariance matrix. The motivating question asks whether its underlying sparse graph can be recovered with the information-theoretically optimal sample count by a polynomial-time algorithm. The source's DICE procedure settles the sample-complexity component using only graph size, maximum degree, and minimum normalized edge strength in its bound. Its search cost still has an exponent depending on the degree, so the paper separately asks for computationally efficient sample-optimal recovery in general. This record therefore combines a statistical question answered in the source with a remaining algorithmic efficiency direction.
-
-[Read in atlas](index.html#TCS-5119) · [Information Theoretic Optimal Learning of Gaussian Graphical Models](https://proceedings.mlr.press/v125/misra20a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Cryptography (29)
 
@@ -2478,7 +2478,7 @@ Unbounded fully homomorphic encryption supports arbitrarily deep permitted compu
 [Read in atlas](index.html#TCS-6871) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Quantum computation and information (53)
+## Quantum computation and information (52)
 
 ### TCS-6446 — Quantum PCP conjecture with classical reductions
 
@@ -2527,7 +2527,7 @@ Existing status: `source_open` · Summary written: 2026-09-16
 Passive quantum memory aims to preserve an encoded qubit through the natural dynamics of a material without repeated active correction. The question here fixes a nonzero temperature and asks whether lifetime can grow without bound in a three-dimensional local stabilizer system. Protecting a qubit requires retaining phase information as well as distinguishing its classical basis states. The saved card records a May 2026 claimed affirmative construction, while distinguishing its proof claim from an independently verified conclusion. This makes the record a useful guide to the precise thermal model and remaining verification questions rather than an unqualified assertion that the original existence problem is still open.
 
 [Read in atlas](index.html#TCS-6517) · [Thermodynamic stability criteria for a quantum memory based on stabilizer and subsystem codes](https://arxiv.org/abs/0907.2807) · [Quantum memories at finite temperature](https://arxiv.org/abs/1411.6643) · [Symmetry protected self correcting quantum memory in three space dimensions](https://arxiv.org/abs/2103.08622) · [Cored product codes for quantum self-correction in three dimensions](https://arxiv.org/abs/2510.05479) · [A passive self-correcting quantum memory in three dimensions](https://arxiv.org/abs/2605.10943) · [Partial Self-Correction in Layer Codes](https://journals.aps.org/prl/abstract/10.1103/mb89-8436)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6519 — Quantum capacity of the qubit depolarizing channel
 
@@ -2569,6 +2569,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 A perfectly complete quantum proof system accepts some valid witness with probability exactly one. This question asks whether every QMA proof system can achieve that guarantee without sacrificing efficient verification or soundness. Approximate gate synthesis creates a special difficulty because a tiny implementation error can destroy exact acceptance. Two September 2026 preprints now claim finite-register perfect completeness with fixed gates that cover this card’s exact Clifford+T model. Their stated results match the target, whose status is uncertain pending independent proof verification.
 
 [Read in atlas](index.html#TCS-4737) · [Towards a Universal Gateset for QMA1](https://doi.org/10.4230/LIPIcs.MFCS.2026.98) · [On Perfect Completeness for QMA](https://arxiv.org/abs/0806.0450) · [Quantum-Merlin-Arthur Problems Have Perfect Completeness with an Infinite Counter](https://journals.aps.org/prl/abstract/10.1103/pwdd-htbf) · [QMA has perfect completeness](https://arxiv.org/abs/2609.13032) · [Achieving perfect completeness for one- and two-message quantum proof systems](https://arxiv.org/abs/2609.15926)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
+### TCS-4952 — Quantum–classical communication gaps for total functions
+
+Alice and Bob must compute a Boolean function defined on every pair of their binary inputs. The target is an infinite family requiring polynomial randomized classical communication but only polylogarithmic quantum communication in the input length. Local computation is free, classical public randomness and arbitrary interaction are allowed, and the quantum side may share input-independent entanglement. The 2021 source’s separate efficient-player result concerns partial functions and does not impose an additional runtime condition here. August and September 2026 preprints make matching total-function separation claims whose complete proofs remain unverified in this review.
+
+[Read in atlas](index.html#TCS-4952) · [Quantum Versus Randomized Communication Complexity, with Efficient Players](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2021.54) · [On the quantum communication complexity of total functions](https://arxiv.org/abs/2608.18784) · [Improved Separations between Quantum and Classical Communication Complexity of Total Functions](https://arxiv.org/abs/2609.16726)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6459 — Entanglement without distillable secret key
@@ -2680,8 +2687,8 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 Interactive oracle proofs let a verifier inspect only selected parts of much larger prover messages. This question asks for constant-round quantum versions that verify all QMA promise problems with polynomial total communication and only constantly many queries. The strong quantum access model is part of the target, because different ways of querying quantum messages permit different verification strategies. Soundness must cover arbitrary prover behavior, while the verifier remains efficient and has a constant completeness-soundness gap. The project probes how far proof compression and local checking can extend when the evidence itself is quantum.
 
-[Read in atlas](index.html#TCS-6447) · [Quantum Interactive Oracle Proofs](https://arxiv.org/abs/2601.12874)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6447) · [Quantum Interactive Oracle Proofs](https://arxiv.org/abs/2601.12874) · [Probabilistically Checking Quantum Proofs, with Interaction](https://arxiv.org/abs/2606.09588)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0031 — Oracle separation of BQP from IP
 
@@ -2800,20 +2807,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A classification of reversible classical gates describes which transformations become possible when a gate set is composed repeatedly. The source uses that completed classical picture to motivate an analogous classification for quantum gates. The quantum question is whether known nonuniversal families, such as stabilizer operations and basis-preserving constructions, account for all relevant possibilities. Additional discrete families or intermediate computational behavior could make the quantum landscape substantially richer. A full classification would organize quantum gate resources by the computations they enable and identify exactly where universality appears.
 
 [Read in atlas](index.html#TCS-4927) · [The Classification of Reversible Bit Operations](https://doi.org/10.4230/LIPIcs.ITCS.2017.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4952 — Quantum–classical communication gaps for total functions
-
-Quantum communication can outperform randomized classical communication dramatically on some problems with restricted inputs. This project asks whether an exponential separation is possible for a total function, whose value is defined on every input pair. The cited work also emphasizes efficient local computation by the communicating parties, so a protocol's message length is not its only resource. Promise-problem separations do not by themselves answer the total-function question because their input restrictions may be essential. Resolving this would clarify how broadly quantum communication advantages survive when both the task specification and the players' computations are constrained.
-
-[Read in atlas](index.html#TCS-4952) · [Quantum Versus Randomized Communication Complexity, with Efficient Players](https://doi.org/10.4230/LIPIcs.ITCS.2021.54)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4977 — Classical-witness versus quantum-witness hierarchies
-
-Quantum polynomial hierarchies extend alternating proof systems by allowing quantum witnesses and different restrictions on their states. The source compares a hierarchy with classical witnesses, one with general quantum witnesses, and one with pure-state witnesses. The selected question is whether the classical-witness hierarchy is contained in the general quantum-witness hierarchy in the intended bounded-error sense. Simply replacing each classical proof by a measured quantum state can fail to preserve the behavior of alternating quantifiers. Establishing the containment, or identifying an obstruction, would clarify how classical information, mixed states, and quantifier order interact in quantum verification.
-
-[Read in atlas](index.html#TCS-4977) · [Quantum Polynomial Hierarchies: Karp-Lipton, Error Reduction, and Lower Bounds](https://doi.org/10.4230/LIPIcs.MFCS.2024.7)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4991 — Reducing shared entanglement in communication protocols

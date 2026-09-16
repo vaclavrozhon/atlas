@@ -6,7 +6,7 @@ Counts are saved candidate records, not verified distinct open problems.
 
 | Group | Category | Top 100 | Top 500 | Legacy Top 1000 | Candidates |
 | --- | --- | ---: | ---: | ---: | ---: |
-| large 1 | Computational complexity | 5 | 25 | 50 | 74 |
+| large 1 | Computational complexity | 5 | 25 | 50 | 73 |
 | large 2 | Algorithms | 5 | 25 | 50 | 27 |
 | large 3 | Automata and formal languages | 5 | 25 | 50 | 31 |
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 38 |
@@ -15,7 +15,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 41 |
 | large 8 | Learning theory | 5 | 25 | 50 | 36 |
 | large 9 | Cryptography | 5 | 25 | 50 | 31 |
-| large 10 | Quantum computation and information | 5 | 25 | 50 | 53 |
+| large 10 | Quantum computation and information | 5 | 25 | 50 | 52 |
 | small 1 | Computability and algorithmic information theory | 2 | 10 | 20 | 18 |
 | small 2 | Proof complexity | 2 | 10 | 20 | 28 |
 | small 3 | Communication complexity and Boolean function analysis | 2 | 10 | 20 | 33 |
@@ -32,7 +32,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 14 | Dynamic algorithms | 2 | 10 | 20 | 15 |
 | small 15 | String algorithms and computational biology | 2 | 10 | 20 | 26 |
 | small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 23 |
-| small 17 | Algebraic computation | 2 | 10 | 20 | 63 |
+| small 17 | Algebraic computation | 2 | 10 | 20 | 62 |
 | small 18 | Lattices and computational number theory | 2 | 10 | 20 | 29 |
 | small 19 | Coding and information theory | 2 | 10 | 20 | 28 |
 | small 20 | Property testing and distribution learning | 2 | 10 | 20 | 16 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 21 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 2 |
 
-Candidate pool: 1035. Inactive records: 6340 (excluded from active work).
+Candidate pool: 1032. Inactive records: 6343 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

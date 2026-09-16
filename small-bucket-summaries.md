@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-598 five-sentence working summaries, based on saved source material.
+601 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1317,7 +1317,7 @@ Directed feedback sets remove vertices or arcs until no directed cycle remains. 
 [Read in atlas](index.html#TCS-7033) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (24)
+## Approximation algorithms and inapproximability (25)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1409,6 +1409,13 @@ Metric k-means selects exactly k centers from an explicit candidate set. Its obj
 
 [Read in atlas](index.html#TCS-7354) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-7318 — Constant-factor approximation for Dasgupta’s hierarchical clustering objective
+
+The input is an arbitrary graph whose nonnegative edge weights express pairwise similarities. A hierarchy repeatedly separates its vertices until every leaf contains one vertex. An edge pays its weight times the size of the smallest cluster containing both endpoints. The question asks for one deterministic polynomial-time algorithm with a fixed approximation factor on every such graph. Known general guarantees grow with the number of vertices, while Small-Set-Expansion hardness and results for richer inputs or different objectives do not unconditionally settle this question.
+
+[Read in atlas](index.html#TCS-7318) · [A cost function for similarity-based hierarchical clustering](https://arxiv.org/abs/1510.05043v1) · [Approximate Hierarchical Clustering via Sparsest Cut and Spreading Metrics](https://arxiv.org/abs/1609.09548v1) · [Approximating Dasgupta Cost in Sublinear Time from a Few Random Seeds](https://doi.org/10.4230/LIPIcs.ICALP.2025.103) · [Hierarchical F-Clustering: Approximation and Hardness of Clustering into Trees and Bounded Diameter Graphs](https://arxiv.org/abs/2607.13217v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6757 — Min-CSP approximation at the SDP integrality gap
 
@@ -1540,10 +1547,10 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7317 — Randomized competitiveness of k-server
 
-In randomized k-server, an online strategy moves k servers to serve sequential metric requests. The request sequence is fixed independently of the strategy’s random choices. The target is the infimum competitive ratio as a function of k over all finite metrics, within universal constant factors. The metric and initial placement are known and may affect the strategy and fixed additive cost. The earlier polylogarithmic question is a qualitative consequence of determining this growth, and dependence on the number of metric points cannot be hidden in the ratio.
+An online strategy moves k identical servers to serve requests in a finite metric space, paying total movement distance. The adversary fixes the request sequence independently of the strategy’s private randomness. The target is the universal optimal expected competitive ratio as a function of k, with matching upper and lower bounds up to constant factors. The metric and initial placement may affect the strategy and fixed additive cost, but the multiplicative ratio cannot depend on the number of metric points. The new deterministic factor-k claim leaves the randomized gap between squared-logarithmic and linear growth unresolved.
 
-[Read in atlas](index.html#TCS-7317) · [Randomized k-server in polynomial time](https://arxiv.org/abs/2605.01497) · [The Randomized k-Server Conjecture is False!](https://arxiv.org/abs/2211.05753)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-7317) · [Randomized k-Server in Polynomial Time](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.65) · [The Randomized k-Server Conjecture Is False!](https://arxiv.org/abs/2211.05753) · [On the k-Server Conjecture](https://doi.org/10.1145/210332.210337) · [The k-server conjecture is true](https://arxiv.org/abs/2609.15979)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5779 — Constant-factor online contention resolution for matroids
 
@@ -1719,7 +1726,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 A random 3-SAT formula at sufficiently large constant clause density is almost surely unsatisfiable. The question asks for one polynomial-time randomized refuter that recognizes almost all such formulas while never rejecting a satisfiable formula. The density, algorithm and time bound must be fixed independently of the number of variables. Gap refutation, planted detection and lower bounds for particular proof systems do not settle this exact-sound unrestricted target. An accepted answer proves existence or impossibility with the full quantifiers in Lean.
 
-[Read in atlas](index.html#TCS-7238) · [How to refute a random CSP](https://www.cs.cmu.edu/~odonnell/papers/random-csp-refutation.pdf) · [Proof vs. Truth in Computational Complexity](https://eccc.weizmann.ac.il/report/2012/120/revision/1/download/) · [Strongly Refuting Random CSP without Literals](https://arxiv.org/abs/2604.27336v1) · [Random 3-CNF formulas are hard for k-DNF resolution up to k=O(sqrt(log n))](https://eccc.weizmann.ac.il/report/2026/158/)
+[Read in atlas](index.html#TCS-7238) · [How to refute a random CSP](https://www.cs.cmu.edu/~odonnell/papers/random-csp-refutation.pdf) · [Proof vs. Truth in Computational Complexity](https://eccc.weizmann.ac.il/report/2012/120/revision/1/download/) · [Strongly Refuting Random CSP without Literals](https://arxiv.org/abs/2604.27336v1) · [Random \(3\)-CNF formulas are hard for \(k\)-DNF resolution up to \(k=O(\sqrt{\log n})\)](https://eccc.weizmann.ac.il/report/2026/158/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6453 — Infinitely-often one-way functions from average-case NP hardness
@@ -1843,7 +1850,7 @@ The cover time is the expected number of random-walk steps needed to visit every
 [Read in atlas](index.html#TCS-6851) · [Reversible Markov Chains and Random Walks on Graphs](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch6.S8.html#SS3) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Cover times, blanket times, and majorizing measures](https://annals.math.princeton.edu/2012/175-3/p08) · [Deterministic approximation for the cover time of trees](https://cims.nyu.edu/~zeitouni/pdf/feigezeitouni3.pdf) · [A polynomial time approximation scheme for computing the supremum of Gaussian processes](https://arxiv.org/abs/1202.4970)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-## Counting and enumeration (17)
+## Counting and enumeration (18)
 
 ### TCS-6628 — FPRAS for counting perfect matchings
 
@@ -1872,6 +1879,13 @@ The permanent of a nonnegative matrix sums the weights of all perfect matchings 
 
 [Read in atlas](index.html#TCS-6629) · [A Polynomial-Time Approximation Algorithm for the Permanent of a Matrix with Nonnegative Entries](https://people.eecs.berkeley.edu/~sinclair/perm2.pdf) · [A Tight Analysis of Bethe Approximation for Permanent](https://arxiv.org/abs/1811.02933v2) · [Faster FPRAS for the Permanent via Restricted Poincaré Inequalities and Coupled Flows](https://arxiv.org/abs/2608.26599v1) · [Beyond the Bethe Approximation of the Permanent](https://arxiv.org/abs/2608.28031v2) · [Structural Corrections to the Bethe Approximation of the Permanent](https://arxiv.org/abs/2608.31061v1) · [Subexponential Approximation of the Permanent in Deterministic Polynomial Time](https://arxiv.org/abs/2609.10516v1) · [Diffuse Gaussian Truncation For Deterministic Approximate Counting](https://arxiv.org/abs/2609.04079v1)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7240 — Output-polynomial vertex enumeration
+
+The input describes a bounded rational polyhedron by linear inequalities in variable dimension. The task is to list every distinct extreme point exactly once and then halt. The requested total time is polynomial in the combined binary lengths of the input and the required vertex list. Degeneracy, exponentially many bases per vertex and infeasible arrangement intersections obstruct straightforward enumeration strategies. An accepted answer proves existence or impossibility of the full uniform algorithm in Lean.
+
+[Read in atlas](index.html#TCS-7240) · [Polynomial time vertex enumeration of convex polytopes of bounded branch-width](https://arxiv.org/abs/1404.5584v2) · [An Efficient Algorithm for Vertex Enumeration of Arrangement](https://arxiv.org/abs/2401.16675v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6671 — FPRAS for counting undirected Euler tours
 
@@ -2898,7 +2912,7 @@ Mechanism implementation connects an allocation algorithm with strategic behavio
 [Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (60)
+## Algebraic computation (59)
 
 ### TCS-0007 — Matrix multiplication exponent
 
@@ -3047,6 +3061,13 @@ Matrix rigidity measures how many entries must be changed before a matrix's rank
 [Read in atlas](index.html#TCS-1058) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-2039 — Decidability of freeness in automaton groups
+
+A finite invertible Mealy machine describes bijections of all finite words, whose compositions and inverses form an automaton group. The question asks for an always-terminating algorithm deciding whether that whole group is isomorphic to a free group of some finite rank. The supplied states may be redundant or act trivially, so they are not required to form the free basis. Known undecidability of positive relations and of general automaton semigroup freeness does not settle this group property, which a March 2026 specialist presentation still lists as open. A resolution would locate a basic limit of structural recognition from finite automaton descriptions.
+
+[Read in atlas](index.html#TCS-2039) · [The Freeness Problem for Automaton Semigroups](https://doi.org/10.4230/LIPIcs.MFCS.2024.44) · [Automata, Dynamical Systems, and Groups](https://ievgenbondarenko.wordpress.com/wp-content/uploads/2016/10/automata-dynamical-systems-and-groups.pdf) · [Automaton Semigroups and Groups: On the Undecidability of Problems Related to Freeness and Finiteness](https://arxiv.org/abs/1712.07408v3) · [The Freeness Problem for Automaton Semigroups — St Andrews seminar handout](https://jan-philipp-waechter.bitbucket.io/slides/StAndrews2026_handout.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0055 — Sum-of-square-roots problem
 
 The saved entry identifies the sum-of-square-roots problem, an exact comparison question involving quantities described by radicals. Its geometric relevance comes from distances that can be written as square roots even when the underlying coordinates are simple. The computational difficulty is deciding a comparison reliably when two such expressions are extremely close. The catalogue currently preserves only an index label and a pointer to the original problem collection, rather than its complete input conventions or requested complexity class. Those details must be recovered before this working description can become a precise claim about an algorithm or lower bound.
@@ -3152,13 +3173,6 @@ The semigroup membership problem asks whether a target element can be produced b
 [Read in atlas](index.html#TCS-1544) · [Membership and Conjugacy in Inverse Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2025.156)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2039 — Decidability of freeness in automaton groups
-
-An automaton group is generated by transformations described through a finite state machine. The freeness problem asks whether the group has the structure of a free group, without additional relations beyond group identities. This project seeks an algorithm deciding that property from the automaton presentation, or a proof that none exists. The source's neighboring undecidability results concern automaton semigroups and monoids and do not automatically transfer to groups. Resolving the group case would sharpen the boundary between finite descriptions and effective recognition of fundamental algebraic structure.
-
-[Read in atlas](index.html#TCS-2039) · [The Freeness Problem for Automaton Semigroups](https://doi.org/10.4230/LIPIcs.MFCS.2024.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2077 — Deterministic divisibility testing by a constant-degree polynomial
 
 The input is a sparse multivariate polynomial f and a proposed low-degree divisor g. The question is whether divisibility can always be decided deterministically in polynomially many rational arithmetic operations. Even quadratic g remains the key case. The time bound may be polynomial in the numerical degree of f, and no sparse quotient is promised. New results for dividends of bounded individual degree do not settle the unrestricted dividend case here.
@@ -3234,13 +3248,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Given finitely many integer matrices, semigroup membership asks whether a target matrix equals some nonempty product of the generators. This project concerns arbitrary two-by-two integer matrices and asks whether the problem is decidable. Products may use generators repeatedly but cannot freely introduce inverses as a group-membership problem would. The source proves positive results for other structured low-dimensional matrix classes without settling this unrestricted two-dimensional case. A resolution would locate a basic boundary for exact reachability in small-dimensional linear transformation systems.
 
 [Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6401 — Finiteness of automaton semigroups
-
-A finite Mealy automaton generates a semigroup by composing its induced transformations of words. The source's general question asks whether finiteness of such generated semigroups can be decided. Its positive theorem treats reversible two-state automata, with additional invertibility yielding effective finiteness and freeness tests. Those restrictions are crucial and do not amount to a procedure for arbitrary automaton semigroups. The project direction is to understand the broader decision boundary beyond cases where a strong finite-versus-free structural dichotomy supplies an answer.
-
-[Read in atlas](index.html#TCS-6401) · [The finiteness of a group generated by a 2-letter invertible-reversible Mealy automaton is decidable](https://doi.org/10.4230/LIPIcs.STACS.2013.502)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6493 — Complexity of tensor orbit-closure intersection
@@ -3853,7 +3860,7 @@ A learner repeatedly chooses an action and then observes the losses of every act
 [Read in atlas](index.html#TCS-0507) · [Open Problem: Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](https://proceedings.mlr.press/v247/hu24a.html) · [Improved Regret in Stochastic Decision-Theoretic Online Learning under Differential Privacy](https://proceedings.mlr.press/v313/wu26a.html) · [Near-Optimal Algorithms for Differentially Private Online Learning in a Stochastic Environment](https://arxiv.org/abs/2102.07929)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-## Constraint satisfaction (18)
+## Constraint satisfaction (19)
 
 ### TCS-6635 — Finite-domain promise CSP dichotomy
 
@@ -3883,11 +3890,32 @@ A finite promise CSP distinguishes strong constraints whose satisfiability is gu
 [Read in atlas](index.html#TCS-6675) · [An invitation to the promise constraint satisfaction problem](https://arxiv.org/abs/2208.13538v1) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3) · [Ineffectiveness for Search and Undecidability of PCSP Meta-Problems](https://arxiv.org/abs/2504.04639v4) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1) · [Publications — FOCS 2025 research summary](https://albertolarrauri.github.io/publications/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6725 — Logarithmic-color approximation of 3-colorable graphs
+
+Every promised input graph admits a proper colouring with three colours, but that hidden colouring is not given. The question asks for a uniform polynomial-time algorithm using only logarithmically many colours in expectation. Randomness follows the source’s approximation convention while every produced colouring must be exactly proper. Recent growing-palette algorithms and fixed-palette hardness results leave this logarithmic guarantee unestablished. An accepted answer proves existence or impossibility of the full algorithmic guarantee in Lean.
+
+[Read in atlas](index.html#TCS-6725) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/book.pdf) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904v1) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7237 — Hardness of 6-coloring 3-colorable graphs
+
+The target is an unconditional polynomial-time reduction that maps satisfiable formulas to three-colourable graphs and unsatisfiable formulas to graphs requiring more than six colours. Graphs needing four, five or six colours are outside the promise and cannot be valid outputs of the reduction. Known unconditional hardness at five colours does not automatically extend to six. Recent algorithms still use a palette growing with the graph size and therefore address a different guarantee. An accepted answer proves existence or nonexistence of the full reduction in Lean.
+
+[Read in atlas](index.html#TCS-7237) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3) · [Beyond PCSP(1-in-3,NAE)](https://drops.dagstuhl.de/storage/00lipics/lipics-vol198-icalp2021/LIPIcs.ICALP.2021.121/LIPIcs.ICALP.2021.121.pdf) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-1173 — NP-intermediate \(\omega\)-categorical CSPs
 
 Assuming P differs from NP, the question asks whether an omega-categorical fixed-template CSP can have intermediate NP complexity. Omega-categoricity means finitely many symmetry orbits at each fixed tuple length, and the template has a finite relational signature. The CSP must lie in NP while being neither polynomial-time decidable nor NP-complete under polynomial-time many-one reductions. CoNP-intermediate examples and completeness at every polynomial-hierarchy level are known, but they do not supply the required NP-intermediate example. A resolution would determine whether this broad symmetry condition alone rules out intermediate complexity inside NP.
 
 [Read in atlas](index.html#TCS-1173) · [The Polynomial Hierarchy and omega-Categorical CSPs](https://doi.org/10.4230/LIPIcs.MFCS.2026.96) · [Non-dichotomies in Constraint Satisfaction Complexity](https://www.lix.polytechnique.fr/~bodirsky/publications/nodich.pdf) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [The Polynomial Hierarchy and omega-categorical CSPs](https://arxiv.org/abs/2604.24539v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-1555 — VCSP tractability over the countable random graph
+
+The question concerns valued constraint problems whose costs depend only on equality and adjacency patterns in the countable random graph. It asks whether every fixed finite-signature template is polynomial-time solvable whenever it cannot pp-construct a triangle. The expressive closure includes sums, projection, scaling, feasibility and optimality, and the construction can use arbitrary finite powers. The temporal classification proves an analogous result for ordered rationals but the January 2026 source still poses the random-graph case. An accepted answer proves the full implication or an unconditional counterexample with its complexity lower bound in Lean.
+
+[Read in atlas](index.html#TCS-1555) · [Temporal Valued Constraint Satisfaction Problems](https://doi.org/10.4230/LIPIcs.MFCS.2025.24) · [A Complexity Dichotomy for Temporal Valued Constraint Satisfaction Problems](https://arxiv.org/abs/2409.07285v2) · [The Complexity of Resilience Problems via Valued Constraint Satisfaction](https://arxiv.org/abs/2309.15654v6)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6748 — Boolean decision-Holant dichotomy
@@ -3946,13 +3974,6 @@ Boolean MinCSP asks whether an assignment can violate at most a specified number
 [Read in atlas](index.html#TCS-0444) · [PACS 2024: Workshop on Parameterized Algorithms and Constraint Satisfaction — Open problems](https://pacs2024.github.io/pacs2024-open-problems.pdf) · [Flow-augmentation III: Complexity dichotomy for Boolean CSPs parameterized by the number of unsatisfied constraints](https://arxiv.org/abs/2207.07422v3) · [Representative Sets and Irrelevant Vertices: New Tools for Kernelization](https://doi.org/10.1145/3390887) · [Search-Space Reduction for Boolean MinCSPs via Essential Constraints](https://doi.org/10.4230/LIPIcs.SWAT.2026.22)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-1555 — VCSP tractability without pp-constructions of \(K_{3}\)
-
-Valued CSPs optimize sums of local costs instead of merely asking whether all relations are satisfied. The temporal source asks whether \(VCSP(A)\) is polynomial-time solvable whenever A cannot pp-construct K3. Primitive-positive constructions transfer the structure responsible for hardness from one template to another. A positive theorem would turn the absence of this obstruction into an algorithmic tractability criterion. The saved question does not spell out the valued construction notion or permitted temporal cost functions, so an ordinary relational no-K3 criterion cannot automatically be substituted.
-
-[Read in atlas](index.html#TCS-1555) · [Temporal Valued Constraint Satisfaction Problems](https://doi.org/10.4230/LIPIcs.MFCS.2025.24)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3678 — Polynomial-time tractability testing for core crisp CSP languages
 
 A crisp constraint language lists the allowed tuples over a finite domain, and the input is promised to be a core. The question asks for a polynomial-time test for an idempotent four-ary Siggers polymorphism. Both the domain and every relation are part of the input, so one uniform polynomial bound is required. The known finite-valued test and unrestricted-language NP-hardness do not answer this promised-core question. An ICALP 2026 article explicitly retains the relevant Siggers testing problem as open.
@@ -3967,13 +3988,6 @@ A proper hypergraph coloring assigns colors to vertices so that no hyperedge is 
 [Read in atlas](index.html#TCS-3984) · [NP-Hardness of Coloring 2-Colorable Hypergraph with Poly-Logarithmically Many Colors](https://doi.org/10.4230/LIPIcs.ICALP.2018.15)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6725 — Logarithmic-color approximation of 3-colorable graphs
-
-The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only \(O(\log  n)\) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
-
-[Read in atlas](index.html#TCS-6725) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-7124 — SNP definability of CSPs in NP
 
 The historical source asks which NP constraint satisfaction problems have an exact SNP definition. SNP guesses fixed-arity relations on the input and checks a fixed universal first-order condition. Known results translate such CSPs exactly into reducts of structures with finitely many forbidden induced patterns. The checked sources do not identify that reformulation as resolving the intended broader classification direction. The card remains pending until a substantive criterion beyond the known equivalence is specified.
@@ -3981,7 +3995,7 @@ The historical source asks which NP constraint satisfaction problems have an exa
 [Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [On the Computational Power of Extensional ESO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.LICS.2026.20)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Automated reasoning, rewriting and unification (14)
+## Automated reasoning, rewriting and unification (15)
 
 ### TCS-6562 — Word equations with linear length constraints
 
@@ -4011,6 +4025,13 @@ The problem asks whether two explicit d-DNNF circuits can be tested for exact Bo
 [Read in atlas](index.html#TCS-6650) · [Proof Systems Based on Structured Circuits](https://arxiv.org/abs/2605.12378) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819) · [Testing Equivalence Probabilistically](https://users.cecs.anu.edu.au/~jinbo/02-d123.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-7239 — Greedy CDCL without restarts versus resolution
+
+A resolution refutation derives the empty clause by repeatedly combining clauses on opposite literals. This card asks whether any such supplied proof can be translated in deterministic polynomial time into a greedy clause-learning search on the same formula without restarts. The legal search must process conflicts and unit clauses immediately and may backjump only as justified by a learned asserting clause. Known simulations with relaxed propagation or preprocessing, and newer generalized backtracking results, do not establish this exact claim. A resolution would show whether restarts change the polynomial proof-generating power of idealized greedy SAT search.
+
+[Read in atlas](index.html#TCS-7239) · [Space in Proof Complexity](https://jakobnordstrom.se/docs/publications/MV_PhDthesis.pdf) · [CDCL vs Resolution](https://simons.berkeley.edu/sites/default/files/docs/21462/satreunionslides-marcvinyals.pdf) · [A Simple Supercritical Tradeoff between Size and Height in Resolution](https://eccc.weizmann.ac.il/report/2024/001/) · [Generalizing CDCL with Graph Backtracking](https://doi.org/10.4230/LIPIcs.SAT.2026.14)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6644 — Decidability of termination for one-rule string rewriting
 
 A one-rule string system repeatedly replaces one fixed substring by another. The question is whether an algorithm can decide if every reduction sequence from every finite starting word eventually stops. Replacement positions are unrestricted, and the rule and alphabet are part of the input. Known decision procedures cover special rule families, while an August 2026 note still lists the arbitrary one-rule question as open. The answer must prove decidability or undecidability in Lean for global termination, rather than only termination from one supplied word.
@@ -4039,6 +4060,20 @@ Word unification solves equations between concatenations by substituting strings
 [Read in atlas](index.html#TCS-0171) · [RTA Open Problems](https://www.cs.tau.ac.il/~nachum/rtaloop/problems/92.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-1595 — Decidability of fifth-order \(\beta\)-matching
+
+Beta-matching asks whether a supplied simply typed lambda function maps some closed term to a fixed target up to beta conversion. This card bounds the unknown term’s type at order five, counting the ground type as order one. It asks for a total decision procedure over all finite inputs in this class. The August 2026 source retains this case between a reported decidable order-four case and mechanized undecidability at order six, while beta-eta matching is a different decidable problem. A resolution would locate the exact fixed-order boundary for beta-only higher-order matching.
+
+[Read in atlas](index.html#TCS-1595) · [Mechanized Undecidability of Higher-Order Beta-Matching](https://doi.org/10.4230/LIPIcs.FSCD.2025.17) · [Mechanized Undecidability of Higher-order beta-Matching (Extended Version)](https://arxiv.org/abs/2602.02091v2) · [Decidability of higher-order matching](https://arxiv.org/abs/0907.3804)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7134 — Polynomial-time equivalence of free binary decision diagrams
+
+A free binary decision diagram tests each Boolean variable at most once along a path while allowing the order to vary between paths. The question asks whether one deterministic algorithm can decide equivalence of any two such diagrams in polynomial time in their explicit encodings. Equivalence requires agreement on every assignment, even when the diagrams use unrelated variable orders. A one-sided randomized polynomial-time test is known, while hardness for more demanding diagram operations does not settle this exact comparison task. A deterministic resolution would clarify how much compact representation can be retained while supporting reliable exact comparison of Boolean functions.
+
+[Read in atlas](index.html#TCS-7134) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819) · [Testing Equivalence Probabilistically](https://users.cecs.anu.edu.au/~jinbo/02-d123.pdf) · [Proof Systems Based on Structured Circuits](https://arxiv.org/abs/2605.12378v2)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7125 — Two-sided distributive unification with a unit
 
 Unification asks whether a common substitution can make every pair of supplied expressions equal under specified algebraic identities. Here the identities are both distributive laws together with a two-sided multiplicative unit. The expressions may also use uninterpreted symbols, and neither operation is assumed associative or commutative. Known algorithms handle neighboring fragments, while undecidability results with additional associativity do not settle this exact theory. A resolution would identify a longstanding boundary for symbolic equality reasoning under interacting algebraic laws.
@@ -4060,26 +4095,12 @@ The problem asks for a uniform deterministic polynomial-time algorithm that comp
 [Read in atlas](index.html#TCS-0306) · [List of open questions: PTIME complementation of d-DNNF](https://a3nm.net/work/research/questions/#ptime-complementation-of-d-dnnf) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819) · [Structured d-DNNF Is Not Closed under Negation](https://doi.org/10.24963/ijcai.2024/398) · [On the Complexity of Language Membership for Probabilistic Words](https://doi.org/10.4230/LIPIcs.STACS.2026.5)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1595 — Decidability of fifth-order \(\beta\)-matching
-
-Higher-order beta-matching asks whether one simply typed lambda term can be instantiated to become beta-equivalent to another. The order of the types controls how deeply functions can take other functions as arguments. The source identifies order five as the gap between a decidable order-four case and higher-order undecidability constructions. This project asks whether matching remains decidable at that intermediate order. Pinning down the threshold would explain which level of functional structure first permits the encoding of unrestricted computational behavior.
-
-[Read in atlas](index.html#TCS-1595) · [Mechanized Undecidability of Higher-Order Beta-Matching](https://doi.org/10.4230/LIPIcs.FSCD.2025.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5603 — Polynomial-time recognition of abelian cores
 
 The input is an entire finite algebra specified by tables of its basic operations. It is promised to possess an idempotent Taylor term, although no witness is supplied. The task is to decide whether its smallest endomorphic image is abelian in the universal-algebraic sense. A quasipolynomial-time recognition algorithm is known. This is a classification problem for algebras, distinct from solving a particular list of term equations.
 
 [Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66) · [Equations over finite algebras](https://www.algebra.uni-linz.ac.at/Slides/sl-aaa105-6.pdf)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-7134 — Polynomial-time equivalence of free binary decision diagrams
-
-A free binary decision diagram evaluates a Boolean function by following variable tests, with no variable tested twice along a root-to-leaf path. Different paths may inspect variables in different orders. The saved question asks whether equivalence of two such diagrams can be decided in polynomial time in their representation sizes. Comparing their graph shapes is insufficient because structurally different diagrams can still agree on every assignment. An efficient exact test would support reliable manipulation of flexible decision representations, and the 2002 table entry remains a dated question rather than evidence of a newly checked complexity classification.
-
-[Read in atlas](index.html#TCS-7134) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Database theory and finite model theory (20)
 
