@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-914 records have an editorial importance assessment; 110 remain provisional.
+916 records have an editorial importance assessment; 108 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -246,7 +246,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 5. Pseudorandomness and derandomization (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance assessed: 35; provisional: 7.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance assessed: 36; provisional: 6.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -255,11 +255,11 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance 
 | 3 | [L versus BPL](index.html#TCS-0026) | 97 |
 | 4 | [P versus RP](index.html#TCS-6686) | 96 |
 | 5 | [Optimal deterministic restricted-isometry matrices](index.html#TCS-6662) | 95 |
-| 6 | [Uniform PRGs from exponential-time hardness](index.html#TCS-6696) | 92 |
-| 7 | [Two-source extraction at log n plus constant entropy](index.html#TCS-7271) | 92 |
-| 8 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 90 |
-| 9 | [Does arithmetic formula hardness derandomize identity testing?](index.html#TCS-5287) | 90 |
-| 10 | [Explicit near-optimal vertex expanders](index.html#TCS-6879) | 90 |
+| 6 | [AM versus NP](index.html#TCS-6699) | 93 |
+| 7 | [Uniform PRGs from exponential-time hardness](index.html#TCS-6696) | 92 |
+| 8 | [Two-source extraction at log n plus constant entropy](index.html#TCS-7271) | 92 |
+| 9 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 90 |
+| 10 | [Does arithmetic formula hardness derandomize identity testing?](index.html#TCS-5287) | 90 |
 
 ## 6. Parameterized complexity and algorithms (small)
 
@@ -314,7 +314,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 10; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 11; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -325,9 +325,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance 
 | 5 | [Polynomial-time refutation of random 3-SAT at constant density](index.html#TCS-7238) | 96 |
 | 6 | [Infinitely-often one-way functions from average-case NP hardness](index.html#TCS-6453) | 95 |
 | 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
-| 8 | [Algorithmic threshold for the symmetric binary perceptron](index.html#TCS-5011) | 87 |
-| 9 | [Optimization and certification of Max-Cut in random cubic graphs](index.html#TCS-5406) | 87 |
-| 10 | [Algorithmic threshold for random k-SAT](index.html#TCS-4876) | 50 |
+| 8 | [Polynomial simplex complexity under zero-preserving perturbations](index.html#TCS-7148) | 88 |
+| 9 | [Algorithmic threshold for the symmetric binary perceptron](index.html#TCS-5011) | 87 |
+| 10 | [Optimization and certification of Max-Cut in random cubic graphs](index.html#TCS-5406) | 87 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 

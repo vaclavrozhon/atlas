@@ -42,10 +42,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6679 — Universality of Turing equivalence
 
-Turing equivalence groups infinite binary sequences according to mutual computability. The question asks whether every countable Borel equivalence relation can be reduced to this relation by a Borel map. Such universality would mean that relative computability realizes the full classification complexity available among countable Borel equivalence relations. The map must preserve both equivalence and inequivalence for every pair, rather than merely describe typical behavior. The saved statement does not require the map to be computable or uniform on witnesses, making results about more restrictive reductions or resource-bounded equivalence separate issues.
+Turing equivalence groups all infinite binary sequences according to mutual oracle computability, without time or space restrictions. The question asks whether every Borel equivalence relation with countable classes can be encoded by Turing degrees using a Borel map. The encoding must preserve both equivalence and inequivalence for every input pair, but need not be computable, continuous or uniform on computation indices. The explicitly defined binary shift of the free group on two generators gives an equivalent single universal relation whose reducibility would settle the whole question. A complete Lean proof must establish or refute this exact universality statement; neighboring universality theorems and conditional Martin-conjecture or 2026 decomposition consequences do not suffice.
 
-[Read in atlas](index.html#TCS-6679) · [The Fourteen Victoria Delfino Problems and Their Status in the Year 2019](https://preprint.math.uni-hamburg.de/public/papers/hbm/hbm770.pdf) · [The Theory of Countable Borel Equivalence Relations](https://www.pma.caltech.edu/documents/5921/CBER.pdf) · [Martin’s conjecture, arithmetic equivalence, and countable Borel equivalence relations](https://arxiv.org/abs/1109.1875) · [The universality of polynomial time Turing equivalence](https://arxiv.org/abs/1601.03343) · [Uniformity, Universality, and Computability Theory](https://arxiv.org/abs/1606.01976) · [On a question of Slaman and Steel](https://arxiv.org/abs/2004.00174)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6679) · [The Fourteen Victoria Delfino Problems and Their Status in the Year 2019](https://preprint.math.uni-hamburg.de/public/papers/hbm/hbm770.pdf) · [The Theory of Countable Borel Equivalence Relations](https://www.pma.caltech.edu/documents/5921/CBER.pdf) · [Martin’s conjecture, arithmetic equivalence, and countable Borel equivalence relations](https://arxiv.org/abs/1109.1875) · [The universality of polynomial time Turing equivalence](https://arxiv.org/abs/1601.03343) · [Uniformity, Universality, and Computability Theory](https://arxiv.org/abs/1606.01976) · [On a question of Slaman and Steel](https://arxiv.org/abs/2004.00174) · [Erratum — Martin’s conjecture, arithmetic equivalence, and countable Borel equivalence relations](https://math.berkeley.edu/~marks/errata/mss_errata.html) · [Corrections to Uniformity, Universality, and Computability Theory](https://math.berkeley.edu/~marks/papers/322_fix.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7193 — Mortality of \(2\times 2\) integer matrix semigroups
 
@@ -776,6 +776,13 @@ A restricted-isometry matrix approximately preserves the Euclidean length of eve
 [Read in atlas](index.html#TCS-6662) · [Doubly transitive equiangular tight frames that contain regular simplices](https://www.sciencedirect.com/science/article/pii/S0024379525003143) · [The road to deterministic matrices with the restricted isometry property](https://www.math.ucdavis.edu/~strohmer/courses/270/road_to_rip.pdf) · [Explicit constructions of RIP matrices and related problems](https://arxiv.org/abs/1008.4535) · [Satisfying the restricted isometry property with the optimal number of rows and slightly less randomness](https://arxiv.org/abs/2311.07889)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6699 — AM versus NP
+
+Arthur–Merlin protocols let a prover choose a polynomial-length reply after seeing the verifier’s public random challenge. The question asks whether every language with such a protocol also has ordinary NP certificates. The verifier must be uniform and polynomial time, with completeness and soundness on every input. Graph nonisomorphism would acquire static polynomially checkable certificates if the equality holds, but is not assumed complete for the whole question. Known conditional derandomization and weaker recent simulations leave the unconditional class comparison open.
+
+[Read in atlas](index.html#TCS-6699) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/) · [Derandomizing Arthur–Merlin Games using Hitting Sets](https://doi.org/10.1007/s00037-005-0197-7) · [Instance-Wise Hardness and Refutation versus Derandomization for Arthur–Merlin Protocols](https://doi.org/10.1007/s00037-025-00279-2)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6696 — Uniform PRGs from exponential-time hardness
 
 The hypothesis says that some exponential-time language resists randomized subexponential-time algorithms. The question asks whether this uniform hardness yields a single generator with only polylogarithmically many seed bits. Its output must fool each fixed linear-time probabilistic distinguisher on infinitely many output lengths. The generator may take quasipolynomial time, but it must be uniform and independent of the distinguisher. Known low-end and more structured high-end results leave this general hardness-to-randomness implication distinct.
@@ -1026,13 +1033,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 \(\mathrm{AC}0[2]\) circuits combine constant-depth Boolean operations with parity gates. The textbook asks for pseudorandom generators with subpolynomial seed length that fool this circuit class. Such a seed would be smaller than every fixed positive power of the relevant input length. The target would provide a strong form of unconditional derandomization for circuits capable of detecting algebraic correlations. The saved historical note does not specify size, depth, or error dependencies, and a merely sublinear seed does not automatically meet the stronger subpolynomial requirement.
 
 [Read in atlas](index.html#TCS-6693) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6699 — AM versus NP
-
-Arthur–Merlin protocols use public randomness and a prover to verify claims efficiently. The textbook asks whether their randomness can be removed so that AM collapses to NP. It singles out graph nonisomorphism, where the desired outcome would be polynomially checkable certificates that two graphs differ up to relabeling. Such certificates would replace an interactive randomized justification with a static witness. The specific graph problem is a consequence to seek rather than an equivalent restatement of full \(\mathrm{AM}=\mathrm{NP}\), and the dated source note does not constitute a current-status review.
-
-[Read in atlas](index.html#TCS-6699) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Parameterized complexity and algorithms (42)
@@ -1764,6 +1764,13 @@ Does FLIP for Max-Cut have polynomial expected path length on every graph under 
 [Read in atlas](index.html#TCS-6658) · [Local Max-Cut on Sparse Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2024.98) · [Smoothed complexity of local Max-Cut and binary Max-CSP](https://arxiv.org/abs/1911.10381) · [Superpolynomial smoothed complexity of 3-FLIP in Local Max-Cut](https://people.maths.ox.ac.uk/michel/Papers/smoothed-complexity-local-max-cut-3-flip.pdf)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-7148 — Polynomial simplex complexity under zero-preserving perturbations
+
+Smoothed analysis asks how a simplex algorithm behaves on a worst-case linear program after independent random perturbations. This version keeps every original zero coefficient fixed and adds Gaussian noise only to nonzero matrix and right-hand-side entries. The target asks whether some explicitly defined two-phase simplex algorithm solves every such family exactly in expected polynomially many arithmetic operations. The algorithm class and additive noise convention are disclosed editorial choices completing a broader source question. A complete Lean answer must prove the universal expected bound or refute it for every algorithm in the stated class.
+
+[Read in atlas](index.html#TCS-7148) · [Beyond Worst-Case Analysis](https://arxiv.org/abs/1806.09817) · [Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually Takes Polynomial Time](https://arxiv.org/abs/cs/0111050v7) · [Beyond Smoothed Analysis: Analyzing the Simplex Method by the Book](https://arxiv.org/abs/2510.21613v2) · [Optimal Smoothed Analysis of the Simplex Method](https://arxiv.org/abs/2504.04197v2)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-5011 — Algorithmic threshold for the symmetric binary perceptron
 
 The symmetric binary perceptron seeks a sign vector satisfying many random Gaussian two-sided constraints. The conjecture places the efficient-search density at the scale of the squared margin, allowing fixed powers of its reciprocal logarithm. The card defines a supremum over uniform polynomial-time algorithms and states its exact real-arithmetic convention. The input dimension tends to infinity at each fixed margin and density before the margin approaches zero. Stable-algorithm barriers, a sign-matrix algorithm and conditional lattice reductions each have limits that prevent treating them as a full resolution.
@@ -1797,13 +1804,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Hardness amplification strengthens a problem that is mildly hard on average into one that is hard on nearly all inputs. The source asks for optimal exponential-scale amplification while keeping the resulting problem in NP. The NP requirement constrains which encodings and combinations can be used without losing efficiently verifiable witnesses. An optimal result would sharpen the quantitative route from weak average-case hardness to strong pseudorandomness consequences. The saved note omits the starting advantage, output length, and target error exponent, so these must be restored before optimality can be judged against a specific amplification bound.
 
 [Read in atlas](index.html#TCS-6703) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7148 — Smoothed simplex complexity under sparse perturbations
-
-Smoothed simplex analysis bounds the expected running time after random perturbations of a linear program. The source asks whether polynomial guarantees can be extended to perturbations that preserve sparsity. Preserving zero patterns restricts the randomness available to remove geometric degeneracies, so dense-noise arguments may no longer apply. A solution would make smoothed analysis more relevant to linear programs whose efficient representation depends on having few nonzero coefficients. The saved note does not choose a simplex pivot rule or sparse perturbation distribution, so those model details must be recovered before stating a complete polynomial-time guarantee.
-
-[Read in atlas](index.html#TCS-7148) · [Beyond Worst-Case Analysis](https://arxiv.org/abs/1806.09817)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Sampling, Markov chains and mixing times (9)
