@@ -1231,6 +1231,13 @@ Processors on an oriented cycle must choose three classical colors with differen
 [Read in atlas](index.html#TCS-0522) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#quantum-local) · [Locality in Distributed Graph Algorithms](https://doi.org/10.1137/0221015) · [A Lower Bound on Probabilistic Algorithms for Distributive Ring Coloring](https://doi.org/10.1137/0404036) · [Finitely Dependent Coloring](https://doi.org/10.1017/fmp.2016.7) · [No Distributed Quantum Advantage for 3-Coloring Rooted Trees and 2-Coloring Even Cycles](https://arxiv.org/abs/2607.04852v2) · [Distributed Quantum Algorithms Cannot Color Cycles with Probability 1](https://arxiv.org/abs/2608.11720v1) · [Finitely Dependent Cycle Coloring](https://arxiv.org/abs/1707.09374v1) · [Impossibility of One-Way One-Round Quantum 4-Coloring via Matrix-Space Stability](https://arxiv.org/abs/2609.09091v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-0969 — Optimal one-pass randomized space for LIS length
+
+The problem asks for optimal bit space to estimate the longest strictly increasing subsequence in one streaming pass. Inputs are arbitrary length-n sequences of numbers from one to n, fixed before the algorithm chooses its random bits. The final estimate must lie between half the true length and the true length with probability at least two thirds. Deterministic upper bounds and recent lower bounds against a stronger adaptive adversary leave the ordinary randomized optimum unresolved. The requested answer must match upper and lower bounds up to constants, including every logarithmic factor.
+
+[Read in atlas](index.html#TCS-0969) · [Problem 44: Approximating LIS Length in the Streaming Model](https://sublinear.info/index.php?title=Open_Problems:44) · [Estimating the Sortedness of a Data Stream](https://www.wisdom.weizmann.ac.il/~robi/papers/GJKK-stream-SODA07.pdf) · [A Note on Randomized Streaming Space Bounds for the Longest Increasing Subsequence Problem](https://doi.org/10.1016/j.ipl.2011.12.008) · [Optimal White-Box Adversarial Streaming Lower Bounds for Approximating LIS Length](https://doi.org/10.4230/LIPIcs.ITCS.2026.64)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6499 — Sublogarithmic distributed MIS
 
 A maximal independent set contains no adjacent vertices and leaves every unselected vertex next to a selected one. The question asks for a randomized LOCAL algorithm that finds such a set in \(o(\log  n)\) rounds on every graph with high probability. Message sizes and local computation are unrestricted, so the resource measures the distance over which decisions must be coordinated. The running-time improvement must hold uniformly even for graphs of very large degree. Degree-sensitive algorithms already improve some cases, but the target requires a mechanism that also avoids logarithmically many phases on unrestricted graphs.
@@ -1279,6 +1286,13 @@ The VOLUME model measures how many graph vertices an adaptive local algorithm in
 
 [Read in atlas](index.html#TCS-0515) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [The randomized local computation complexity of the Lovász local lemma](https://arxiv.org/abs/2103.16251v2) · [The Landscape of Distributed Complexities on Trees and Beyond](https://arxiv.org/abs/2202.04724v2) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [New Complexity Classes in Locally Checkable Labeling for Local Computation Algorithms](https://arxiv.org/abs/2607.09626v1)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0993 — Factor-two graph distances in logarithmically many passes
+
+The problem asks for a factor-two estimate of one specified distance in an undirected unweighted graph stream. The source and target are known in advance, and every pass sees the same arbitrary edge order. The algorithm may use n times a fixed polylogarithmic number of bits but only logarithmically many passes. Published 2026 bounds leave this target between a near-logarithmic lower bound and a larger upper bound. A resolution would clarify how repeated sequential access recovers global graph distances with limited memory.
+
+[Read in atlas](index.html#TCS-0993) · [Problem 14: Graph Distances](https://sublinear.info/index.php?title=Open_Problems:14) · [Better Bounds for Semi-Streaming Single-Source Shortest Paths](https://doi.org/10.1137/1.9781611978971.184)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7010 — Linear-sketch complexity of the nuclear norm
 
@@ -1412,20 +1426,6 @@ The input is an arbitrary Boolean function on a binary vector space. A parity sk
 
 [Read in atlas](index.html#TCS-0950) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:78) · [Linear Sketching over F₂](https://doi.org/10.4230/LIPIcs.CCC.2018.8) · [Turnstile Streaming Algorithms Might (Still) as Well Be Linear Sketches, for Polynomial-Length Streams](https://arxiv.org/abs/2604.22052)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-0993 — Graph Distances
-
-A graph stream reveals edges in sequence while the algorithm keeps a small memory state. The task is to approximate the shortest-path distance between specified vertices. The source asks whether multiple passes or random edge order permit better approximations than approaches based on preserving many distances in a spanner. Following reachability one layer per pass computes the exact distance, but can require too many scans for distant vertices. The project is to exploit the single-pair objective or additional passes without storing a large global distance-preserving graph.
-
-[Read in atlas](index.html#TCS-0993) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:14)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0969 — Approximating LIS Length in the Streaming Model
-
-The longest increasing subsequence of a sequence is its largest order-preserving selection of entries whose values increase. The question asks for the randomized streaming space needed to approximate its length within a factor of two. The algorithm may use one pass or a fixed constant number of passes. The source presents square-root-space deterministic bounds, but the communication problems underlying the deterministic lower bounds become easy with randomness. A resolution therefore needs either a better randomized summary or a lower-bound argument that survives the extra power of random choices.
-
-[Read in atlas](index.html#TCS-0969) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:44)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0849 — Two-stage group testing with arithmetic progressions
 

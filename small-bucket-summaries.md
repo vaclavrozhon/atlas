@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-610 five-sentence working summaries, based on saved source material.
+609 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -68,6 +68,13 @@ Several correlated sources must be transmitted through a fixed directed acyclic 
 [Read in atlas](index.html#TCS-0247) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Multisource Algorithmic Information Theory](https://www.lirmm.fr/~ashen/multisource-dagstuhl.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-4185 — Existence of strings without simple optimal hypotheses
+
+The question asks whether some binary strings lack every simple probabilistic explanation satisfying a specified time-bounded likelihood comparison. For each polynomial sampling budget, a simple explanation must be sampled exactly by a logarithmically short randomized program that halts within that budget on every random choice. The selected target permits a larger polynomial time bound for describing the string and asks for strings without such explanations at infinitely many lengths. This is an explicit unconditional editorial formulation because the source did not fix the order of its polynomial time bounds. A complete Lean answer must prove the quantified existence statement or its full negation, clarifying how computational limits constrain statistical explanations of individual data.
+
+[Read in atlas](index.html#TCS-4185) · [Stochasticity in Algorithmic Statistics for Polynomial Time](https://doi.org/10.4230/LIPIcs.CCC.2017.17) · [Stochasticity in Algorithmic Statistics for Polynomial Time](https://eccc.weizmann.ac.il/report/2017/043/) · [Stochasticity in Algorithmic Statistics for Polynomial Time: CCC 2017 presentation](https://computationalcomplexity.org/Archive/2017/slides/17_MV.pdf) · [Algorithmic Statistics and Prediction for Polynomial Time-Bounded Algorithms](https://doi.org/10.1007/978-3-319-94418-0_29) · [Prediction and MDL for infinite sequences](https://doi.org/10.1007/s00224-024-10180-0)
+Existing status: `uncertain` · Summary written: 2026-09-16
+
 ### TCS-0287 — Strong extractors for infinite sequences
 
 The question asks for one computable transformation of two independent infinite binary sequences of effective dimension one half. Its output must have effective dimension one even when either entire input is available as an oracle. Independence is the global oracle condition, which is stronger than comparing only finite input prefixes. The transformation may use unbounded computation but must produce every output bit on every promised input pair. Known ordinary extraction, finite-string strong extraction and finite-state impossibility results do not settle this stated target.
@@ -108,13 +115,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Conditional pKt measures a probabilistic, time-sensitive form of description complexity when auxiliary information is supplied. The source asks whether computing it is NP-hard in a polynomial-time parameter regime. Such hardness would relate an information-theoretic quantity for individual strings to conventional worst-case computational difficulty. The conditional setting matters because the side information can change both the shortest description and how it can be verified. The saved passage leaves the approximation gap, time parameter, and reduction type unspecified, and these must be restored before a precise NP-hardness proposition can be stated.
 
 [Read in atlas](index.html#TCS-2202) · [Impagliazzo’s Worlds Through the Lens of Conditional Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2024.110)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4185 — Existence of strings without simple optimal hypotheses
-
-Algorithmic statistics seeks a simple probability distribution that plausibly explains an individual data string. The source studies versions constrained by polynomial computation time and distinguishes acceptable, plausible, and optimal hypotheses. The question asks whether some strings have no simple optimal hypothesis in this resource-bounded framework. An optimal explanation must meet the paper's coding-based criterion, rather than merely pass the available statistical tests. An example lacking such explanations would show that efficient statistical modeling can fail for intrinsic computational reasons, even when unrestricted descriptions offer a different picture.
-
-[Read in atlas](index.html#TCS-4185) · [Stochasticity in Algorithmic Statistics for Polynomial Time](https://doi.org/10.4230/LIPIcs.CCC.2017.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5010 — Unconditional coding theorem for randomized Kolmogorov complexity
@@ -436,6 +436,13 @@ Communication protocols reveal information about distributed inputs through thei
 [Read in atlas](index.html#TCS-0220) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:76)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-1845 — Optimal time exponent for truth-table decision-tree depth
+
+Given the complete truth table of a Boolean function, the task is to compute the minimum worst-case depth of a decision tree evaluating it. The known sequential upper bound is polynomial in the table length but has an exponent larger than one. This card asks for the infimum deterministic time exponent in a fixed finite-word random-access model, allowing different uniform algorithms for different candidate exponents. That exponent separates the cost of optimizing query depth from the query depth itself and from parallel complexity. An accepted answer must give a real approximation within 1/100 and a complete Lean proof, without assuming that an algorithm attains the infimum.
+
+[Read in atlas](index.html#TCS-1845) · [The Hardness of Decision Tree Complexity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2025.66) · [The hardness of decision tree complexity](https://eccc.weizmann.ac.il/report/2024/034/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-1047 — Formula size versus partition complexity
 
 A De Morgan formula computes a Boolean function with an expression tree whose leaves are literals. Its partition measure counts disjoint rectangles pairing accepting and rejecting inputs, each certified by one differing coordinate. The question asks whether formula leaf size is always bounded by a fixed polynomial in that rectangle count. The partition need not already be organized as a recursive communication protocol, which is the source of the possible gap. Jukna’s author draft dated 14 September 2026 still lists the polynomial inverse as open and gives only a quasipolynomial general bound.
@@ -497,13 +504,6 @@ Existing status: `source_open` · Summary written: 2026-09-15
 Noisy query algorithms receive unreliable information when inspecting input bits. The source conjectures a lower bound of order \(I(f) \log  I(f)\) for every Boolean function, with \(I(f)\) denoting influence in its model. The proposed logarithmic factor would quantify the extra cost of overcoming noise for functions sensitive to many coordinates. It links an analytic property of the function to the number of observations needed for reliable computation. The saved passage does not preserve the noise rate, error guarantee, or influence convention, and those choices are essential when interpreting both the bound and small-influence edge cases.
 
 [Read in atlas](index.html#TCS-1540) · [Tight Bounds for Noisy Computation of High-Influence Functions, Connectivity, and Threshold](https://proceedings.mlr.press/v291/gu25a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1845 — Complexity of truth-table decision-tree optimization
-
-The problem tt-DT concerns decision-tree complexity when a Boolean function is supplied through its truth table. The saved question asks for the exact time complexity of this meta-computational task. The truth table makes all function values available but does not reveal the best adaptive query strategy directly. Determining the complexity would clarify how difficult it is to optimize a computation when its complete input-output behavior is explicit. The excerpt does not specify whether the task computes an optimum or decides a threshold, nor the requested precision of the running-time bound, so the source must supply those conventions.
-
-[Read in atlas](index.html#TCS-1845) · [The Hardness of Decision Tree Complexity](https://doi.org/10.4230/LIPIcs.STACS.2025.66)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2571 — Communication characterization of nonmonotone Karchmer–Wigderson games
@@ -2518,10 +2518,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6670 — Polylogarithmic maintenance of the exact global minimum cut
 
-The global minimum cut is the smallest number of edges separating a graph into two nonempty parts. The reviewed question asks to maintain its exact value under insertions and deletions with expected polylogarithmic amortized updates. Queries must also be polylogarithmic, and randomized correctness is required over oblivious operation sequences. Even though one update changes the value by at most one, identifying whether another cut has become optimal requires global information. The target returns only the numerical value and uses zero for disconnected graphs, avoiding output-size and convention ambiguities.
+The global minimum cut is the minimum number of edges crossing any nonempty proper vertex subset, with value zero for a disconnected graph. The question asks for one randomized data structure returning that exact value while arbitrary legal edge insertions and deletions arrive online. It requires polylogarithmic expected amortized updates, polylogarithmic worst-case queries and polynomial space, with explicit initialization cost and uniform exponents. For each fixed oblivious polynomial-length operation sequence, all answers must be simultaneously correct with error probability at most \(n^{-3}\). A complete Lean proof must establish the whole guarantee or its unconditional impossibility; approximate, small-cut, insertion-only and fast-update/slow-query results do not suffice.
 
-[Read in atlas](index.html#TCS-6670) · [Deterministic and Exact Fully-dynamic Minimum Cut of Superpolylogarithmic Size in Subpolynomial Time](https://arxiv.org/abs/2512.13105) · [Unifying and Strengthening Hardness for Dynamic Problems via the Online Matrix-Vector Multiplication Conjecture](https://people.csail.mit.edu/virgi/6.s078/papers/omv.pdf) · [Incremental Exact Min-Cut in Polylogarithmic Amortized Update Time](https://arxiv.org/abs/1611.06500) · [Fully Dynamic Exact Edge Connectivity in Sublinear Time](https://arxiv.org/abs/2302.05951) · [Tree-Packing Revisited: Faster Fully Dynamic Min-Cut and Arboricity](https://link.springer.com/article/10.1007/s00453-026-01394-4) · [Fully Dynamic Approximate Minimum Cut in Subpolynomial Time per Operation](https://arxiv.org/abs/2412.15069)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6670) · [Deterministic and Exact Fully-dynamic Minimum Cut of Superpolylogarithmic Size in Subpolynomial Time](https://arxiv.org/abs/2512.13105) · [Unifying and Strengthening Hardness for Dynamic Problems via the Online Matrix-Vector Multiplication Conjecture](https://people.csail.mit.edu/virgi/6.s078/papers/omv.pdf) · [Incremental Exact Min-Cut in Polylogarithmic Amortized Update Time](https://arxiv.org/abs/1611.06500) · [Fully Dynamic Exact Edge Connectivity in Sublinear Time](https://arxiv.org/abs/2302.05951) · [Tree-Packing Revisited: Faster Fully Dynamic Min-Cut and Arboricity](https://link.springer.com/article/10.1007/s00453-026-01394-4) · [Fully Dynamic Approximate Minimum Cut in Subpolynomial Time per Operation](https://arxiv.org/abs/2412.15069) · [Faster Pseudo-Deterministic Minimum Cut](https://arxiv.org/abs/2602.14550) · [Simple Algorithms for Fully Dynamic Edge Connectivity](https://epubs.siam.org/doi/abs/10.1137/1.9781611978964.31)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7332 — Logarithmic Las Vegas dynamic connectivity
 
@@ -3369,7 +3369,7 @@ Multivariate polynomial factorization decomposes a polynomial into simpler multi
 [Read in atlas](index.html#TCS-6914) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Lattices and computational number theory (29)
+## Lattices and computational number theory (28)
 
 ### TCS-6571 — Hilbert’s tenth problem over the rationals
 
@@ -3482,13 +3482,6 @@ An addition chain starts at one and builds its target by repeatedly adding two a
 
 [Read in atlas](index.html#TCS-7170) · [The Decompressed Tree Size of k-Ary Chains](https://link.springer.com/article/10.1007/s00026-026-00816-y) · [The Scholz Conjecture on Addition Chains Is True for Infinitely Many Integers with \(\ell\)\((2n)=\ell (n)\)](https://math.colgate.edu/~integers/a17Proc23/a17Proc23.pdf) · [The Scholz Conjecture Is True for \(2^{n}- 1\) for Almost All n](https://vixra.org/pdf/2605.0012v1.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0651 — Deterministic NP-hardness reductions for Euclidean SVP
-
-Euclidean SVP asks for the shortest nonzero vector in a lattice under the ordinary Euclidean norm. The source asks for deterministic reductions establishing its NP-hardness in the intended approximation regime. Randomized reductions can construct a useful lattice only with a stated probability, leaving a derandomization gap in the hardness theorem. Removing that randomness would strengthen the connection between lattice difficulty and standard deterministic complexity. The saved historical title does not state the factor or promises, and conditional or restricted later derandomizations must be compared with those exact requirements before declaring this target resolved.
-
-[Read in atlas](index.html#TCS-0651) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0655 — Polynomial-factor SVP hardness from standard assumptions
 
