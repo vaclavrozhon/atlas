@@ -61,6 +61,20 @@ The Mandelbrot set consists of complex parameters whose quadratic iteration star
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129) · [Is the Mandelbrot set computable?](https://doi.org/10.1002/malq.200310124) · [Is the Mandelbrot set computable?](https://web.math.wisc.edu/logic/conf/OW21/questions/Hertling.pdf) · [Deciding Robust Instances of an Escape Problem for Dynamical Systems in Euclidean Space](https://doi.org/10.4230/LIPIcs.MFCS.2025.79)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-2202 — NP-hardness of conditional polynomial-time pKt
+
+Conditional probabilistic Kolmogorov complexity measures how short a program can be when it sees a conditional string and public random bits. The question asks for randomized NP-hardness even when decoding is allowed arbitrarily large polynomial time. The target is a promise decision problem with two success-probability thresholds, rather than an exact numerical evaluation. One reduction per error exponent must work across the time bounds through the permitted polynomial output-length padding. The known sublinear-time theorem and later conditional hardness statements do not establish this uniform polynomial-regime target.
+
+[Read in atlas](index.html#TCS-2202) · [Impagliazzo’s Worlds Through the Lens of Conditional Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2024.110) · [Impagliazzo’s Worlds Through the Lens of Conditional Kolmogorov Complexity](https://eccc.weizmann.ac.il/report/2024/085/) · [Kolmogorov’s Approach to P vs NP: Chain Rules for Time-Bounded Kolmogorov Complexity](https://eccc.weizmann.ac.il/report/2025/089/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-5010 — Unconditional coding theorem for randomized Kolmogorov complexity
+
+An efficient sampler assigns a probability to each string it can produce. The question asks whether every such string has a short randomized description close to its information content. One fixed description must reconstruct the string in polynomial time with probability at least two thirds using private random bits. The guarantee must cover the whole sampler support, while the encoder that finds a description may be inefficient. Known conditional, average-case and public-randomness coding results do not establish the stated unconditional theorem.
+
+[Read in atlas](index.html#TCS-5010) · [Optimal Coding for Randomized Kolmogorov Complexity and Its Applications](https://doi.org/10.1109/FOCS61266.2024.00030) · [One-way Functions and Boundary Hardness of Randomized Time-Bounded Kolmogorov Complexity](https://eccc.weizmann.ac.il/report/2025/202/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0250 — Scaling joint Kolmogorov-complexity profiles
 
 Every tuple of strings has a profile of complexities of its nonempty subtuples. The question asks whether that whole profile can be multiplied by any fixed positive real factor. One new tuple must realize all the scaled quantities within logarithmic additive error. No fixed algorithm mapping the old tuple to the new one is required. The target concerns the homogeneous geometry of shared algorithmic information.
@@ -96,12 +110,12 @@ For individual binary strings x and y, side information z can shorten descriptio
 [Read in atlas](index.html#TCS-0238) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0254 — Networks characterized by information-flow inequalities
+### TCS-0254 — Algorithmic networks characterized by cut inequalities
 
-A communication network imposes capacity and topology restrictions on how information reaches its destinations. The source asks which networks are characterized by information-flow inequalities. A characterization would identify when satisfying abstract information constraints is sufficient for an actual coding scheme. The difficulty is that inequalities summarize numerical information amounts while feasible codes must coordinate concrete messages across the entire network. The saved label does not specify the permitted coding model or family of inequalities, so a full statement must recover these before deciding whether a network lies in the proposed class.
+A network distributes correlated finite strings through directed channels with limited capacities. Each cut imposes a necessary bound on the information that must enter its vertices to meet their demands. The question asks exactly which fixed network patterns make all of these bounds sufficient for a coding solution. Codes are existential per-instance assignments with logarithmic local descriptions, without an efficient uniform-encoder requirement. The source gives both positive examples and networks where the cut bounds fail, leaving the general structural characterization open.
 
-[Read in atlas](index.html#TCS-0254) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0254) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Multisource Algorithmic Information Theory](https://doi.org/10.4230/DagSemProc.06051.9)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0240 — Communication for algorithmic secret-key agreement
 
@@ -116,20 +130,6 @@ Two strings can share algorithmic information even when that information is not 
 
 [Read in atlas](index.html#TCS-0279) · [Computability, Complexity and Randomness](https://doi.org/10.4230/DagRep.2.1.19)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2202 — NP-hardness of conditional polynomial-time pKt
-
-Conditional pKt measures a probabilistic, time-sensitive form of description complexity when auxiliary information is supplied. The source asks whether computing it is NP-hard in a polynomial-time parameter regime. Such hardness would relate an information-theoretic quantity for individual strings to conventional worst-case computational difficulty. The conditional setting matters because the side information can change both the shortest description and how it can be verified. The saved passage leaves the approximation gap, time parameter, and reduction type unspecified, and these must be restored before a precise NP-hardness proposition can be stated.
-
-[Read in atlas](index.html#TCS-2202) · [Impagliazzo’s Worlds Through the Lens of Conditional Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2024.110)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5010 — Unconditional coding theorem for randomized Kolmogorov complexity
-
-Randomized Kolmogorov complexity measures how short a randomized description can be while reproducing an object under specified resource bounds. The cited source asks for an unconditional existential coding theorem for rKpoly relative to its PSAMP model. Coding theorems connect the probability of an output under a sampler with the description length needed to specify it. An unconditional relation would strengthen that bridge without additional complexity assumptions. The excerpt truncates its alternative consequence and does not define the exact sampling and success conventions, so the notation alone is insufficient for a complete theorem.
-
-[Read in atlas](index.html#TCS-5010) · [Optimal Coding for Randomized Kolmogorov Complexity and Its Applications](https://doi.org/10.1109/FOCS61266.2024.00030)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Proof complexity (26)
 

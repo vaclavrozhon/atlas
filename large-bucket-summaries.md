@@ -2394,6 +2394,13 @@ The premise is a polynomial-time function that defeats exponential-size inversio
 [Read in atlas](index.html#TCS-3025) · [Hardness of KT Characterizes Parallel Cryptography](https://doi.org/10.4230/LIPIcs.CCC.2021.35) · [Hardness of KT Characterizes Parallel Cryptography — revision 2](https://eccc.weizmann.ac.il/report/2021/057/revision/2/download/) · [Security Preserving Amplification of Hardness](https://www.cs.utexas.edu/~diz/pubs/gilvz.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-5793 — Pseudorandom functions from worst-case hardness of learning
+
+A learning algorithm receives query access to an unknown function and must output a circuit that predicts it accurately on uniformly random inputs. The question asks whether failure of efficient learning forces an efficiently sampled pseudorandom function family in the same circuit class. The premise permits a different hard target for each learner and does not assume a common samplable distribution of hard targets. Both the learner and the sampler are uniform polynomial-time algorithms, and security permits adaptive chosen queries. The source’s nonuniform exponential-regime theorem and the checked later qualified results do not establish this implication.
+
+[Read in atlas](index.html#TCS-5793) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18) · [Pseudo-random functions and uniform learnability](https://eccc.weizmann.ac.il/report/2021/132/) · [Strong Pseudorandom Functions in AC0(2) in the Bounded-Query Setting](https://eprint.iacr.org/2025/2085) · [A Sharp Characterization of Pessiland](https://eccc.weizmann.ac.il/report/2026/052/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-2732 — Subpolynomial-key perfectly secure three-server DPFs
 
 A distributed point function gives three servers compact shares of a vector supported at one secret location. Each server can evaluate its own share, and the three outputs must add to the requested point function. A single key must reveal exactly no information about either the location or the stored value. The target is a key length smaller than every positive power of the domain size over some fixed nontrivial finite Abelian group. Known subpolynomial constructions achieve perfect privacy with four servers or statistical privacy with three, a distinction retained in a 2026 survey.
@@ -2421,13 +2428,6 @@ The input is a complete truth table promised to have either a small or a much la
 
 [Read in atlas](index.html#TCS-4754) · [A Relativization Perspective on Meta-Complexity](https://doi.org/10.4230/LIPIcs.STACS.2022.54) · [Robustness of Average-Case Meta-Complexity via Pseudorandomness](https://doi.org/10.1145/3519935.3520051) · [One-Way Functions and Zero Knowledge](https://doi.org/10.1137/24M1689971)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5793 — Pseudorandom functions from hardness of learning
-
-Learning algorithms and pseudorandom functions express competing possibilities for understanding an unknown efficiently computable function. The selected question asks whether the ordinary failure of efficient learning already implies pseudorandom functions within the same circuit class. Earlier implications require a hard distribution over targets, which is stronger than saying that every learner fails on some target. The cited paper establishes a general equivalence in a nonuniform exponential-security regime, leaving those qualifications essential to its result. Extending the connection beyond that regime would explain when learning hardness alone supplies cryptographic pseudorandomness.
-
-[Read in atlas](index.html#TCS-5793) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6692 — Linear-seed pseudorandom generators from one-way functions
 
