@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-603 five-sentence working summaries, based on saved source material.
+604 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -932,10 +932,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1131 — Sublinear-seed generators for AC0 with parity gates
 
-AC0 with parity gates permits shallow circuits to combine ordinary Boolean operations with parity tests. The source asks for pseudorandom generators using a sublinear number of truly random bits. Parity operations can detect correlations that generators for plain AND–OR circuits may fail to hide. A sublinear seed would establish a meaningful unconditional randomness saving for this richer circuit class. The saved title omits the size, depth, and error regime, and these restrictions determine whether a proposed construction actually fools every circuit covered by the question.
+These shallow Boolean circuits may combine AND, OR and parity gates throughout the circuit, with arbitrary reuse of input variables. The question asks for one uniform generator that fools every circuit of each fixed depth and polynomial size with distinguishing error at most one tenth. The generator must write all its output bits in polynomial time and use a seed whose length divided by the output length tends to zero. The fixed error is an explicit interpretation of the source’s constant-error discussion because the numbered question does not specify an error value. Known linear-seed savings and generators for restricted gate patterns or large-field polynomials do not meet this unrestricted parity-circuit target.
 
-[Read in atlas](index.html#TCS-1131) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1131) · [Theory of Unconditional Pseudorandom Generators](https://eccc.weizmann.ac.il/report/2023/019/revision/2/download) · [On Beating the Hybrid Argument](https://doi.org/10.4086/toc.2013.v009a026) · [New Pseudorandom Generators and Correlation Bounds Using Extractors](https://arxiv.org/abs/2501.02653v1) · [Optimal PRGs for Low-Degree Polynomials over Polynomial-Size Fields](https://arxiv.org/abs/2602.10030v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1007 — Universal traversal sequences under arbitrary labels
 
@@ -2374,6 +2374,13 @@ The first phase stores a family of sets. A later phase receives another set befo
 [Read in atlas](index.html#TCS-7338) · [Towards Polynomial Lower Bounds for Dynamic Problems](https://www.ccs.neu.edu/~viola/classes/papers/PatrascuTowards.pdf) · [An Adaptive Step Toward the Multiphase Conjecture](https://arxiv.org/abs/1910.13543)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-0949 — Superlinear cell-probe lower bounds for succinct Boolean matrix-vector products
+
+The input is an arbitrary Boolean matrix, stored using only a vanishing fraction of extra bits beyond its n²-bit information content. A query asks for the entire Boolean product with one vector, charging only logarithmic-word memory probes. The target asks whether every deterministic exact adaptive structure needs a worst-case probe count growing faster than n. Known strong tradeoffs retain the original matrix layout and count individual entries, so their scope and word-size conversion matter. The card keeps arbitrary succinct encodings and all subquadratic redundancies rather than substituting a narrower solved model.
+
+[Read in atlas](index.html#TCS-0949) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:75) · [Faster Online Matrix-Vector Multiplication](https://arxiv.org/abs/1605.01695) · [Tight Cell Probe Bounds for Succinct Boolean Matrix-Vector Multiplication](https://arxiv.org/abs/1711.04467)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0300 — Randomized complexity of online labeling
 
 An ordered list is stored using a fixed range of numerical labels. Insertions and deletions must preserve label order while keeping spare labels available. The cost counts how many existing items receive a different label. Randomization achieves nearly logarithmic expected amortized cost in the cited result. The remaining task is to determine the optimal asymptotic rate for constant slack.
@@ -2397,17 +2404,10 @@ Existing status: `uncertain` · Summary written: 2026-09-13
 
 ### TCS-7334 — Strong SetDisjointness conjecture
 
-A family of sets is stored in advance. A query selects two stored sets and asks whether they intersect. The conjecture relates the representation size to the square of query time. Matching upper tradeoffs are known, but the general lower bound is not. The target counts storage after preprocessing rather than the time spent preprocessing.
+A family of sets is stored before the queries arrive. Each query names two stored sets and asks whether their intersection is empty. The conjecture says that retained space times squared query time cannot beat the squared total input size by more than polylogarithmic factors. Known upper bounds attain that tradeoff, while recent work still uses its lower-bound direction as an assumption. Preprocessing time is unrestricted and remains a separate resource from retained storage.
 
-[Read in atlas](index.html#TCS-7334) · [Conditional Lower Bounds for Space/Time Tradeoffs](https://arxiv.org/abs/1706.05847)
-Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-0949 — Data Structure Lower Bound in the Cell Probe Model
-
-A data structure preprocesses an n-by-n Boolean matrix and then answers matrix-vector products over AND and OR. The cell-probe model counts memory accesses while allowing free computation on the information read. The source asks for a superlinear-in-n query lower bound when the representation stores the matrix with only a small amount of extra space. Existing upper bounds show that this succinct model can outperform straightforward word-RAM expectations. A lower bound must therefore identify information that genuinely has to be fetched, rather than charge for the arithmetic or logical work of computing the answer.
-
-[Read in atlas](index.html#TCS-0949) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:75)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7334) · [Conditional Lower Bounds for Space/Time Tradeoffs](https://arxiv.org/abs/1706.05847) · [On the Hardness of Set Disjointness and Set Intersection with Bounded Universe](https://doi.org/10.4230/LIPIcs.ISAAC.2019.7) · [Towards Optimal Set-Disjointness and Set-Intersection Data Structures](https://doi.org/10.4230/LIPIcs.ICALP.2020.74) · [Acyclic Join Sampling Under Selections: Dichotomy, Union Sampling, and Enumeration](https://doi.org/10.4230/LIPIcs.ICDT.2026.9)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5706 — Unified bound for binary search trees
 
@@ -2425,10 +2425,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7329 — Logarithmic fully retroactive priority queues
 
-Retroactivity permits inserting and deleting operations in the past. Each edit changes the queue state at later historical times. Queries must return the minimum at any chosen time. The target is logarithmic amortized operation time and linear history storage. A recent optimal result covers monotonic histories but not unrestricted priority queues.
+A fully retroactive priority queue permits inserting and erasing queue operations anywhere in its current history. Every edit changes the queue obtained by replaying later historical operations, and minimum queries may refer to any time. The target is one deterministic comparison pointer-machine implementation with logarithmic amortized time and linear storage in the currently maintained history. All temporary storage and counter manipulation are charged, and histories remain valid without a monotonicity promise. The 2026 logarithmic result covers monotonic priority queues in its stated comparison model and leaves the general question open in that dated source.
 
-[Read in atlas](index.html#TCS-7329) · [Retroactive Data Structures](https://erikdemaine.org/papers/Retroactive_TALG/) · [Retroactive Monotonic Priority Queues via Range Searching](https://arxiv.org/abs/2508.09892v3)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7329) · [Retroactive Data Structures](https://erikdemaine.org/papers/Retroactive_TALG/) · [Polylogarithmic Fully Retroactive Priority Queues via Hierarchical Checkpointing](https://erikdemaine.org/papers/FullyRetroactive_WADS2015/) · [Retroactive Monotonic Priority Queues via Range Searching](https://arxiv.org/abs/2508.09892v3)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7340 — Optimal randomized memory-reallocation overhead
 
@@ -2632,10 +2632,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7369 — Space-query exponent curve of gapped string indexing
 
-Queries supply two patterns and an interval of allowed separation. Every matching pair of positions must be reported. The separation is measured between starting positions. The target is the optimal storage exponent as a function of query-overhead exponent. The benchmark requires certified accuracy throughout that function’s domain.
+A query supplies two patterns and an interval of allowed distances between their starting positions in a fixed text. The index must report every ordered pair of matching starts in the interval, including valid overlaps. The target is the optimal stored-space exponent throughout a fixed range of query-overhead exponents. Uniform programs have polynomial preprocessing, bounded error for each fixed query, and worst-case bounds counting query workspace. The original 2024 binary question was answered positively; this editorial curve requires certified real-valued accuracy of 1/100 at every point.
 
-[Read in atlas](index.html#TCS-7369) · [Gapped String Indexing in Subquadratic Space and Sublinear Query Time](https://arxiv.org/abs/2211.16860) · [Improved Time-Space Tradeoffs for 3SUM-Indexing](https://arxiv.org/abs/2512.04258v2)
-Existing status: `uncertain` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7369) · [Gapped String Indexing in Subquadratic Space and Sublinear Query Time](https://arxiv.org/abs/2211.16860v2) · [A General Technique for Searching in Implicit Sets via Function Inversion](https://arxiv.org/abs/2311.12471v2) · [Improved Time-Space Tradeoffs for 3SUM-Indexing](https://arxiv.org/abs/2512.04258v2)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7374 — Almost-quadratic unweighted tree edit distance
 
@@ -3539,7 +3539,7 @@ NTRU-like problems use structured algebraic relations involving short secret ele
 [Read in atlas](index.html#TCS-6868) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Coding and information theory (27)
+## Coding and information theory (28)
 
 ### TCS-6606 — Capacity of the two-user Gaussian interference channel
 
@@ -3575,6 +3575,13 @@ The binary deletion channel independently removes transmitted bits and hides the
 
 [Read in atlas](index.html#TCS-6607) · [An Overview of Capacity Results for Synchronization Channels](https://arxiv.org/abs/1910.07199) · [Optimal Coding for the Binary Deletion Channel With Small Deletion Probability](https://ykanoria.github.io/Deletion_paper.pdf) · [Improved Upper and Lower Bounds on the Capacity of the Binary Deletion Channel](https://arxiv.org/abs/2305.07156) · [Improved Capacity Upper Bounds for the Deletion Channel using a Parallelized Blahut-Arimoto Algorithm](https://arxiv.org/abs/2604.05867) · [A Certified Multi-Run Capacity Lower Bound for the Binary Deletion Channel at \(d = 1/2\)](https://zenodo.org/records/21780666)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-7267 — Binary codes beyond the Gilbert–Varshamov bound
+
+Binary error-correcting codes store information in words whose pairwise Hamming distances are large. The Gilbert–Varshamov bound guarantees a familiar asymptotic rate at each fixed relative distance. This question asks whether some fixed distance permits a fixed positive rate improvement for unbounded block lengths. Codes may be nonlinear and need not have an efficient construction or decoding algorithm. Known finite-length gains and recent explicit-construction or upper-bound papers do not settle that constant-gap existence question.
+
+[Read in atlas](index.html#TCS-7267) · [Essential Coding Theory (draft of 26 August 2025)](https://cse.buffalo.edu/faculty/atri/courses/coding-theory/book/web-coding-book.pdf) · [Asymptotic Improvement of the Gilbert–Varshamov Bound on the Size of Binary Codes](https://arxiv.org/abs/math/0404325) · [Higher-Order Delsarte Dual LPs: Lifting, Constructions and Completeness](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.44) · [Tracing AG Codes: Toward Meeting the Gilbert–Varshamov Bound](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.68) · [An Elementary Proof of the First LP Bound on the Rate of Binary Codes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2026.48) · [Wide Replacement Products Meet Gray Codes: Toward Optimal Small-Bias Sets](https://eccc.weizmann.ac.il/report/2025/179/) · [Logarithmically larger deletion codes of all distances](https://arxiv.org/abs/2209.11882)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6608 — Decidability of unconditional Shannon information inequalities
 

@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+402 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (70)
+## Computational complexity (69)
 
 ### TCS-0001 — P versus NP
 
@@ -243,6 +243,13 @@ The selected KRW variant asks whether minimum formula size under block compositi
 [Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Super-logarithmic Depth Lower Bounds via the Direct Sum in Communication Complexity](https://doi.org/10.1007/BF01206317) · [Shrinkage under Random Projections, and Cubic Formula Lower Bounds for \(AC^0\)](https://doi.org/10.4086/toc.2023.v019a007) · [Toward Better Depth Lower Bounds: Strong Composition of XOR and a Random Function](https://doi.org/10.4230/LIPIcs.STACS.2025.26)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6006 — Is ARRIVAL solvable in polynomial time?
+
+ARRIVAL asks which of two destinations is reached by one token following deterministic alternating switches. The graph and both successor choices are explicit, and every vertex can reach at least one sink in the underlying graph. The target is one deterministic polynomial-time decision algorithm, without requiring it to list the token trajectory. General subexponential algorithms and newer bounded-treewidth or ladder results leave that all-instance target open. Short certificates for both outcomes make this a basic unresolved question at the boundary of efficient decision and total search.
+
+[Read in atlas](index.html#TCS-6006) · [A Subexponential Algorithm for ARRIVAL](https://doi.org/10.4230/LIPIcs.ICALP.2021.69) · [ARRIVAL: Recursive Framework & ℓ₁-Contraction](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.95) · [Sinks and Ladders: ARRIVAL and SSG with Two Vertices per Level](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FUN.2026.19)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6285 — Closure of UL under complement
 
 UL contains languages decided with logarithmic work space and at most one accepting computation path per input. The question asks whether the complement of every such language also has an unambiguous logarithmic-space decider. The original and complement machines are uniform, exact and have no oracle or nonuniform advice. Ordinary nondeterministic logspace is closed under complement, but its complementing procedures need not preserve unambiguity. A resolution would clarify both the structure of small-space complexity classes and the use of unambiguous subroutines in graph algorithms.
@@ -432,13 +439,6 @@ EOPL describes total search along succinct paths with potentials. UEOPL admits a
 [Read in atlas](index.html#TCS-2681) · [Further Collapses in TFNP](https://doi.org/10.4230/LIPIcs.CCC.2022.33) · [Unique End of Potential Line](https://doi.org/10.1016/j.jcss.2020.05.007) · [Separations in Proof Complexity and TFNP](https://doi.org/10.1145/3663758)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3509 — Tarski in CLS or EOPL
-
-Tarski's fixed-point theorem guarantees a fixed point for an order-preserving map on a suitable lattice. The source asks whether the associated computational search problem lies in CLS or EOPL. These classes organize total search problems through continuous local improvement or structured potential-guided paths. A containment would connect monotone fixed points with algorithmic approaches used for equilibrium and local optimization. The saved excerpt does not state the finite encoding or violation outputs, so the computational Tarski problem must be defined separately from the unrestricted mathematical existence theorem.
-
-[Read in atlas](index.html#TCS-3509) · [Tarski’s Theorem, Supermodular Games, and the Complexity of Equilibria](https://doi.org/10.4230/LIPIcs.ITCS.2020.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3862 — Complete problems for search zero knowledge
 
 Zero-knowledge protocols are usually framed around deciding whether a statement is true. Search zero knowledge instead concerns interactions that produce a valid solution while controlling what additional information is revealed. The selected problem asks whether these search classes have complete problems in either the computational or statistical security setting. A complete problem would serve as a universal representative to which other search-zero-knowledge tasks can be reduced under suitable definitions. Finding one would organize the new model and help transfer general techniques from the better-developed theory of decision zero knowledge.
@@ -451,13 +451,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The minimum circuit size problem asks whether a truth table can be implemented by a Boolean circuit below a given size threshold. A small circuit supplies an efficiently checkable witness, placing the problem in NP when input length is measured by the full truth table. The selected passage highlights the unresolved classification between efficient randomized algorithms and NP-hardness. It also notes that an efficient algorithm would enable average-case inversion of candidate one-way functions through known reductions. Understanding this problem would connect circuit minimization, obfuscation, and the computational assumptions that make cryptography possible.
 
 [Read in atlas](index.html#TCS-4786) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6006 — Complexity of ARRIVAL
-
-ARRIVAL describes a deterministic walk in a directed graph whose vertices alternate between two outgoing choices on successive visits. The decision task asks which designated destination the walk eventually reaches. The source notes efficiently verifiable certificates for either answer, placing the problem in NP intersect coNP. It improves exponential algorithms to a subexponential bound and gives a polynomial-time algorithm for almost acyclic graphs. The remaining project is to decide whether all instances can be solved in polynomial time without explicitly following a walk that may be exponentially long.
-
-[Read in atlas](index.html#TCS-6006) · [A Subexponential Algorithm for ARRIVAL](https://doi.org/10.4230/LIPIcs.ICALP.2021.69)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6715 — Monotone circuits versus monotone span programs
