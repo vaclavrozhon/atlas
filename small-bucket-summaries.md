@@ -2052,10 +2052,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7251 — Caccetta–Häggkvist conjecture
 
-The conjecture links minimum outdegree with the length of a directed cycle. An n-vertex digraph of minimum outdegree r should contain a cycle of length at most the ceiling of n divided by r. Opposite arcs are allowed, but loops and parallel copies of an arc are forbidden. The assertion covers all graphs and all positive degree thresholds in the stated range. It is a sharp general principle connecting local expansion with global directed cycles.
+The Caccetta–Häggkvist conjecture asks how short a directed cycle must exist when every vertex has many outgoing neighbors. For n vertices and minimum outdegree at least r, it predicts a cycle of length at most the ceiling of n divided by r. The graph may contain opposite arcs, which form a two-cycle, but has no loops or repeated arcs. The target is an exact theorem for every graph and degree threshold, with no extra regularity or indegree assumption. Sharp examples and many partial results are known, while the recent rainbow and regular-digraph results do not resolve the general statement.
 
-[Read in atlas](index.html#TCS-7251) · [Caccetta–Häggkvist conjecture](https://www.openproblemgarden.org/op/caccetta_haggkvist_conjecture) · [Short rainbow cycles for families of small edge sets](https://arxiv.org/abs/2507.04581)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7251) · [The Caccetta–Haggkvist conjecture and additive number theory](https://arxiv.org/abs/math/0603469) · [Counting flags in triangle-free digraphs](https://arxiv.org/abs/0908.2791) · [Aharoni’s rainbow cycle conjecture holds up to an additive constant](https://arxiv.org/abs/2212.05697) · [Short rainbow cycles for families of small edge sets](https://arxiv.org/abs/2507.04581) · [Openly disjoint cycles and directed tree-width of regular digraphs](https://arxiv.org/abs/2604.13700) · [Short rainbow cycles in graphs and matroids](https://arxiv.org/abs/1806.00825) · [On Caccetta–Haggkvist Conjecture](https://arxiv.org/abs/0805.3631)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6539 — Almost-linear triangle detection
 

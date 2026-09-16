@@ -89,7 +89,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 59; importance 
 | 7 | [Almost-linear-work parallel exact maximum flow](index.html#TCS-7349) | 94 |
 | 8 | [Work-efficient parallel directed reachability](index.html#TCS-6507) | 92 |
 | 9 | [Depth-first search in NC](index.html#TCS-7172) | 92 |
-| 10 | [Quantum 3-coloring of cycles in \\(o(\\log * n)\\) rounds](index.html#TCS-0522) | 89 |
+| 10 | [Quantum 3-coloring of cycles in \\(o(\\log^{*}n)\\) rounds](index.html#TCS-0522) | 89 |
 
 ## 6. Optimization and numerical computation (large)
 

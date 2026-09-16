@@ -56,10 +56,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0002 — NP versus coNP
 
-An unsatisfiable formula has no assignment that makes every clause true. The question asks whether one fixed efficient verifier can always check a polynomial-length certificate of that impossibility. The certificate format is unrestricted as long as it is sound for every formula. This is equivalent to asking whether NP equals coNP. The project concerns the possibility of universally concise explanations for the failure of all candidate solutions, rather than lower bounds for any one particular set of proof rules.
+NP asks for short efficiently checkable evidence that an input is a yes instance. coNP describes the corresponding evidence for no instances of NP problems. The concrete target asks whether every unsatisfiable CNF formula has a polynomial-length certificate accepted by one fixed sound verifier. The verifier may use any proof format, and the question does not require efficiently finding a certificate. Separating the classes requires excluding all such verifiers, beyond lower bounds for individual proof systems.
 
 [Read in atlas](index.html#TCS-0002) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Circuits, Communication, and Proofs](https://www.icts.res.in/program/ccp)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0015 — Superlinear Boolean circuit lower bounds
 
@@ -1231,12 +1231,12 @@ A depth-first-search forest records the parent choices of recursive graph explor
 [Read in atlas](index.html#TCS-7172) · [Parallel Complexity of Depth-First-Search and Maximal Path in Restricted Graph Classes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2025.23) · [A random NC algorithm for depth first search](https://doi.org/10.1007/BF02122548) · [Nearly Work-Efficient Parallel DFS in Undirected Graphs](https://arxiv.org/abs/2304.09774)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0522 — Quantum 3-coloring of cycles in \(o(\log * n)\) rounds
+### TCS-0522 — Quantum 3-coloring of cycles in \(o(\log^{*}n)\) rounds
 
-Processors arranged on an oriented cycle must choose three classical colors so that adjacent processors receive different colors. The question allows quantum communication and asks for a round bound asymptotically smaller than log-star n. Nodes have distinct identifiers and know the cycle size, while their initial quantum registers are unentangled. The complete coloring must be valid with probability at least one minus one over n. A successful algorithm would beat the classical symmetry-breaking threshold, whereas a lower bound must handle quantum correlations without relying only on coarse causality constraints.
+Processors on an oriented cycle must choose three classical colors with different colors at every edge. They may perform finite local quantum computations and communicate qubits with both neighbors in synchronous rounds. One uniform protocol must work for every cycle size and every distinct identifier assignment, starting without shared randomness or entanglement. The target is worst-case communication below the log-star scale with global success probability at least one minus one over the number of nodes. Recent zero-error and one-way one-round lower bounds cover restricted models and do not resolve this high-probability question.
 
-[Read in atlas](index.html#TCS-0522) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#quantum-local) · [Locality in Distributed Graph Algorithms](https://doi.org/10.1137/0221015) · [A Lower Bound on Probabilistic Algorithms for Distributive Ring Coloring](https://doi.org/10.1137/0404036) · [Finitely Dependent Coloring](https://doi.org/10.1017/fmp.2016.7) · [No Distributed Quantum Advantage for 3-Coloring Rooted Trees and 2-Coloring Even Cycles](https://arxiv.org/abs/2607.04852v2) · [Distributed Quantum Algorithms Cannot Color Cycles with Probability 1](https://arxiv.org/abs/2608.11720v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0522) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#quantum-local) · [Locality in Distributed Graph Algorithms](https://doi.org/10.1137/0221015) · [A Lower Bound on Probabilistic Algorithms for Distributive Ring Coloring](https://doi.org/10.1137/0404036) · [Finitely Dependent Coloring](https://doi.org/10.1017/fmp.2016.7) · [No Distributed Quantum Advantage for 3-Coloring Rooted Trees and 2-Coloring Even Cycles](https://arxiv.org/abs/2607.04852v2) · [Distributed Quantum Algorithms Cannot Color Cycles with Probability 1](https://arxiv.org/abs/2608.11720v1) · [Finitely Dependent Cycle Coloring](https://arxiv.org/abs/1707.09374v1) · [Impossibility of One-Way One-Round Quantum 4-Coloring via Matrix-Space Stability](https://arxiv.org/abs/2609.09091v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6499 — Sublogarithmic distributed MIS
 
