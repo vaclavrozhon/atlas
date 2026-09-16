@@ -89,6 +89,13 @@ Does some NEXP language escape all polynomial-size constant-depth majority circu
 [Read in atlas](index.html#TCS-7161) · [Non-Uniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-ccc.pdf) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/) · [Almost-Everywhere Near-Cubic Wire Lower Bounds for SYM ∘ THR and \(\mathrm{THR} \circ  \mathrm{THR}\)](https://eccc.weizmann.ac.il/report/2026/167/) · [Near-Maximum Circuit Lower Bounds for Exponential Time with Merlin-Arthur Queries](https://eccc.weizmann.ac.il/report/2026/118/)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-4786 — Minimum Circuit Size Problem
+
+The Minimum Circuit Size Problem asks whether a complete Boolean truth table can be computed by a circuit below a given size threshold. The card fixes AND, OR and NOT gates, counts all gates, and measures input length by the full truth table. The target is NP-completeness under uniform deterministic polynomial-time many-one reductions. Known results for restricted proof systems, conditional quasipolynomial reductions and implicit representations do not settle that target. A complete answer must prove or refute the existence of a SAT reduction with exactly these guarantees.
+
+[Read in atlas](index.html#TCS-4786) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2023.31) · [Simple Circuit Extensions for XOR in PTIME](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2026.23) · [Sum-Of-Squares Lower Bounds for the Minimum Circuit Size Problem](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2023.31) · [NP-hardness of the Minimum Circuit Size Problem from Well-Studied Assumptions](https://www.rahulilango.com/papers/MCSP-Proceedings-2025.pdf) · [Non-Levin NP-Hardness of Implicit MCSP and PAC Learning under Few Assumptions](https://eccc.weizmann.ac.il/report/2026/091/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6533 — NL versus UL
 
 NL permits many accepting computation branches while using only logarithmic workspace. UL requires exactly one accepting branch on a yes input and none on a no input. The question asks whether one uniform unambiguous small-space machine can decide reachability in every directed graph. Known general simulations need more workspace or extra resources, while recent lower bounds and algorithms concern restricted models or graph families. The uniqueness guarantee concerns the machine’s computations, not a promise that the input graph already has a unique path.
@@ -451,13 +458,6 @@ Existing status: `source_open` · Summary written: 2026-09-12
 Zero-knowledge protocols are usually framed around deciding whether a statement is true. Search zero knowledge instead concerns interactions that produce a valid solution while controlling what additional information is revealed. The selected problem asks whether these search classes have complete problems in either the computational or statistical security setting. A complete problem would serve as a universal representative to which other search-zero-knowledge tasks can be reduced under suitable definitions. Finding one would organize the new model and help transfer general techniques from the better-developed theory of decision zero knowledge.
 
 [Read in atlas](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://doi.org/10.4230/LIPIcs.ICALP.2018.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4786 — Complexity of Minimum Circuit Size
-
-The minimum circuit size problem asks whether a truth table can be implemented by a Boolean circuit below a given size threshold. A small circuit supplies an efficiently checkable witness, placing the problem in NP when input length is measured by the full truth table. The selected passage highlights the unresolved classification between efficient randomized algorithms and NP-hardness. It also notes that an efficient algorithm would enable average-case inversion of candidate one-way functions through known reductions. Understanding this problem would connect circuit minimization, obfuscation, and the computational assumptions that make cryptography possible.
-
-[Read in atlas](index.html#TCS-4786) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6832 — Separations among P, RP and NP

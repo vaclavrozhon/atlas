@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-608 five-sentence working summaries, based on saved source material.
+607 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -562,7 +562,7 @@ A deterministic protocol partitions a communication matrix into monochromatic re
 [Read in atlas](index.html#TCS-6711) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Fine-grained complexity (27)
+## Fine-grained complexity (26)
 
 ### TCS-6595 — Strong Exponential Time Hypothesis
 
@@ -709,13 +709,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 All-pairs shortest paths computes the shortest-path distance between every ordered pair of graph vertices. The source conjectures that weighted instances admit no randomized algorithm with a fixed polynomial saving over cubic time. Weights make combining candidate paths a min-plus computation rather than ordinary Boolean reachability. The hypothesis underlies many fine-grained barriers for dynamic programming, distance problems, and related optimization. The saved note refers to a specific integer-weight regime without reproducing it, so numeric magnitude, negative-cycle conventions, and the machine model must be restored before the conjecture is fully quantified.
 
 [Read in atlas](index.html#TCS-6937) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6940 — Tree edit distance versus APSP
-
-Tree edit distance measures the cheapest sequence of permitted edits transforming one labeled tree into another. The source asks whether its fine-grained complexity is equivalent to all-pairs shortest paths. Both tasks can involve expensive combinations of many partial solutions despite very different input structures. An equivalence would explain whether a sufficiently fast algorithm for either problem necessarily improves the other. The saved note does not specify ordered versus unordered trees, edit costs, or reduction exponents, so a generic polynomial reduction does not establish the desired relationship.
-
-[Read in atlas](index.html#TCS-6940) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6942 — Hitting Set hardness from Orthogonal Vectors
@@ -2795,10 +2788,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6639 — Constant-factor approximation for Santa Claus
 
-Max-min allocation distributes indivisible items to agents with arbitrary nonnegative additive values. The question asks for a randomized polynomial-time constant-factor approximation to the best achievable minimum agent value. One simultaneous allocation must serve every agent adequately, so favorable expected values alone are insufficient. The difficulty is that agents compete for items whose value can differ substantially between recipients. The saved review separates this general model from restricted assignment, where each item has a common positive value whenever an agent can use it.
+General Santa Claus allocation distributes indivisible items with arbitrary nonnegative additive agent-specific values to maximize the least agent value. The target is one uniform randomized algorithm with a constant approximation factor and polynomial running time in the full binary input length. It must output a feasible allocation on every tape and meet the common value threshold for all agents simultaneously with probability at least two thirds. A complete Lean proof must establish that guarantee or refute the entire stated algorithm class, retaining any complexity assumptions explicitly. Restricted-assignment constants, identical-preference results, relaxation gaps and distributed round bounds leave the general heterogeneous problem open in the inspected sources.
 
-[Read in atlas](index.html#TCS-6639) · [Santa Claus meets Makespan and Matroids: Algorithms and Reductions](https://arxiv.org/abs/2307.08453) · [On Allocating Goods to Maximize Fairness](https://www.cs.dartmouth.edu/~deepc/PUBS/CCK-full.pdf) · [The Submodular Santa Claus Problem](https://arxiv.org/abs/2407.04824) · [Improved Integrality Gap in Max–Min Allocation, or, Topology at the North Pole](https://link.springer.com/article/10.1007/s00493-025-00141-7) · [Submodular Max-Min Allocation under Identical Valuations](https://arxiv.org/abs/2604.12417)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6639) · [Santa Claus meets Makespan and Matroids: Algorithms and Reductions](https://arxiv.org/abs/2307.08453) · [On Allocating Goods to Maximize Fairness](https://arxiv.org/abs/0901.0205) · [The Submodular Santa Claus Problem](https://arxiv.org/abs/2407.04824) · [Improved Integrality Gap in Max–Min Allocation, or, Topology at the North Pole](https://link.springer.com/article/10.1007/s00493-025-00141-7) · [Submodular Max-Min Allocation under Identical Valuations](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SWAT.2026.8) · [Distributed Santa Claus via Global Rounding](https://arxiv.org/abs/2604.27983)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6674 — Randomized truthful unrelated-machine scheduling
 
