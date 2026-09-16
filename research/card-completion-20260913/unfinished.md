@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **497**.
+Pending active reviews: **495**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -36,7 +36,6 @@ Pending active reviews: **497**.
 | [TCS-3862](../../data/cards/TCS-3862.json) | Complete problems for search zero knowledge | Computational complexity | pool |
 | [TCS-4786](../../data/cards/TCS-4786.json) | Complexity of Minimum Circuit Size | Computational complexity | pool |
 | [TCS-6006](../../data/cards/TCS-6006.json) | Complexity of ARRIVAL | Computational complexity | pool |
-| [TCS-6832](../../data/cards/TCS-6832.json) | Separations among P, RP and NP | Computational complexity | pool |
 | [TCS-6977](../../data/cards/TCS-6977.json) | Super-near-linear SAT time lower bounds | Computational complexity | pool |
 | [TCS-5651](../../data/cards/TCS-5651.json) | Recognizing good-for-games and good-for-MDP automata | Automata and formal languages | pool |
 | [TCS-5738](../../data/cards/TCS-5738.json) | Recognizable separability of automatic relations | Automata and formal languages | pool |
@@ -403,7 +402,6 @@ Pending active reviews: **497**.
 | [TCS-6626](../../data/cards/TCS-6626.json) | Polylogarithmic worst-case updates for exact dynamic minimum spanning forests | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6627](../../data/cards/TCS-6627.json) | Fully dynamic near-optimal matching with polylogarithmic updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6630](../../data/cards/TCS-6630.json) | Effective classification of polynomially testable hereditary graph properties | Property testing and distribution learning | existing_detailed_audit |
-| [TCS-6632](../../data/cards/TCS-6632.json) | Constant-factor universally truthful auctions for submodular bidders | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6633](../../data/cards/TCS-6633.json) | Polynomial query complexity of exact envy-free cake cutting | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6636](../../data/cards/TCS-6636.json) | Bodirsky–Pinsker conjecture | Constraint satisfaction | existing_detailed_audit |
 | [TCS-6637](../../data/cards/TCS-6637.json) | Constant-colour polynomial-time colouring of 3-colourable graphs | Constraint satisfaction | existing_detailed_audit |
