@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-607 five-sentence working summaries, based on saved source material.
+608 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1433,10 +1433,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7358 — Optimal polynomial-time approximation ratio for Steiner Tree
 
-Steiner Tree connects a specified terminal set using optional additional graph vertices. The input graph and its nonnegative rational edge weights are unrestricted. The card asks for the best expected approximation ratio among all uniform randomized polynomial-time algorithms. Different algorithmic approaches reach ln 4 without establishing the optimal threshold. Benchmark acceptance requires a Lean-certified value within absolute error 0.01.
+Steiner Tree seeks a minimum-cost tree connecting a specified terminal set in an arbitrary undirected graph with nonnegative rational edge weights. The target is the infimum of approximation ratios achieved by uniform randomized algorithms that always output a feasible tree and run in polynomial time on every random tape. Each ratio bounds expected output cost on every instance, including those with zero optimum, while the algorithm may depend on the chosen ratio. Known algorithms approach \(\ln 4\), but the checked hardness bounds are conditional and the bounded later review found no determination of the optimal constant at the requested precision. An accepted answer supplies a real value with a complete Lean proof of absolute error at most \(1/100\), or a certified containing interval of width at most \(1/50\).
 
-[Read in atlas](index.html#TCS-7358) · [Steiner Tree Approximation via Iterative Randomized Rounding](https://doi.org/10.1145/2432622.2432628) · [Better-Than-2 Approximations for Weighted Tree Augmentation and Applications to Steiner Tree](https://doi.org/10.1145/3722101)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7358) · [Steiner Tree Approximation via Iterative Randomized Rounding](https://doi.org/10.1145/2432622.2432628) · [Local Search for Weighted Tree Augmentation and Steiner Tree](https://arxiv.org/abs/2107.07403v1) · [Better-Than-2 Approximations for Weighted Tree Augmentation and Applications to Steiner Tree](https://doi.org/10.1145/3722101) · [The Steiner tree problem on graphs: Inapproximability results](https://doi.org/10.1016/j.tcs.2008.06.046) · [The Bidirected Cut Relaxation for Steiner Tree has Integrality Gap Smaller than 2](https://arxiv.org/abs/2407.19905v2) · [Online Steiner Forest with Recourse](https://doi.org/10.4230/LIPIcs.ICALP.2026.141)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7354 — Optimal polynomial-time approximation ratio for metric k-means
 
@@ -2933,7 +2933,7 @@ Mechanism implementation connects an allocation algorithm with strategic behavio
 [Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (60)
+## Algebraic computation (61)
 
 ### TCS-0007 — Matrix multiplication exponent
 
@@ -3025,6 +3025,13 @@ What is the optimal worst-case bit complexity of multiplying two n-bit integers?
 
 [Read in atlas](index.html#TCS-7174) · [Integer multiplication in time \(O(n \log  n)\): publisher abstract](https://annals.math.princeton.edu/2021/193-2/p04) · [Integer multiplication is at least as hard as matrix transposition](https://arxiv.org/abs/2503.22848) · [Upper and lower bounds on the OBDD-width of a special integer multiplication](https://arxiv.org/abs/2608.30664)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7262 — Strassen’s asymptotic rank conjecture
+
+A three-factor tensor can be decomposed into elementary products, and its rank is the least number of those products. The question asks whether every concise complex tensor of equal factor dimension has asymptotic rank exactly that dimension when corresponding factors of many copies are grouped. The dimension and tensor stay fixed during the limit, and no tightness, symmetry, computability or uniform convergence promise is imposed. A complete Lean proof must establish the equality for all such tensors or a counterexample whose grouped powers all require a strictly larger exponential base. The inspected 2026 structural, numerical, finite-rank and symmetry results do not settle this general asymptotic equality.
+
+[Read in atlas](index.html#TCS-7262) · [Asymptotic tensor rank is characterized by polynomials](https://arxiv.org/abs/2411.15789) · [Asymptotic rank bounds: a numerical census](https://arxiv.org/abs/2601.08119) · [The edge of the asymptotic spectrum of tensors](https://arxiv.org/abs/2604.01386) · [New lower bounds on tensor rank of \((2,n,m)\) matrix multiplication with GPT-6](https://arxiv.org/abs/2609.14393) · [Border rank lower bounds beyond weak border apolarity](https://arxiv.org/abs/2609.12121) · [Concise tensors with maximal symmetries](https://arxiv.org/abs/2609.17280)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6615 — Polynomial-time finite-group isomorphism in the Cayley-table model
 
