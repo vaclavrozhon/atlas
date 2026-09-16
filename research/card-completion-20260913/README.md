@@ -1155,3 +1155,21 @@ formula checks passed on 1,036 active cards, covering 22,335 formulas. The prior
 average-case/OWF deployment was live-verified as c2665f8788b3706648c1, published
 2026-09-16T02:37:24+00:00, Pages commit
 317209ab28143dcb9ee06040fb15601b4168152f.
+
+Checkpoint 416 includes TCS-6574, exact semidefinite feasibility. The review
+specifies the dense rational encoding, total decision language, real variable
+domain, zero-variable endpoint and universal deterministic bit-time bound.
+Complete Lean acceptance remains decision-only and covers singular feasible
+matrices, irrational-only parameters, weak infeasibility and unbounded regions.
+The source audit preserves the distinction between exact dual systems and short
+binary certificates, the geometric assumptions of approximation algorithms and
+the arithmetic/genericity qualifications of symbolic algorithms. The September
+Newton-method preprint explicitly retains the open exact-SDP question and its
+separate derivative-oracle/real-number model. Solver walkthroughs were removed.
+
+Publication and formula checks passed on 1,036 active cards, covering 22,571
+formulas. The completion checkpoint has 416 finished queue records, including
+386 still-active cards, plus 152 active cards outside the queue: 538 reviewed
+and 498 pending at that completion. The prior DNF snapshot was live-verified as
+119e25635e8119e36b9c, published 2026-09-16T02:42:21+00:00, Pages commit
+b07615d7bdf8bb0386e45832d87d7d1564ece453.

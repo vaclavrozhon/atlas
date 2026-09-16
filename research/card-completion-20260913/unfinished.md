@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **565**.
+Pending active reviews: **564**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -419,7 +419,6 @@ Pending active reviews: **565**.
 | [TCS-6562](../../data/cards/TCS-6562.json) | Word equations with linear length constraints | Automated reasoning and unification | existing_detailed_audit |
 | [TCS-6566](../../data/cards/TCS-6566.json) | Continuous Skolem problem | Semantics, logic and verification | existing_detailed_audit |
 | [TCS-6573](../../data/cards/TCS-6573.json) | Polynomial Hirsch conjecture | Computational geometry and metric spaces | existing_detailed_audit |
-| [TCS-6574](../../data/cards/TCS-6574.json) | Exact semidefinite feasibility in polynomial time | Optimization and numerics | existing_detailed_audit |
 | [TCS-6580](../../data/cards/TCS-6580.json) | Information-theoretic classical verification of quantum computation | Quantum computation | existing_detailed_audit |
 | [TCS-6581](../../data/cards/TCS-6581.json) | Mansour’s conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6582](../../data/cards/TCS-6582.json) | Equivalence of deterministic higher-order recursion schemes | Automata and formal languages | existing_detailed_audit |
