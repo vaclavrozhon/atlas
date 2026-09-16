@@ -1292,3 +1292,7 @@ The concurrent census is 1,027 active cards: 670 reviewed and 357 pending. The q
 Checkpoint 559. Completed unrestricted trace sample-complexity formulation and July/September 2026 source review.
 
 The concurrent census is 1,027 active cards: 672 reviewed and 355 pending. The queue has 559 completed records, 520 active and 39 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,027 active cards, covering 27,542 formulas.
+
+Checkpoint 562. Completed unrestricted complex determinant formula review and 2026 restricted-model checks.
+
+The concurrent census is 1,027 active cards: 675 reviewed and 352 pending. The queue has 562 completed records, 523 active and 39 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,027 active cards, covering 27,656 formulas.

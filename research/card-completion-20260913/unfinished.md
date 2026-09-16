@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **485**.
+Pending active reviews: **484**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -389,7 +389,6 @@ Pending active reviews: **485**.
 | [TCS-6605](../../data/cards/TCS-6605.json) | Aaronson–Ambainis conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6607](../../data/cards/TCS-6607.json) | Capacity of the binary deletion channel | Coding and information theory | existing_detailed_audit |
 | [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
-| [TCS-6613](../../data/cards/TCS-6613.json) | Polynomial-size arithmetic formulas for the determinant | Algebraic computation | existing_detailed_audit |
 | [TCS-6614](../../data/cards/TCS-6614.json) | Deterministic polynomial-time factorization over finite fields | Algebraic computation | existing_detailed_audit |
 | [TCS-6619](../../data/cards/TCS-6619.json) | Exact Euclidean SVP in single-exponential time and polynomial space | Lattices and computational number theory | existing_detailed_audit |
 | [TCS-6621](../../data/cards/TCS-6621.json) | Rapid mixing of Glauber dynamics with \(\Delta +2\) colours | Randomized algorithms and sampling | existing_detailed_audit |
