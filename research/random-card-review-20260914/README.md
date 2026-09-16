@@ -797,3 +797,28 @@ Checkpoint thirty-three was committed as f4ecf390 and verified live as
 twelve retirements were absent, and six core reader assets matched byte-for-byte.
 Optional unanswered model questions were adopted only as disclosed editorial
 choices, never recorded as user approval. Original comments remain preserved.
+
+Checkpoint thirty-five brings this process to 153 completed reviews:
+140 retained active cards, thirteen retirements and 66 new importance assessments.
+It also records six explicit user confirmations of previously completed scopes.
+
+- TCS-7148: the user selected existential two-phase simplex complexity under
+  additive zero-preserving Gaussian noise; exact initialization and cost model
+  are disclosed, with scientific uncertainty retained separately.
+- TCS-7265: deterministic polynomial-bit-time generation of an n-bit prime
+  on every unary input; pseudodeterministic infinitely-often results are distinct.
+- TCS-4185: the user selected the forall-sampler-exponent/exists-larger-reference-
+  exponent formulation; repaired the full machine and likelihood definitions.
+- TCS-0651: archived the source-permitted exact Euclidean deterministic Karp-
+  hardness endpoint after a matching 2026 proof-chain and independent primary
+  recognition review; the full original record and comments are retained.
+- TCS-1845: the user selected the optimal deterministic sequential exponent
+  for exact truth-table decision-tree depth, with real absolute1/100 acceptance.
+
+The user also explicitly confirmed the completed scopes of TCS-0055, TCS-0009,
+TCS-5326, TCS-6493, TCS-0432 and TCS-2408. Their mathematical contents and
+scientific-status evidence remain separate from those confirmations.
+Checkpoint thirty-four was committed as339a1c21. Its freshness guard blocked
+a stale publication because another worker advanced TCS-6680; the concurrent
+successful publication e846ed3b65414bed1d49 retained all136 reviewed active cards
+exactly, all12 retirements, and the six tested reader assets byte-for-byte.

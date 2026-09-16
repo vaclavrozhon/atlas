@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **432**.
+Pending active reviews: **447**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -16,7 +16,10 @@ Pending active reviews: **432**.
 | [TCS-1029](../../data/cards/TCS-1029.json) | Sharp graph-removal bounds for fixed patterns | Property testing and distribution learning | top500 |
 | [TCS-0848](../../data/cards/TCS-0848.json) | Testing Submodularity | Property testing and distribution learning | top500 |
 | [TCS-0841](../../data/cards/TCS-0841.json) | Equivalence Testing with Conditional Samples | Property testing and distribution learning | top500 |
+| [TCS-0510](../../data/cards/TCS-0510.json) | Cost of privacy in online learning | Differential privacy | top500 |
 | [TCS-0507](../../data/cards/TCS-0507.json) | Optimal regret for private stochastic online learning | Differential privacy | top500 |
+| [TCS-3312](../../data/cards/TCS-3312.json) | Polynomial-time private convex-hull point selection | Differential privacy | top500 |
+| [TCS-6825](../../data/cards/TCS-6825.json) | Computational versus statistical privacy in the curator model | Differential privacy | top500 |
 | [TCS-1978](../../data/cards/TCS-1978.json) | Search tractability of BLP-solvable promise CSPs | Constraint satisfaction | top500 |
 | [TCS-0441](../../data/cards/TCS-0441.json) | Characterizing CSP languages with linear non-redundancy | Constraint satisfaction | top500 |
 | [TCS-0504](../../data/cards/TCS-0504.json) | Uniform algorithms across tractable CSPs | Constraint satisfaction | top500 |
@@ -33,15 +36,21 @@ Pending active reviews: **432**.
 | [TCS-2333](../../data/cards/TCS-2333.json) | Downward self-reducibility of PLS-complete problems | Computational complexity | pool |
 | [TCS-2425](../../data/cards/TCS-2425.json) | Closure of SZK under truth-table reductions | Computational complexity | pool |
 | [TCS-2532](../../data/cards/TCS-2532.json) | Circuit lower bounds from indistinguishability obfuscation | Computational complexity | pool |
+| [TCS-3509](../../data/cards/TCS-3509.json) | Tarski in CLS or EOPL | Computational complexity | pool |
 | [TCS-3862](../../data/cards/TCS-3862.json) | Complete problems for search zero knowledge | Computational complexity | pool |
 | [TCS-4786](../../data/cards/TCS-4786.json) | Complexity of Minimum Circuit Size | Computational complexity | pool |
 | [TCS-6006](../../data/cards/TCS-6006.json) | Complexity of ARRIVAL | Computational complexity | pool |
+| [TCS-6715](../../data/cards/TCS-6715.json) | Monotone circuits versus monotone span programs | Computational complexity | pool |
+| [TCS-6716](../../data/cards/TCS-6716.json) | General versus monotone span programs | Computational complexity | pool |
+| [TCS-6832](../../data/cards/TCS-6832.json) | Separations among P, RP and NP | Computational complexity | pool |
 | [TCS-6977](../../data/cards/TCS-6977.json) | Super-near-linear SAT time lower bounds | Computational complexity | pool |
 | [TCS-5651](../../data/cards/TCS-5651.json) | Recognizing good-for-games and good-for-MDP automata | Automata and formal languages | pool |
+| [TCS-5732](../../data/cards/TCS-5732.json) | Regular separability of VASS reachability languages | Automata and formal languages | pool |
 | [TCS-5738](../../data/cards/TCS-5738.json) | Recognizable separability of automatic relations | Automata and formal languages | pool |
 | [TCS-5863](../../data/cards/TCS-5863.json) | Decidability of stochastic resolvability for \(\omega\)-automata | Automata and formal languages | pool |
 | [TCS-5904](../../data/cards/TCS-5904.json) | Equivalence of discounted-sum automata | Automata and formal languages | pool |
 | [TCS-5959](../../data/cards/TCS-5959.json) | Complexity of the Game of Life limit set | Automata and formal languages | pool |
+| [TCS-6158](../../data/cards/TCS-6158.json) | Unique invariant measures versus cellular-automaton ergodicity | Automata and formal languages | pool |
 | [TCS-4302](../../data/cards/TCS-4302.json) | Strategy synthesis for multi-objective probabilistic LTL | Semantics, logic and verification | pool |
 | [TCS-5682](../../data/cards/TCS-5682.json) | One-dimensional piecewise-affine reachability | Semantics, logic and verification | pool |
 | [TCS-5817](../../data/cards/TCS-5817.json) | Computational interpretation of impredicativity with univalence | Semantics, logic and verification | pool |
@@ -52,11 +61,13 @@ Pending active reviews: **432**.
 | [TCS-6359](../../data/cards/TCS-6359.json) | Decidability and completeness of concurrent Kleene algebra | Semantics, logic and verification | pool |
 | [TCS-7153](../../data/cards/TCS-7153.json) | Ultimate Positivity problem | Semantics, logic and verification | pool |
 | [TCS-7154](../../data/cards/TCS-7154.json) | Effective ultimate-positivity thresholds for simple recurrences | Semantics, logic and verification | pool |
+| [TCS-7156](../../data/cards/TCS-7156.json) | Universal integer termination of affine linear loops | Semantics, logic and verification | pool |
 | [TCS-7157](../../data/cards/TCS-7157.json) | Termination of linear-constraint loops | Semantics, logic and verification | pool |
 | [TCS-0993](../../data/cards/TCS-0993.json) | Graph Distances | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0954](../../data/cards/TCS-0954.json) | Metric TSP Cost Approximation | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0969](../../data/cards/TCS-0969.json) | Approximating LIS Length in the Streaming Model | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0980](../../data/cards/TCS-0980.json) | Random Walks | Distributed, parallel and sublinear algorithms | pool |
+| [TCS-0988](../../data/cards/TCS-0988.json) | Deterministic Summary Structures | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0834](../../data/cards/TCS-0834.json) | Estimating a Graph's Degree Distribution | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0836](../../data/cards/TCS-0836.json) | Non-Adaptive Group Testing | Distributed, parallel and sublinear algorithms | pool |
 | [TCS-0849](../../data/cards/TCS-0849.json) | Group Testing | Distributed, parallel and sublinear algorithms | pool |
@@ -86,12 +97,15 @@ Pending active reviews: **432**.
 | [TCS-3177](../../data/cards/TCS-3177.json) | Learning PH/poly from learning NP/poly | Learning theory | pool |
 | [TCS-3391](../../data/cards/TCS-3391.json) | Efficient learning of well-separated Gaussian mixtures | Learning theory | pool |
 | [TCS-4592](../../data/cards/TCS-4592.json) | Time complexity of Gaussian agnostic halfspace learning | Learning theory | pool |
+| [TCS-4672](../../data/cards/TCS-4672.json) | Price of bandit information in multiclass learning | Learning theory | pool |
 | [TCS-4792](../../data/cards/TCS-4792.json) | Multiclass sample compression from binary compression | Learning theory | pool |
 | [TCS-5031](../../data/cards/TCS-5031.json) | Littlestone-dimension regret bounds for unrestricted classes | Learning theory | pool |
+| [TCS-5061](../../data/cards/TCS-5061.json) | Computable PAC learning versus effective sample bounds | Learning theory | pool |
 | [TCS-5087](../../data/cards/TCS-5087.json) | Polynomial-time robust spectral estimation | Learning theory | pool |
 | [TCS-5088](../../data/cards/TCS-5088.json) | Learning halfspace intersections under factorizable distributions | Learning theory | pool |
 | [TCS-5090](../../data/cards/TCS-5090.json) | One-way functions from hardness of learning P/poly | Learning theory | pool |
 | [TCS-5119](../../data/cards/TCS-5119.json) | Sample-optimal Gaussian graphical model learning in polynomial time | Learning theory | pool |
+| [TCS-5153](../../data/cards/TCS-5153.json) | Characterizing adversarially robust PAC learnability | Learning theory | pool |
 | [TCS-5434](../../data/cards/TCS-5434.json) | Nontrivial agnostic membership-query learning of \(\mathrm{ACC}^{0}\) | Learning theory | pool |
 | [TCS-5847](../../data/cards/TCS-5847.json) | Linear conditional-information bounds for VC learning | Learning theory | pool |
 | [TCS-5902](../../data/cards/TCS-5902.json) | PAC learning of finite automata under the uniform distribution | Learning theory | pool |
@@ -105,9 +119,12 @@ Pending active reviews: **432**.
 | [TCS-4615](../../data/cards/TCS-4615.json) | Quantum entropy inequalities beyond strong subadditivity | Quantum computation | pool |
 | [TCS-4734](../../data/cards/TCS-4734.json) | Locality-preserving quantum gap amplification | Quantum computation | pool |
 | [TCS-4753](../../data/cards/TCS-4753.json) | \(\mathrm{QMA}(2)\) versus NEXP | Quantum computation | pool |
+| [TCS-4789](../../data/cards/TCS-4789.json) | Collapse of the quantum-classical polynomial hierarchy | Quantum computation | pool |
 | [TCS-4811](../../data/cards/TCS-4811.json) | Dihedral coset problem versus Subset Sum | Quantum computation | pool |
+| [TCS-4835](../../data/cards/TCS-4835.json) | Characterizing nonunitary quantum space | Quantum computation | pool |
 | [TCS-4894](../../data/cards/TCS-4894.json) | Parity versus \(\mathrm{AC}^{0}\) with shallow quantum preprocessing | Quantum computation | pool |
 | [TCS-4927](../../data/cards/TCS-4927.json) | Classification of quantum gate sets | Quantum computation | pool |
+| [TCS-4977](../../data/cards/TCS-4977.json) | Classical-witness versus quantum-witness hierarchies | Quantum computation | pool |
 | [TCS-4991](../../data/cards/TCS-4991.json) | Reducing shared entanglement in communication protocols | Quantum computation | pool |
 | [TCS-5202](../../data/cards/TCS-5202.json) | Quantum security of general seeded extractors | Quantum computation | pool |
 | [TCS-6459](../../data/cards/TCS-6459.json) | Entanglement without distillable secret key | Quantum computation | pool |
@@ -117,7 +134,6 @@ Pending active reviews: **432**.
 | [TCS-0240](../../data/cards/TCS-0240.json) | Communication for algorithmic secret-key agreement | Computability and algorithmic information | pool |
 | [TCS-0279](../../data/cards/TCS-0279.json) | Extraction of mutual information about two strings | Computability and algorithmic information | pool |
 | [TCS-2202](../../data/cards/TCS-2202.json) | NP-hardness of conditional polynomial-time pKt | Computability and algorithmic information | pool |
-| [TCS-4185](../../data/cards/TCS-4185.json) | Existence of strings without simple optimal hypotheses | Computability and algorithmic information | pool |
 | [TCS-5010](../../data/cards/TCS-5010.json) | Unconditional coding theorem for randomized Kolmogorov complexity | Computability and algorithmic information | pool |
 | [TCS-6105](../../data/cards/TCS-6105.json) | Computability of the Mandelbrot set | Computability and algorithmic information | pool |
 | [TCS-1097](../../data/cards/TCS-1097.json) | Unprovability of NP circuit upper bounds in \(T_{2}^{1}\) | Proof complexity | pool |
@@ -126,6 +142,7 @@ Pending active reviews: **432**.
 | [TCS-5114](../../data/cards/TCS-5114.json) | Lovász–Schrijver versus cutting planes | Proof complexity | pool |
 | [TCS-5275](../../data/cards/TCS-5275.json) | Supercritical proof size–depth tradeoffs | Proof complexity | pool |
 | [TCS-6759](../../data/cards/TCS-6759.json) | PSPACE-completeness of resolution space | Proof complexity | pool |
+| [TCS-6764](../../data/cards/TCS-6764.json) | Quadratic resolution space for linear-size CNFs | Proof complexity | pool |
 | [TCS-6766](../../data/cards/TCS-6766.json) | Polynomial resolution length from logarithmic clause space | Proof complexity | pool |
 | [TCS-6767](../../data/cards/TCS-6767.json) | Resolution length–width tradeoffs | Proof complexity | pool |
 | [TCS-6770](../../data/cards/TCS-6770.json) | Cutting Planes versus polynomial-coefficient Cutting Planes | Proof complexity | pool |
@@ -136,7 +153,6 @@ Pending active reviews: **432**.
 | [TCS-0218](../../data/cards/TCS-0218.json) | Cryptogenography | Communication complexity and Boolean function analysis | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
 | [TCS-1540](../../data/cards/TCS-1540.json) | Influence lower bounds for noisy query complexity | Communication complexity and Boolean function analysis | pool |
-| [TCS-1845](../../data/cards/TCS-1845.json) | Complexity of truth-table decision-tree optimization | Communication complexity and Boolean function analysis | pool |
 | [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
 | [TCS-4771](../../data/cards/TCS-4771.json) | Two-sided versus one-sided randomized communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |
@@ -204,7 +220,6 @@ Pending active reviews: **432**.
 | [TCS-6838](../../data/cards/TCS-6838.json) | Instance-optimal finite-time best-arm identification | Online algorithms | pool |
 | [TCS-6702](../../data/cards/TCS-6702.json) | Worst-case-to-average-case reductions within NP | Beyond worst-case and average-case analysis | pool |
 | [TCS-6703](../../data/cards/TCS-6703.json) | Optimal exponential-scale hardness amplification in NP | Beyond worst-case and average-case analysis | pool |
-| [TCS-7148](../../data/cards/TCS-7148.json) | Smoothed simplex complexity under sparse perturbations | Beyond worst-case and average-case analysis | pool |
 | [TCS-6820](../../data/cards/TCS-6820.json) | FP versus #P | Counting and enumeration | pool |
 | [TCS-6821](../../data/cards/TCS-6821.json) | FP = #P from \(\mathrm{P} = \mathrm{NP}\) | Counting and enumeration | pool |
 | [TCS-7082](../../data/cards/TCS-7082.json) | OutputP versus IncP | Counting and enumeration | pool |
@@ -244,6 +259,7 @@ Pending active reviews: **432**.
 | [TCS-5240](../../data/cards/TCS-5240.json) | Transferring arithmetic hardness to constantly many variables | Algebraic computation | pool |
 | [TCS-5260](../../data/cards/TCS-5260.json) | Explicit rigid matrices over low-degree number fields | Algebraic computation | pool |
 | [TCS-5921](../../data/cards/TCS-5921.json) | Membership in \(2\times 2\) integer matrix semigroups | Algebraic computation | pool |
+| [TCS-6401](../../data/cards/TCS-6401.json) | Finiteness of automaton semigroups | Algebraic computation | pool |
 | [TCS-6882](../../data/cards/TCS-6882.json) | Homogeneous versus unrestricted arithmetic formulas | Algebraic computation | pool |
 | [TCS-6883](../../data/cards/TCS-6883.json) | Multilinear versus general arithmetic circuits | Algebraic computation | pool |
 | [TCS-6885](../../data/cards/TCS-6885.json) | Constant-overhead second differentiation of circuits | Algebraic computation | pool |
@@ -390,7 +406,6 @@ Pending active reviews: **432**.
 | [TCS-7261](../../data/cards/TCS-7261.json) | Linear-time minimization of deterministic finite automata | Automata and formal languages | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
 | [TCS-7264](../../data/cards/TCS-7264.json) | Single-exponential dependence on dimension for integer programming | Optimization and numerics | existing_detailed_audit |
-| [TCS-7265](../../data/cards/TCS-7265.json) | Deterministic polynomial-time construction of a prime of a given bit length | Lattices and computational number theory | existing_detailed_audit |
 | [TCS-7266](../../data/cards/TCS-7266.json) | Constant-factor approximation for uniform Sparsest Cut | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7268](../../data/cards/TCS-7268.json) | Sliding-scale PCP conjecture | Computational complexity | existing_detailed_audit |
 | [TCS-7269](../../data/cards/TCS-7269.json) | Optimal multilinear-formula size of the permanent | Algebraic computation | existing_detailed_audit |
