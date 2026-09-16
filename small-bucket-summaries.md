@@ -578,6 +578,13 @@ The input is a directed graph with arbitrary exact real edge weights and no nega
 [Read in atlas](index.html#TCS-6510) · [Subcubic Equivalences Between Path, Matrix, and Triangle Problems](https://people.csail.mit.edu/virgi/tria-mmult-jv.pdf) · [Faster all-pairs shortest paths via circuit complexity](https://arxiv.org/abs/1312.6680v2) · [All-Pairs Shortest Paths with Few Weights per Node](https://arxiv.org/abs/2506.20017) · [Node-Weighted Triangles: Faster and Simpler](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.10) · [Warm-Starting All-Pairs Shortest Paths with Predictions](https://arxiv.org/abs/2607.00857) · [The Limits of Black-Box Reductions for All-Pairs Triangle Detection](https://arxiv.org/abs/2608.19092)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6937 — Randomized APSP hypothesis for polynomial integer weights
+
+All-pairs shortest paths asks for the exact distance between every ordered pair of vertices in a directed graph. The graph has polynomially bounded signed integer edge weights and no negative-weight cycle. The hypothesis says that for every fixed improvement over the cubic exponent, some polynomial weight bound rules out every randomized algorithm with that running time. Computation uses logarithmic-size machine words, and the whole distance matrix must be correct with probability at least two thirds on every input. Known general algorithms save a subpolynomial factor, while recent restricted algorithms and conditional equivalences do not settle this hypothesis.
+
+[Read in atlas](index.html#TCS-6937) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Universe Reduction for APSP: Equivalence of Three Fine-Grained Hypotheses](https://arxiv.org/abs/2603.27736v1) · [Faster All-Pairs Shortest Paths via Circuit Complexity](https://arxiv.org/abs/1312.6680v2) · [All-Pairs Shortest Paths with Few Weights per Node](https://arxiv.org/abs/2506.20017v1) · [The Limits of Black-Box Reductions for All-Pairs Triangle Detection](https://arxiv.org/abs/2608.19092v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6596 — Orthogonal Vectors Hypothesis
 
 Bichromatic Orthogonal Vectors asks whether two collections of binary vectors contain a pair with disjoint supports. The hypothesis excludes one fixed polynomial saving over quadratic time across all sufficiently large logarithmic dimension constants. Checking a pair is easy, but identifying a compatible pair among quadratically many possibilities is the bottleneck. Fine-grained reductions use this task to transfer precise barriers to geometric, string, and other algorithms. The saved review notes that subquadratic algorithms at each fixed small dimension are compatible with the hypothesis because their exponent savings can deteriorate as the dimension constant increases.
@@ -704,13 +711,6 @@ Randomized SETH asks whether bounded-width satisfiability resists every uniform 
 [Read in atlas](index.html#TCS-6935) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6937 — Randomized APSP hypothesis
-
-All-pairs shortest paths computes the shortest-path distance between every ordered pair of graph vertices. The source conjectures that weighted instances admit no randomized algorithm with a fixed polynomial saving over cubic time. Weights make combining candidate paths a min-plus computation rather than ordinary Boolean reachability. The hypothesis underlies many fine-grained barriers for dynamic programming, distance problems, and related optimization. The saved note refers to a specific integer-weight regime without reproducing it, so numeric magnitude, negative-cycle conventions, and the machine model must be restored before the conjecture is fully quantified.
-
-[Read in atlas](index.html#TCS-6937) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6942 — Hitting Set hardness from Orthogonal Vectors
 
 Orthogonal Vectors searches for a disjoint pair across two set families, while Hitting Set asks for one set intersecting every set in the other family. The source asks whether the former hypothesis implies the latter. Their different quantifier patterns make the connection subtler than complementing one pairwise intersection test. An implication would reduce the number of independent assumptions needed for fine-grained lower bounds. The saved question must be interpreted with matching universe dimensions, randomized guarantees, and exponent conventions, since a reduction losing too much time would not transfer the hypothesized barrier.
@@ -810,6 +810,13 @@ The goal is to construct arbitrarily large regular graphs by a deterministic pol
 
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/~avi/BOOKS/expanderbookr1.pdf) · [Explicit Lossless Vertex Expanders](https://arxiv.org/abs/2504.15087)
 Existing status: `uncertain` · Summary written: 2026-09-16
+
+### TCS-5341 — Pseudorandom generators from hitting-set generators
+
+A hitting-set generator produces strings that intersect every sufficiently dense set accepted by a polynomial-size Boolean circuit. A pseudorandom generator must instead approximate every such circuit’s acceptance probability when its seed is chosen uniformly. The selected cryptographic question asks whether the existence of the first kind of uniform polynomial-time generator entails the existence of the second, with negligible security bounds and any nontrivial stretch. The generators may have different parameters, and the known seed-extending result for logarithmic-depth circuits does not establish the unrestricted implication. A complete Lean proof must decide this existence implication, clarifying the relationship between two basic forms of computational randomness.
+
+[Read in atlas](index.html#TCS-5341) · [Errorless Versus Error-Prone Average-Case Complexity](https://doi.org/10.4230/LIPIcs.ITCS.2022.84) · [Pseudorandomness and the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2020.68) · [Capturing One-Way Functions via NP-Hardness of Meta-Complexity](https://eccc.weizmann.ac.il/report/2023/037/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1018 — Linear-seed hardness-to-randomness sampling
 
@@ -992,13 +999,6 @@ Relational computation allows many valid answers to a single input, which compli
 
 [Read in atlas](index.html#TCS-4778) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5341 — Pseudorandom generators from hitting-set generators
-
-A hitting-set generator outputs strings intersecting every sufficiently large acceptance set for a specified class of tests. A pseudorandom generator must approximate each test's acceptance probability under uniformly random input. The source asks whether techniques that derandomize two-sided-error algorithms using a hitting-set generator can also convert it into a pseudorandom generator. The surrounding discussion distinguishes polynomial-time generators from settings permitting computation exponential in the seed length. Hitting a large acceptance set alone does not control how frequently generated outputs pass a test, which is the stronger guarantee sought.
-
-[Read in atlas](index.html#TCS-5341) · [Errorless Versus Error-Prone Average-Case Complexity](https://doi.org/10.4230/LIPIcs.ITCS.2022.84)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5798 — Pseudodeterministic construction of primes at every length
 
@@ -2497,10 +2497,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6626 — Polylogarithmic worst-case updates for exact dynamic minimum spanning forests
 
-A minimum spanning forest connects each graph component as cheaply as possible under the current edge weights. The question asks for polylogarithmic worst-case update time in a fully dynamic graph. Randomization is allowed, with high-probability correctness against an update sequence independent of the random choices. The hard step is finding the cheapest replacement edge after deletion splits a tree. The saved review separates this exact maintenance target from amortized bounds and notes that reporting only actual forest changes avoids an artificial cost for repeatedly printing every tree edge.
+The data structure receives insertions and deletions of weighted edges in an initially empty simple graph. After every update it must report the changes to the exact minimum spanning forest with fixed tie-breaking. The target combines a hard polylogarithmic update-time cap with simultaneous high-probability correctness over every polynomial-length oblivious sequence. A complete Lean proof must cover the charged word-RAM computation, polynomial initialization and space, and all program and probability quantifiers, or refute the full allowed class. Amortized bounds, subpolynomial worst-case bounds, approximate forests and logarithmic rank-query counts do not settle this exact maintenance question.
 
-[Read in atlas](index.html#TCS-6626) · [Poly-Logarithmic Deterministic Fully-Dynamic Algorithms for Connectivity, Minimum Spanning Tree, 2-Edge, and Biconnectivity](https://u.cs.biu.ac.il/~rodittl/p723-holm.pdf) · [Faster Fully-Dynamic Minimum Spanning Forest](https://arxiv.org/abs/1407.6832) · [Dynamic Minimum Spanning Forest with Subpolynomial Worst-case Update Time](https://arxiv.org/abs/1708.03962) · [A Deterministic Algorithm for Balanced Cut with Applications to Dynamic Connectivity, Flows, and Beyond](https://arxiv.org/abs/1910.08025) · [Dynamic Connectivity with Expected Polylogarithmic Worst-Case Update Time](https://arxiv.org/abs/2510.08297) · [Deterministic Rounding of Dynamic Fractional Matchings](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2021.27)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6626) · [Poly-Logarithmic Deterministic Fully-Dynamic Algorithms for Connectivity, Minimum Spanning Tree, 2-Edge, and Biconnectivity](https://u.cs.biu.ac.il/~rodittl/p723-holm.pdf) · [Faster Fully-Dynamic Minimum Spanning Forest](https://arxiv.org/abs/1407.6832) · [Dynamic Minimum Spanning Forest with Subpolynomial Worst-case Update Time](https://arxiv.org/abs/1708.03962) · [A Deterministic Algorithm for Balanced Cut with Applications to Dynamic Connectivity, Flows, and Beyond](https://arxiv.org/abs/1910.08025) · [Dynamic Connectivity with Expected Polylogarithmic Worst-Case Update Time](https://arxiv.org/abs/2510.08297) · [Deterministic Rounding of Dynamic Fractional Matchings](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2021.27) · [Dynamic Matroids: Base Packing and Covering](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.57)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6670 — Polylogarithmic maintenance of the exact global minimum cut
 

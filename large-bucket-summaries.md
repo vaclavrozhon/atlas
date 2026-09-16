@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-399 five-sentence working summaries, based on saved source material.
+401 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (66)
+## Computational complexity (67)
 
 ### TCS-0001 — P versus NP
 
@@ -313,6 +313,13 @@ UL contains languages decided with logarithmic work space and at most one accept
 [Read in atlas](index.html#TCS-6285) · [Depth-First Search in Directed Planar Graphs, Revisited](https://doi.org/10.4230/LIPIcs.MFCS.2021.7) · [Nondeterministic Space is Closed under Complementation](https://doi.org/10.1137/0217058) · [Parameterizing the Complexity of Finding Long Paths in DAGs](https://doi.org/10.4230/LIPIcs.MFCS.2026.73)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-7256 — Reversible simulation in polynomial time and linear space
+
+The question asks whether every deterministic computation can be compiled into a reversible one with polynomial time overhead and only a constant-factor space increase. The simulator preserves the input and exact output, clears auxiliary storage and retains nontermination on divergent inputs. Time and space are compared on the same input, and input, output and history storage all count. Known general simulations attain the two desired efficiencies separately or with a tradeoff, while catalytic-space results use a different resource model. A complete answer must prove or refute one computable compiler meeting all of these guarantees simultaneously.
+
+[Read in atlas](index.html#TCS-7256) · [Time, Space, and Energy in Reversible Computing](https://homepages.cwi.nl/~paulv/papers/wrc05.pdf) · [Time/Space Trade-Offs for Reversible Computation](https://doi.org/10.1137/0218053) · [Time and Space Bounds for Reversible Simulation](https://arxiv.org/abs/quant-ph/0101133) · [Reversible Space Equals Deterministic Space](https://doi.org/10.1006/jcss.1999.1672) · [Fully Characterizing Lossy Catalytic Computation](https://link.springer.com/article/10.1007/s00453-026-01376-6)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-2425 — Closure of SZK under truth-table reductions
 
 The question asks whether statistical zero knowledge is closed under arbitrary polynomial-time nonadaptive truth-table reductions. The reduction prepares all queries first and combines their answers with a polynomial-size Boolean circuit. Promise-violating queries are handled by the source’s explicit gate-by-gate three-valued logic. Closure is known for Boolean formulas and logarithmic-depth circuits, leaving general circuit composition unresolved in the source. The card defines SZK through Statistical Difference and requires a complete proof or counterexample to the full closure statement.
@@ -492,10 +499,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1141 — Near-linear-time approximation of reachability diameter
 
-Reachability diameter measures the largest finite shortest-path distance in a directed graph. Unreachable ordered pairs are omitted so that disconnected directions do not make the answer automatically infinite. The question asks for a constant-factor estimate in near-linear time on every unweighted directed graph. Simple searches from arbitrary pivots can miss a long directed route. A successful method would summarize the extent of reachable routes without computing distances from every vertex or imposing strong connectivity.
+Reachability diameter is the largest finite shortest-path distance in an unweighted directed graph. Ignoring unreachable pairs makes this statistic informative even when directions are disconnected. The question asks for one randomized algorithm that gives a constant-factor estimate on every graph in near-linear worst-case time. Known additive and polynomial-factor approximations, special graph classes and conditional small-factor barriers leave this target unresolved in the cited source. A complete Lean proof must establish the universal algorithmic guarantee or rule it out in the stated model.
 
-[Read in atlas](index.html#TCS-1141) · [Revisiting Diameter in Directed Graphs](https://doi.org/10.4230/LIPIcs.ESA.2026.59)
-Existing status: `open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1141) · [Revisiting Diameter in Directed Graphs](https://doi.org/10.4230/LIPIcs.ESA.2026.59) · [Revisiting Diameter in Directed Graphs](https://arxiv.org/abs/2606.08217v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7350 — Near-linear output-sensitive Subset Sum
 
@@ -1709,7 +1716,7 @@ In sequential minimax optimization, one player minimizes a smooth function of x 
 [Read in atlas](index.html#TCS-0673) · [Open Problem: Is There a First-Order Method that Only Converges to Local Minimax Optima?](https://proceedings.mlr.press/v195/chae23a.html) · [What is Local Optimality in Nonconvex-Nonconcave Minimax Optimization?](https://proceedings.mlr.press/v119/jin20e.html) · [Two-timescale Extragradient for Finding Local Minimax Points](https://arxiv.org/abs/2305.16242v2) · [Double-Step Alternating Extragradient with Increasing Timescale Separation for Finding Local Minimax Points: Provable Improvements](https://proceedings.mlr.press/v235/kim24m.html) · [On Solving Minimax Optimization Locally: A Follow-the-Ridge Approach](https://arxiv.org/abs/1910.07512v2) · [A first-order method for constrained nonconvex-nonconcave minimax optimization](https://link.springer.com/article/10.1007/s10107-026-02415-4)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Geometry, topology and metric spaces (40)
+## Geometry, topology and metric spaces (41)
 
 ### TCS-6523 — Kannan–Lovász–Simonovits conjecture
 
@@ -1787,6 +1794,13 @@ Klee’s measure problem asks for the volume covered by a union of axis-aligned 
 
 [Read in atlas](index.html#TCS-7184) · [Klee's measure problem made easy](https://doi.org/10.1109/FOCS.2013.51) · [Approximating Klee’s Measure Problem and a Lower Bound for Union Volume Estimation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2025.25) · [Near-Optimal Dynamic Data Structures for Maximum Depth and Klee’s Measure of Boxes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.34)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7292 — Polynomial-time recognition of the 3-sphere
+
+The input is an explicit finite simplicial complex promised to triangulate a closed connected PL three-manifold. The question asks whether one deterministic algorithm can recognize the standard three-sphere in time polynomial in the total input bit length. The polynomial bound must hold on all binary inputs, while correct answers are required on the promised manifold inputs. Sphere recognition is decidable and has polynomially verifiable positive certificates, with the checked negative-certificate result depending on the generalized Riemann hypothesis. The 2026 K3 problem list retains the polynomial-time question, whose resolution would also affect the complexity of unknot recognition.
+
+[Read in atlas](index.html#TCS-7292) · [Sphere recognition lies in NP](https://sschleimer.warwick.ac.uk/Maths/2011sphere_recog_NP.pdf) · [Integer homology 3-spheres admit irreducible representations in \(\mathrm{SL}(2,\mathbb C)\)](https://arxiv.org/abs/1605.08530v4) · [The efficient certification of knottedness and Thurston norm](https://arxiv.org/abs/1604.00290v3) · [K3: A New Problem List in Low-Dimensional Topology](https://bpb-us-e2.wpmucdn.com/websites.umass.edu/dist/b/22144/files/2026/04/K3-problem-list-watermarked.pdf) · [The foundations of four-manifold theory in the topological category](https://nyjm.albany.edu/m/2025/6v.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7006 — Optimal input-sparsity subspace embeddings
 
