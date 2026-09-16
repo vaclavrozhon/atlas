@@ -1084,3 +1084,21 @@ Publication and mathematical rendering checks passed, covering 21,189 formulas.
 The preceding simplex publication was live-verified as 516e0db87c7ebe31aa41,
 published 2026-09-16T02:04:57+00:00, Pages commit
 5497f2232c95f272a797e9791188ec9f24da83b4.
+
+Checkpoint 387 includes TCS-0026, L versus BPL. The review fixes the total-language
+model, counts all visited work cells and auxiliary storage, and gives a finite
+coin-count definition with an all-random-path polynomial clock. Complete Lean
+acceptance now covers the class inclusion or its full separation negation.
+The source audit corrects the book edition/conjecture locator, distinguishes
+Hoza's space bound from polynomial time, and separates weighted generators and
+short regular-program simulations from unrestricted derandomization. The May
+ECCC revision is read from its revision-specific PDF; its root download still
+serves the superseded April version. The July Cheng–Wu revision is included.
+
+The concurrent census is 1,038 active cards: 511 completed/reviewed and 527
+pending. The queue has 387 completed records, 359 active and 28 inactive, with
+152 active cards outside it; all active completed hashes match. Publication and
+formula checks passed on the preceding 1,039-card snapshot, covering 21,391
+formulas. The preceding minimax deployment was live-verified as
+602351f3bd82715f4013, published 2026-09-16T02:12:39+00:00, Pages commit
+c008c9e8146ae86fef8498f8e02047ce406a646b.
