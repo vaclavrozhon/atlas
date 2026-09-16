@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+404 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -513,10 +513,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7350 — Near-linear output-sensitive Subset Sum
 
-The input is a multiset of positive integers and a threshold. The task is to enumerate the distinct attainable subset sums at most that threshold. The question asks for near-linear time in the explicit input and the actual number of output values. Known pseudopolynomial algorithms and output-sensitive improvements do not reach this endpoint. The target avoids spending linear time on a large numerical universe containing few attainable sums.
+The input is an explicit list of positive integers, allowing repetitions, together with an integer threshold. The task is to list every distinct attainable subset sum at most that threshold exactly once, including zero. The question asks for one uniform randomized word-RAM algorithm whose time on every random execution is near-linear in input size plus output size and whose whole output is correct with probability at least two thirds. Known output-sensitive improvements and their 2026 derandomization do not attain this endpoint, which would avoid paying for a large unused numerical range. A complete Lean answer must prove such an algorithm and its guarantees exist or prove their full logical negation in the specified model.
 
-[Read in atlas](index.html#TCS-7350) · [Top-k-Convolution and the Quest for Near-Linear Output-Sensitive Subset Sum](https://arxiv.org/abs/2107.13206) · [Derandomizing Pseudopolynomial Algorithms for Subset Sum](https://arxiv.org/abs/2601.01390)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7350) · [Top-k-Convolution and the Quest for Near-Linear Output-Sensitive Subset Sum](https://arxiv.org/abs/2107.13206v2) · [Beating Bellman's Algorithm for Subset Sum](https://arxiv.org/abs/2410.21942v1) · [Derandomizing Pseudopolynomial Algorithms for Subset Sum](https://arxiv.org/abs/2601.01390v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5705 — Small Implicit Graph Conjecture
 
@@ -1574,7 +1574,7 @@ A natural join combines database relations by matching equal values on shared at
 [Read in atlas](index.html#TCS-6380) · [A Simple Parallel Algorithm for Natural Joins on Binary Relations](https://doi.org/10.4230/LIPIcs.ICDT.2020.25)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Optimization and numerical computation (21)
+## Optimization and numerical computation (22)
 
 ### TCS-0008 — Strongly polynomial linear programming
 
@@ -1624,6 +1624,13 @@ Komlós asks whether every collection of real vectors of Euclidean norm at most 
 
 [Read in atlas](index.html#TCS-7314) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [An Algorithm for Komlós Conjecture Matching Banaszczyk’s Bound](https://doi.org/10.1137/17M1126795) · [An Exposition of the \(\widetilde O((\log n)^{1/4})\) Bound for the Komlós Problem](https://arxiv.org/abs/2608.28452v1) · [A \((\log n)^{1/4}\) Bound for the Komlós Problem](https://arxiv.org/abs/2609.08885v1) · [Algorithms for Standard-Form ILP Problems via Komlós’ Discrepancy Setting](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.25) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
 Existing status: `uncertain` · Summary written: 2026-09-14
+
+### TCS-7231 — P-matrix linear complementarity in polynomial time
+
+The problem asks for nonnegative rational vectors linked by a linear equation, with at least one zero in each paired coordinate. The input matrix is promised to have every nonempty principal minor strictly positive, which guarantees a unique solution for every right-hand side. The question is whether one deterministic algorithm always finds that exact solution in polynomial time measured in the full binary input length. A complete Lean proof must supply that uniform algorithm and bound or rule out every such polynomial-time algorithm without adding a promise-recognition task. The checked 2026 handicap-dependent algorithm and earlier restricted-matrix and reduction results do not establish this general polynomial-time guarantee.
+
+[Read in atlas](index.html#TCS-7231) · [On the number of solutions to the complementarity problem and spanning properties of complementary cones](https://doi.org/10.1016/0024-3795(72)90019-5) · [A Polynomial-Time Algorithm for the Tridiagonal and Hessenberg P-Matrix Linear Complementarity Problem](https://arxiv.org/abs/1112.0217) · [Activity Report 2025: Theory of Combinatorial Algorithms](https://ti.inf.ethz.ch/ew/report/2025.html) · [On the computational equivalence of co-NP refutations of a matrix being a P-matrix](https://arxiv.org/abs/2110.05644) · [Unique End of Potential Line](https://arxiv.org/abs/1811.03841) · [Two Choices Are Enough for P-LCPs, USOs, and Colorful Tangents](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.32) · [Handicap reduction for linear complementarity problems](https://arxiv.org/abs/2605.10701)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7315 — Beck–Fiala conjecture
 
