@@ -1417,6 +1417,13 @@ Metric k-means selects exactly k centers from an explicit candidate set. Its obj
 [Read in atlas](index.html#TCS-7354) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-6757 — Min-CSP approximation at the SDP integrality gap
+
+A minimization CSP assigns finite-domain values to variables to minimize the average of fixed local nonnegative costs. Its basic SDP can achieve a lower cost using consistent local distributions and vectors than any actual assignment. The question asks whether a randomized polynomial-time algorithm can match the SDP’s worst gap at each number of variables within every factor 1+ε. The multiplicative guarantee must also protect zero or very small optimum values, which existing additive universal rounding does not do. A resolution would clarify whether size-dependent SDP gaps universally predict achievable approximation for minimization CSPs.
+
+[Read in atlas](index.html#TCS-6757) · [Approximation Algorithms for CSPs](https://doi.org/10.4230/DFU.Vol7.15301.287) · [How to Round Any CSP](https://www.dsteurer.org/paper/roundcsp.pdf) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0088 — Optimal approximation of Max Di-Cut
 
 Max Di-Cut selects a vertex partition and counts arcs pointing from its first side to its second. The record asks for the best approximation ratio achievable by an efficient algorithm. Arc directions mean reversing the two sides can change the objective, unlike in an undirected cut. A sharp ratio would reveal how much of the best directed separation can be recovered without exact optimization. The saved entry does not specify weighting conventions, randomized guarantees, or the hardness assumption needed to turn this topic into one precise threshold question.
@@ -1486,13 +1493,6 @@ The input lists local constraints on variables with a finite common label domain
 
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-6757 — Min-CSP approximation at the SDP integrality gap
-
-Minimization CSPs seek assignments minimizing a specified constraint-violation cost. The textbook asks whether algorithms can match their semidefinite-programming integrality gaps within an additional factor \(1+\varepsilon\). An integrality gap measures how much cheaper a fractional or vector solution can appear than any genuine assignment. Matching that benchmark would show that rounding loses essentially no more than the relaxation itself. The saved historical note does not identify the exact CSP family, relaxation, or treatment of zero optimum, so these conventions remain necessary before the target becomes a precise uniform theorem.
-
-[Read in atlas](index.html#TCS-6757) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Online algorithms, scheduling and packing (27)
 
@@ -3739,6 +3739,13 @@ For each fixed connected graph pattern, the question asks how few ordinary copie
 [Read in atlas](index.html#TCS-1029) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/PDF/pt-v3.pdf) · [A new proof of the graph removal lemma](https://arxiv.org/abs/1006.1300) · [Minimum degree and the graph removal lemma](https://arxiv.org/abs/2105.09194) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [Hypergraph removal with polynomial bounds](https://www.cambridge.org/core/journals/mathematical-proceedings-of-the-cambridge-philosophical-society/article/hypergraph-removal-with-polynomial-bounds/AA404A0C00FFA07E0E5C7CB03DBF1A6F)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-5443 — Polynomial-time density learning of Gaussian mixtures
+
+The learner receives independent observations from a mixture of at most k nondegenerate Gaussians in d dimensions. It must output another such mixture whose whole distribution is close in total variation, without reconstructing the original components. The question asks for a uniform algorithm with time polynomial jointly in k and d for each fixed accuracy, using explicitly specified exact-real arithmetic. Polynomial sample sufficiency coexists with statistical-query lower bounds and conditional computational hardness, neither of which is silently treated as an unconditional resolution. Newer positive results with bounded parameters, fixed component counts or growing dimension exponents do not establish the full target.
+
+[Read in atlas](index.html#TCS-5443) · [Mixtures of Gaussians are Privately Learnable with a Polynomial Number of Samples](https://proceedings.mlr.press/v237/afzali24a.html) · [Statistical Query Lower Bounds for Robust Estimation of High-dimensional Gaussians and Gaussian Mixtures](https://arxiv.org/abs/1611.03473) · [Continuous LWE is as Hard as LWE & Applications to Learning Gaussian Mixtures](https://arxiv.org/abs/2204.02550) · [Learning general Gaussian mixtures with efficient score matching](https://arxiv.org/abs/2404.18893v2) · [On Learning Parallel Pancakes with Mostly Uniform Weights](https://arxiv.org/abs/2504.15251v1) · [Sharp proper estimation of fixed-component Gaussian location mixtures in polynomial time](https://arxiv.org/abs/2608.12701v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-5085 — Query complexity of Max-CSP testing
 
 A tester must distinguish constraint systems whose optimum satisfied fractions lie on opposite sides of a fixed gap. It can query variables to reveal incident constraint occurrences, with only a constant number of occurrences per variable. The target is the asymptotic query complexity for every finite predicate template, gap, degree bound and density regime. The actual number of constraints matters because value is normalized by constraints rather than by all possible incidence slots. Known linear lower bounds and related streaming results leave the complete query classification unresolved.
@@ -3809,13 +3816,6 @@ Sublinear graph testing tries to infer a global property from a small number of 
 [Read in atlas](index.html#TCS-4376) · [Every Property of Outerplanar Graphs is Testable](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5443 — Polynomial-time learning of Gaussian mixtures
-
-Learning a Gaussian mixture seeks a distribution close to an unknown mixture in total variation distance, potentially without recovering uniquely identifiable component parameters. The source proves polynomial sample sufficiency under differential privacy but notes that its use of a nonconstructive cover does not yield a finite-time implementation. It also highlights the broader question of obtaining a learning algorithm whose running time is polynomial in both the number of components and the dimension, even without privacy. This separates statistical feasibility from computational feasibility for mixtures without the extra structural assumptions used by many efficient methods. Progress on that algorithmic problem would provide a foundation for making the private existence result constructive.
-
-[Read in atlas](index.html#TCS-5443) · [Mixtures of Gaussians are Privately Learnable with a Polynomial Number of Samples](https://proceedings.mlr.press/v237/afzali24a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ## Differential privacy (4)
 
 ### TCS-0506 — Private PAC sample complexity from VC and Littlestone dimensions
@@ -3871,10 +3871,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6675 — Search-to-decision equivalence for finite promise CSPs
 
-A decision promise CSP only separates strong satisfiability from failure of weak satisfiability. The reviewed question asks whether polynomial-time decision always implies polynomial-time construction of an actual weak solution. Fixing variables can move an instance into the intermediate region where a promise decider may answer arbitrarily. An equivalence would justify turning tractability classifications into practical assignments throughout finite promise CSPs. The saved review emphasizes that hardness of rounding all relaxation-accepted instances and undecidability of template meta-problems do not settle this fixed-template promised search question.
+A finite promise CSP distinguishes strong constraints whose satisfiability is guaranteed from weaker constraints an output must satisfy. The decision problem separates strongly satisfiable inputs from those with no weak solution. The question asks whether every fixed template with a deterministic polynomial-time decider also permits deterministic polynomial-time construction on the original stronger promise. Hardness of rounding arbitrary relaxation-accepted inputs and undecidability of template recognition leave this implication unresolved. A resolution would clarify whether tractability of finite promise constraints always extends from recognizing feasibility to producing assignments.
 
-[Read in atlas](index.html#TCS-6675) · [An invitation to the promise constraint satisfaction problem](https://arxiv.org/abs/2208.13538) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970) · [Ineffectiveness for Search and Undecidability of PCSP Meta-Problems](https://arxiv.org/abs/2504.04639) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368) · [Publications — FOCS 2025 research summary](https://albertolarrauri.github.io/publications/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6675) · [An invitation to the promise constraint satisfaction problem](https://arxiv.org/abs/2208.13538v1) · [Algebraic approach to promise constraint satisfaction](https://arxiv.org/abs/1811.00970v3) · [Ineffectiveness for Search and Undecidability of PCSP Meta-Problems](https://arxiv.org/abs/2504.04639v4) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1) · [Publications — FOCS 2025 research summary](https://albertolarrauri.github.io/publications/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3585 — Exact exponential-time equivalence for nonnegative Boolean Max-CSP
 

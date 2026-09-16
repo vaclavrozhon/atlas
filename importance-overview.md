@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-814 records have an editorial importance assessment; 230 remain provisional.
+818 records have an editorial importance assessment; 225 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -42,7 +42,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 27; importance 
 
 ## 3. Automata and formal languages (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 32; importance assessed: 28; provisional: 4.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 32; importance assessed: 30; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 41; importance 
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 39; importance assessed: 25; provisional: 14.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance assessed: 25; provisional: 13.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 43; importance 
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 25; provisional: 4.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 26; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -500,7 +500,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 20. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 14; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 15; provisional: 1.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -509,11 +509,11 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 3 | [Sublinear testing of bounded-degree graph isomorphism](index.html#TCS-6672) | 92 |
 | 4 | [Polynomial testing of induced four-cycle freeness](index.html#TCS-1030) | 88 |
 | 5 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
-| 6 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
-| 7 | [Sample complexity of symmetric Markov-chain identity testing](index.html#TCS-3906) | 80 |
-| 8 | [Polylogarithmic-query pattern-freeness testing](index.html#TCS-5210) | 79 |
-| 9 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
-| 10 | [Query complexity of conditional equivalence testing](index.html#TCS-0841) | 72 |
+| 6 | [Polynomial-time density learning of Gaussian mixtures](index.html#TCS-5443) | 84 |
+| 7 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 83 |
+| 8 | [Sample complexity of symmetric Markov-chain identity testing](index.html#TCS-3906) | 80 |
+| 9 | [Polylogarithmic-query pattern-freeness testing](index.html#TCS-5210) | 79 |
+| 10 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 75 |
 
 ## 21. Differential privacy (small)
 

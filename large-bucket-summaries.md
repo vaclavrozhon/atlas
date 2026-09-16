@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-406 five-sentence working summaries, based on saved source material.
+405 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -732,10 +732,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6582 — Equivalence of deterministic higher-order recursion schemes
 
-A higher-order recursion scheme is a finite system of typed recursive rules that unfolds into a possibly infinite labeled tree. The project asks whether two deterministic schemes always admit an effective test for equality of their complete value trees. Equality includes divergence leaves and compares labels at every finite address, irrespective of internal evaluation steps. Functions passed as arguments make the generators much richer than finite-state descriptions. Solving this comparison problem would extend our ability to verify higher-order recursive behavior beyond properties of one generated tree at a time.
+A deterministic higher-order recursion scheme is a finite typed system of recursive rules that generates a possibly infinite ordered constructor tree. The question asks for one terminating algorithm deciding equality of the complete value trees of any two such schemes. The input orders are arbitrary finite numbers, and equality includes divergence leaves while ignoring internal unfolding steps. Order-one equivalence is decidable, but conditional logical reductions and recent results for other higher-order models do not settle this unrestricted target. A resolution would establish the boundary of exact behavioral comparison for higher-order recursive tree generators.
 
 [Read in atlas](index.html#TCS-6582) · [Collapsible Pushdown Automata and Recursion Schemes](https://www.cs.rhul.ac.uk/home/uxac009/files/papers/tocl17.pdf) · [Higher-Order Recursion Schemes and Collapsible Pushdown Automata: Logical Properties](https://arxiv.org/abs/2010.06366v2) · [Reducing Higher-order Recursion Scheme Equivalence to Coinductive Higher-order Constrained Horn Clauses](https://arxiv.org/abs/2109.04632) · [Polyregular equivalence is undecidable in higher-order types](https://arxiv.org/abs/2604.11935) · [On Higher-Order Probabilistic Verification via the Weighted Relational Model of Linear Logic](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.LICS.2026.34)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6564 — First-order definability of regular tree languages
 
@@ -758,6 +758,13 @@ Two probabilistic automata assign acceptance probabilities to every finite input
 [Read in atlas](index.html#TCS-3863) · [When is Containment Decidable for Probabilistic Automata?](https://doi.org/10.4230/LIPIcs.ICALP.2018.121) · [When are emptiness and containment decidable for probabilistic automata?](https://doi.org/10.1016/j.jcss.2021.01.006)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-5651 — Recognizing good-for-games and good-for-MDP automata
+
+Good-for-games automata admit one online deterministic resolution that accepts every word in their language. Good-for-MDP automata preserve optimal acceptance probabilities when composed with every finite Markov decision process. The project asks matching complexity classifications for GFG parity recognition with unbounded priority count and GFM Büchi recognition. The checked gaps are NP-hardness versus PSPACE and PSPACE-hardness versus EXPTIME, respectively. Closing these gaps would identify the cost of certifying that compact specifications support adversarial or probabilistic composition.
+
+[Read in atlas](index.html#TCS-5651) · [Word Automata with Limited Nondeterminism (Invited Talk)](https://doi.org/10.4230/LIPIcs.CONCUR.2026.3) · [Deciding What Is Good-For-MDPs](https://drops.dagstuhl.de/storage/00lipics/lipics-vol279-concur2023/LIPIcs.CONCUR.2023.35/LIPIcs.CONCUR.2023.35.pdf) · [The 2-Token Theorem: Recognising History-Deterministic Parity Automata Efficiently](https://arxiv.org/abs/2503.24244) · [History-Deterministic Parity Automata: Games, Complexity, and the 2-Token Theorem](https://arxiv.org/abs/2501.12302)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-5904 — Equivalence of discounted-sum automata
 
 A discounted-sum automaton assigns a convergent weighted value to each infinite run, with later weights geometrically discounted. Its value on an infinite word is the supremum over all runs carrying that word. The question asks for exact decidability of equality of two such functions for every input rational discount factor shared by the automata. Known results for constant functions, reciprocal-integer factors, finite words and transition-dependent discounting have different scopes. A resolution would determine whether arbitrary nondeterministic quantitative specifications in this basic model can be compared algorithmically.
@@ -771,6 +778,13 @@ A primitive word is nonempty and is not a power of any shorter nonempty word. Th
 
 [Read in atlas](index.html#TCS-0167) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#context-freeness-of-primitive-words) · [On the Complexity of Language Membership for Probabilistic Words](https://doi.org/10.4230/LIPIcs.STACS.2026.5)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-5863 — Decidability of stochastic resolvability for \(\omega\)-automata
+
+A finite-memory stochastic resolver selects an automaton transition using the current letter, current state and a finite memory state. One resolver must produce an accepting run with probability one for every accepted infinite word fixed independently of its random choices. The question asks separately whether existence of such a resolver is decidable for Büchi and coBüchi automata. Undecidability of verifying a supplied resolver and results for memoryless thresholds below one concern different decision problems. A resolution would determine whether reliable randomized online execution can be recognized from a finite nondeterministic specification.
+
+[Read in atlas](index.html#TCS-5863) · [Resolving Nondeterminism with Randomness](https://doi.org/10.4230/LIPIcs.MFCS.2025.57) · [Resolving Nondeterminism by Chance](https://arxiv.org/abs/2504.10234v2)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6064 — Two-dimensional cellular-automaton limit sets
 
@@ -876,20 +890,6 @@ Two players build infinite labeled trees and compare their membership in two reg
 
 [Read in atlas](index.html#TCS-4659) · [The Determinacy of Context-Free Games](https://doi.org/10.4230/LIPIcs.STACS.2012.555) · [The Determinacy of Context-Free Games — journal version](https://doi.org/10.2178/jsl.7804050) · [On the topological complexity of tree languages](https://www.mimuw.edu.pl/~niwinski/Prace/lobo_d.pdf) · [Wadge-Wagner Hierarchy of Regular Tree Languages](https://www.ims.uni-stuttgart.de/events/TTATT2016/proceedings.pdf)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5651 — Recognizing good-for-games and good-for-MDP automata
-
-Limited nondeterminism lets automata retain some branching while remaining suitable for composition with games or probabilistic systems. This project asks the exact complexity of recognizing good-for-games parity automata and good-for-MDPs Büchi automata. The former resolve choices from input history, while the latter preserve optimal satisfaction probabilities when combined with a Markov decision process. These are different semantic promises, so an algorithm for one does not establish the other. Sharper classifications would show the cost of checking that a compact specification supports the intended verification workflow.
-
-[Read in atlas](index.html#TCS-5651) · [Word Automata with Limited Nondeterminism (Invited Talk)](https://doi.org/10.4230/LIPIcs.CONCUR.2026.3)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5863 — Decidability of stochastic resolvability for \(\omega\)-automata
-
-A stochastic resolver chooses an automaton's transitions randomly while reading an infinite word prefix by prefix. Stochastic resolvability requires almost-sure acceptance of every word in the original language when the word is fixed independently of those choices. This project asks whether that property is decidable for Büchi and coBüchi automata. Checking one proposed resolver is already problematic in the source, but that does not decide whether some suitable resolver exists. An existence test would identify which finite nondeterministic specifications admit reliable randomized online execution.
-
-[Read in atlas](index.html#TCS-5863) · [Resolving Nondeterminism with Randomness](https://doi.org/10.4230/LIPIcs.MFCS.2025.57)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5959 — Complexity of the Game of Life limit set
 
@@ -2012,7 +2012,7 @@ The cut cone consists of nonnegative combinations of cut metrics and provides a 
 [Read in atlas](index.html#TCS-6880) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Learning theory (38)
+## Learning theory (37)
 
 ### TCS-6541 — Linear-size sample compression
 
@@ -2058,10 +2058,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-2336 — Optimal multiclass regret versus Littlestone dimension
 
-An online learner predicts a label and then sees the correct label on each round. Regret compares its cumulative prediction loss with the best hypothesis in a known class. Littlestone dimension measures which labeled binary trees that class can realize. The target is the worst minimax regret among all classes of dimension at most d over T rounds, with no bound on the label-space size. Determining the full tradeoff would settle whether the familiar square-root dT scale needs an extra factor in the multiclass setting.
+An online learner predicts a label distribution and then sees the correct label on each round. Regret compares its expected cumulative mistakes with the best fixed hypothesis on the same sequence. The card asks for the worst minimax regret among all classes of Littlestone dimension at most d, including infinite label spaces. The general upper and lower bounds differ by a square-root logarithm, while the sharper finite-label theorem needs an extra regularity condition. A complete Lean answer must give matching universal bounds on the two-parameter regret function under the unrestricted model.
 
-[Read in atlas](index.html#TCS-2336) · [Multiclass Online Learning and Uniform Convergence](https://proceedings.mlr.press/v195/hanneke23b.html)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-2336) · [Multiclass Online Learning and Uniform Convergence](https://proceedings.mlr.press/v195/hanneke23b.html) · [Topics in Learning Theory: Prediction, Estimation, and Partial Information](https://www.ambujtewari.com/theses/Vinod_Raman_Thesis_2025.pdf) · [Regret-Oracle Complexity Tradeoffs in Agnostic Online Learning](https://arxiv.org/abs/2605.07155)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3117 — Memory–sample tradeoffs for noisy parity learning
 
@@ -2201,13 +2201,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Agnostic halfspace learning seeks a classifier whose error nearly matches the best linear threshold rule, even when labels do not follow any halfspace. This question fixes the unlabeled distribution to be Gaussian and asks for the optimal running time as dimension and target excess error vary. The source specifically proposes a running time whose exponent in the dimension grows only logarithmically with inverse error. It supports that target with a conditional lower bound derived from learning sparse parities with noise. Matching the proposed rate would identify a precise computational price for handling arbitrary label noise under a highly regular input distribution.
 
 [Read in atlas](index.html#TCS-4592) · [Embedding Hard Learning Problems Into Gaussian Space](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.793)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4672 — Price of bandit information in multiclass learning
-
-In multiclass online learning, full feedback reveals the correct label after each prediction, while bandit feedback only says whether the prediction was correct. Littlestone dimension and bandit Littlestone dimension quantify the corresponding worst-case mistake complexities in the source's realizable model. The price of bandit information is their ratio for the same hypothesis class. For a label set of size k, the question asks how large this ratio can be across classes and domains. A sharp bound would isolate the cost of withholding the correct label from the underlying difficulty of predicting the class itself.
-
-[Read in atlas](index.html#TCS-4672) · [Multiclass Learnability and the ERM principle](https://proceedings.mlr.press/v19/daniely11a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4792 — Multiclass sample compression from binary compression
