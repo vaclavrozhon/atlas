@@ -1559,6 +1559,13 @@ Weighted k-server assigns a separate movement-cost multiplier to each server. Al
 [Read in atlas](index.html#TCS-5030) · [A Decomposition Approach to the Weighted k-Server Problem](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.6) · [Weighted k-Server Admits an Exponentially Competitive Algorithm](https://doi.org/10.1137/1.9781611978971.154) · [The Randomized Competitive Ratio of Weighted k-server is at Least Exponential](https://doi.org/10.4086/toc.2022.v018a023)
 Existing status: `open` · Summary written: 2026-09-12
 
+### TCS-5221 — Sublinear-in-q prophet inequalities for q-matroid intersection
+
+Independent random element values arrive one at a time in a fixed known order. The selector must irrevocably choose a set that is independent in each of q given matroids. It knows the value distributions, while the offline comparator sees all realized values before making its choice. The question asks whether the ratio of their expected rewards can always be bounded by a function growing sublinearly in q. The checked source improves a square-root lower obstruction but corrects an earlier erroneous linear lower-bound claim and leaves the gap open.
+
+[Read in atlas](index.html#TCS-5221) · [An Improved Lower Bound for Matroid Intersection Prophet Inequalities](https://doi.org/10.4230/LIPIcs.ITCS.2023.95) · [Online Stochastic Matching](https://simons.berkeley.edu/sites/default/files/2025-06/Sublinear%20Algorithms%20Open%20Problems%20Summer%202024.pdf)
+Existing status: `source_open` · Summary written: 2026-09-15
+
 ### TCS-0935 — Unit-job precedence scheduling complexity
 
 Unit-job precedence scheduling assigns equal-duration tasks to machines while respecting a partial order of dependencies. The source asks about the computational complexity of this restricted scheduling setting. Equal durations remove numerical variability but leave the problem of choosing which available jobs to run together. A classification would show how much difficulty arises from precedence structure alone. The saved label does not preserve the number of machines, time-horizon objective, or restrictions on the dependency graph, so it cannot be read as one universal hardness or tractability claim.
@@ -1642,13 +1649,6 @@ The randomized k-server problem serves sequential metric requests while paying f
 
 [Read in atlas](index.html#TCS-4983) · [Randomized k-Server in Polynomial Time](https://doi.org/10.4230/LIPIcs.ICALP.2026.65)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5221 — Sublinear-in-q prophet inequalities for q-matroid intersection
-
-A matroid-intersection prophet problem observes random element values sequentially and chooses a set independent in each of q matroids. The comparator sees all values before selecting its feasible set. The source asks whether approximation factors growing linearly in q can be improved asymptotically. It also highlights restricted instances with partition matroids, symmetric constraints, and identical Bernoulli values. Its strengthened lower bounds leave a gap, so the task is to determine how much of the loss is forced by intersecting many independence systems and how much is due to current online selection methods.
-
-[Read in atlas](index.html#TCS-5221) · [An Improved Lower Bound for Matroid Intersection Prophet Inequalities](https://doi.org/10.4230/LIPIcs.ITCS.2023.95)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5252 — Action-set-dependent regret in bandit combinatorial optimization
 
