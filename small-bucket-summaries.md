@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-605 five-sentence working summaries, based on saved source material.
+606 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -4130,7 +4130,7 @@ The input is an entire finite algebra specified by tables of its basic operation
 [Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66) · [Equations over finite algebras](https://www.algebra.uni-linz.ac.at/Slides/sl-aaa105-6.pdf)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Database theory and finite model theory (20)
+## Database theory and finite model theory (21)
 
 ### TCS-6678 — FO model checking on hereditary monadically dependent graph classes
 
@@ -4152,6 +4152,13 @@ Is there an effective logic for all polynomial-time properties of finite unorder
 
 [Read in atlas](index.html#TCS-7195) · [The Quest for a Logic Capturing PTIME: LICS 2008 invited paper](https://lics.siglog.org/2008/Grohe-TheQuestforaLogicCa.html) · [Is Polynomial Time Choiceless?](https://logic.rwth-aachen.de/pub/graedel/cptYuri.pdf) · [The quest for a logic for Ptime](https://www.cl.cam.ac.uk/~btp26/esslli/lecture1.pdf) · [Choiceless Polynomial Time with Witnessed Symmetric Choice](https://arxiv.org/abs/2205.14003v3) · [Subgroup Accessibility in Group Order Logic](https://arxiv.org/abs/2609.00499)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7232 — Asser’s problem
+
+The spectrum of a first-order sentence is the set of positive sizes of its finite models. Asser’s problem asks whether the complement of every such set is again a first-order spectrum. The representing sentence may use a new vocabulary and must work at all sizes simultaneously, with no effective construction required. The general question is equivalent to closure of nondeterministic single-exponential time under complement for binary-encoded sizes. Two-variable counting spectra are understood, while reductions to three-variable graph inputs and later restricted-logic results leave the general question open.
+
+[Read in atlas](index.html#TCS-7232) · [Fifty Years of the Spectrum Problem: Survey and New Results](https://arxiv.org/abs/0907.5495) · [Regular Graphs and the Spectra of Two-Variable Logic with Counting](https://arxiv.org/abs/1304.0829) · [On the Variable Hierarchy of First-Order Spectra](https://arxiv.org/abs/1403.2225) · [A Note on First-Order Spectra with Binary Relations](https://lmcs.episciences.org/3751) · [Two Variable Logic with Ultimately Periodic Counting](https://arxiv.org/abs/2006.01193)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6680 — Decidability of conjunctive-query entailment in SROIQ
 

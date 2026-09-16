@@ -215,6 +215,13 @@ The question concerns a fixed machine that prints all digits of a real number wi
 [Read in atlas](index.html#TCS-7159) · [On the computational complexity of algebraic numbers: the Hartmanis–Stearns problem revisited](https://arxiv.org/abs/1601.02771) · [Time-Restricted Sequence Generation](https://people.csail.mit.edu/meyer/time-restricted-sequence-generation-jcss.pdf) · [On Transcendence of Numbers Related to Sturmian and Arnoux-Rauzy Words](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.144) · [Computing the base-b representation of quadratic irrationals using automata](https://doi.org/10.1016/j.tcs.2026.115843)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-0301 — Excluding one-sided randomized quasilinear-time log-space SAT
+
+The input is an arbitrary explicitly written satisfiability instance. A candidate algorithm may use fresh random bits, logarithmic working memory and time n times a fixed polynomial in log n. It must never accept an unsatisfiable formula and must accept each satisfiable formula with constant probability. Both resource bounds hold for the same machine on every sequence of random choices. The target is an unconditional lower bound against every such algorithm; known opposite-error and larger-class results do not settle it.
+
+[Read in atlas](index.html#TCS-0301) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Time-Space Lower Bounds for the Polynomial-Time Hierarchy on Randomized Machines](https://drops.dagstuhl.de/entities/document/10.4230/DagSemProc.06111.20) · [Time-Space Lower Bounds for Simulating Proof Systems with Quantum and Randomized Verifiers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2021.50)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-2215 — Real quantifier alternation versus summation
 
 The question asks whether all fixed levels of alternating real quantification reduce to one strengthened existential theory. That target theory permits nested sums over Boolean dummy variables inside arithmetic terms. Its real variables must remain explicitly listed, and it has no compact product binder. The reductions operate on finite binary descriptions and may have a different polynomial bound for each fixed alternation level. A positive answer would supply the specific counting-versus-alternation principle proposed in the 2024 source, distinct from earlier topological Toda analogues.
@@ -340,13 +347,6 @@ Savitch’s theorem simulates nondeterministic space s with deterministic space 
 
 [Read in atlas](index.html#TCS-0293) · [Improving SPACE versus NSPACE via Tree Evaluation, in Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.15.3.56)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0301 — Excluding one-sided randomized quasilinear-time log-space SAT
-
-Randomized SAT algorithms may miss a satisfying assignment while never incorrectly declaring an unsatisfiable formula satisfiable. The question asks to rule out algorithms with that one-sided error using both quasilinear time and logarithmic space. The source emphasizes that reversing the permitted error direction changes what lower-bound methods can prove. Deterministic time-space tradeoffs do not automatically handle random choices. The project seeks a lower bound matching the error behavior of incomplete randomized search procedures under extremely small resource budgets.
-
-[Read in atlas](index.html#TCS-0301) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0303 — Stronger log-space time lower bounds for SAT
 
