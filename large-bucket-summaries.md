@@ -91,17 +91,17 @@ Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6533 — NL versus UL
 
-An ordinary nondeterministic reachability algorithm can have many accepting paths of computation. UL requires at most one accepting computation for each input while retaining logarithmic workspace. The question asks whether this unambiguity restriction changes the class NL. The machine may still have many rejecting branches, so this is weaker than demanding determinism. The project seeks to isolate a unique successful witness efficiently, clarifying whether ambiguity itself is a source of computational power in small-space graph problems.
+NL permits many accepting computation branches while using only logarithmic workspace. UL requires exactly one accepting branch on a yes input and none on a no input. The question asks whether one uniform unambiguous small-space machine can decide reachability in every directed graph. Known general simulations need more workspace or extra resources, while recent lower bounds and algorithms concern restricted models or graph families. The uniqueness guarantee concerns the machine’s computations, not a promise that the input graph already has a unique path.
 
-[Read in atlas](index.html#TCS-6533) · [Making Nondeterminism Unambiguous](https://people.cs.rutgers.edu/~allender/papers/nlul.pdf) · [Derandomizing Isolation in Space-Bounded Settings](https://pages.cs.wisc.edu/~dieter/Papers/r-ul-sicomp.pdf) · [When Connectivity Is Hard, Random Walks Are Easy With Non-Determinism](https://eccc.weizmann.ac.il/report/2025/077/download) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/) · [Derandomizing Isolation In Catalytic Logspace](https://arxiv.org/abs/2512.09374) · [Deterministic, Oblivious Isolation for Space-Bounded Computation Requires Large Weights](https://eccc.weizmann.ac.il/report/2026/124/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6533) · [Making Nondeterminism Unambiguous](https://people.cs.rutgers.edu/~allender/papers/nlul.pdf) · [Derandomizing Isolation in Space-Bounded Settings](https://pages.cs.wisc.edu/~dieter/Papers/r-ul-sicomp.pdf) · [When Connectivity Is Hard, Random Walks Are Easy With Non-Determinism](https://eccc.weizmann.ac.il/report/2025/077/download) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/) · [Derandomizing Isolation In Catalytic Logspace](https://arxiv.org/abs/2512.09374v3) · [Deterministic, Oblivious Isolation for Space-Bounded Computation Requires Large Weights](https://eccc.weizmann.ac.il/report/2026/124/) · [Space Complexity of Reachability in Simple Path Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2026.87)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0004 — L versus NL
 
-Directed reachability asks whether a path leads from a specified source to a specified target. Nondeterminism solves it with logarithmic memory by guessing successive vertices. The question asks for a deterministic algorithm using the same tiny workspace on an explicitly stored graph. Repeated input scans are allowed, but a full visited array or search frontier is not. The project would settle L versus NL by showing whether all the essential information in directed exploration can be organized without guessing or substantial stored history.
+Directed reachability asks whether a path follows the arrows from a specified source to a target. Nondeterministic logarithmic space can recognize it, and the problem captures the whole class NL. The target is one always-correct deterministic algorithm with only logarithmic writable memory on every explicit input. Savitch’s larger-space simulation and Reingold’s undirected algorithm do not settle this directed logarithmic-space target. A solution requires either a uniform algorithm with all resource guarantees or a lower bound excluding every eligible deterministic decider.
 
 [Read in atlas](index.html#TCS-0004) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Relationships between nondeterministic and deterministic tape complexities](https://doi.org/10.1016/S0022-0000(70)80006-X) · [Nondeterministic Space is Closed under Complementation](https://doi.org/10.1137/0217058) · [Undirected Connectivity in Log-Space](https://omereingold.wordpress.com/wp-content/uploads/2014/10/sl.pdf) · [When Connectivity Is Hard, Random Walks Are Easy with Non-determinism](https://doi.org/10.1145/3717823.3718303) · [Reachability in graphs having linear 2-arboricity two is NL-hard](https://doi.org/10.1016/j.ipl.2025.106611)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4988 — Existence of TFNP-complete problems
 
@@ -1331,10 +1331,10 @@ Existing status: `uncertain` · Summary written: 2026-09-13
 
 ### TCS-7337 — Register space of obstruction-free set agreement
 
-Processes must decide on at most k of their proposed values. A process is guaranteed to finish if it eventually runs alone. The resource being minimized is the number of shared read/write registers. Known lower and upper bounds are the ceiling of n/k and n-k+1. The benchmark requests the full register-space function over all n greater than k.
+Each process proposes a value and must decide one of the values proposed by participating processes. At most k distinct values may be decided, and a process must finish if it continues alone long enough. The resource is the number of atomic read/write registers, whose individual capacities are unrestricted. Known bounds range from the ceiling of n/k to n-k+1; consensus and (n-1)-set agreement have exact values. The target is the full register-space function for all n>k>=1, with the atlas's pointwise 1/100-register acceptance tolerance.
 
-[Read in atlas](index.html#TCS-7337) · [Revisionist Simulations: A New Approach to Proving Space Lower Bounds](https://epubs.siam.org/doi/10.1137/20M1322923) · [Solving Tasks with Fewer Registers Than Processes](https://drops.dagstuhl.de/storage/00lipics/lipics-vol361-opodis2025/html/LIPIcs.OPODIS.2025.21/LIPIcs.OPODIS.2025.21.html)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7337) · [Revisionist Simulations: A New Approach to Proving Space Lower Bounds](https://epubs.siam.org/doi/10.1137/20M1322923) · [Revisionist Simulations: A New Approach to Proving Space Lower Bounds (preprint)](https://arxiv.org/abs/1711.02455v5) · [Anonymous Obstruction-Free \((n,k)\)-Set Agreement with \(n-k+1\) Atomic Read/Write Registers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2015.18) · [Solving Tasks with Fewer Registers Than Processes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2025.21) · [How Exhaustive Does an Extension-Based Proof Need to Be?](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2025.29)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-2997 — Triangle detection in CONGEST
 

@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-604 five-sentence working summaries, based on saved source material.
+605 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1035,7 +1035,7 @@ A transversal matroid records which subsets can be matched into the opposite sid
 [Read in atlas](index.html#TCS-6729) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (41)
+## Parameterized complexity and algorithms (42)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1050,6 +1050,13 @@ ETH asks whether the optimal deterministic exponential rate for 3-SAT is strictl
 
 [Read in atlas](index.html#TCS-6593) · [On the Complexity of k-SAT](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2001_jcss.pdf) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [Exact Complexity and Satisfiability](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2013_ipec.pdf) · [Chain, Generalization of Covering Code, and Deterministic Algorithm for k-SAT](https://arxiv.org/abs/1804.07901) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7233 — Breaking the \(2^{n}\) barrier for weighted TSP
+
+Exact weighted TSP asks for a cheapest tour through every vertex of a complete undirected graph. This question seeks a uniform classical algorithm with a fixed exponential time base below two. Weights are arbitrary nonnegative integers written in binary, and only polynomial dependence on their total encoding length is allowed. Bounded-error randomization and exponential memory are permitted, but every execution must satisfy the stated worst-case clock. Recent prefactor, structured-weight, time-space and quantum improvements do not establish the full classical guarantee.
+
+[Read in atlas](index.html#TCS-7233) · [TSP Escapes the \(O(2^n n^2)\) Curse](https://arxiv.org/abs/2405.03018v2) · [Determinant Sums for Undirected Hamiltonicity](https://arxiv.org/abs/1008.0541) · [Mind the Gap. Doubling Constant Parametrization of Weighted Problems: TSP, Max-Cut, and More](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2026.79) · [Improved space-time tradeoff for TSP via extremal set systems](https://arxiv.org/abs/2604.05645) · [Optimal chain density, entropy, and space-time tradeoffs for the TSP](https://arxiv.org/abs/2607.11311) · [Quantum Space–Time Tradeoffs for TSP via Extremal Set Systems](https://arxiv.org/abs/2607.12374) · [Quantum Time-Space Tradeoffs for Exponential Dynamic Programming](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.37) · [A Near-Complete Resolution of the Exponential-Time Complexity of \(k\)-opt for the Traveling Salesman Problem](https://epubs.siam.org/doi/10.1137/1.9781611978971.208)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6594 — Set Cover conjecture
 
@@ -1163,12 +1170,12 @@ A linear extension is a total ordering consistent with all comparisons in a give
 [Read in atlas](index.html#TCS-0805) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0816 — Shortest common superstring problem
+### TCS-0816 — Shortest common superstring in \(O^*(1.99^n)\) time
 
-Shortest Common Superstring seeks a shortest string containing every input string as a contiguous substring. The optimization exploits overlaps between strings while ensuring that all required pieces appear. The saved entry asks about its exact computational complexity within the parameterized and exponential-time setting. Improved algorithms would clarify the cost of assembling many overlapping sequences into one compact representation. The title does not fix alphabet restrictions, the measured input parameter, or an approximation allowance, so these choices cannot be silently imported into the working question.
+Shortest common superstring asks for a shortest string containing every input string as a contiguous substring. The parameter n counts input strings, while their full encoded lengths contribute only a fixed polynomial factor to the target running time. The selected question asks for a uniform deterministic classical algorithm with the literal exponential base 1.99 posed in the seminar report. String lengths and alphabet sizes are unrestricted, and the output must attain the exact optimum. Faster algorithms for bounded-length strings, quantum speedups and approximation advances do not settle this classical exact target.
 
-[Read in atlas](index.html#TCS-0816) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0816) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [Solving SCS for bounded length strings in fewer than \(2^n\) steps](https://golovnev.org/papers/scs_exact.pdf) · [Collapsing Superstring Conjecture](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.26) · [Quantum Algorithm for the Shortest Superstring Problem](https://arxiv.org/abs/2112.13319v1) · [A Tight Cycle-Cover Inequality for Shortest Common Superstring](https://eccc.weizmann.ac.il/report/2026/157/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0800 — Cutwidth
 
