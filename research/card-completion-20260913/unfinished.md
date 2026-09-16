@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **261**.
+Pending active reviews: **257**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -37,9 +37,7 @@ Pending active reviews: **261**.
 | [TCS-2202](../../data/cards/TCS-2202.json) | NP-hardness of conditional polynomial-time pKt | Computability and algorithmic information | pool |
 | [TCS-5010](../../data/cards/TCS-5010.json) | Unconditional coding theorem for randomized Kolmogorov complexity | Computability and algorithmic information | pool |
 | [TCS-6105](../../data/cards/TCS-6105.json) | Computability of the Mandelbrot set | Computability and algorithmic information | pool |
-| [TCS-1097](../../data/cards/TCS-1097.json) | Unprovability of NP circuit upper bounds in \(T_{2}^{1}\) | Proof complexity | pool |
 | [TCS-0071](../../data/cards/TCS-0071.json) | \(\mathrm{NC}^{0}\) proof systems | Proof complexity | pool |
-| [TCS-1253](../../data/cards/TCS-1253.json) | Superpolynomial Res\([\oplus ]\) lower bounds | Proof complexity | pool |
 | [TCS-5114](../../data/cards/TCS-5114.json) | Lovász–Schrijver versus cutting planes | Proof complexity | pool |
 | [TCS-0220](../../data/cards/TCS-0220.json) | External Information and Amortized Expected Communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-1059](../../data/cards/TCS-1059.json) | Linearizing arbitrary depth-two circuits efficiently | Communication complexity and Boolean function analysis | pool |
@@ -195,14 +193,12 @@ Pending active reviews: **261**.
 | [TCS-6508](../../data/cards/TCS-6508.json) | Deque conjecture | Data structures | existing_detailed_audit |
 | [TCS-6511](../../data/cards/TCS-6511.json) | Deterministic Exact Matching | Structural graph theory | existing_detailed_audit |
 | [TCS-6513](../../data/cards/TCS-6513.json) | Constant-factor approximation of the smallest grammar | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-6525](../../data/cards/TCS-6525.json) | Gupta–Newman–Rabinovich–Sinclair conjecture | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6528](../../data/cards/TCS-6528.json) | Unknot recognition in polynomial time | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6539](../../data/cards/TCS-6539.json) | Almost-linear triangle detection | Structural graph theory | existing_detailed_audit |
 | [TCS-6546](../../data/cards/TCS-6546.json) | One-way permutations from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6548](../../data/cards/TCS-6548.json) | Chosen-ciphertext security from ordinary public-key encryption | Cryptography | existing_detailed_audit |
 | [TCS-6551](../../data/cards/TCS-6551.json) | Unleveled fully homomorphic encryption from LWE alone | Cryptography | existing_detailed_audit |
 | [TCS-6552](../../data/cards/TCS-6552.json) | Noninteractive zero knowledge from one-way functions | Cryptography | existing_detailed_audit |
-| [TCS-6573](../../data/cards/TCS-6573.json) | Polynomial Hirsch conjecture | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-6581](../../data/cards/TCS-6581.json) | Mansour’s conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6589](../../data/cards/TCS-6589.json) | Subtour-LP integrality gap for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
