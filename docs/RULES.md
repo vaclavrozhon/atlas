@@ -91,6 +91,14 @@ no simple closed form, decimal expansion or full simulation is required as part
 of the submitted answer. The halting and universal maximality proofs are both
 mandatory. This BB(6) decision does not change other cards' acceptance precision.
 
+On 16 September 2026, the user explicitly retained TCS-6607, binary deletion
+channel capacity, with absolute 1/100 accuracy as a formalization task. A known
+uniform finite-block estimate already gives unrestricted approximation at that
+accuracy. Keep this card active and distinguish its known approximation
+guarantee from the separate open exact-capacity problem. This decision does not
+require a new scientific result, an efficient evaluation algorithm or exact
+determination of the curve.
+
 Asymptotic-complexity questions retain their stated precision, such
 as constant-factor matching bounds; 0.01 is not an additive error on big-O
 notation. Infinite values, where allowed, require proof of infinitude. Partial

@@ -91,3 +91,18 @@ so they do not determine the string card’s constant-factor sample complexity.
 An active-only search found no matching graph-degree-sequence target. The July
 paper’s full Theorem 43 and its distinction between samples and running time
 were checked separately; no external proof was independently formalized.
+
+The deletion-capacity pass completed TCS-6607 and inspected
+[Soysal, 2609.13351v1](https://arxiv.org/abs/2609.13351), submitted 11 September.
+The full introduction, Theorem 1.1, operational model, limitations and formal
+verification appendices were read. The claimed capacity upper bound is
+`(1-d)/4` for `13/20 <= d < 1`, with finite-block corrections. The accompanying
+[repository](https://github.com/factoreminv/bdc) reports modular fresh Lean
+replay and final assembly over verified imports; its README and machine-readable
+verification record were inspected, but this review did not execute the large
+certificate or replay the proof. The result is one-sided and covers only part
+of the parameter domain. Separately, the classical uniform finite-block bound
+already gives unrestricted fixed-accuracy approximation of the full curve.
+After being told this, the user explicitly retained absolute 0.01 accuracy as
+a formalization task. The revised card distinguishes that known approximation
+guarantee from the separate open exact-capacity question.

@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **484**.
+Pending active reviews: **482**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -238,7 +238,6 @@ Pending active reviews: **484**.
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
 | [TCS-6928](../../data/cards/TCS-6928.json) | Linear-space representation from smallest string attractors | String algorithms and bioinformatics | pool |
 | [TCS-1115](../../data/cards/TCS-1115.json) | Polynomial-time EF1 and Pareto-optimal goods allocation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-1119](../../data/cards/TCS-1119.json) | Existence of pairwise maximin-share allocations | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-0571](../../data/cards/TCS-0571.json) | Positional Nash Equilibria | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
@@ -387,7 +386,6 @@ Pending active reviews: **484**.
 | [TCS-6596](../../data/cards/TCS-6596.json) | Orthogonal Vectors Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6605](../../data/cards/TCS-6605.json) | Aaronson–Ambainis conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
-| [TCS-6607](../../data/cards/TCS-6607.json) | Capacity of the binary deletion channel | Coding and information theory | existing_detailed_audit |
 | [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
 | [TCS-6614](../../data/cards/TCS-6614.json) | Deterministic polynomial-time factorization over finite fields | Algebraic computation | existing_detailed_audit |
 | [TCS-6619](../../data/cards/TCS-6619.json) | Exact Euclidean SVP in single-exponential time and polynomial space | Lattices and computational number theory | existing_detailed_audit |
