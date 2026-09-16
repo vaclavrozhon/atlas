@@ -1360,3 +1360,7 @@ The concurrent census is 1,024 active cards: 727 reviewed and 297 pending. The q
 Checkpoint 622. Complete all-model SROIQ query syntax semantics and decidability review
 
 The concurrent census is 1,024 active cards: 732 reviewed and 292 pending. The queue has 622 completed records, 580 active and 42 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,024 active cards, covering 30,856 formulas.
+
+Checkpoint 625. Completed Turing equivalence universality formulation and source review
+
+The concurrent census is 1,024 active cards: 735 reviewed and 289 pending. The queue has 625 completed records, 583 active and 42 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,024 active cards, covering 30,997 formulas.
