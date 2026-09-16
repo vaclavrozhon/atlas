@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-601 five-sentence working summaries, based on saved source material.
+602 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1710,10 +1710,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6657 — Computational threshold for tensor PCA
 
-Dense tensor PCA observes a hidden rank-one tensor corrupted by independent Gaussian noise. The conjecture says that below a specified signal scale, no polynomial-time algorithm can recover a vector with constant correlation to the hidden direction. It asks about unrestricted computation rather than the performance of a particular spectral, gradient, or low-degree method. Resolving the threshold would clarify a prominent proposed gap between statistical recoverability and computational feasibility. The saved formulation fixes finite precision, unit-sphere normalization, one observation, and independent ordered noise entries, so results using different normalizations or extra samples require careful conversion.
+The card asks whether every efficient classical algorithm fails to recover constant correlation with a hidden spherical direction below a specified tensor-PCA signal scale. Its observation is one fully listed tensor with independent ordered Gaussian noise, fixed finite-precision rounding and no extra information. The statement precisely separates failure on arbitrarily large dimensions from the eventual-success counterexample needed to refute it. Recent low-degree, power-iteration, multiple-observation and threshold-refinement results retain model or resource restrictions. A Lean resolution must handle the full uniform bit model and its exact spherical recovery probability, preserving all normalization and precision choices.
 
-[Read in atlas](index.html#TCS-6657) · [A statistical model for tensor PCA](https://arxiv.org/abs/1411.1076) · [Sharp analysis of power iteration for tensor PCA](https://www.jmlr.org/papers/v25/24-0006.html) · [Tensor cumulants for statistical inference on invariant distributions](https://arxiv.org/abs/2404.18735) · [Near-Optimal Tensor PCA via Normalized Stochastic Gradient Ascent with Overparameterization](https://arxiv.org/abs/2510.14329) · [Low-degree estimation thresholds in planted hypergraphs and tensor PCA](https://arxiv.org/abs/2605.30113)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6657) · [A statistical model for tensor PCA](https://arxiv.org/abs/1411.1076) · [Sharp analysis of power iteration for tensor PCA](https://www.jmlr.org/papers/v25/24-0006.html) · [Tensor cumulants for statistical inference on invariant distributions](https://arxiv.org/abs/2404.18735) · [Near-Optimal Tensor PCA via Normalized Stochastic Gradient Ascent with Overparameterization](https://arxiv.org/abs/2510.14329) · [Low-degree estimation thresholds in planted hypergraphs and tensor PCA](https://arxiv.org/abs/2605.30113) · [A Smooth Computational Transition in Tensor PCA](https://arxiv.org/abs/2509.09904) · [Average-Case Reductions for k-XOR and Tensor PCA](https://arxiv.org/abs/2601.19016) · [Accelerating Classical and Quantum Tensor PCA](https://arxiv.org/abs/2602.10366)
+Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-6684 — Computational Kesten–Stigum threshold
 
@@ -2912,7 +2912,7 @@ Mechanism implementation connects an allocation algorithm with strategic behavio
 [Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (59)
+## Algebraic computation (60)
 
 ### TCS-0007 — Matrix multiplication exponent
 
@@ -2958,10 +2958,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6641 — Word problem for one-relation monoids
 
-A one-relation monoid allows words to be transformed by repeatedly replacing one fixed word with another in either direction. The reviewed question asks for an algorithm deciding whether two given words become equal under these replacements. Successful derivations can be found by enumeration, but failure to find one does not certify inequality. Decidability would show that even unrestricted length-changing interaction from one rule admits an effective stopping criterion. The saved review notes that finite search works for length-preserving relations, while simple shortening rules need not produce unique normal forms.
+An ordinary one-relation monoid identifies words using one fixed reversible literal replacement rule in arbitrary surrounding contexts. The question asks whether a single algorithm can decide equality of any two words when the alphabet and defining relation are also supplied. Empty words and length-changing relations are allowed, and the algorithm must halt on unequal pairs as well as equal ones. Recent undecidability results for inverse monoids, submonoid membership and equations with unknowns concern different or broader problems. A resolution would locate a central decidability boundary for equality under minimal finite algebraic presentations.
 
-[Read in atlas](index.html#TCS-6641) · [The word problem for one-relation monoids: a survey](https://link.springer.com/article/10.1007/s00233-021-10216-8) · [Correction to: The word problem for one-relation monoids: a survey](https://link.springer.com/article/10.1007/s00233-022-10310-5) · [On the Dehn functions of a class of monadic one-relation monoids](https://arxiv.org/abs/2210.16123) · [The word problem for two-generator one-relator inverse monoids](https://arxiv.org/abs/2608.04650)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6641) · [The word problem for one-relation monoids: a survey](https://link.springer.com/article/10.1007/s00233-021-10216-8) · [Correction to: The word problem for one-relation monoids: a survey](https://link.springer.com/article/10.1007/s00233-022-10310-5) · [On the Dehn functions of a class of monadic one-relation monoids](https://arxiv.org/abs/2210.16123) · [The word problem for two-generator one-relator inverse monoids](https://arxiv.org/abs/2608.04650) · [Membership problems for positive one-relator groups and one-relation monoids](https://doi.org/10.4153/S0008414X24000798) · [Undecidability of the Diophantine problem for one-relator groups and one-relation monoids](https://arxiv.org/abs/2608.01983v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6614 — Deterministic polynomial-time factorization over finite fields
 
@@ -3102,6 +3102,13 @@ The input consists of two permutations encoding structured distance matrices. Th
 
 [Read in atlas](index.html#TCS-7372) · [Fast Distance Multiplication of Unit-Monge Matrices](https://doi.org/10.1007/s00453-013-9830-z) · [Core-Sparse Monge Matrix Multiplication: Improved Algorithm and Applications](https://arxiv.org/abs/2408.04613v2)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-7224 — Polynomial-time computation of addition-chain length
+
+An addition chain starts at one and repeatedly forms a new integer by adding two earlier entries. Its shortest length is the fewest such additions needed to reach a specified positive target. The target is given in binary, and the requested algorithm must output the exact optimum in time polynomial in that bit length. This is a question about computing the minimum count, without additionally requiring an optimal chain as output. Known short chains, restricted families, heuristics and hardness for multiple targets do not establish the requested general deterministic algorithm or its impossibility.
+
+[Read in atlas](index.html#TCS-7224) · [Algorithms](https://jeffe.cs.illinois.edu/teaching/algorithms/book/01-recursion.pdf) · [On Fast Calculation of Addition Chains for Isogeny-Based Cryptography](https://faculty.eng.fau.edu/azarderakhsh/files/2016/11/Inscrypt2016.pdf) · [Assembly theory and its relationship with computational complexity](https://doi.org/10.1038/s44260-025-00049-9) · [The Decompressed Tree Size of k-Ary Chains](https://doi.org/10.1007/s00026-026-00816-y)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4523 — Polynomial-time dimension expansion over finite fields
 
