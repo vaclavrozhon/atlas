@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-402 five-sentence working summaries, based on saved source material.
+401 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1159,7 +1159,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (57)
+## Distributed, parallel and sublinear algorithms (56)
 
 ### TCS-6553 — P versus NC
 
@@ -1455,6 +1455,13 @@ A population protocol uses anonymous finite-state agents whose pairwise interact
 [Read in atlas](index.html#TCS-3381) · [Succinct Population Protocols for Presburger Arithmetic](https://doi.org/10.4230/LIPIcs.STACS.2020.40) · [Fast and Succinct Population Protocols for Presburger Arithmetic](https://arxiv.org/abs/2202.11601v3) · [Population Protocols over Ordered Agents](https://doi.org/10.4230/LIPIcs.ICALP.2026.167)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-1588 — Classification of robust chemical computation
+
+A continuous chemical reaction network computes through the evolution of nonnegative species concentrations. Robust computation requires the same limiting answer for every assignment of positive reaction-rate constants fixed over time. The conjecture characterizes robust predicates by finite Boolean combinations of rational-weight threshold tests. It simultaneously characterizes numerical outputs by finite threshold-defined partitions with rational affine pieces clipped at zero. The constructive directions are known, while necessity remains unresolved in the sources checked.
+
+[Read in atlas](index.html#TCS-1588) · [Robust Predicate and Function Computation in Continuous Chemical Reaction Networks](https://doi.org/10.4230/LIPIcs.DISC.2025.19) · [Robust predicate and function computation in continuous chemical reaction networks](https://arxiv.org/abs/2506.06590v1) · [Reverse-Robust Computation with Chemical Reaction Networks](https://arxiv.org/abs/2604.14355v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0849 — Two-stage group testing with arithmetic progressions
 
 A hidden set of at most k positions must be identified by noiseless yes/no tests. Every first-stage pool must be an arithmetic progression fixed before any answers are seen. After receiving those answers, the scheme may query only O(k) individual positions in one final stage. The question asks whether O(k log n) first-stage tests suffice for every hidden set, improving the bound reported in the 2009 source by one logarithmic factor. The restriction models regularly spaced queries motivated by pattern matching, and unrestricted pooling results do not settle it.
@@ -1476,26 +1483,12 @@ A graph’s cumulative degree histogram counts vertices above each degree thresh
 [Read in atlas](index.html#TCS-0834) · [Problem 98: Estimating a Graph's Degree Distribution](https://sublinear.info/index.php?title=Open_Problems:98) · [Provable and Practical Approximations for the Degree Distribution using Sublinear Graph Samples](https://arxiv.org/abs/1710.08607v3) · [Towards Tight Bounds for Estimating Degree Distribution in Streaming and Query Models](https://arxiv.org/abs/2507.21784v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-1588 — Characterizing robustly computable predicates and functions
-
-Continuous chemical reaction networks represent inputs and outputs as nonnegative concentrations evolving under mass-action kinetics. Robust computation requires convergence to the correct answer for every positive choice of reaction-rate constants. The source constructs robust networks for multithreshold predicates and a specified class of piecewise floor-affine functions, where negative affine values are truncated to zero. It conjectures that these constructions describe exactly the predicates and functions the model can compute. A matching impossibility theorem would turn the positive constructions into a complete characterization of computation that is insensitive to kinetic parameters.
-
-[Read in atlas](index.html#TCS-1588) · [Robust Predicate and Function Computation in Continuous Chemical Reaction Networks](https://doi.org/10.4230/LIPIcs.DISC.2025.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2470 — Breaking the quadratic color bound for bounded outdegree
 
 The network comes with an orientation having at most \(\beta\) outgoing edges at every vertex. A deterministic distributed algorithm can already color it with \(O(\beta ^{2})\) colors in \(O(\log * n)\) rounds. The question is whether \(\beta ^{2}\) can be replaced by \(\beta ^{2- \varepsilon}\) for one fixed \(\varepsilon >0\). Additional time may depend arbitrarily on \(\beta\), but the dependence on n must remain additive \(O(\log * n)\). New results for list and defective colorings have not supplied this proper-coloring guarantee.
 
 [Read in atlas](index.html#TCS-2470) · [List Defective Colorings: Distributed Algorithms and Applications](https://doi.org/10.4230/LIPIcs.DISC.2023.22) · [Greedy-Like Defective Coloring: Distributed Algorithms and Applications](https://arxiv.org/abs/2608.02386)
 Existing status: `source_open` · Summary written: 2026-09-12
-
-### TCS-2753 — Fully adaptive strong Byzantine agreement with optimal resilience
-
-Strong Byzantine agreement requires correct processes to agree while preserving the strong validity condition even when some participants behave arbitrarily. Here adaptivity refers to communication that scales with the actual number f of faulty processes, rather than only the tolerated maximum t. The source asks for a fully adaptive strong-agreement algorithm with optimal resilience \(n = 2t + 1\). Its constructions achieve \(O(n(f+1))\) communication for broadcast and weak agreement, but the strong version becomes quadratic once failures occur. Closing that gap would retain optimal fault tolerance while making communication economical in executions with only a few faults.
-
-[Read in atlas](index.html#TCS-2753) · [Make Every Word Count: Adaptive Byzantine Agreement with Fewer Words](https://doi.org/10.4230/LIPIcs.OPODIS.2022.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3384 — Approximate matching and set packing in \(\mathrm{AC}^{0}\)
 
