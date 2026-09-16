@@ -1252,3 +1252,7 @@ The concurrent census is 1,031 active cards: 640 reviewed and 391 pending. The q
 Checkpoint 528. Individually completed TCS-6678: effective monadic dependence, fully encoded deterministic model checking, class-wise quantifiers and July 2026 theorem scopes.
 
 The concurrent census is 1,031 active cards: 645 reviewed and 386 pending. The queue has 528 completed records, 493 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,485 formulas.
+
+Checkpoint 530. Individually completed TCS-6676: infimum approximation ratio, binary scheduling model, unattained optima and unconditional 1/100 acceptance versus conditional hardness.
+
+The concurrent census is 1,031 active cards: 647 reviewed and 384 pending. The queue has 530 completed records, 495 active and 35 inactive, plus 152 active cards outside it; all active completed hashes match. Publication and formula checks passed under the shared lock on 1,031 active cards, covering 26,583 formulas.

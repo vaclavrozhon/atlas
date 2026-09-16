@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **509**.
+Pending active reviews: **508**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -428,7 +428,6 @@ Pending active reviews: **509**.
 | [TCS-6670](../../data/cards/TCS-6670.json) | Polylogarithmic maintenance of the exact global minimum cut | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6674](../../data/cards/TCS-6674.json) | Randomized truthful unrelated-machine scheduling | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6675](../../data/cards/TCS-6675.json) | Search-to-decision equivalence for finite promise CSPs | Constraint satisfaction | existing_detailed_audit |
-| [TCS-6676](../../data/cards/TCS-6676.json) | Optimal approximation ratio for precedence-constrained makespan | Online algorithms | existing_detailed_audit |
 | [TCS-6677](../../data/cards/TCS-6677.json) | Isomorphism problem for one-relator groups | Algebraic computation | existing_detailed_audit |
 | [TCS-6679](../../data/cards/TCS-6679.json) | Universality of Turing equivalence | Computability and algorithmic information | existing_detailed_audit |
 | [TCS-6680](../../data/cards/TCS-6680.json) | Decidability of conjunctive-query entailment in SROIQ | Database theory and finite model theory | existing_detailed_audit |
