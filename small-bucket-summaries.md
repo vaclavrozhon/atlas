@@ -762,6 +762,13 @@ L contains languages decided by one deterministic machine using logarithmic work
 [Read in atlas](index.html#TCS-0026) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/storage/00lipics/lipics-vol207-approx-random2021/LIPIcs.APPROX-RANDOM.2021.28/LIPIcs.APPROX-RANDOM.2021.28.pdf) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/) · [Weighted Pseudorandom Generators for Read-Once Branching Programs via Weighted Pseudorandom Reductions](https://arxiv.org/abs/2502.08272v5)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6686 — P versus RP
+
+RP consists of languages decided in worst-case polynomial time using fair random bits, with no false acceptances. The question asks whether every such language also has a uniform deterministic polynomial-time decider. Each language may have its own fixed polynomial bound, but the exponent cannot vary with the input. Strong circuit-hardness assumptions imply derandomization, while deterministic algorithms for individual examples do not settle the whole class comparison. A resolution would determine whether one-sided-error randomness increases efficient decision power.
+
+[Read in atlas](index.html#TCS-6686) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/) · [\(\mathrm{P}=\mathrm{BPP}\) if \(\mathrm{E}\) Requires Exponential Circuits: Derandomizing the XOR Lemma](https://doi.org/10.1145/258533.258590) · [Probabilistic Computers (and Hence Quantum Computers) Are Rigorously More Powerful Than Classical Deterministic Computers, and Derandomization](https://arxiv.org/abs/2308.09549v9)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6662 — Optimal deterministic restricted-isometry matrices
 
 A restricted-isometry matrix approximately preserves the Euclidean length of every sparse vector. The reviewed question asks for deterministic polynomial-time construction with \(O(s \log (eN/s))\) rows and fixed distortion. Random matrices achieve this row order, but a usable deterministic construction must control every sparse support simultaneously. Optimal explicit matrices would provide guaranteed measurement designs for compressed sensing without random setup choices. The saved review identifies the limitations of pairwise coherence analyses and notes that reduced randomness or success on typical signals does not establish the requested all-signal guarantee.
@@ -809,6 +816,13 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 A hitting-set generator produces strings that intersect every sufficiently dense set accepted by a polynomial-size Boolean circuit. A pseudorandom generator must instead approximate every such circuit’s acceptance probability when its seed is chosen uniformly. The selected cryptographic question asks whether the existence of the first kind of uniform polynomial-time generator entails the existence of the second, with negligible security bounds and any nontrivial stretch. The generators may have different parameters, and the known seed-extending result for logarithmic-depth circuits does not establish the unrestricted implication. A complete Lean proof must decide this existence implication, clarifying the relationship between two basic forms of computational randomness.
 
 [Read in atlas](index.html#TCS-5341) · [Errorless Versus Error-Prone Average-Case Complexity](https://doi.org/10.4230/LIPIcs.ITCS.2022.84) · [Pseudorandomness and the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2020.68) · [Capturing One-Way Functions via NP-Hardness of Meta-Complexity](https://eccc.weizmann.ac.il/report/2023/037/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-6729 — Deterministic linear representations of transversal matroids
+
+A bipartite graph defines a transversal matroid by declaring a subset on its first side independent when it can be matched to distinct vertices on the second side. The task is to construct one explicit rational matrix whose corresponding columns are linearly independent exactly for those subsets. The question asks for one uniform deterministic algorithm with polynomial bit running time, including the full binary output. Randomized polynomial-time representations and deterministic quasipolynomial-time representations are known, while polynomial-time derandomization would support important matroid and preprocessing algorithms. A complete Lean answer must prove such a construction works on every bipartite graph or prove that no deterministic algorithm meets the stated polynomial bound.
+
+[Read in atlas](index.html#TCS-6729) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [Quasipolynomial-Time Deterministic Kernelization and (Gammoid) Representation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.54)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1018 — Linear-seed hardness-to-randomness sampling
@@ -1000,13 +1014,6 @@ Given a length in unary, generate a prime with exactly that many binary digits i
 [Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-6686 — P versus RP
-
-RP consists of polynomial-time randomized decision algorithms that never accept a false instance and accept true instances with substantial probability. The textbook asks whether every such language has a deterministic polynomial-time algorithm, giving \(\mathrm{P}=\mathrm{RP}\). One-sided error makes an observed acceptance trustworthy but does not explain how to find a successful random tape efficiently. Resolving the equality would determine whether this basic use of randomness enlarges efficient decision power. The saved note is historical, and a deterministic simulation for only a particular RP problem would not settle the universal class comparison.
-
-[Read in atlas](index.html#TCS-6686) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6689 — Simultaneously optimal averaging samplers
 
 An averaging sampler chooses a small collection of locations whose observed average estimates a global average. The textbook asks for constructions simultaneously optimal in the number of random bits and the number of samples. Reducing randomness can introduce correlations, while reducing samples leaves less room to absorb the resulting estimation error. Achieving both goals would make a basic sampling primitive efficient in its two main resources. The saved note does not provide its error and failure probabilities or explicitness convention, so those parameters must be restored before optimality has one precise meaning.
@@ -1026,13 +1033,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Arthur–Merlin protocols use public randomness and a prover to verify claims efficiently. The textbook asks whether their randomness can be removed so that AM collapses to NP. It singles out graph nonisomorphism, where the desired outcome would be polynomially checkable certificates that two graphs differ up to relabeling. Such certificates would replace an interactive randomized justification with a static witness. The specific graph problem is a consequence to seek rather than an equivalent restatement of full \(\mathrm{AM}=\mathrm{NP}\), and the dated source note does not constitute a current-status review.
 
 [Read in atlas](index.html#TCS-6699) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6729 — Deterministic linear representations of transversal matroids
-
-A transversal matroid records which subsets can be matched into the opposite side of a bipartite incidence graph. A linear representation instead encodes independence through linear independence of matrix columns. The textbook asks for a deterministic polynomial-time construction translating the former representation into the latter. Such a construction would remove randomness from algebraic algorithms that rely on representing these combinatorial independence systems. The saved note does not specify field-size or encoding conventions, so the desired deterministic construction still needs those representation details for a complete statement.
-
-[Read in atlas](index.html#TCS-6729) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Parameterized complexity and algorithms (42)
@@ -4183,10 +4183,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6680 — Decidability of conjunctive-query entailment in SROIQ
 
-An expressive ontology describes facts and rules that can require additional unnamed objects in every model. The reviewed question asks whether one terminating algorithm can decide all Boolean conjunctive queries against finite SROIQ knowledge bases. Such a query looks for a relational pattern, including joins that require several conditions to hold for the same objects. Consistency checking and known decidable fragments do not settle the unrestricted combination of query joins, counting, inverse roles, and role compositions. The chosen semantics includes infinite models, so the saved undecidability result for finite-model entailment addresses a different question.
+A SROIQ knowledge base describes incomplete information using concepts, individuals, relations, inverse relations, counting and restricted role chains. A Boolean conjunctive query asks whether one finite relational pattern must occur in every model, including infinite models and witnesses that have no individual name. The question is whether one ordinary algorithm can always decide that entailment for the complete specified language, with no running-time bound. A complete Lean proof must establish a sound, complete and universally terminating decision procedure or prove that no such procedure exists. The checked finite-model undecidability, simple-role and Horn decision procedures, practical reasoner and2026 S-fragment theorem do not settle this all-model SROIQ target.
 
 [Read in atlas](index.html#TCS-6680) · [Absorption-Based Query Entailment Checking for Expressive Description Logics](https://ceur-ws.org/Vol-2373/paper-25.pdf) · [The Even More Irresistible SROIQ](https://www.cs.ox.ac.uk/people/ian.horrocks/Publications/download/2006/HoKS06a.pdf) · [Nominals, Inverses, Counting, and Conjunctive Queries or: Why Infinity is your Friend!](https://www.cs.ox.ac.uk/files/2175/paper.pdf) · [Query Answering in the Horn Fragments of the Description Logics SHOIQ and SROIQ](https://www.ijcai.org/Proceedings/11/Papers/178.pdf) · [The Curse of Finiteness: Undecidability of Database-Inspired Reasoning Problems in Very Expressive Description Logics](https://ceur-ws.org/Vol-1577/paper_12.pdf) · [Revisiting Conjunctive Query Entailment for S](https://arxiv.org/abs/2511.07933)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0492 — Conjunctive-query containment under bag semantics
 

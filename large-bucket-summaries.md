@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+404 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1567,7 +1567,7 @@ A natural join combines database relations by matching equal values on shared at
 [Read in atlas](index.html#TCS-6380) · [A Simple Parallel Algorithm for Natural Joins on Binary Relations](https://doi.org/10.4230/LIPIcs.ICDT.2020.25)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Optimization and numerical computation (22)
+## Optimization and numerical computation (23)
 
 ### TCS-0008 — Strongly polynomial linear programming
 
@@ -1631,6 +1631,13 @@ The Beck–Fiala conjecture asks whether bounded participation of each element i
 
 [Read in atlas](index.html#TCS-7315) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [Online Beck–Fiala Down to Logarithmic Sparsity](https://arxiv.org/abs/2607.14238v1) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
 Existing status: `uncertain` · Summary written: 2026-09-14
+
+### TCS-7283 — Superpolynomial semidefinite extension complexity of perfect matching
+
+The perfect-matching polytope is the convex hull of the incidence vectors of perfect matchings in a complete graph of even order. A semidefinite lift represents that polytope exactly as an affine image of an affine slice of a real positive semidefinite cone. The question asks whether the required matrix order is unbounded by every polynomial in the number of graph vertices, allowing arbitrary real coefficients and separate representations at each size. Exponential bounds for linear lifts and coordinate-symmetric semidefinite formulations leave this unrestricted representation question unresolved in the checked sources. A complete Lean proof must establish the full lower-bound assertion or prove that one polynomial bounds exact semidefinite lifts for the entire family.
+
+[Read in atlas](index.html#TCS-7283) · [Lower Bounds for Interactive Compression and Linear Programs](https://digital.lib.washington.edu/server/api/core/bitstreams/a7ac9607-c4f8-4d56-9b29-0f5ef033975d/content) · [Lifting for Simplicity: Concise Descriptions of Convex Sets](https://arxiv.org/abs/2002.09788v2) · [The matching polytope has exponential extension complexity](https://arxiv.org/abs/1311.2369v4) · [The Matching Problem Has No Small Symmetric SDP](https://arxiv.org/abs/1504.00703v5) · [Lower bounds on the size of semidefinite programming relaxations](https://arxiv.org/abs/1411.6317v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7226 — Woodall’s conjecture
 
@@ -2655,6 +2662,13 @@ The selected question asks whether Gaussian-and-cubic bosonic computation is con
 [Read in atlas](index.html#TCS-6481) · [Bosonic Quantum Computational Complexity](https://doi.org/10.22331/q-2026-05-20-2110) · [Bounding the computational power of bosonic systems](https://doi.org/10.1038/s41534-026-01255-6) · [Energy, Bosons and Computational Complexity](https://arxiv.org/abs/2510.08545)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-2408 — Remote state preparation from quantum-secure one-way functions
+
+Remote state preparation lets a classical client use classical messages to leave a quantum server holding states whose descriptions are known to the client. This card asks whether quantum-advice-secure classical one-way functions suffice for the source’s parallel BB84 protocol guarantee. Its accepted output must resemble independent uniformly valued BB84 states up to an efficient server-side isometry, with tunable inverse-polynomial computational error and advice independent of the hidden basis. Known constructions use more structured trapdoor assumptions, while later papers distinguish this rigidity guarantee from basis hiding and composable simulation. The selected model is an explicit editorial interpretation of the broad source question, and checked oracle barriers do not refute its full standard-model existence implication.
+
+[Read in atlas](index.html#TCS-2408) · [Quantum Cryptography with Classical Communication: Parallel Remote State Preparation for Copy-Protection, Verification, and More](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2023.67) · [Quantum cryptography with classical communication: parallel remote state preparation for copy-protection, verification, and more — full version](https://arxiv.org/abs/2201.13445v2) · [Formulations and Constructions of Remote State Preparation with Verifiability, with Applications](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2025.96) · [On the Power of Oblivious State Preparation](https://link.springer.com/chapter/10.1007/978-3-032-01878-6_19) · [A Modular Approach to Succinct Arguments for QMA](https://arxiv.org/abs/2606.10408v1) · [Impossibility of Perfectly Complete Many-Round Key Agreement in the QROM](https://arxiv.org/abs/2608.03824v1) · [Towards the Impossibility of Imperfectly Complete Key Agreement in the QROM](https://arxiv.org/abs/2608.17610v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-4811 — Efficient approximation of the optimal dihedral measurement
 
 The selected question asks for efficient approximation of one explicitly defined optimal quantum measurement. Its input space contains several dihedral coset-state registers, and its outcomes are candidate hidden shifts plus a complementary outcome. The measurement is defined by the inverse square root of the sum of the ensemble states, with an explicit convention on its kernel. The required circuit must reproduce its outcome distribution uniformly on valid inputs to any requested inverse-polynomial accuracy. Known subset-sum connections constrain particular unitary implementations and do not establish hardness for every measurement circuit.
@@ -2780,13 +2794,6 @@ The question asks whether every quantum-verifiable problem has a short classical
 
 [Read in atlas](index.html#TCS-1324) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15) · [The status of the quantum PCP conjecture (games version)](https://arxiv.org/abs/2403.13084v1)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-2408 — Remote state preparation from quantum-secure one-way functions
-
-Remote state preparation lets a classical party induce useful quantum states at another device through an interactive protocol. The cited construction obtains this functionality from a Learning With Errors assumption and uses it to replace quantum communication in cryptographic protocols. This question asks whether quantum-secure one-way functions alone could support a sufficiently strong version of the same primitive. The source explains that such a construction would have further consequences for secure two-party computation with classical communication. The goal is to identify the minimum cryptographic assumptions behind remote preparation, including a possible impossibility result for the proposed weakening.
-
-[Read in atlas](index.html#TCS-2408) · [Quantum Cryptography with Classical Communication: Parallel Remote State Preparation for Copy-Protection, Verification, and More](https://doi.org/10.4230/LIPIcs.ICALP.2023.67)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2707 — Quantum partition functions from zero-freeness
 
