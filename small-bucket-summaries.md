@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-609 five-sentence working summaries, based on saved source material.
+608 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -175,6 +175,13 @@ A disjoint NP pair consists of two nonoverlapping sets of binary strings, each w
 [Read in atlas](index.html#TCS-7273) · [Incompleteness in the finite domain](https://arxiv.org/abs/1601.01487v2) · [P-Optimal Proof Systems for Each NP-Set but no Complete Disjoint NP-Pairs Relative to an Oracle](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2019.47) · [Recursive Jump Operators and Optimal Proof Systems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.88)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6759 — PSPACE-completeness of resolution clause space
+
+Resolution clause space counts how many clauses must coexist while a contradiction is derived. The selected decision problem takes an arbitrary CNF formula and a binary space budget and asks whether any general resolution refutation fits that budget. Intermediate clauses may be reused and proof length is unrestricted. The problem is known to lie in PSPACE, while the established tree-like completeness result does not settle hardness for general resolution. A classification would explain the computational difficulty of predicting the intrinsic memory needed for proof search.
+
+[Read in atlas](index.html#TCS-6759) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Game Characterizations and the PSPACE-Completeness of Tree Resolution Space](https://www.cs.toronto.edu/~ahertel/WebPageFiles/Papers/TCS%26PDGAME11.pdf) · [Proof Complexity and SAT Solving](https://doi.org/10.3233/FAIA200990) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.006)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6771 — Linear versus general resolution
 
 General resolution refutes a Boolean CNF by combining and reusing clauses in an arbitrary acyclic proof. Linear resolution without restarts keeps one main chain, using the preceding clause together with an input clause or an earlier main clause at every inference. The question asks whether this restriction causes a superpolynomial increase in refutation length on some formulas, with length counted by resolution inferences. The source definition requires an explicit correction to exclude restarts, and the bounded later review found no verified resolution of the intended same-formula comparison. A complete Lean answer must prove either failure of every polynomial size bound or one universal polynomial simulation, without an extra requirement to find the converted proofs efficiently.
@@ -217,6 +224,13 @@ The question asks whether every fixed-width CNF family with constant-clause-spac
 [Read in atlas](index.html#TCS-6768) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Space Characterizations of Complexity Measures and Size-Space Trade-Offs in Propositional Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.100) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.006)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-6770 — Cutting Planes versus polynomial-coefficient Cutting Planes
+
+Cutting Planes refutes Boolean formulas by deriving contradictions from integer linear inequalities. The question asks whether every such proof can be replaced by one whose length and coefficient magnitudes obey a single polynomial bound in input size plus original proof length. Proof lines may be reused and memory is unrestricted, so the target is an existential comparison of certificates rather than an efficient conversion algorithm. Known exponential-magnitude normalization and separations involving memory do not settle this polynomial-magnitude target. A resolution would clarify whether large numerical coefficients are an essential resource for short arithmetic proofs of Boolean inconsistency.
+
+[Read in atlas](index.html#TCS-6770) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Proof Complexity and SAT Solving](https://doi.org/10.3233/FAIA200990) · [Cutting planes, connectivity, and threshold logic](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/cuttingplanes/paper.pdf) · [Lifting with Simple Gadgets and Applications to Circuit and Proof Complexity](https://eccc.weizmann.ac.il/report/2019/186/) · [Superpolynomial Length Lower Bounds for Tree-Like Semantic Proof Systems with Bounded Line Size](https://eccc.weizmann.ac.il/report/2026/078/)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-1099 — Separating levels of bounded arithmetic
 
 The question asks whether two positive levels of Buss’s bounded-arithmetic hierarchy prove different sentences. Each level has the same basic arithmetic axioms but permits induction for a different class of bounded formulas. A solution may choose any two distinct positive levels and must prove an unconditional difference in their deductive strength. The full axiom list, formula grammar and induction scheme specify the theories without relying on an unstated standard model. Recent conditional separations do not provide the unconditional nonprovability witness required here.
@@ -243,6 +257,13 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A polynomial-time SAT search algorithm would return a satisfying assignment whenever one exists. The question asks whether the theory PV1 fails to prove correctness for every such polynomial-time function symbol. This is a statement about finite formal proofs, with the theory and formula encoding specified explicitly. It can hold even if a polynomial-time solver exists but its correctness has no proof in this particular theory. The benchmark requires a complete Lean proof of the nonprovability schema or a verified counterexample consisting of a symbol and a finite correctness proof.
 
 [Read in atlas](index.html#TCS-1098) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416v1) · [The strength of sharply bounded induction](https://www.math.cas.cz/~jerabek/papers/t02.pdf) · [A Theory for Probabilistic Polynomial-Time Reasoning](https://arxiv.org/abs/2602.09302v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-6767 — Sharp resolution length bounds at fixed width
+
+Resolution width is the largest clause used in a refutation, and length counts its clause lines. The question asks for linear-size 3-CNF families whose narrow refutations coexist with an almost full-width exponent lower bound on every refutation length. One absolute exponent loss must work for all sufficiently large fixed widths, while family constants may depend on width. Known exponential dependence on width and newer restricted-proof tradeoffs do not by themselves give this sharper unrestricted lower bound. A resolution would sharpen the fundamental cost of narrow reasoning in propositional proof search.
+
+[Read in atlas](index.html#TCS-6767) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913) · [Narrow Proofs May Be Maximally Long](https://jakobnordstrom.se/docs/publications/LargeNarrowProofs_ToCL.pdf) · [A Tradeoff Between Length and Width in Resolution](https://www.theoryofcomputing.org/articles/v012a005/) · [Supercritical Size-Width Tree-Like Resolution Trade-Offs for Graph Isomorphism](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.18) · [Truly Supercritical Trade-Offs for Resolution, Cutting Planes, Monotone Circuits, and Weisfeiler–Leman](https://jakobnordstrom.se/docs/publications/TrulySupercriticalTrade-offs_STOC.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0071 — \(\mathrm{NC}^{0}\) proof systems
@@ -300,27 +321,6 @@ The input is a CNF formula and a proof-length budget written in unary. The algor
 
 [Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1) · [Regular resolution effectively simulates resolution](https://doi.org/10.1016/j.ipl.2024.106489) · [Automating Resolution is NP-Hard](https://arxiv.org/abs/1904.02991) · [The Proof Analysis Problem](https://arxiv.org/abs/2506.16956)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6759 — PSPACE-completeness of resolution space
-
-Resolution clause space counts simultaneously retained clauses, whereas total space also reflects their sizes. The saved question asks whether deciding the corresponding bounded-space refutation problems is PSPACE-complete. A classification would separate memory needed to search for a space-efficient proof from memory used by the proof itself. The two measures can impose different constraints even on the same formula. The survey note records both decision questions historically, so a complete statement still needs the space-budget encoding and should not infer current completeness from the dated formulation alone.
-
-[Read in atlas](index.html#TCS-6759) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6767 — Resolution length–width tradeoffs
-
-Resolution length counts inference steps, while width measures the largest clause used. The saved question asks for unavoidable tradeoffs between these resources, including tight lower bounds at prescribed width. A proof may save steps by using broad clauses that summarize many possibilities at once. Sharp tradeoffs would explain when restricting that expressive capacity necessarily makes reasoning much longer. The survey entry collects several quantitative directions rather than supplying one formula family and bound, so the working summary preserves the scope without choosing an unsupported tradeoff curve.
-
-[Read in atlas](index.html#TCS-6767) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6770 — Cutting Planes versus polynomial-coefficient Cutting Planes
-
-Cutting Planes reasons with integer linear inequalities, and its coefficients can encode large numerical information. The subsystem CP* restricts coefficients to the source's polynomial scale. The saved question asks whether unrestricted coefficients make the proof system strictly stronger. A separation would show that numerical magnitude provides an essential reasoning resource beyond the number of inequalities. The survey summary does not preserve whether strength is compared by proof size or efficient simulation, so the desired relation and coefficient bit-accounting remain necessary parts of the later statement.
-
-[Read in atlas](index.html#TCS-6770) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Communication complexity and Boolean function analysis (33)
 
@@ -1035,7 +1035,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 [Read in atlas](index.html#TCS-6693) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (42)
+## Parameterized complexity and algorithms (41)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1175,13 +1175,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Directed Hamiltonicity asks whether a directed graph contains a cycle visiting every vertex exactly once. Orientation makes the order of traversal essential and prevents freely reversing a candidate connection. The saved entry places this exact search problem among questions about exponential and parameterized algorithms. A meaningful improvement would reduce the work needed to coordinate a single globally consistent cycle through all vertices. The inherited title supplies no parameter, graph promise, or target exponential base, so this draft identifies the task without inventing a particular conjectured bound.
 
 [Read in atlas](index.html#TCS-0801) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0805 — Exact Counting of Linear Extensions
-
-A linear extension is a total ordering consistent with all comparisons in a given partial order. The task is to count these compatible orderings exactly. This differs from finding one ordering, because the output must account for every possible way incomparable elements can interleave. Sharper algorithms would improve exact combinatorial counting for precedence systems and clarify its exponential complexity. The saved label does not specify the representation of the partial order, available structural parameters, or desired time-space bound, leaving those details for the later formulation.
-
-[Read in atlas](index.html#TCS-0805) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0816 — Shortest common superstring in \(O^*(1.99^n)\) time
@@ -1370,10 +1363,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6659 — Optimal polynomial-time approximation ratio for metric k-Median
 
-Metric k-Median selects at most k allowed facilities to minimize total client distance. The card asks for the infimum universal approximation ratio of randomized polynomial-time algorithms. The same algorithm must work for all input sizes at each fixed guarantee, with success probability at least two thirds. The familiar \(1+2/e\) target and the saved algorithmic bounds locate competing possibilities for this infimum. Lean acceptance requires absolute error at most 0.01, with any complexity assumptions stated explicitly.
+Metric k-Median selects at most k supplied facilities and minimizes the sum of distances from clients to their nearest selected facility. The target is the infimum approximation factor achievable by a uniform randomized polynomial-time algorithm on every finite rational metric input. Every execution must return a feasible set within polynomial bit time, and each input must receive the promised cost guarantee with probability at least two thirds. A complete Lean proof must determine this unconditional real infimum within absolute error one hundredth, including matching certified bounds without assuming that the infimum is attained. The current upper endpoint is two, while the coverage lower endpoint of one plus two divided by e is conditional on NP differing from RP; the checked2026 variants do not close this gap.
 
-[Read in atlas](index.html#TCS-6659) · [A \((2+\varepsilon )\)-Approximation Algorithm for Metric k-Median](https://people.idsia.ch/~grandoni/Pubblicazioni/CGLSS25stoc.pdf) · [A threshold of ln n for approximating set cover](https://disco.ethz.ch/alumni/pascalv/refs/ds_1998_feige.pdf) · [A new greedy approach for facility location problems](https://cgi.di.uoa.gr/~vassilis/co/co-papers/jain02.pdf) · [Tight FPT Approximations for k-Median and k-Means](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.42) · [Almost-Optimal Upper and Lower Bounds for Clustering in Low Dimensional Euclidean Spaces](https://arxiv.org/abs/2603.09846) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-6659) · [A \((2+\varepsilon )\)-Approximation Algorithm for Metric k-Median](https://arxiv.org/abs/2503.10972) · [A threshold of ln n for approximating set cover](https://courses.cs.duke.edu/cps296.2/spring07/papers/p634-feige.pdf) · [A new greedy approach for facility location problems](https://cgi.di.uoa.gr/~vassilis/co/co-papers/jain02.pdf) · [Tight FPT Approximations for k-Median and k-Means](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.42) · [Almost-Optimal Upper and Lower Bounds for Clustering in Low Dimensional Euclidean Spaces](https://arxiv.org/abs/2603.09846) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654) · [\(k\)-Clustering via Iterative Randomized Rounding](https://arxiv.org/abs/2604.06046)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7282 — Vertex Cover approximation below factor two
 
@@ -2281,12 +2274,12 @@ Bipartite Exact Matching asks for a perfect matching containing exactly a specif
 [Read in atlas](index.html#TCS-0611) · [Exact Matching: Algorithms and Related Problems](https://doi.org/10.4230/LIPIcs.STACS.2023.29) · [Bipartite Exact Matching in P](https://arxiv.org/abs/2604.01571v3)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0771 — Computational complexity of planar treewidth
+### TCS-0771 — Polynomial-time computation of planar treewidth
 
-Treewidth measures how a graph can be assembled from overlapping vertex bags arranged in a tree. This entry concerns the complexity of computing that quantity when the input graph is planar. Planarity limits how edges interact geometrically, but does not directly provide an optimal tree decomposition. A sharper complexity classification would clarify whether exact structural information can be obtained efficiently before running decomposition-based algorithms. The inherited title does not fix an approximation allowance or requested running time, so those choices remain unresolved in this working description.
+Treewidth is the minimum largest-bag size minus one among all tree decompositions of a finite graph. The question asks whether one deterministic polynomial-time algorithm can compute that integer exactly for every planar graph. The input is only the finite graph, without a planar embedding, a tree decomposition or a bound on its width. Inspected results on cubic-graph hardness, polynomial-delay enumeration and planar grid bounds do not establish that polynomial-time algorithm or its nonexistence. A complete Lean answer must prove the stated uniform algorithm and its bound or prove the full negation for all candidate machines and polynomial bounds.
 
-[Read in atlas](index.html#TCS-0771) · [Algorithms for Optimization Problems in Planar Graphs](https://doi.org/10.4230/DagRep.6.5.94)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0771) · [Algorithms for Optimization Problems in Planar Graphs](https://doi.org/10.4230/DagRep.6.5.94) · [A Polynomial Delay Algorithm Generating All Potential Maximal Cliques in Triconnected Planar Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2025.21) · [Treewidth Is NP-Complete on Cubic Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2023.7) · [An improved bound on the treewidth of planar graphs excluding a grid minor](https://arxiv.org/abs/2609.15596v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0594 — 3-colorability of diameter-two graphs
 

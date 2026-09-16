@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-403 five-sentence working summaries, based on saved source material.
+402 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (68)
@@ -1159,7 +1159,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (58)
+## Distributed, parallel and sublinear algorithms (57)
 
 ### TCS-6553 — P versus NC
 
@@ -1378,6 +1378,20 @@ Each fixed predicate family defines a maximum constraint-satisfaction problem. A
 [Read in atlas](index.html#TCS-0940) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/streamapprox.pdf) · [Sketching Approximability of All Finite CSPs](https://arxiv.org/abs/2105.01161) · [Optimal Single-Pass Streaming Lower Bounds for Approximating CSPs](https://eccc.weizmann.ac.il/report/2026/054/)
 Existing status: `uncertain` · Summary written: 2026-09-13
 
+### TCS-3075 — Parallel sampling of planar perfect matchings
+
+The input is a planar graph with at least one perfect matching, and the desired output is an almost uniform random perfect matching. The sampler must use polynomially many Boolean gates and polylogarithmic depth, with explicit dependence on the requested total-variation error. Failure probability counts toward the error and the circuit uses only independent fair random bits. Parallel counting and finding one matching do not themselves produce this distribution, while known faster samplers still have non-polylogarithmic parallel bounds. The problem tests a central boundary between counting and sampling under parallel resource constraints.
+
+[Read in atlas](index.html#TCS-3075) · [Sampling Arborescences in Parallel](https://doi.org/10.4230/LIPIcs.ITCS.2021.83) · [Quadratic Speedups in Parallel Sampling from Determinantal Distributions](https://arxiv.org/abs/2203.11190) · [Fast parallel sampling under isoperimetry](https://proceedings.mlr.press/v247/anari24a.html) · [Parallel Sampling via Autospeculation](https://arxiv.org/abs/2511.07869) · [Planar Perfect Matching Counting is as Hard as Determinants](https://arxiv.org/abs/2606.03975v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-4193 — LOCAL lower bounds for 2-ruling sets
+
+A 2-ruling set is independent and covers every graph vertex within distance two. The question asks whether every highly reliable randomized LOCAL algorithm needs a square-root-logarithmic number of rounds in the worst case. Messages and local computation are unrestricted, and success means that the entire output set is correct with probability at least one minus one over the number of vertices. Deterministic lower bounds and faster algorithms for sparse graph classes do not by themselves settle the selected randomized bound on general graphs. A resolution would clarify how a small relaxation of maximal independence changes distributed symmetry-breaking complexity.
+
+[Read in atlas](index.html#TCS-4193) · [Symmetry Breaking in the Congest Model: Time- and Message-Efficient Algorithms for Ruling Sets](https://doi.org/10.4230/LIPIcs.DISC.2017.38) · [Distributed Lower Bounds for Ruling Sets](https://arxiv.org/abs/2004.08282v4) · [Near-Optimal Distributed 2-Ruling Sets on Graphs with Low Arboricity](https://arxiv.org/abs/2606.11974v3)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-7337 — Register space of obstruction-free set agreement
 
 Each process proposes a value and must decide one of the values proposed by participating processes. At most k distinct values may be decided, and a process must finish if it continues alone long enough. The resource is the number of atomic read/write registers, whose individual capacities are unrestricted. Known bounds range from the ceiling of n/k to n-k+1; consensus and (n-1)-set agreement have exact values. The target is the full register-space function for all n>k>=1, with the atlas's pointwise 1/100-register acceptance tolerance.
@@ -1434,6 +1448,13 @@ The input is an arbitrary Boolean function on a binary vector space. A parity sk
 [Read in atlas](index.html#TCS-0950) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:78) · [Linear Sketching over F₂](https://doi.org/10.4230/LIPIcs.CCC.2018.8) · [Turnstile Streaming Algorithms Might (Still) as Well Be Linear Sketches, for Polynomial-Length Streams](https://arxiv.org/abs/2604.22052)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-3381 — Polynomial-state protocols for Presburger arithmetic
+
+A population protocol uses anonymous finite-state agents whose pairwise interactions eventually decide a predicate of their initial counts. The question asks whether every quantified Presburger formula has such a leaderless protocol with polynomially many states in the original formula size. Correctness requires permanent unanimous agreement on every globally fair execution, without a time bound. Known succinct protocols for quantifier-free formulas do not control the expansion caused by eliminating quantifiers. A resolution would separate or equate the succinctness of quantified logical specifications and anonymous finite-state distributed computation.
+
+[Read in atlas](index.html#TCS-3381) · [Succinct Population Protocols for Presburger Arithmetic](https://doi.org/10.4230/LIPIcs.STACS.2020.40) · [Fast and Succinct Population Protocols for Presburger Arithmetic](https://arxiv.org/abs/2202.11601v3) · [Population Protocols over Ordered Agents](https://doi.org/10.4230/LIPIcs.ICALP.2026.167)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0849 — Two-stage group testing with arithmetic progressions
 
 A hidden set of at most k positions must be identified by noiseless yes/no tests. Every first-stage pool must be an arithmetic progression fixed before any answers are seen. After receiving those answers, the scheme may query only O(k) individual positions in one final stage. The question asks whether O(k log n) first-stage tests suffice for every hidden set, improving the bound reported in the 2009 source by one logarithmic factor. The restriction models regularly spaced queries motivated by pattern matching, and unrestricted pooling results do not settle it.
@@ -1453,13 +1474,6 @@ Existing status: `uncertain` · Summary written: 2026-09-14
 A graph's degree distribution records how common vertices of different degrees are. The source entry asks how this distribution can be estimated without reading the entire graph. Sampling vertices uniformly and sampling endpoints of edges can produce different biases. An efficient estimator would summarize network structure while carefully accounting for the information supplied by the access model. The saved title does not specify allowed queries, additive or multiplicative accuracy, or how rare degrees are treated, so a precise sample-complexity target cannot yet be assigned.
 
 [Read in atlas](index.html#TCS-0834) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:98)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0836 — Non-Adaptive Group Testing
-
-Group testing identifies a small set of special items by querying whether selected pools contain any of them. A non-adaptive strategy chooses all pools before observing any answers. The saved question concerns the cost of achieving identification under that restriction. Determining the best constructions would clarify how much one loses by requiring tests to run simultaneously. The inherited label does not state whether answers are noisy, whether recovery is exact, or the number of special items, so the intended tradeoff among tests and error remains unspecified.
-
-[Read in atlas](index.html#TCS-0836) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:95)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1588 — Characterizing robustly computable predicates and functions
@@ -1483,20 +1497,6 @@ Strong Byzantine agreement requires correct processes to agree while preserving 
 [Read in atlas](index.html#TCS-2753) · [Make Every Word Count: Adaptive Byzantine Agreement with Fewer Words](https://doi.org/10.4230/LIPIcs.OPODIS.2022.18)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3075 — RNC sampling for determinant-counted objects
-
-Several combinatorial families admit determinant formulas that make counting possible in efficient parallel complexity classes. Producing a random object from those families is harder to parallelize because standard counting-to-sampling reductions make sequential choices. After giving an RNC sampler for directed rooted spanning trees, the source asks for analogous samplers for the remaining determinant-counted structures. Examples include planar perfect matchings, determinantal point processes, and Eulerian tours, whose connection to arborescences does not immediately yield a parallel reduction. Resolving these cases would explain whether fast parallel counting can generally be converted into equally parallel random generation.
-
-[Read in atlas](index.html#TCS-3075) · [Sampling Arborescences in Parallel](https://doi.org/10.4230/LIPIcs.ITCS.2021.83)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3381 — Polynomial-state protocols for Presburger arithmetic
-
-Population protocols compute through repeated interactions of finite-state agents. Presburger arithmetic describes exactly the predicates expressible by these protocols, but equivalent representations can have very different sizes. The question asks whether every arithmetic formula, including quantified ones, has a protocol with only polynomially many states in its formula length. The source distinguishes existence of such a compact protocol from the complexity of constructing it. The project studies representational succinctness at the interface between logical specifications and distributed computation.
-
-[Read in atlas](index.html#TCS-3381) · [Succinct Population Protocols for Presburger Arithmetic](https://doi.org/10.4230/LIPIcs.STACS.2020.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3384 — Approximate matching and set packing in \(\mathrm{AC}^{0}\)
 
 Constant-depth \(\mathrm{AC}^{0}\) circuits offer a highly parallel but weak model of computation with unbounded-fan-in Boolean gates. The source asks whether they can output useful approximate matchings, and more generally approximate set packings. This is a search question about producing disjoint edges or sets, rather than merely estimating the optimum value. The paper obtains shallow-circuit approximations of packing size but explains why extracting an actual packing is a different obstacle, even on simple bipartite inputs. Resolving the search problem would distinguish numerical approximation from constructing compatible choices under severe limits on computational depth.
@@ -1517,13 +1517,6 @@ Set agreement lets n processes decide at most k proposed values. Its task has an
 
 [Read in atlas](index.html#TCS-3792) · [On Deterministic Linearizable Set Agreement Objects](https://doi.org/10.4230/LIPIcs.OPODIS.2019.16) · [On the Number of Objects with Distinct Power and the Linearizability of Set Agreement Objects](https://doi.org/10.4230/LIPIcs.DISC.2017.12) · [Life beyond set agreement](https://doi.org/10.1007/s00446-020-00372-5)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-4193 — LOCAL lower bounds for 2-ruling sets
-
-A two-ruling set is an independent set such that every graph vertex lies within distance two of a selected vertex. This relaxes maximal independent set, which requires domination already at distance one. The question asks whether established LOCAL-model round lower bounds for maximal independent set extend to two-ruling sets. Extra domination distance gives algorithms more freedom, so a lower bound must survive that relaxation rather than simply reuse an MIS instance. Resolving the comparison would show whether much of the symmetry-breaking difficulty lies in independence itself or in the stronger requirement to dominate immediate neighbors.
-
-[Read in atlas](index.html#TCS-4193) · [Symmetry Breaking in the Congest Model: Time- and Message-Efficient Algorithms for Ruling Sets](https://doi.org/10.4230/LIPIcs.DISC.2017.38)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4231 — Complexity of general subgraph detection
 
@@ -1977,12 +1970,12 @@ The average John theorem preserves squared distances on average after taking the
 [Read in atlas](index.html#TCS-0340) · [Computational Geometry](https://doi.org/10.4230/DagRep.11.4.1) · [An average John theorem](https://doi.org/10.2140/gt.2021.25.1631) · [Near Neighbor Search via Efficient Average Distortion Embeddings](https://doi.org/10.4230/LIPIcs.SoCG.2021.50) · [Average-Distortion Sketching](https://arxiv.org/abs/2411.05156v3)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-### TCS-0970 — Fast JL Transform for Sparse Vectors
+### TCS-0970 — Fast Johnson–Lindenstrauss transforms for sparse vectors
 
-A Johnson-Lindenstrauss transform maps a vector into fewer dimensions while approximately preserving its Euclidean length with high probability. The target dimension is O(\(\log (1/\mathrm{P})\) divided by epsilon squared) for failure probability P and error epsilon. The source asks for applying the transform to an s-sparse input in time roughly s plus the output dimension, up to polylogarithmic factors. It also asks for an explicit distribution generated from only \(O(\log (d/\mathrm{P}))\) random bits. The project combines fast multiplication, optimal dimensional reduction, and a compact random seed rather than optimizing any one resource alone.
+A Johnson–Lindenstrauss map reduces dimension while approximately preserving the length of each fixed vector with high probability. The question asks for the optimal output dimension together with application time proportional to input sparsity plus output length, up to logarithms of the ambient dimension. The map is chosen independently of the input, and the guarantee must hold for all distortion and failure-probability parameters. Known sparse and fast structured transforms do not by themselves provide this full combination, and the separate short-seed objective has been removed. A resolution would clarify whether geometric compression can be performed almost at the cost of reading and writing sparse data.
 
-[Read in atlas](index.html#TCS-0970) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:46)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0970) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:46) · [Open Problems in Data Streams, Property Testing, and Related Topics](https://people.cs.umass.edu/~mcgregor/papers/11-openproblems.pdf) · [Sparser Johnson-Lindenstrauss Transforms](https://arxiv.org/abs/1012.1577) · [The Fast Johnson-Lindenstrauss Transform Is Even Faster](https://proceedings.mlr.press/v202/fandina23a.html) · [Sparse Dimensionality Reduction Revisited](https://arxiv.org/abs/2302.06165v1) · [Optimal Confidence Bounds for Sparse Random Projections](https://link.springer.com/article/10.1007/s10994-026-07057-3)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0409 — Minimum-Link Path in 2D
 
