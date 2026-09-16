@@ -5,15 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **239**.
+Pending active reviews: **233**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-3384](../../data/cards/TCS-3384.json) | Approximate matching and set packing in \(\mathrm{AC}^{0}\) | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-4231](../../data/cards/TCS-4231.json) | Complexity of general subgraph detection | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-6206](../../data/cards/TCS-6206.json) | Clique detection in CONGEST | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-6380](../../data/cards/TCS-6380.json) | Load-optimal parallel natural joins | Distributed, parallel and sublinear algorithms | pool |
-| [TCS-5015](../../data/cards/TCS-5015.json) | Foundations of quantum cryptography from EFI pairs | Cryptography | pool |
 | [TCS-5793](../../data/cards/TCS-5793.json) | Pseudorandom functions from hardness of learning | Cryptography | pool |
 | [TCS-6692](../../data/cards/TCS-6692.json) | Linear-seed pseudorandom generators from one-way functions | Cryptography | pool |
 | [TCS-6871](../../data/cards/TCS-6871.json) | Fully homomorphic encryption from worst-case hardness | Cryptography | pool |
@@ -27,7 +22,6 @@ Pending active reviews: **239**.
 | [TCS-0279](../../data/cards/TCS-0279.json) | Extraction of mutual information about two strings | Computability and algorithmic information | pool |
 | [TCS-2202](../../data/cards/TCS-2202.json) | NP-hardness of conditional polynomial-time pKt | Computability and algorithmic information | pool |
 | [TCS-5010](../../data/cards/TCS-5010.json) | Unconditional coding theorem for randomized Kolmogorov complexity | Computability and algorithmic information | pool |
-| [TCS-6105](../../data/cards/TCS-6105.json) | Computability of the Mandelbrot set | Computability and algorithmic information | pool |
 | [TCS-0220](../../data/cards/TCS-0220.json) | External Information and Amortized Expected Communication | Communication complexity and Boolean function analysis | pool |
 | [TCS-1059](../../data/cards/TCS-1059.json) | Linearizing arbitrary depth-two circuits efficiently | Communication complexity and Boolean function analysis | pool |
 | [TCS-0540](../../data/cards/TCS-0540.json) | Communication Complexity of Max-Flow | Communication complexity and Boolean function analysis | pool |

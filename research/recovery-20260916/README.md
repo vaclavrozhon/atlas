@@ -167,8 +167,31 @@ inventing a replacement theorem or asserting an independent proof certification.
 The formula check after the flow revision covered 32,842 expressions.
 Local publication after the extraction disposition is f32f911c47c43a0f6a84.
 
-Four further scope questions are pending user answers, recorded in
-pending-scope-choices.json. Their reservations remain visible in the runtime
-claims file. Source checkpoint 3cad09e0 covers the first twenty-nine
+The subsequent scope choices are recorded in pending-scope-choices.json.
+Source checkpoint 3cad09e0 covers the first twenty-nine
 dispositions and was pushed; the corresponding live publication is
 157b4940117c617de4e8, deployment fdcc46bcd4b751ecda0334075f2ca3bc087b8180.
+
+After thirty-six dispositions the queue contains 680 completed records,
+234 pending records and one outside active scope. Of 1,014 active cards,
+780 have completed individual reviews. The five additional scope answers
+have all been applied: TCS-3384 asks for a polynomial-in-optimum graph matching;
+TCS-5015 is archived intact after consolidation into TCS-1961;
+TCS-4231 retains its historical threshold and is archived after source-proof
+review; TCS-6380 keeps general-message MPC; TCS-6206 asks for the full
+bandwidth-sensitive detection complexity within absolute constant factors.
+The latest local publication is 0f4deb40d0da6d6998e9. All completed queue hashes
+match their saved outputs and all review ledger lines parse.
+Source checkpoint 51c2ef28 covers the first thirty-one dispositions and was
+pushed; live deployment d4b225ce0036cfba2c6d44b8620b12fde7a02275 covers that
+checkpoint with publication f32f911c47c43a0f6a84.
+
+The thirty-seventh completion, TCS-6105, fixes the unconditional Mandelbrot
+compact-set computability question, with all-precision Hausdorff approximation
+and a checked conditional-result comparison through MFCS 2025. The queue is
+now 681 completed, 233 pending and one outside active scope; 781 of 1,014
+active cards are reviewed. Local publication is a3cc11a1ebe6f219d18a.
+The offline checks passed through completion thirty-six, as did the formula
+check on 32,966 expressions. A new source-scope choice for TCS-6692 is pending;
+the original quantitative-security and newer black-box formulations are not
+silently conflated.
