@@ -660,3 +660,22 @@ Existing scores and categories were preserved.
 Checkpoint twenty-seven was committed as dc29b313 and verified live at
 13a3e773d70ccc2fc344. Individual source review and input-hash claims precede
 every completion; structural and browser checks do not certify mathematics.
+
+Checkpoint twenty-nine brings this process to 119 completed reviews:
+108 retained active cards, eleven retirements and 48 new importance assessments.
+Existing scores and categories were preserved.
+
+- TCS-5341: selected the source-supported cryptographic HSG-to-PRG existence
+  implication, with nontrivial stretch, negligible bounds and general circuit tests.
+- TCS-1141: retained near-linear constant-factor reachability diameter for general
+  unweighted directed graphs, separating DAG and conditional small-factor results.
+- TCS-7292: specified the exact simplicial encoding and PL manifold promise for
+  polynomial-time 3-sphere recognition; checked the 2026 direct open question.
+- TCS-6937: specified the randomized integer-weight APSP hypothesis with the
+  explicit for-each-saving/exists-weight-exponent quantifier order from 2026.
+
+Checkpoint twenty-eight was committed as e562cc02. Its live successor
+973134a05fef8da971fe retained all 104 active reviewed cards exactly and all eleven
+retirements, with identical reader assets. The user selected the precisely sourced
+forward direction for TCS-5287 before its completion. Individual mathematical
+source review remains separate from structural and rendering verification.
