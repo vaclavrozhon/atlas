@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-405 five-sentence working summaries, based on saved source material.
+404 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -2012,14 +2012,14 @@ The cut cone consists of nonnegative combinations of cut metrics and provides a 
 [Read in atlas](index.html#TCS-6880) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Learning theory (37)
+## Learning theory (36)
 
 ### TCS-6541 — Linear-size sample compression
 
-Sample compression represents a labeled training set by retaining only a few examples and a bounded amount of extra information. A fixed reconstruction rule must recover a hypothesis agreeing with every original training label whenever the sample is realizable. This project asks whether every binary class of VC dimension d admits a scheme whose total charged size is proportional to d. The question concerns the number of retained examples and side-information bits, not the ordinary bit length of the examples themselves. A linear bound would connect the statistical capacity measured by VC dimension with a comparably small combinatorial explanation of every realizable sample.
+Sample compression keeps labeled examples and a short side message from which a fixed decoder recovers every original training label. The conjecture asks for a bound linear in VC dimension, uniformly across all Boolean concept classes. This card counts both retained examples and side bits, and permits arbitrary predictors and unlimited computation. The general known upper bound is exponential, while recent structured results and an embedding obstruction do not close that gap. A complete Lean answer must prove the universal linear bound or rule it out for some classes, and the withdrawn 2026 claim supplies no resolution.
 
 [Read in atlas](index.html#TCS-6541) · [Sample compression schemes for VC classes](https://arxiv.org/abs/1503.06960v2) · [Dual VC Dimension Obstructs Sample Compression by Embeddings](https://proceedings.mlr.press/v247/chase24a.html) · [Sample Compression Scheme Reductions](https://proceedings.mlr.press/v272/attias25a.html) · [Sample compression schemes for balls in structurally sparse graphs](https://arxiv.org/abs/2604.02949v1) · [The No-Clash Teaching Dimension is Bounded by VC Dimension (withdrawn)](https://arxiv.org/abs/2603.23561v4)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6542 — Learning parity with noise in polynomial time
 
@@ -2208,13 +2208,6 @@ Existing status: `open` · Summary written: 2026-09-12
 Agnostic halfspace learning seeks a classifier whose error nearly matches the best linear threshold rule, even when labels do not follow any halfspace. This question fixes the unlabeled distribution to be Gaussian and asks for the optimal running time as dimension and target excess error vary. The source specifically proposes a running time whose exponent in the dimension grows only logarithmically with inverse error. It supports that target with a conditional lower bound derived from learning sparse parities with noise. Matching the proposed rate would identify a precise computational price for handling arbitrary label noise under a highly regular input distribution.
 
 [Read in atlas](index.html#TCS-4592) · [Embedding Hard Learning Problems Into Gaussian Space](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.793)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5061 — Computable PAC learning versus effective sample bounds
-
-Computable PAC learning requires an actual algorithm producing hypotheses with the usual distribution-free statistical guarantee. Strong computable PAC learning additionally requires a computable bound on the sample size needed for a requested accuracy and confidence. The source asks whether a hypothesis class can admit a proper computable PAC learner while admitting no proper learner with such an effective sample bound. Any separating class would force the necessary sample-complexity behavior beyond computable upper bounds in the sense developed there. The question tests whether effective prediction and effective knowledge of when prediction becomes reliable are distinct requirements.
-
-[Read in atlas](index.html#TCS-5061) · [On characterizations of learnability with computable learners](https://proceedings.mlr.press/v178/sterkenburg22a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5087 — Polynomial-time robust spectral estimation
@@ -2557,6 +2550,13 @@ Quantum channel capacity describes the best asymptotic rate for transmitting qua
 [Read in atlas](index.html#TCS-6520) · [The private classical capacity and quantum capacity of a quantum channel](https://arxiv.org/abs/quant-ph/0304127) · [Continuity of quantum channel capacities](https://arxiv.org/abs/0810.4931) · [Unbounded number of channel uses may be required to detect quantum capacity](https://www.nature.com/articles/ncomms7739) · [Undecidability in Physics: a Review](https://arxiv.org/abs/2410.16532) · [Undecidability in physics: A review — journal version](https://doi.org/10.1016/j.physrep.2025.06.004) · [On the undecidability of quantum channel capacities](https://arxiv.org/abs/2601.22471)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-3709 — Quantum query-to-communication lifting
+
+A lifting theorem would turn the quantum query complexity of a Boolean promise problem into the communication complexity of a composed two-party problem. The question asks for one gadget per input length that works for every partial outer function. Both complexity measures should agree up to common polylogarithmic factors. The communication model allows arbitrary prior entanglement and an unrestricted number of rounds. Known bounded-round, adversary and hybrid lifting results leave this general bounded-error transfer open in the checked 2026 source.
+
+[Read in atlas](index.html#TCS-3709) · [Quantum Distinguishing Complexity, Zero-Error Algorithms, and Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.TQC.2019.2) · [CS 860: Quantum Lower Bounds — Week 8, Communication Complexity Basics](https://cs.uwaterloo.ca/~s4bendav/CS860/CS860S20week8.pdf) · [On Query-To-Communication Lifting for Adversary Bounds](https://doi.org/10.4230/LIPIcs.CCC.2021.30) · [A Lifting Theorem for Hybrid Classical-Quantum Communication Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.155)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-6521 — Dihedral hidden subgroup problem in BQP
 
 The dihedral hidden subgroup problem presents a function that is constant on cosets of an unknown subgroup of a dihedral group. The task is to recover generators for that subgroup using quantum access to the function. The target is a uniform algorithm whose total running time is polynomial in the length of the group description and oracle values. Counting only a small number of oracle queries is insufficient if processing the resulting quantum information is expensive. An efficient solution would extend the reach of hidden-subgroup methods beyond the abelian setting and illuminate connections with lattice-related algorithmic problems.
@@ -2578,6 +2578,13 @@ QMA(2) receives two quantum witnesses that are promised unentangled across a spe
 [Read in atlas](index.html#TCS-2229) · [Quantum Merlin-Arthur and Proofs Without Relative Phase](https://doi.org/10.4230/LIPIcs.ITCS.2024.9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimization](https://doi.org/10.1145/2432622.2432625) · [A quantum oracle separation between QMA(2) and QMA](https://arxiv.org/abs/2609.02865v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-4753 — \(\mathrm{QMA}(2)\) versus NEXP
+
+The question asks whether polynomial-time verification of two unentangled polynomial-length quantum proofs captures nondeterministic exponential time. It compares ordinary promise classes with a fixed constant acceptance gap and no oracle or advice. NEXP already contains QMA(2), so the unresolved direction is verification of every NEXP promise problem by the two-proof model. Exponentially small-gap and nonnegative-amplitude variants have stronger known characterizations that do not automatically transfer to this model. Recent amplification and oracle results retain those distinctions and do not establish ordinary QMA(2) equals NEXP.
+
+[Read in atlas](index.html#TCS-4753) · [Quantum Space, Ground Space Traversal, and How to Embed Multi-Prover Interactive Proofs into Unentanglement](https://doi.org/10.4230/LIPIcs.ITCS.2023.53) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimization](https://doi.org/10.1145/2432622.2432625) · [Quantum Merlin-Arthur and Proofs Without Relative Phase](https://doi.org/10.4230/LIPIcs.ITCS.2024.9) · [Near-Optimal Gap Amplification for Nonnegative Unentangled Quantum Proofs](https://arxiv.org/abs/2608.07986v1) · [A quantum oracle separation between QMA(2) and QMA](https://arxiv.org/abs/2609.02865v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0029 — Maximum randomized-versus-quantum gap for total functions
 
 The question asks for the largest polynomial quantum query advantage over randomized algorithms on total Boolean functions. Both models must answer correctly with probability at least two thirds on every input. Only queries to input bits are counted, with other computation and workspace unrestricted. Known results put the optimal separation exponent between three and four. The target is to certify that exponent within one hundredth, without resolving finer logarithmic factors.
@@ -2587,10 +2594,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6449 — Quantum versus classical nonuniform advice
 
-Advice is information supplied in advance that depends on input length but must work for every input of that length. A quantum algorithm might receive a polynomial-size quantum advice state or only a polynomial-length classical string. The question is whether quantum advice allows it to decide more languages efficiently than classical advice does. Advice is nonuniform and need not be efficiently generated, so the comparison concerns its information content rather than its preparation cost. A separation or simulation would reveal how much computational value can be carried by a reusable description of a length-specific quantum state.
+Quantum and classical advice supply information fixed for an entire input length to an efficient quantum computation. The selected advice must decide every binary input of that length correctly with bounded error, and can be arbitrarily hard to prepare. The question asks whether quantum advice increases the resulting ordinary class of total languages. A known simulation by PP with classical advice uses a different error and computation model, while successive oracle separations retain their black boxes. The latest standard classical-oracle separation does not resolve the ordinary equality, and fresh-copy advice remains distinct from untrusted per-instance witnesses.
 
-[Read in atlas](index.html#TCS-6449) · [Separating Quantum and Classical Advice with Good Codes](https://eccc.weizmann.ac.il/report/2026/020/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6449) · [Separating Quantum and Classical Advice with Good Codes](https://eccc.weizmann.ac.il/report/2026/020/) · [Limitations of Quantum Advice and One-Way Communication](https://arxiv.org/abs/quant-ph/0402095) · [Quantum Versus Classical Proofs and Advice](https://theoryofcomputing.org/articles/v003a007/) · [Classical vs Quantum Advice and Proofs Under Classically-Accessible Oracle](https://doi.org/10.4230/LIPIcs.ITCS.2024.72)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0033 — Quantum query complexity versus bounded approximate degree
 
@@ -2725,13 +2732,6 @@ A StoqMA verifier uses classical reversible gates, special initial ancillas and 
 [Read in atlas](index.html#TCS-3275) · [StoqMA Meets Distribution Testing](https://doi.org/10.4230/LIPIcs.TQC.2021.4) · [StoqMA vs. MA: the power of error reduction](https://doi.org/10.22331/q-2025-09-11-1853) · [The power of unentanglement without destructive interference](https://arxiv.org/abs/2604.27886) · [The Collapse of Unentangled Stoquastic Merlin-Arthur Proof Systems](https://arxiv.org/abs/2605.16249)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3709 — Lifting quantum query complexity to communication
-
-A lifting theorem transfers a lower bound for querying one input into a lower bound for communication between parties holding separate inputs. The transfer usually composes the original function with a small communication gadget. This question asks for such theorems for bounded-error and zero-error quantum query complexity. Simulating a query algorithm by communication is often straightforward, but proving that every communication protocol pays the corresponding cost is much harder. A quantum lifting theorem would let techniques for black-box algorithms establish communication lower bounds for a much wider family of problems.
-
-[Read in atlas](index.html#TCS-3709) · [Quantum Distinguishing Complexity, Zero-Error Algorithms, and Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.TQC.2019.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4457 — Simulation or postselection universality for algebraic two-qubit interactions
 
 A fixed two-qubit interaction generates circuits by evolving selected ordered pairs for specified times. Every circuit begins in a computational-basis state and ends with computational-basis measurement. The chosen dichotomy asks for efficient classical approximate sampling or full PP decision power with postselection. The variant makes all matrix constants, time encodings, sampling accuracy and conditioning probabilities explicit. Commuting-interaction results and analog Hamiltonian simulations do not by themselves classify this unrestricted circuit model.
@@ -2759,13 +2759,6 @@ A perfectly complete quantum proof system accepts some valid witness with probab
 
 [Read in atlas](index.html#TCS-4737) · [Towards a Universal Gateset for QMA1](https://doi.org/10.4230/LIPIcs.MFCS.2026.98)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4753 — \(\mathrm{QMA}(2)\) versus NEXP
-
-Two unentangled quantum proofs can impose structure that a single unrestricted witness does not provide. This record asks whether the resulting class \(\mathrm{QMA}(2)\) has the full power of nondeterministic exponential time. The source reviews protocols compressing satisfiability witnesses and amplification techniques that exploit product-state testing. Those achievements do not by themselves establish the proposed equality with NEXP. Determining the class would reveal how much complexity can be hidden in a promise that independently supplied quantum messages share no entanglement.
-
-[Read in atlas](index.html#TCS-4753) · [Quantum Space, Ground Space Traversal, and How to Embed Multi-Prover Interactive Proofs into Unentanglement](https://doi.org/10.4230/LIPIcs.ITCS.2023.53)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-4789 — Collapse of the quantum-classical polynomial hierarchy
 

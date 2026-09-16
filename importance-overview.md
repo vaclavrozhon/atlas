@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-823 records have an editorial importance assessment; 219 remain provisional.
+827 records have an editorial importance assessment; 214 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 41; importance 
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance assessed: 26; provisional: 12.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 37; importance assessed: 26; provisional: 11.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 31; importance 
 
 ## 10. Quantum computation and information (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 55; importance assessed: 35; provisional: 20.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 55; importance assessed: 37; provisional: 18.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -246,7 +246,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 
 ## 5. Pseudorandomness and derandomization (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance assessed: 29; provisional: 13.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance assessed: 30; provisional: 12.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -254,12 +254,12 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance 
 | 2 | [Optimal explicit pseudorandom generators for read-once branching programs](index.html#TCS-6600) | 97 |
 | 3 | [L versus BPL](index.html#TCS-0026) | 97 |
 | 4 | [Optimal deterministic restricted-isometry matrices](index.html#TCS-6662) | 95 |
-| 5 | [Two-source extraction at log n plus constant entropy](index.html#TCS-7271) | 92 |
-| 6 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 90 |
-| 7 | [Linear-seed hardness-to-randomness sampling](index.html#TCS-1018) | 86 |
-| 8 | [Seeded extraction with constant total entropy loss](index.html#TCS-1015) | 83 |
-| 9 | [Extraction with log n plus constant seed length](index.html#TCS-1016) | 83 |
-| 10 | [Universal determinant evaluations for bipartite matching](index.html#TCS-1006) | 82 |
+| 5 | [Uniform PRGs from exponential-time hardness](index.html#TCS-6696) | 92 |
+| 6 | [Two-source extraction at log n plus constant entropy](index.html#TCS-7271) | 92 |
+| 7 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 90 |
+| 8 | [Linear-seed hardness-to-randomness sampling](index.html#TCS-1018) | 86 |
+| 9 | [Seeded extraction with constant total entropy loss](index.html#TCS-1015) | 83 |
+| 10 | [Extraction with log n plus constant seed length](index.html#TCS-1016) | 83 |
 
 ## 6. Parameterized complexity and algorithms (small)
 
@@ -528,7 +528,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 4; importance a
 
 ## 22. Constraint satisfaction (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 11; provisional: 8.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 12; provisional: 7.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -538,10 +538,10 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance 
 | 4 | [Search-to-decision equivalence for finite promise CSPs](index.html#TCS-6675) | 96 |
 | 5 | [Hardness of 6-coloring 3-colorable graphs](index.html#TCS-7237) | 94 |
 | 6 | [Exact exponential-time equivalence for nonnegative Boolean Max-CSP](index.html#TCS-3585) | 85 |
-| 7 | [Search tractability of BLP-solvable promise CSPs](index.html#TCS-1978) | 83 |
-| 8 | [Characterizing CSP languages with linear non-redundancy](index.html#TCS-0441) | 76 |
-| 9 | [Common polynomial exponent for tractable digraph CSPs](index.html#TCS-0504) | 76 |
-| 10 | [Polynomial kernels for Boolean MinCSP](index.html#TCS-0444) | 72 |
+| 7 | [Dichotomy for finite-domain restricted CSPs](index.html#TCS-1807) | 83 |
+| 8 | [Search tractability of BLP-solvable promise CSPs](index.html#TCS-1978) | 83 |
+| 9 | [Characterizing CSP languages with linear non-redundancy](index.html#TCS-0441) | 76 |
+| 10 | [Common polynomial exponent for tractable digraph CSPs](index.html#TCS-0504) | 76 |
 
 ## 23. Automated reasoning, rewriting and unification (small)
 

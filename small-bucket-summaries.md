@@ -662,12 +662,12 @@ The source asks for a fine-grained reduction from a Hitting Set problem to 3SUM.
 [Read in atlas](index.html#TCS-0560) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/finegrain.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0815 — Relation between permanent computation and SETH
+### TCS-0815 — Fine-grained comparability of permanent and SETH
 
-The permanent sums products of matrix entries over all permutations and is a central exact counting quantity. The saved question asks how its computation relates to the Strong Exponential Time Hypothesis. The intended connection concerns quantitative running-time limits, rather than just ordinary polynomial-time reductions. Establishing a sufficiently efficient reduction could translate improved permanent algorithms into consequences for satisfiability, or explain why that transfer fails. The index does not specify matrix entries, arithmetic model, or reduction direction, all of which are needed before asserting an exact exponential barrier.
+The permanent of a binary matrix counts its perfect matchings exactly. The source asks whether its exponential-time difficulty can be related to SETH in either direction. This card makes that comparison precise using deterministic oracle reductions that preserve a constant saving in the exponential rate. A reduction from SAT must preserve a saving uniform across clause widths, while the reverse direction may choose a fixed width for each saving. The preferred binary-matrix case and exact counting oracle are distinguished from general matrix variants, ordinary completeness and counting SAT.
 
-[Read in atlas](index.html#TCS-0815) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0815) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time — Relation between permanent computation and SETH](https://doi.org/10.4230/DagRep.3.8.40) · [Computations with Polynomial Evaluation Oracle: Ruling Out Superlinear SETH-Based Lower Bounds](https://doi.org/10.1137/1.9781611977912.73)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0761 — Time exponents for multiple-string LCS over fixed alphabets
 
@@ -775,6 +775,13 @@ A restricted-isometry matrix approximately preserves the Euclidean length of eve
 
 [Read in atlas](index.html#TCS-6662) · [Doubly transitive equiangular tight frames that contain regular simplices](https://www.sciencedirect.com/science/article/pii/S0024379525003143) · [The road to deterministic matrices with the restricted isometry property](https://www.math.ucdavis.edu/~strohmer/courses/270/road_to_rip.pdf) · [Explicit constructions of RIP matrices and related problems](https://arxiv.org/abs/1008.4535) · [Satisfying the restricted isometry property with the optimal number of rows and slightly less randomness](https://arxiv.org/abs/2311.07889)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6696 — Uniform PRGs from exponential-time hardness
+
+The hypothesis says that some exponential-time language resists randomized subexponential-time algorithms. The question asks whether this uniform hardness yields a single generator with only polylogarithmically many seed bits. Its output must fool each fixed linear-time probabilistic distinguisher on infinitely many output lengths. The generator may take quasipolynomial time, but it must be uniform and independent of the distinguisher. Known low-end and more structured high-end results leave this general hardness-to-randomness implication distinct.
+
+[Read in atlas](index.html#TCS-6696) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Pseudorandomness and Average-Case Complexity via Uniform Reductions](https://people.seas.harvard.edu/~salil/research/uniform-cc.pdf) · [Unstructured Hardness to Average-Case Randomness](https://eccc.weizmann.ac.il/report/2022/097/) · [Derandomization vs. Lower Bounds for Arthur-Merlin Protocols](https://pages.cs.wisc.edu/~dieter/Papers/sdroievski-dissertation.pdf)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1005 — Unconditional subexponential simulation of BPP
 
@@ -1005,13 +1012,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 \(\mathrm{AC}0[2]\) circuits combine constant-depth Boolean operations with parity gates. The textbook asks for pseudorandom generators with subpolynomial seed length that fool this circuit class. Such a seed would be smaller than every fixed positive power of the relevant input length. The target would provide a strong form of unconditional derandomization for circuits capable of detecting algebraic correlations. The saved historical note does not specify size, depth, or error dependencies, and a merely sublinear seed does not automatically meet the stronger subpolynomial requirement.
 
 [Read in atlas](index.html#TCS-6693) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6696 — Uniform PRGs from exponential-time hardness
-
-EXP contains languages decidable in deterministic exponential time. The textbook asks for strong uniform pseudorandom generators from the assumption that EXP is not contained in randomized subexponential time. The premise expresses uniform algorithmic hardness rather than a lower bound against arbitrary circuits. Deriving a generator would clarify how much pseudorandomness follows from this broader type of computational difficulty. The saved note does not reproduce the generator parameters or simulation quantifiers, so the exact strength of the conclusion and the treatment of exceptional input lengths still need source recovery.
-
-[Read in atlas](index.html#TCS-6696) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6699 — AM versus NP
@@ -3876,6 +3876,13 @@ A Boolean Max-CSP instance asks for an assignment satisfying constraints of maxi
 [Read in atlas](index.html#TCS-3585) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.4230/LIPIcs.ESA.2020.63) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.1145/3624704)
 Existing status: `open` · Summary written: 2026-09-12
 
+### TCS-1807 — Dichotomy for finite-domain restricted CSPs
+
+A restricted CSP asks whether a finite input maps to a fixed finite target, under the promise that it maps to another fixed structure. The restriction structure may be infinite, but the source requires its finite-input CSP to be decidable. The question asks whether every such promise problem is polynomial-time solvable or NP-hard when P differs from NP. Hardness must hold for every decidable completion of the promised answers, and the known dichotomy only covers finite restrictions. A resolution would determine whether decidable homomorphism promises preserve the finite-domain dichotomy or allow intermediate behaviour.
+
+[Read in atlas](index.html#TCS-1807) · [Restricted CSPs and F-Free Digraph Algorithmics](https://doi.org/10.4230/LIPIcs.ICALP.2025.158) · [Restricted CSPs and F-free Digraph Algorithmics](https://arxiv.org/abs/2502.17596v1) · [A Proof of the CSP Dichotomy Conjecture](https://arxiv.org/abs/1704.01914v11)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-1978 — Search tractability of BLP-solvable promise CSPs
 
 A finite promise CSP asks for weakly satisfying assignments when a strongly satisfying assignment is promised. BLP can recognize the decision gap using compatible local probability distributions. The question asks whether every fixed template solved by that relaxation also has a deterministic polynomial-time search algorithm on the original promise. The algorithm may depend on the template and need not round every feasible point of the relaxation. A resolution would determine whether this major decision tractability criterion always yields efficient construction of promised solutions.
@@ -3916,13 +3923,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Valued CSPs optimize sums of local costs instead of merely asking whether all relations are satisfied. The temporal source asks whether \(VCSP(A)\) is polynomial-time solvable whenever A cannot pp-construct K3. Primitive-positive constructions transfer the structure responsible for hardness from one template to another. A positive theorem would turn the absence of this obstruction into an algorithmic tractability criterion. The saved question does not spell out the valued construction notion or permitted temporal cost functions, so an ordinary relational no-K3 criterion cannot automatically be substituted.
 
 [Read in atlas](index.html#TCS-1555) · [Temporal Valued Constraint Satisfaction Problems](https://doi.org/10.4230/LIPIcs.MFCS.2025.24)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1807 — Dichotomy for finite-domain restricted CSPs
-
-A restricted constraint satisfaction problem asks whether an input structure maps homomorphically to a fixed domain A, under a promise that it maps to another structure B. The domain is finite, while the structure imposing the restriction may be infinite. The question asks whether every such problem is either polynomial-time solvable or NP-hard. The source establishes a dichotomy when the restriction is finite by relating these problems to ordinary constraint satisfaction. Extending the classification would show whether infinite promises introduce intermediate computational behavior even when the allowed assignments still come from a finite domain.
-
-[Read in atlas](index.html#TCS-1807) · [Restricted CSPs and F-Free Digraph Algorithmics](https://doi.org/10.4230/LIPIcs.ICALP.2025.158)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3678 — Polynomial-time tractability testing for core crisp CSP languages
