@@ -1872,6 +1872,13 @@ The input gives rational planar points and a rational limit on the total length 
 [Read in atlas](index.html#TCS-7189) · [Minimum-weight triangulation is NP-hard](https://arxiv.org/abs/cs/0601002) · [Solving Large-Scale Minimum-Weight Triangulation Instances to Provable Optimality](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2018.44) · [Taming Infinity One Chunk at a Time: Concisely Represented Strategies in One-Counter MDPs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.138)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-0398 — Exact planar Euclidean maximum TSP
+
+The problem asks for an exactly longest closed Euclidean tour through rational points in the plane. The output is an ordering of all points, and edge crossings are allowed. One deterministic algorithm must run in time polynomial in the full binary length of all coordinates. Approximation schemes and exact algorithms for polygonal norms do not settle this Euclidean bit-complexity question. A resolution would clarify how the choice of geometry and exact arithmetic affects optimization complexity.
+
+[Read in atlas](index.html#TCS-0398) · [Problem 49: Planar Euclidean Maximum TSP](https://topp.openproblem.net/p49) · [The Geometric Maximum Traveling Salesman Problem](https://doi.org/10.1145/876638.876640) · [Two Algorithmic Results for the Traveling Salesman Problem](https://doi.org/10.1287/moor.21.1.65) · [Noncrossing Longest Paths and Cycles](https://doi.org/10.1007/s00373-025-02985-8)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0410 — Output-sensitive convex hull complexity
 
 An output-sensitive convex hull algorithm charges for both its input points and the facets it actually produces. The question asks for the best such running time for point sets in fixed-dimensional Euclidean space. Small hulls should be cheaper than the worst-case hull complexity would suggest. The difficult target is to reconcile reading the input, identifying extreme structure, and listing the output with nearly optimal overhead. Progress would improve geometric optimization whenever many input points contribute little to the final convex boundary.
@@ -1975,13 +1982,6 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 A Johnson-Lindenstrauss transform maps a vector into fewer dimensions while approximately preserving its Euclidean length with high probability. The target dimension is O(\(\log (1/\mathrm{P})\) divided by epsilon squared) for failure probability P and error epsilon. The source asks for applying the transform to an s-sparse input in time roughly s plus the output dimension, up to polylogarithmic factors. It also asks for an explicit distribution generated from only \(O(\log (d/\mathrm{P}))\) random bits. The project combines fast multiplication, optimal dimensional reduction, and a compact random seed rather than optimizing any one resource alone.
 
 [Read in atlas](index.html#TCS-0970) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:46)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0398 — Planar Euclidean Maximum TSP
-
-The maximum Euclidean traveling-salesman problem seeks the longest tour through a planar point set. Every point must be visited once before the tour closes, but long connections are rewarded rather than penalized. The source asks for the complexity of finding the exact optimum in the plane. Algorithms for polyhedral distance functions and hardness in higher-dimensional Euclidean space do not determine this intermediate case. The problem tests how the geometry of the distance function affects a familiar combinatorial optimization task.
-
-[Read in atlas](index.html#TCS-0398) · [The Open Problems Project](https://topp.openproblem.net/p49)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0409 — Minimum-Link Path in 2D

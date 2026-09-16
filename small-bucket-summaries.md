@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-609 five-sentence working summaries, based on saved source material.
+610 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -3014,10 +3014,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6677 — Isomorphism problem for one-relator groups
 
-Two group presentations can describe the same abstract group despite using different generators and relations. The reviewed question asks to decide isomorphism between arbitrary finite one-relator presentations. Candidate mutually inverse homomorphisms can be enumerated and checked using the known word algorithm. The missing ingredient is an effective way to stop when no such isomorphism exists. A solution would distinguish complete algebraic types within this concise presentation class, extending beyond equality and conjugacy questions about elements of one already fixed group.
+A finite one-relator presentation describes a group using finitely many generators and one explicitly written relation. The question asks for one algorithm deciding whether any two such presentations define isomorphic abstract groups, even with different generator counts. The answer must be exact and the algorithm must always terminate, but there is no running-time bound or geometric promise. A complete Lean proof must establish this uniform decision procedure or prove undecidability for the exact input class. Known hyperbolic and center subclasses, generic rigidity algorithms and the 2026 undecidability result for equations in fixed groups do not resolve the all-input comparison.
 
 [Read in atlas](index.html#TCS-6677) · [The theory of one-relator groups: history and recent progress](https://arxiv.org/abs/2501.18306) · [The isomorphism problem for all hyperbolic groups](https://arxiv.org/abs/1002.2590) · [Generic properties of Whitehead's Algorithm and isomorphism rigidity of random one-relator groups](https://arxiv.org/abs/math/0303386) · [Small Cancellation Stability and Isomorphism Rigidity for Generic Finitely Presented Groups](https://arxiv.org/abs/2608.17238) · [Undecidability of the Diophantine problem for one-relator groups and one-relation monoids](https://arxiv.org/abs/2608.01983)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7113 — Derandomizing polynomial identity testing
 
@@ -3369,7 +3369,7 @@ Multivariate polynomial factorization decomposes a polynomial into simpler multi
 [Read in atlas](index.html#TCS-6914) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Lattices and computational number theory (28)
+## Lattices and computational number theory (29)
 
 ### TCS-6571 — Hilbert’s tenth problem over the rationals
 
@@ -3439,6 +3439,13 @@ Existing status: `source_open` · Summary written: 2026-09-14
 An ideal in a power-of-two cyclotomic ring is a full integer lattice closed under multiplication by the ring. The selected question asks for a classical randomized polynomial-time algorithm returning an actual nonzero vector within a fixed polynomial factor of the shortest length. One program and fixed exponents must work for every dimension and every explicitly supplied ideal basis, with all preprocessing and output charged. This is an expressly labeled specialization of Peikert’s broad question about algorithmic advantages of ideal-lattice structure. Conditional quantum algorithms, easy prime-ideal classes and the new exact-hardness claims in other rings do not determine this all-ideals target.
 
 [Read in atlas](index.html#TCS-6863) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939) · [Mildly Short Vectors in Cyclotomic Ideal Lattices in Quantum Polynomial Time](https://ir.cwi.nl/pub/30736/) · [On the ideal shortest vector problem over random rational primes](https://par.nsf.gov/servlets/purl/10322409) · [Some Easy Instances of Ideal-SVP and Implications on the Partial Vandermonde Knapsack Problem](https://eprint.iacr.org/2022/709) · [Principal ideal problem and ideal shortest vector over rational primes in power-of-two cyclotomic fields](https://arxiv.org/abs/2601.07511) · [NP-hardness of ideal lattice problems](https://arxiv.org/abs/2609.15813) · [Euclidean SVP is NP-hard for Cyclic Lattices](https://arxiv.org/abs/2609.16711)
+Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7265 — Deterministic polynomial-time construction of a prime of a given bit length
+
+Given a requested bit length in unary, the task is to output the ordinary binary expansion of a prime with exactly that many bits. The question asks whether one fixed deterministic algorithm can do this for every length at least two in polynomial bit time. Primality testing is efficiently possible, while deterministic construction of a suitable candidate remains a central explicit-construction problem. Polynomial-time pseudodeterministic generation is known for infinitely many lengths, but that algorithm still uses randomness and does not meet the all-length deterministic requirement. A complete Lean answer must prove the existence of the required algorithm or prove that every deterministic program and polynomial bound fail at some requested length.
+
+[Read in atlas](index.html#TCS-7265) · [Theory and Applications of Probabilistic Kolmogorov Complexity](https://eccc.weizmann.ac.il/report/2022/081/) · [On Pseudodeterministic Approximation Algorithms](https://doi.org/10.4230/LIPIcs.MFCS.2018.61) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0659 — Stronger worst-case reductions to SIS and LWE
