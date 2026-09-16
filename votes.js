@@ -3,7 +3,7 @@
   'use strict';
   const api='https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/votes';
   const identityKey='tcs-atlas-voter-v1',cacheKey='tcs-atlas-votes-v1',pendingPrefix='tcs-atlas-vote-pending-v1:';
-  const validId=id=>/^(TCS-\d{4,}|GH-\d+|P-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/.test(id);
+  const validId=id=>/^(TCS-\d{4,}|GH-\d+)$/.test(id);
   const validVote=v=>v&&validId(v.problem_id)&&[-1,0,1].includes(v.value)&&Number.isSafeInteger(v.revision)&&v.revision>=0;
   const validTotal=v=>v&&validId(v.problem_id)&&[v.up,v.down].every(n=>Number.isSafeInteger(n)&&n>=0)&&v.score===v.up-v.down;
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

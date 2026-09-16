@@ -1469,12 +1469,12 @@ The output is a single estimate of the largest absolute coordinate of a streamed
 [Read in atlas](index.html#TCS-0985) · [Open Problem 3: L-infinity Estimation](https://sublinear.info/3) · [An Optimal Algorithm for l1-Heavy Hitters in Insertion Streams and Related Problems](https://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/bdw16.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-14
 
-### TCS-0834 — Estimating a Graph's Degree Distribution
+### TCS-0834 — Query complexity of the graph degree distribution
 
-A graph's degree distribution records how common vertices of different degrees are. The source entry asks how this distribution can be estimated without reading the entire graph. Sampling vertices uniformly and sampling endpoints of edges can produce different biases. An efficient estimator would summarize network structure while carefully accounting for the information supplied by the access model. The saved title does not specify allowed queries, additive or multiplicative accuracy, or how rare degrees are treated, so a precise sample-complexity target cannot yet be assigned.
+A graph’s cumulative degree histogram counts vertices above each degree threshold. The task is to estimate the entire histogram with ten-percent bicriteria error and simultaneous success probability at least two thirds. The algorithm knows only the number of vertices and may sample vertices, query degrees or sample neighbors. The target is the optimal expected query complexity as a function of the vertex count, edge count, h-index and minimum positive degree-times-tail count. Known bounds and recent stronger-oracle results do not provide the full constant-factor characterization in this information model.
 
-[Read in atlas](index.html#TCS-0834) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:98)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0834) · [Problem 98: Estimating a Graph's Degree Distribution](https://sublinear.info/index.php?title=Open_Problems:98) · [Provable and Practical Approximations for the Degree Distribution using Sublinear Graph Samples](https://arxiv.org/abs/1710.08607v3) · [Towards Tight Bounds for Estimating Degree Distribution in Streaming and Query Models](https://arxiv.org/abs/2507.21784v1)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1588 — Characterizing robustly computable predicates and functions
 
