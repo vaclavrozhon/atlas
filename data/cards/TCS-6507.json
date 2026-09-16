@@ -2,83 +2,92 @@
   "title": "Work-efficient parallel directed reachability",
   "area": "Distributed, parallel and sublinear algorithms",
   "criterion": "resources",
-  "formal": "Given an $n$-vertex, $m$-edge directed graph and a source $s$, is there a randomized shared-memory parallel algorithm that outputs every vertex reachable from $s$ using $\\widetilde O(n+m)$ total work and $(\\log n)^{O(1)}$ depth, with high probability? Both bounds must hold on arbitrary inputs, including sparse graphs with long directed paths. Work counts all primitive operations across processors; depth is the longest chain of dependent operations.",
-  "why": "I include this because reachability is one of the simplest linear-time sequential graph tasks, yet obtaining fast parallel time without wasting substantial work remains difficult. The two-resource formulation makes the goal precise: a faster wall-clock computation should not require polynomially more total computation.",
-  "definitions": "The model is a standard word-based PRAM/shared-memory parallel model, with $O(\\log n)$-bit words and concurrent access handled by standard PRAM conventions. Local primitive operations, auxiliary data construction, and shortcut generation count toward work. $\\widetilde O$ hides polylogarithmic factors. High probability means $1-n^{-c}$ for a requested fixed $c>0$. The output is reachability, not shortest-path distances.\n\nFor definiteness fix a CREW PRAM: concurrent reads are allowed, and concurrent writes to one cell are prohibited. Word operations are arithmetic, multiplication, bitwise operations, shifts, comparisons, and indirect addressing on a constant number of logarithmic-size words. The target permits the polylogarithmic overhead of simulating common alternative PRAM conventions.",
+  "formal": "Does directed single-source reachability admit nearly linear work and polylogarithmic depth simultaneously in the uniform randomized CREW PRAM model specified below? Precisely, is the following statement true?\n\\[\n\\forall c\\in\\mathbb N_{\\ge1}\\ \\exists A_c,K_c,a_c,b_c,q_c\\ \\forall n\\ge2\\ \\forall G\\ \\forall s\\in V(G),\n\\]\n\\[\n\\Pr\\!\\left[\\begin{array}{l}\nA_c(G,s)\\text{ terminates with the exact reachability indicator,}\\\\\nW\\le K_c(n+m)L^{a_c}\\ \\text{and}\\ D\\le K_cL^{b_c}\n\\end{array}\\right]\\ge1-n^{-c},\n\\]\nwhere \\(G\\) ranges over every directed graph on the labeled vertex set \\(\\{1,\\ldots,n\\}\\), \\(m=|E(G)|\\), and \\(L=\\lceil\\log_2(n+2)\\rceil\\)? Here \\(K_c\\ge1\\), \\(a_c,b_c\\ge0\\) and \\(q_c\\ge3\\) are integers independent of \\(n,G,s\\); \\(A_c\\) is one finite program independent of input size. The word length is \\(q_cL\\). The required event jointly bounds total work \\(W\\), depth \\(D\\), and correctness of the entire output on each fixed input. The confidence exponent is requested as a fixed constant before choosing the program. The one-vertex case has the prescribed output consisting of a single 1 and is omitted only to avoid a vacuous probability bound.",
+  "why": "Directed reachability is a basic graph operation with a linear-work sequential solution. The unresolved issue is whether its dependencies can be processed in polylogarithmic parallel time while retaining nearly that work bound on every input. A resolution would determine whether a fundamental sequential graph task admits efficient use of many processors, rather than a speedup purchased with polynomially more computation.",
+  "definitions": "Graphs are unweighted and directed. Their edge sets satisfy \\(E\\subseteq\\{1,\\ldots,n\\}^{2}\\); loops are allowed and repeated copies of an edge are absent. A vertex is reachable from \\(s\\) when there is a finite directed path from \\(s\\) to it, including the length-zero path. No assumption of strong connectivity, acyclicity, bounded diameter or a lower bound on \\(m\\) is imposed.\n\nThe input is an outgoing adjacency-array representation in shared read-only word memory. Cells 0, 1 and 2 contain \\(n,m,s\\). The next \\(n+1\\) cells contain offsets \\(o_0,\\ldots,o_n\\), with \\(0=o_0\\le\\cdots\\le o_n=m\\). The next \\(m\\) cells contain target labels \\(t_0,\\ldots,t_{m-1}\\). The outgoing neighbors of vertex \\(v\\) are exactly the distinct labels \\(t_j\\) for \\(o_{v-1}\\le j<o_v\\). Neighbor order is arbitrary. The output occupies the next \\(n\\) cells, one word for each vertex in label order: its value must be 1 for a reachable vertex and 0 otherwise. Thus the answer is the entire exact set, represented by \\(n\\) Boolean values, and does not include distances or a transitive closure.\n\nFor the chosen program, words are unsigned \\(w=q_cL\\)-bit integers. Shared cells and processor identifiers are numbered from 0 to \\(2^w-1\\). Every processor has a fixed finite number of word registers and runs the same finite program, with its identifier available in a designated register. These register counts and the program may depend on \\(c\\), but not on the graph or its size. Noninput cells and all other registers initially contain zero. There is no advice, oracle, precomputed graph index or uncharged preprocessing. The polynomial address space is the only imposed working-space limit.\n\nExecution is synchronous. One active processor executes one primitive instruction per round. Instructions read or write one shared cell by its word address; copy words; add, subtract or multiply modulo \\(2^w\\); perform bitwise AND, OR, XOR or complement; shift a word left or logically right by an integer between 0 and \\(w-1\\); compare unsigned words; branch; or obtain one fresh unbiased random bit. A shift by at least \\(w\\) returns zero. Instructions use a constant number of registers. Reads observe the memory at the beginning of the round, and writes commit at its end. Several processors may read one cell, but at most one processor may write a given cell in a round, even if competing writes would contain the same value. Input cells cannot be written. Programs must obey these CREW access rules on every execution.\n\nTo account explicitly for activation, only processor 0 starts active. A unit-cost fork instruction activates one previously unused processor with a specified identifier, a program entry label and a constant number of copied registers; it starts in the next round. Two simultaneous forks may not name the same processor. Halting a processor costs one instruction; halted or not-yet-activated processors do no work. All input-independent setup, processor activation, data movement, auxiliary graph construction and output writes count toward work. Work is the total number of executed primitive instructions, and depth is the number of synchronous rounds until all activated processors halt. Nontermination gives infinite depth and does not satisfy the success event. The fork convention makes processor initialization explicit and allows ordinary parallel scheduling with polylogarithmic overhead.\n\nAll random-bit instructions draw mutually independent fair bits; the probability is over these bits for each fixed input representation. The required probability concerns correct output and both resource bounds together, not three expectations or an average over graphs. On the exceptional event, the program may return an incorrect answer, exceed a resource bound or fail to terminate. The notation \\(\\widetilde O(n+m)\\) and polylogarithmic depth in the motivating question is replaced by the explicit logarithmic powers and constants in the statement.",
   "progress": [
     {
-      "date": "2019",
-      "text": "Jambulapati, Liu, and Sidford obtain almost-linear work with $n^{1/2+o(1)}$ depth for directed reachability.",
+      "date": "2019-12-06",
+      "text": "Jambulapati, Liu and Sidford give directed single-source reachability with \\(\\widetilde O(n+m)\\) work and \\(n^{1/2+o(1)}\\) depth with high probability. This entry uses the corrected fourth arXiv version of their FOCS 2019 paper.",
       "citation": "sqrt"
     },
     {
-      "date": "2026-05",
-      "text": "Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak improve the near-linear-work depth bound as graph density increases; their dense-graph reachability bound is $n^{0.136}$. The theorem does not give polylogarithmic depth for every density.",
+      "date": "2026-07-01",
+      "text": "Ashvinkumar, Bernstein, Probst Gutenberg and Saranurak give \\(\\widetilde O(m)\\) work and \\((n^{\\omega+o(1)}/m)^{1/(2\\omega-2)}\\) span for \\(m\\ge n\\). Here \\(\\omega\\) is the exponent used for parallel matrix multiplication. Their dense-graph bound is \\(n^{0.136}\\); this is not a polylogarithmic bound on arbitrary inputs.",
       "citation": "density"
     },
     {
-      "date": "2026-08",
-      "text": "Kogan and Parter give polylogarithmic depth with $\\widetilde O(T^{\\omega/2})$ work, where $T=|TC(G)|$ and $\\omega$ is the matrix-multiplication exponent. Even the hypothetical $\\omega=2$ gives work in terms of $T$, which may be quadratic for a linear-size input.",
+      "date": "2026-08-13",
+      "text": "Kogan and Parter claim polylogarithmic-depth single-source reachability with \\(\\widetilde O(T^{\\omega/2})\\) work, where \\(T\\) is the number of ordered pairs in the reflexive transitive closure. The arXiv record reports FOCS 2026 acceptance. The claim concerns work in terms of \\(T\\), which need not be nearly linear in \\(n+m\\).",
       "citation": "closure"
     }
   ],
   "references": [
     {
-      "id": "density",
-      "title": "Parallel Reachability and Shortest Paths on Non-Sparse Digraphs: Near-Linear Work and Sub-Square-Root Depth",
-      "authors": "Vikrant Ashvinkumar, Aaron Bernstein, Maximilian Probst Gutenberg, and Thatchaphol Saranurak",
-      "year": 2026,
-      "url": "https://doi.org/10.4230/LIPIcs.ICALP.2026.15",
-      "locator": "Introduction and Theorem 1"
-    },
-    {
       "id": "sqrt",
       "title": "Parallel Reachability in Almost Linear Work and Square Root Depth",
-      "authors": "Arun Jambulapati, Yang P. Liu, and Aaron Sidford",
+      "authors": "Arun Jambulapati; Yang P. Liu; Aaron Sidford",
       "year": 2019,
-      "url": "https://arxiv.org/abs/1905.08841",
-      "locator": "FOCS 2019; main theorem"
+      "url": "https://arxiv.org/abs/1905.08841v4",
+      "locator": "FOCS 2019; arXiv v1 submitted 21 May 2019, corrected v4 submitted 6 December 2019. Theorem 1 on PDF page 2 (printed page 1); Algorithm 3 on PDF page 21; intermediate expected-work Lemma 5.7 on PDF page 26; final proof of Theorem 1 on PDF page 34 (printed page 33)."
+    },
+    {
+      "id": "density",
+      "title": "Parallel Reachability and Shortest Paths on Non-Sparse Digraphs: Near-Linear Work and Sub-Square-Root Depth",
+      "authors": "Vikrant Ashvinkumar; Aaron Bernstein; Maximilian Probst Gutenberg; Thatchaphol Saranurak",
+      "year": 2026,
+      "url": "https://doi.org/10.4230/LIPIcs.ICALP.2026.15",
+      "locator": "ICALP 2026 article 15, published 1 July 2026. Input and work/depth definitions on PDF page 2 (15:2); Theorem 1 on PDF page 3; density discussion and Table 1 on PDF page 4."
+    },
+    {
+      "id": "density_full",
+      "title": "Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth, full version",
+      "authors": "Vikrant Ashvinkumar; Aaron Bernstein; Maximilian Probst Gutenberg; Thatchaphol Saranurak",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2605.03892v1",
+      "locator": "Only arXiv version as checked on 16 September 2026: v1, 5 May 2026. Section 8, Open Problems, printed page 33 / PDF page 35, explicitly discusses the remaining sparse-graph regime."
     },
     {
       "id": "closure",
-      "title": "Õ(1)-Depth Parallel Reachability Faster than Transitive Closure",
-      "authors": "Shimon Kogan and Merav Parter",
+      "title": "\\(\\widetilde O(1)\\)-Depth Parallel Reachability Faster than Transitive Closure",
+      "authors": "Shimon Kogan; Merav Parter",
       "year": 2026,
-      "url": "https://arxiv.org/abs/2608.13231",
-      "locator": "Theorem 1.1; August 2026 preprint, accepted at FOCS 2026"
+      "url": "https://arxiv.org/abs/2608.13231v1",
+      "locator": "Only arXiv version as checked on 16 September 2026: v1, 13 August 2026; record reports FOCS 2026 acceptance. Question 1 on printed page 1 / PDF page 3; Theorem 1.1 on printed page 2 / PDF page 4; Section 1.1 on printed pages 3–4 / PDF pages 5–6; Section 2.2, Theorem 2.12 and the proof of Theorem 1.1 on printed page 13 / PDF page 15."
     }
   ],
-  "status": "open",
-  "status_note": "Reviewed 10 September 2026, including the August 2026 closure-sensitive algorithm. Near-linear input work with polylogarithmic depth remains the target.",
+  "status": "source_open",
+  "status_note": "The full May 2026 source retains the sparse-graph work/depth frontier. The checked August 2026 preprint claims polylogarithmic depth with work in transitive-closure size, which can be quadratic even on a linear-size graph. Individual primary-source reading and a bounded later-source review through 16 September 2026 found no resolution of nearly linear input work with polylogarithmic depth on all directed graphs. This supports a dated source-open classification; it is not an exhaustive current-openness certificate or an independent verification of every cited proof.",
   "key": "parallel-directed-reachability-work-depth",
   "context_blocks": [
     {
-      "text": "A breadth-first search does little total work but exposes only the next frontier after processing the current one. On a directed path, that dependency chain is long. Matrix-based transitive closure can instead exploit massive parallelism, but it computes reachability for every pair and may do far more work than one-source search needs. The target asks for the useful properties of both approaches in one algorithm."
+      "text": "The target concerns arbitrary directed inputs and the full reachable set from one source. Near-linear work and polylogarithmic depth must be achieved in the same execution. Neither a low-work algorithm with polynomial depth nor a fast parallel algorithm with polynomially excessive work meets that requirement."
     },
     {
-      "text": "The size of the input and the size of its transitive closure are very different parameters. A one-way path has only $n-1$ edges but $\\Theta(n^2)$ reachable ordered pairs. Thus an algorithm whose work is nearly linear in the closure size can still be quadratic in the input size. This remains true even though the requested one-source answer has only $n$ bits."
-    },
-    {
-      "text": "Shortcuts are a natural way to shorten dependencies: add an edge only when its endpoints were already connected by a directed path, then search the augmented graph. Constructing and storing these edges costs work too. Bounds on what a particular shortcut representation can achieve should not be mistaken for lower bounds on every parallel reachability algorithm."
-    },
-    {
-      "text": "The August 2026 result improves the polylogarithmic-depth side of the tradeoff using the size of the transitive closure as a parameter. It is relevant progress, but does not supply near-linear input work on all graphs. This distinction is essential when reading the phrase “faster than transitive closure.”",
+      "text": "The input parameter is \\(n+m\\), including isolated vertices. The cited papers sometimes assume \\(m\\ge n\\) or absorb one implicit self-loop per vertex into \\(m\\). This card makes the additive vertex term explicit. For a directed path, \\(m=n-1\\), whereas the reflexive transitive closure contains \\(n(n+1)/2\\) ordered pairs; a bound in closure size can therefore be much larger than a bound in input size.",
       "citation": "closure"
+    },
+    {
+      "text": "The sources use the standard work/depth terminology but do not fully specify shared-memory write conflicts, word instructions or input layout. This card retains its previously selected CREW convention and makes word size, adjacency arrays, exact output, processor activation and the joint high-probability event explicit editorial model choices. It permits a program selected for each fixed confidence exponent; the program is uniform over input sizes. These details are not quotations of a particular source model."
+    },
+    {
+      "text": "The May 2026 full version explicitly identifies improving the sparse-graph regime as open. The August result gives polylogarithmic depth with work parameterized by \\(T=|TC(G)|\\), where \\(TC(G)=\\{(u,v):v\\text{ is reachable from }u\\}\\). Since \\(T\\) may be quadratic on a sparse graph, that theorem does not provide the nearly linear input-work guarantee asked for here.",
+      "citation": "density_full"
     }
   ],
   "id": "TCS-6507",
   "year": 2026,
   "is_new": true,
-  "review_note": "Individually written from the cited primary sources. The importance assessment is editorial. New preprint proofs have not been independently verified.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-16; see research/card-completion-20260913/reviews.jsonl.",
   "reviewed_on": "2026-09-10",
   "published_at": "2026-09-10T07:39:32+00:00",
   "evidence": "reviewed",
   "model_self_contained": true,
   "related": [],
-  "updated_at": "2026-09-11T18:40:52+00:00",
+  "updated_at": "2026-09-16T07:45:34+00:00",
   "question_type": "yes_no",
-  "answer_criterion": "Construct an algorithm meeting the work, depth, and error guarantees simultaneously on all directed inputs, or prove that no such algorithm exists in the specified PRAM model. Work measured by transitive-closure size is insufficient.",
-  "formulation_reviewed_on": "2026-09-10",
+  "answer_criterion": "Give a complete, mathematically correct proof checked in Lean of the quantified algorithm-existence statement or its negation in the specified model. A positive answer must provide the uniform program witnesses and prove the joint correctness, work and depth guarantee on every admissible graph, source and adjacency-array ordering for every fixed confidence exponent. A negative answer must refute that entire existence statement without an additional unproved complexity assumption. A result restricted to a class of graphs, a particular representation of auxiliary information, or work measured by transitive-closure size does not establish either answer unless it entails the full statement.\n\nExplicitly, a negative answer establishes an integer \\(c\\ge1\\) such that for every legal finite program and every proposed integer constants \\(K\\ge1\\), \\(a,b\\ge0\\), \\(q\\ge3\\), there are \\(n\\ge2\\), a valid graph, source and adjacency-array ordering for which the joint probability in the formal statement is strictly below \\(1-n^{-c}\\). A legal program obeys the stated word and CREW rules on all executions. The failing instance may depend on the candidate program and constants.",
+  "formulation_reviewed_on": "2026-09-16",
   "importance": {
     "score": 92,
     "method": "editorial",
@@ -92,18 +101,19 @@
   },
   "working_summary": {
     "sentences": [
-      "A parallel reachability algorithm must identify every vertex reachable from a source in a directed graph.",
-      "The target combines nearly linear total work in the input size with polylogarithmic depth, using randomization and high-probability correctness.",
-      "Ordinary graph search does little work but can expose a long sequence of dependent frontiers.",
-      "Highly parallel transitive-closure methods may perform far more work than this one-source task requires.",
-      "The question is whether shortcuts or another representation can remove long dependencies while accounting for the cost of constructing all auxiliary information."
+      "Given a directed graph and a source, the task is to mark exactly all vertices reachable from that source.",
+      "The question asks for a uniform randomized CREW parallel algorithm with nearly linear total work in the input size and polylogarithmic depth on every input.",
+      "Correctness of the complete output and both resource bounds must hold together with high probability for each fixed graph.",
+      "The 2026 density improvement retains polynomial depth, while the August polylogarithmic-depth result measures work by a potentially quadratic transitive closure.",
+      "A complete Lean proof must decide whether the two desired resource guarantees can be achieved simultaneously in the specified model."
     ],
     "basis": "saved_sources",
-    "source_basis": "saved-card",
-    "written_on": "2026-09-11",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-16",
     "source_refs": [
-      "density",
       "sqrt",
+      "density",
+      "density_full",
       "closure"
     ]
   },
@@ -115,5 +125,30 @@
     "TCS-6714",
     "TCS-6817",
     "TCS-7172"
-  ]
+  ],
+  "requires_context": false,
+  "statement_review": {
+    "status": "revised",
+    "reviewed_on": "2026-09-16",
+    "remaining_issue": "",
+    "notes": "Retain/source_open. Preserved the inherited near-linear input work plus polylogarithmic depth target, randomized CREW choice, importance 92, category and related IDs by omitting preservation-sensitive fields. Replaced vague standard PRAM access and arithmetic with an explicit finite-program logarithmic-word model and counted processor activation. This operational specification is disclosed as editorial because the sources only state work/depth conventions. Formalized high probability as a single event containing all n output bits and both costs, for every fixed confidence exponent and every input. Confidence-specific programs remain uniform in graph size. Kept the arbitrary directed graph domain, explicit n+m input size, and reflexive reachability. Removed suggested approaches from public context and summary. Added the full Lean criterion; no archive recommendation.",
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
+  },
+  "quality_review": {
+    "reviewed_on": "2026-09-16",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": "Retain/source_open. Preserved the inherited near-linear input work plus polylogarithmic depth target, randomized CREW choice, importance 92, category and related IDs by omitting preservation-sensitive fields. Replaced vague standard PRAM access and arithmetic with an explicit finite-program logarithmic-word model and counted processor activation. This operational specification is disclosed as editorial because the sources only state work/depth conventions. Formalized high probability as a single event containing all n output bits and both costs, for every fixed confidence exponent and every input. Confidence-specific programs remain uniform in graph size. Kept the arbitrary directed graph domain, explicit n+m input size, and reflexive reachability. Removed suggested approaches from public context and summary. Added the full Lean criterion; no archive recommendation.",
+    "checked_sources": [
+      "Read the entire canonical TCS-6507 and docs/RULES.md. Preserved its explicit CREW model rather than inferring a different shared-memory convention from standard work-depth language. The added activation and address-space conventions are disclosed editorially. Primary PDF text searches found no explicit CREW/CRCW specification in the three main sources; no source attribution is made for the particular instruction set.",
+      "Jambulapati–Liu–Sidford: actual cached reachdiam-jls2019.pdf/.txt, reused from the preceding individually reviewed card. Read Theorem 1, Algorithm 3, Lemma 5.7 and final proof on PDF page 34. The intermediate lemma has expected work; Algorithm 3 aborts costly trials and the final proof explicitly claims high-probability work and depth. Checked arXiv history: latest v4, 6 December 2019 02:38:37 UTC, following v1 21 May 2019 and September revisions. https://arxiv.org/abs/1905.08841v4",
+      "Density paper: read actual ICALP2026 PDF pages 1–7, including work/depth definitions, Theorem 1, Table 1 and matrix-multiplication convention. The theorem outputs both successors and predecessors and gives the claimed density-sensitive span, not polylogarithmic span at all densities. Checked full Section 8, PDF page 35, which retains the sparse-regime frontier. Publisher date 1 July 2026; arXiv has only v1 from 5 May 2026 15:49 UTC. Cached parallel-reach-density2026.pdf/.txt and parallel-reach-densityfull260503892v1.pdf/.txt. https://doi.org/10.4230/LIPIcs.ICALP.2026.15 and https://arxiv.org/abs/2605.03892v1",
+      "Kogan–Parter: read the actual introduction, Question 1, Theorems 1.1–1.4, graph/work-depth conventions, and Section 2.2 including Theorem 2.12 and the proof of Theorem 1.1. The work guarantee is O-tilde(T^(omega/2)), with n absorbed into m and reflexive TC. No promise T=O(n+m) appears. The proof obtains single-source output after its parallel construction; randomization belongs to that construction. This is not a solution of input-near-linear work. Checked arXiv history: only v1, 13 August 2026 13:34:36 UTC; acceptance at FOCS2026 is stated on the primary arXiv record. Cached parallel-reach-closure260813231v1.pdf/.txt. https://arxiv.org/abs/2608.13231v1",
+      "Bounded later review through 16 September 2026 searched directed/parallel reachability, near-linear work, polylogarithmic depth, September 2026, and Kogan/Parter followups. Checked primary author publication pages and FOCS2026 accepted-paper listing. Read the actual ICALP2026 article 105 publisher HTML abstract and introduction: Better Diameter Bounds for Efficient Shortcuts and a Structural Criterion for Constructiveness concerns certified shortcut structure and does not give a lower bound against every CREW algorithm. https://doi.org/10.4230/LIPIcs.ICALP.2026.105",
+      "Read primary arXiv abstracts and revision histories of Reviving Thorup's Shortcut Conjecture (2510.24954v2, 30 October 2025), Multi-Source Reachability in Near-Optimal Time (2606.25612v1, 24 June 2026), and Parallel Small Vertex Connectivity in Near-Linear Work and Polylogarithmic Depth (2504.06033v1, 8 April 2025; FOCS2026 accepted list checked). They respectively concern Steiner shortcut structure, a multi-source time bound, and undirected vertex connectivity. These checks did not reveal a theorem resolving the stated directed reachability target. These were abstract-level scope checks, not independent proof audits. https://arxiv.org/abs/2510.24954v2 ; https://arxiv.org/abs/2606.25612v1 ; https://arxiv.org/abs/2504.06033v1",
+      "The current-status outcome is bounded source-open. The primary algorithm statements and relevant model/proof sections were read, but this review does not independently verify their full proofs or certify an exhaustive literature search. In particular, shortcut lower bounds are not treated as a general negative answer, nor closure-sensitive work as the requested positive answer.",
+      "Root reviewed the complete inert formulation, joint event and fork accounting; retained the preselected CREW target and high-probability convention. Added the explicit existential confidence exponent/universal program/constants/existential input negative criterion. The logarithmic overhead of explicit forks is allowed by the target; all processor activity remains charged, without preinitialized input-dependent tables."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }

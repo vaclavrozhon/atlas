@@ -679,3 +679,23 @@ Checkpoint twenty-eight was committed as e562cc02. Its live successor
 retirements, with identical reader assets. The user selected the precisely sourced
 forward direction for TCS-5287 before its completion. Individual mathematical
 source review remains separate from structural and rendering verification.
+
+Checkpoint thirty brings this process to 123 completed reviews:
+111 retained active cards, twelve retirements and 49 new importance assessments.
+Existing scores and categories were preserved.
+
+- TCS-0055: specified the standard uniform polynomial-time square-root-sum decision
+  problem. This is an explicitly disclosed editorial selection from the source's
+  algorithmic motivation, not an asserted equivalence to its separation function.
+- TCS-4289: specified W[2]-hardness of Hitting Set for some fixed VC-dimension
+  bound, with the parameter, promise, encoding and reduction fully stated.
+- TCS-6507: specified joint high-probability near-linear work and polylogarithmic
+  depth for directed reachability on the explicitly chosen uniform CREW model.
+- TCS-1119: retired exact universal PMMS existence after checking the complete
+  September 2026 counterexample proof and every one of its 19,683 allocations.
+  A separate reviewer independently checked the proof and necessary-condition
+  enumeration. The full card and both verification records are preserved.
+
+TCS-4185 remains reserved while its source's missing quantifier regime is clarified;
+this checkpoint does not count that card as completed. Checkpoint twenty-nine was
+committed as 2fd23d0d and verified live at version 4754f6c3a738f2d1a51a.
