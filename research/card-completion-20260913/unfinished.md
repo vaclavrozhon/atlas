@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **591**.
+Pending active reviews: **589**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -102,7 +102,6 @@ Pending active reviews: **591**.
 | [TCS-3177](../../data/cards/TCS-3177.json) | Learning PH/poly from learning NP/poly | Learning theory | pool |
 | [TCS-3391](../../data/cards/TCS-3391.json) | Efficient learning of well-separated Gaussian mixtures | Learning theory | pool |
 | [TCS-4592](../../data/cards/TCS-4592.json) | Time complexity of Gaussian agnostic halfspace learning | Learning theory | pool |
-| [TCS-4672](../../data/cards/TCS-4672.json) | Price of bandit information in multiclass learning | Learning theory | pool |
 | [TCS-4792](../../data/cards/TCS-4792.json) | Multiclass sample compression from binary compression | Learning theory | pool |
 | [TCS-5031](../../data/cards/TCS-5031.json) | Littlestone-dimension regret bounds for unrestricted classes | Learning theory | pool |
 | [TCS-5061](../../data/cards/TCS-5061.json) | Computable PAC learning versus effective sample bounds | Learning theory | pool |
@@ -372,7 +371,6 @@ Pending active reviews: **591**.
 | [TCS-0004](../../data/cards/TCS-0004.json) | L versus NL | Computational complexity | existing_detailed_audit |
 | [TCS-0005](../../data/cards/TCS-0005.json) | VP versus VNP | Algebraic computation | existing_detailed_audit |
 | [TCS-0006](../../data/cards/TCS-0006.json) | Unique Games Conjecture | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-0008](../../data/cards/TCS-0008.json) | Strongly polynomial linear programming | Optimization and numerics | existing_detailed_audit |
 | [TCS-0012](../../data/cards/TCS-0012.json) | Average-case NP hardness from \(\mathrm{P} \ne  \mathrm{NP}\) | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-0015](../../data/cards/TCS-0015.json) | Superlinear Boolean circuit lower bounds | Computational complexity | existing_detailed_audit |
 | [TCS-0016](../../data/cards/TCS-0016.json) | Exponential circuit lower bounds for 3-SAT | Computational complexity | existing_detailed_audit |

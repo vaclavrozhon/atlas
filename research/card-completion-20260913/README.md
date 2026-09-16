@@ -1030,3 +1030,20 @@ The concurrent census is 1,044 active cards: 478 completed/reviewed and
 validation passed, covering 20,304 expressions. The prior APSP publication was
 live-verified as a071023def5d48a2da62, published 2026-09-16T01:36:55+00:00,
 Pages commit cee6cabfb9167624717d374aac628ebfad9d58d0.
+
+Checkpoint 356 includes TCS-0008, strongly polynomial linear programming.
+The review fixes the retained rational arithmetic model, numerical-size convention,
+universal complexity constants and exact three-way output semantics. It separates
+special matrix classes and path-following bounds from unrestricted LP, and records
+the scope of the STOC 2026 trust-region results. Awoniyi's same-author Validation
+paper is distinguished from independent confirmation; Truffet's August revision
+and its correction notice are added as an unverified general solution claim.
+The card remains uncertain; no full claimed proof was certified.
+
+The concurrent census is 1,043 active cards: 485 completed/reviewed and 558
+pending. The queue has 915 records, 356 completed, with 333 completed still active
+and 23 inactive; 152 active cards are outside the queue. All active completed
+hashes match. Publication and formula validation passed for 20,570 expressions.
+The preceding quantum publication was live-verified as 6b4bb67fa78fe57bf728,
+published 2026-09-16T01:49:11+00:00, Pages commit
+328bc269eff7f39adbb7b9d062b0399a917b67dc.
