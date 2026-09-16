@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **573**.
+Pending active reviews: **569**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -49,7 +49,6 @@ Pending active reviews: **573**.
 | [TCS-5863](../../data/cards/TCS-5863.json) | Decidability of stochastic resolvability for \(\omega\)-automata | Automata and formal languages | pool |
 | [TCS-5904](../../data/cards/TCS-5904.json) | Equivalence of discounted-sum automata | Automata and formal languages | pool |
 | [TCS-5959](../../data/cards/TCS-5959.json) | Complexity of the Game of Life limit set | Automata and formal languages | pool |
-| [TCS-6158](../../data/cards/TCS-6158.json) | Unique invariant measures versus cellular-automaton ergodicity | Automata and formal languages | pool |
 | [TCS-4302](../../data/cards/TCS-4302.json) | Strategy synthesis for multi-objective probabilistic LTL | Semantics, logic and verification | pool |
 | [TCS-5682](../../data/cards/TCS-5682.json) | One-dimensional piecewise-affine reachability | Semantics, logic and verification | pool |
 | [TCS-5817](../../data/cards/TCS-5817.json) | Computational interpretation of impredicativity with univalence | Semantics, logic and verification | pool |
@@ -277,7 +276,6 @@ Pending active reviews: **573**.
 | [TCS-0055](../../data/cards/TCS-0055.json) | Sum-of-square-roots problem | Algebraic computation | pool |
 | [TCS-0010](../../data/cards/TCS-0010.json) | Superlinear constant-degree arithmetic circuit lower bounds | Algebraic computation | pool |
 | [TCS-1103](../../data/cards/TCS-1103.json) | Containment of border VP in VNP over arbitrary fields | Algebraic computation | pool |
-| [TCS-4949](../../data/cards/TCS-4949.json) | Tensor decomposition at Kruskal’s uniqueness threshold | Algebraic computation | pool |
 | [TCS-0009](../../data/cards/TCS-0009.json) | Explicit univariate arithmetic circuit lower bounds | Algebraic computation | pool |
 | [TCS-0046](../../data/cards/TCS-0046.json) | Complexity of solving tropical or min-plus linear systems | Algebraic computation | pool |
 | [TCS-1101](../../data/cards/TCS-1101.json) | VP factor closure in positive characteristic | Algebraic computation | pool |
@@ -359,10 +357,8 @@ Pending active reviews: **573**.
 | [TCS-0004](../../data/cards/TCS-0004.json) | L versus NL | Computational complexity | existing_detailed_audit |
 | [TCS-0005](../../data/cards/TCS-0005.json) | VP versus VNP | Algebraic computation | existing_detailed_audit |
 | [TCS-0006](../../data/cards/TCS-0006.json) | Unique Games Conjecture | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-0012](../../data/cards/TCS-0012.json) | Average-case NP hardness from \(\mathrm{P} \ne  \mathrm{NP}\) | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-0015](../../data/cards/TCS-0015.json) | Superlinear Boolean circuit lower bounds | Computational complexity | existing_detailed_audit |
 | [TCS-0016](../../data/cards/TCS-0016.json) | Exponential circuit lower bounds for 3-SAT | Computational complexity | existing_detailed_audit |
-| [TCS-0022](../../data/cards/TCS-0022.json) | One-way functions from \(\mathrm{P} \ne  \mathrm{NP}\) | Cryptography | existing_detailed_audit |
 | [TCS-0310](../../data/cards/TCS-0310.json) | Polynomial-time weighted falsifiability of unambiguous DNFs | Computational complexity | existing_detailed_audit |
 | [TCS-0318](../../data/cards/TCS-0318.json) | Planar k-set extremal function | Computational geometry and metric spaces | existing_detailed_audit |
 | [TCS-0466](../../data/cards/TCS-0466.json) | Certifying Karp–Rabin fingerprints | String algorithms and bioinformatics | existing_detailed_audit |

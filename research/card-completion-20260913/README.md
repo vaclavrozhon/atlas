@@ -1118,3 +1118,22 @@ pending. The queue has 395 completed records, 367 active and 28 inactive, plus
 formula checks passed on 1,038 cards, covering 21,736 formulas. The preceding
 L-versus-BPL snapshot was pushed to Pages as a1d74ac606733a9830a1, commit
 a84e51134f7ead084e032335de45843269ca416a; the deployment command succeeded.
+
+Checkpoint 401 includes TCS-0012 and TCS-0022, the P-versus-NP implications to
+average-case NP hardness and one-way functions. Both retain their distinct
+uniform models and receive full Lean implication/negation criteria. The first
+specifies strict exact sampling, off-support correctness and a single decider’s
+positive-moment bound. The second fixes public forward evaluation, all-path
+inverter time, same-length preimages and the arbitrarily-large-length quantifier
+in failure of eventual security. The book references now match the inspected
+2019 edition. Source checks distinguish the January randomized-description
+characterizations, their specific premises and source-specific AvgP notation,
+and the April conditional-generator results. Old solver walkthroughs are removed.
+
+The concurrent census is 1,037 active cards: 524 completed/reviewed and 513
+pending. The queue has 401 completed records, 372 active and 29 inactive, with
+152 active cards outside it; all active completed hashes match. Publication and
+formula checks passed on 1,037 active cards, covering 22,013 formulas. The prior
+ordinary-PRG snapshot was live-verified as b8d03e8a8af45e6bbc20, published
+2026-09-16T02:28:21+00:00, Pages commit
+7b083ccda5c699d30ff767272ee31e926b8a4843.
