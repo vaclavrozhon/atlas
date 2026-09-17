@@ -2194,10 +2194,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7328 — Amortized decrease-key complexity of standard pairing heaps
 
-The standard pairing heap uses a fixed two-pass consolidation during delete-min. Its pointer operations are simple, but decreases can affect the cost of future consolidations. The target is a tight amortized charge for decrease-key with the conventional costs for other operations. A logarithmic-logarithmic lower bound is known. Results for pure, multipass, smooth or rank-pairing heaps concern different algorithms.
+The standard pairing heap performs a left-to-right pairing pass and a right-to-left assembly pass when deleting the minimum. The question asks for the tight asymptotic amortized cost of decrease-key while keeping the stated charges for all other operations. The bound must hold on every finite sequence from empty heaps, in terms of the maximum simultaneous live-item count. Different heap variants and operation charges from separate analyses cannot be substituted; a 2026 improvement for standard heaps is recorded as an announcement. A complete Lean-checked upper analysis and matching lower bound are required, not just another improvement.
 
-[Read in atlas](index.html#TCS-7328) · [On the Efficiency of Pairing Heaps and Related Data Structures](https://doi.org/10.1145/320211.320214) · [Pure Pairing Heaps](https://arxiv.org/html/2607.23118)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7328) · [Pure Pairing Heaps](https://arxiv.org/abs/2607.23118v1) · [Improved Upper Bounds for Pairing Heaps](https://arxiv.org/abs/1110.4428v1) · [Towards a Final Analysis of Pairing Heaps](https://doi.org/10.4230/DagSemProc.06091.5) · [On the Efficiency of Pairing Heaps and Related Data Structures](https://doi.org/10.1145/320211.320214)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7333 — Space-query exponent curve of 3SUM indexing
 
@@ -2236,10 +2236,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-6508 — Deque conjecture
 
-A deque permits insertions and deletions at either end of an ordered collection. This question studies the implementation that inserts extreme keys and splays an extreme key before deleting it. It asks whether every operation sequence costs linear total time, including an allowance for the initial tree. Alternating ends and inserting new keys creates behavior beyond a single sorted scan. The conjecture would show that self-adjusting search trees automatically attain the efficiency expected from this restricted interface.
+Start with any binary search tree and update only the minimum or maximum end. New extrema become roots, while deleting an extremum first moves it to the root by standard bottom-up splaying. The conjecture asks whether total search and rotation work is linear in the initial size plus the number of operations. A known bound has an extremely slowly growing extra factor, and the 2026 general competitiveness result does not remove it here. A complete Lean-checked proof of the linear bound or an unbounded family of counterexample ratios is required.
 
-[Read in atlas](index.html#TCS-6508) · [Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture](https://arxiv.org/abs/0707.2160) · [A New Path from Splay to Dynamic Optimality](https://doi.org/10.1137/1.9781611975482.80) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6508) · [Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture](https://arxiv.org/abs/0707.2160v1) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0474 — Constant-update working-set heaps on pointer machines
 
@@ -2308,10 +2308,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7326 — Worst-case logarithmic dynamic planar convex hulls
 
-A planar point set changes by insertion and deletion. A query asks for a point farthest in a supplied direction. The target is linear storage and logarithmic time for each individual operation. The known optimal update guarantee is amortized over a sequence. The question isolates whether geometric maintenance must sometimes cause expensive update spikes.
+Maintain an arbitrary changing set of exact points in the plane, starting from the empty set. Insertions and deletions may occur in any order, and a query asks for one point farthest in a supplied direction. The target is deterministic logarithmic worst-case time for each operation and linear total space. Known optimal amortized bounds and recent practical implementations do not provide that per-operation guarantee. The answer must be a complete Lean-checked construction or unconditional refutation in the specified real-arithmetic model.
 
-[Read in atlas](index.html#TCS-7326) · [Dynamic Planar Convex Hull](https://cs.au.dk/~gerth/papers/arxiv1902.11169.pdf)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7326) · [Dynamic Planar Convex Hull](https://arxiv.org/abs/1902.11169v1) · [Engineering Fully Dynamic Convex Hulls](https://doi.org/10.4230/LIPIcs.SEA.2026.22)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7339 — Near-linear incremental topological ordering
 
@@ -2436,10 +2436,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6513 — Constant-factor approximation of the smallest grammar
 
-A grammar can compress a string by naming repeated pieces and assembling them through acyclic production rules. The question asks for a deterministic polynomial-time approximation within a universal constant of the smallest such grammar. The size measure counts all symbols on right-hand sides, including references to other rules. Choosing repeated pieces is difficult because useful substrings can overlap and interact across scales. The saved review separates this constant-factor target from known logarithmic guarantees and emphasizes that alternative grammar-size conventions describe different optimization problems.
+The input is any explicit string over an integer alphabet that may grow with its length. The algorithm must output an acyclic grammar whose unique expansion is that string. Grammar size counts all symbols on production right-hand sides, and the target is one universal constant times the optimum. The algorithm must be deterministic and polynomial in the full input bit length; known small-factor hardness does not rule out every constant. A complete Lean-checked proof or unconditional refutation is required, with any conditional hardness result clearly distinguished.
 
-[Read in atlas](index.html#TCS-6513) · [The Smallest Grammar Problem](https://doi.org/10.1109/TIT.2005.850116) · [On the Complexity of the Smallest Grammar Problem over Fixed Alphabets](https://doi.org/10.1007/s00224-020-10013-w)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6513) · [On the Complexity of the Smallest Grammar Problem over Fixed Alphabets](https://doi.org/10.1007/s00224-020-10013-w) · [The Smallest Grammar Problem](https://doi.org/10.1109/TIT.2005.850116) · [Assembly Theory and the Smallest Grammar Problem](https://arxiv.org/abs/2608.19228)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6928 — Linear-space encoding from smallest string attractors
 
@@ -2525,12 +2525,12 @@ A text is supplied as literal and copy phrases, and the pattern is an explicit s
 [Read in atlas](index.html#TCS-0468) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Pattern matching in Lempel-Ziv compressed strings: fast, simple, and deterministic](https://arxiv.org/abs/1104.4203v1) · [Pattern Matching on Grammar-Compressed Strings in Linear Time](https://arxiv.org/abs/2111.05016v1) · [Logarithmic-Time Internal Pattern Matching Queries in Compressed and Dynamic Texts](https://doi.org/10.1007/s00224-026-10266-x)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-0470 — Grammar random access in \(O(g \log  g)\) bits
+### TCS-0470 — Grammar random access in \(O(g\log g)\) bits
 
-A straight-line grammar can describe a string exponentially longer than its own rule list. The question asks for logarithmic-time character access with total storage comparable in bits to the grammar encoding. The representation must be built from the grammar in polynomial time without expanding the string. The obstacle is that navigation often stores expansion lengths requiring logarithmically many bits in the much larger text length. The saved review identifies removal of that length-storage overhead as the issue and distinguishes it from linear-word-space grammar access.
+A binary straight-line grammar may describe a string exponentially longer than its list of rules. The question asks for exact character access in logarithmic time using total persistent storage of O(g log g) bits. The representation must be constructed in polynomial time from the grammar itself. All retained lengths, tables and grammar bits are charged, while each query has explicitly bounded temporary workspace. The reviewed 2026 results retain a larger expansion-length space scale; a complete Lean-checked proof or refutation of this smaller-space target is required.
 
-[Read in atlas](index.html#TCS-0470) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Space-Efficient SLP Encoding for \(O(\log  N)\)-Time Random Access](https://doi.org/10.1007/s00224-025-10243-w) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0470) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Space-Efficient SLP Encoding for \(O(\log N)\)-Time Random Access](https://doi.org/10.1007/s00224-025-10243-w) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7375 — Fully functional suffix trees in BWT-run-linear total space
 

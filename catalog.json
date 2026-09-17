@@ -269,10 +269,10 @@
       "source": 37,
       "index": 44
     },
-    "updated_at": "2026-09-17T13:13:06+00:00",
+    "updated_at": "2026-09-17T13:28:47+00:00",
     "completed_reviews": 899,
     "remaining_reviews": 81,
-    "version": "f032744430512b737986"
+    "version": "a4ba5da0916ab681c020"
   },
   "criteria": {
     "models": {
@@ -135697,50 +135697,88 @@
       "area": "Data structures",
       "criterion": "resources",
       "question_type": "asymptotic_complexity",
-      "formal": "Determine, up to constant factors, the amortized decrease-key bound \\(d(N)\\) of the standard two-pass pairing heap, while insert, meld and find-min are charged \\(O(1)\\) and delete-min is charged \\(O(\\log(2+N))\\). The bound is required for every finite sequence starting from empty heaps with at most \\(N\\) live items in all heaps combined.",
-      "definitions": "A heap is a rooted heap-ordered tree. Link compares two roots and makes the larger root the new leftmost child of the smaller. Insert links a singleton to the root; meld links the two roots. Decrease-key receives a handle, reduces its key and, if it is not a root, cuts its whole subtree and links it to the root. Delete-min removes the root, links consecutive children from left to right in disjoint pairs, leaving an unpaired last child unchanged, then combines the resulting roots from right to left by successive links. Find-min reads the root. Keys are opaque ordered values; ties follow a fixed identity order. Constant-size nodes have enough sibling and parent pointers for a cut in constant time. Charge comparisons, links, cuts and pointer work. An admissible upper bound is a function \\(d\\ge1\\) for which a universal \\(C\\) bounds total cost by \\(C(a+b\\log(2+N)+c d(N))\\), where \\(a\\) counts the constant-cost operations, \\(b\\) delete-min operations and \\(c\\) decreases. A tight answer must also prove that every admissible charge function dominates the supplied rate within a universal constant for sufficiently large \\(N\\); the constants cannot depend on the sequence. Variants changing either pass, rank metadata or the linking discipline are different algorithms.",
+      "formal": "Determine an explicit asymptotic growth rate \\(f:\\mathbb N_{\\ge1}\\to[1,\\infty)\\) that is a tight amortized decrease-key charge for the standard two-pass pairing heap. For every finite legal operation sequence \\(\\mathcal S\\) starting from empty heaps and having at most \\(N\\) live items in all heaps combined, require\n\\[\nW(\\mathcal S)\\le C\\bigl(a(\\mathcal S)+b(\\mathcal S)\\log_2(N+2)+c(\\mathcal S)f(N)\\bigr)\n\\]\nfor one absolute \\(C\\). Here \\(a\\) counts make-heap, insert, meld and find-min operations, \\(b\\) counts delete-min operations, and \\(c\\) counts decrease-key operations. Tightness means that every charge function satisfying such an inequality is \\(\\Omega(f(N))\\), with the quantifiers specified below. The algorithm itself and the other-operation charges are fixed.",
+      "definitions": "Each heap is empty or is a single rooted tree of items. Every item has an opaque key in a totally ordered set and a stable identity. Ties are resolved by a fixed total order on identities, so every comparison has a deterministic winner. A parent’s key, including this tie-breaking order, is no greater than a child’s. Children form a left-to-right list. A link of two disjoint trees compares their roots and makes the losing root the new leftmost child of the winner. A cut removes one parent-child edge and detaches the entire child subtree while preserving the order of remaining children.\n\nMake-heap creates an empty heap. Find-min returns its root, or an empty marker. Insert creates a new singleton item, links it with the heap’s root if present and returns a stable item handle. Meld takes two distinct item-disjoint heaps, links their roots when both are nonempty and returns the resulting heap, invalidating the old heap handles. If either is empty, the other tree is returned. Item handles remain valid until their items are deleted, including through melds.\n\nDecrease-key receives a heap handle, a handle to an item in it and a new key no larger than its old key. Replace the key. If the item is not the root, cut its entire subtree and link that subtree to the heap root, even if no heap-order violation would have occurred without the cut. If it is the root, no link or cut is needed. The operation’s inputs and membership promises are supplied, so searching for the item is not required.\n\nDelete-min requires a nonempty heap. Remove its root and detach its children into their existing ordered root list. In the pairing pass, link the first and second roots, then the third and fourth, and so on from left to right, leaving a final unpaired root unchanged. The resulting trees retain their pair order. In the assembly pass, start with the rightmost resulting tree and repeatedly link it to the next tree to its left, moving right to left until one tree remains. This becomes the heap. If the deleted root had no children, the result is empty. Changing the order of either pass, omitting the assembly pass, adding rank-driven restructuring or using multiple retained trees defines a different heap.\n\nA direct pointer implementation stores a constant number of fields per item, including the key and enough child, sibling and parent information for a cut given a handle in constant time. Comparisons of keys or identities, pointer reads and writes, branches and allocating or releasing a constant-size record are unit-cost primitives. There is no arithmetic on keys and no hidden balancing operation. Let \\(\\lambda\\) be the number of links and \\(\\chi\\) the number of edges cut, including child edges detached during delete-min. Define\n\\[\nW(\\mathcal S)=a(\\mathcal S)+b(\\mathcal S)+c(\\mathcal S)+\\lambda+\\chi.\n\\]\nThis is within constant factors of the work of the specified direct implementation. Only this fixed sequential deterministic algorithm is being analyzed.\n\nThe integer \\(N\\ge1\\) is a global upper bound on simultaneously live items throughout the sequence, not its total insertions, length, number of heap objects or final size. Sequences may create arbitrarily many heaps, interleave operations on them, merge them and leave items undeleted at the end. Every operation contributes to its count, even if it returns an empty result or changes no key value. The inequality must hold for every \\(N\\) and every sequence obeying that live-item bound, with no uncharged initial nonempty heaps or additive credit depending on the sequence.\n\nCall any function \\(d:\\mathbb N_{\\ge1}\\to[1,\\infty)\\) admissible if there exists a constant \\(C_d\\ge1\\) such that the displayed inequality holds with \\(d\\) in place of \\(f\\), for all \\(N\\) and all permitted sequences. A tight answer consists of an explicit rate \\(f\\) which is admissible and satisfies\n\\[\n\\forall d\\text{ admissible}\\ \\exists k_d>0\\ \\exists N_d\\ge1\\ \\forall N\\ge N_d:\\quad d(N)\\ge k_d f(N).\n\\]\nThe lower-comparison constants may depend on \\(d\\) and its admissibility constant, but not on \\(N\\) or a chosen sequence. Requiring one fixed lower-comparison constant for every rescaling of every admissible function would be inappropriate. No specific conjectured rate is imposed.",
       "why": "A tight analysis would resolve the central complexity uncertainty for one of the simplest and most widely studied self-adjusting priority queues.",
       "context_blocks": [
         {
-          "text": "A logarithmic-logarithmic lower bound rules out the original constant-amortized decrease-key expectation under the other standard charges. Related self-adjusting heaps attaining that bound do not automatically analyze the original two-pass algorithm.",
+          "text": "The immediate decrease-key operation uses only a constant number of pointer changes. Its amortized charge measures the extra work these changes can cause during later delete-min operations.",
           "citation": "primary"
         },
         {
-          "text": "The July 2026 paper proves a smaller gap for pure pairing heaps and announces an improved bound for standard pairing heaps in a forthcoming companion paper. Its conclusion explicitly retains the remaining gap. The announcement is recorded separately from a checked proof for the standard algorithm.",
-          "citation": "recent"
+          "text": "A logarithmic-logarithmic lower bound rules out the original constant-amortized expectation under the relevant other-operation charges. This review records it through the later primary papers’ statements of Fredman’s result.",
+          "citation": "lower"
+        },
+        {
+          "text": "Iacono’s analysis gives constant insert and meld charges with logarithmic delete-min and decrease-key. Its comparison table explicitly warns against combining operation charges from unrelated amortized analyses.",
+          "citation": "charges"
+        },
+        {
+          "text": "Pettie’s sublogarithmic analysis also charges insert and meld a nonconstant amount. That result alone is not a simultaneous upper bound under this card’s constant-charge convention.",
+          "citation": "sublog"
+        },
+        {
+          "text": "The July 2026 paper proves \\(O(\\log\\log N\\,\\log\\log\\log N)\\) for pure heaps and announces \\(O((\\log\\log N)^2\\log\\log\\log N)\\) for standard heaps in forthcoming work. The announcement and the remaining tightness question are distinct; no companion proof was independently checked.",
+          "citation": "primary"
         }
       ],
       "references": [
         {
           "id": "primary",
+          "title": "Pure Pairing Heaps",
+          "authors": "Robert E. Tarjan; Xiaoyang Xu",
+          "year": 2026,
+          "url": "https://arxiv.org/abs/2607.23118v1",
+          "locator": "25 July 2026; Introduction pp.1–2, standard algorithm in §2 pp.3–4, announcement and remaining gap in §10 p.21"
+        },
+        {
+          "id": "charges",
+          "title": "Improved Upper Bounds for Pairing Heaps",
+          "authors": "John Iacono",
+          "year": 2011,
+          "url": "https://arxiv.org/abs/1110.4428v1",
+          "locator": "20 October 2011 expanded account of earlier SWAT 2000 work; Introduction and Figure 1 pp.2–3, simultaneous charge conventions"
+        },
+        {
+          "id": "sublog",
+          "title": "Towards a Final Analysis of Pairing Heaps",
+          "authors": "Seth Pettie",
+          "year": 2006,
+          "url": "https://doi.org/10.4230/DagSemProc.06091.5",
+          "locator": "Published 30 November 2006, corresponding to FOCS 2005 work; Introduction Theorem 1 and §5, with nonconstant insert/meld charges"
+        },
+        {
+          "id": "lower",
           "title": "On the Efficiency of Pairing Heaps and Related Data Structures",
           "authors": "Michael L. Fredman",
           "year": 1999,
           "url": "https://doi.org/10.1145/320211.320214",
-          "locator": "Pairing-heap decrease-key lower bounds and charge assumptions."
-        },
-        {
-          "id": "recent",
-          "title": "Pure Pairing Heaps",
-          "authors": "Robert E. Tarjan; Xiaoyang Xu",
-          "year": 2026,
-          "url": "https://arxiv.org/html/2607.23118",
-          "locator": "Introduction, standard-versus-pure distinction and conclusion; 25 July 2026 preprint."
+          "locator": "Decrease-key lower bound; scope checked through its descriptions in the Iacono and Tarjan–Xu primary papers, not a new full-proof audit"
         }
       ],
       "progress": [
         {
           "date": "1999",
-          "text": "The classical lower bound is \\(\\Omega(\\log\\log N)\\) under the usual other-operation charges.",
-          "citation": "primary"
+          "text": "Fredman establishes a logarithmic-logarithmic decrease-key obstruction, as described in the later primary sources.",
+          "citation": "lower"
+        },
+        {
+          "date": "2000",
+          "text": "Iacono’s work establishes constant insert/meld charges while allowing logarithmic decrease-key; the expanded account appears on arXiv in 2011.",
+          "citation": "charges"
+        },
+        {
+          "date": "2005",
+          "text": "Pettie obtains sublogarithmic charges for insert, meld and decrease-key, retaining logarithmic delete-min.",
+          "citation": "sublog"
         },
         {
           "date": "2026-07-25",
-          "text": "The pure variant has \\(O(\\log\\log N\\log\\log\\log N)\\) decrease-key. The conclusion announces \\(O((\\log\\log N)^2\\log\\log\\log N)\\) for standard pairing heaps in forthcoming work; no independent verification of that announced proof was performed.",
-          "citation": "recent"
+          "text": "Pure heaps receive a near-log-log analysis; an improved standard-heap bound is announced, and a matching bound remains open.",
+          "citation": "primary"
         }
       ],
-      "answer_criterion": "Supply a growth rate with a complete Lean-checked upper analysis and matching lower bound under the charge convention defined here. An improved upper bound without tightness, or a tight bound for another heap variant, is insufficient.",
+      "answer_criterion": "Supply an explicit asymptotic rate and a complete mathematically correct Lean-checked proof of both admissibility and the matching universal lower statement. A characterization that merely renames the worst sequence cost or repeats the definition of admissibility is not a determination of the rate. Constants hidden by asymptotic notation must have the dependencies specified above.\n\nA better upper bound without matching tightness does not complete the task. Neither does a tight bound for another heap variant, or an analysis that increases the allowed insert or meld charge without proving the displayed inequality. Amortized bounds for individual operations from separate analyses cannot be combined without a simultaneous total-cost proof. This is an asymptotic classification up to constant factors, not a finite numerical approximation task.",
       "related": [],
       "related_problem_ids": [
         "TCS-0474"
@@ -135748,18 +135786,25 @@
       "year": 1999,
       "evidence": "reviewed",
       "status": "source_open",
-      "status_note": "Open in the cited dated sources. The bounded source and subsequent-result review on 13 September 2026 found no verified resolution of this target; this is not exhaustive certification of current openness.",
+      "status_note": "The July 2026 source explicitly retains the tightness gap and distinguishes its proved pure-heap analysis from an announced standard-heap improvement. Bounded primary-source searches through 17 September 2026 found no verified tight analysis under the stated simultaneous charges. No independent verification of the announced companion proof or Fredman’s full lower-bound proof is claimed.",
       "model_self_contained": true,
       "requires_context": false,
-      "formulation_reviewed_on": "2026-09-13",
+      "formulation_reviewed_on": "2026-09-17",
       "statement_review": {
         "status": "revised",
-        "reviewed_on": "2026-09-13",
+        "reviewed_on": "2026-09-17",
         "remaining_issue": "",
         "notes": [
-          "Individual formulation, model, duplicate and category review for the user-requested researcher list."
+          "Retained determination of the full asymptotic rate up to constant factors, rather than replacing it by an improved-bound barrier.",
+          "Fixed the standard left-to-right pairing and right-to-left assembly passes, link order, handles and decrease-key cuts.",
+          "Defined the aggregate cost inequality on every finite sequence from empty heaps with a global live-item bound.",
+          "Included make-heap in constant-cost operations and charged links, cuts and operation overhead explicitly.",
+          "Clarified that comparison constants in a matching lower bound may depend on the competing admissible charge function, but never on N or a sequence.",
+          "Read Iacono’s warning that amortized operation bounds from different analyses cannot simply be combined.",
+          "Recorded the July 2026 standard-heap improvement as an announcement, while distinguishing its proved pure-heap bound and the still-open tightness gap.",
+          "Preserved importance and required a complete Lean-checked upper analysis and matching lower bound."
         ],
-        "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+        "scope": "Individual formulation and source review; current-status limits are recorded separately."
       },
       "importance": {
         "score": 88,
@@ -135773,18 +135818,20 @@
       },
       "working_summary": {
         "sentences": [
-          "The standard pairing heap uses a fixed two-pass consolidation during delete-min.",
-          "Its pointer operations are simple, but decreases can affect the cost of future consolidations.",
-          "The target is a tight amortized charge for decrease-key with the conventional costs for other operations.",
-          "A logarithmic-logarithmic lower bound is known.",
-          "Results for pure, multipass, smooth or rank-pairing heaps concern different algorithms."
+          "The standard pairing heap performs a left-to-right pairing pass and a right-to-left assembly pass when deleting the minimum.",
+          "The question asks for the tight asymptotic amortized cost of decrease-key while keeping the stated charges for all other operations.",
+          "The bound must hold on every finite sequence from empty heaps, in terms of the maximum simultaneous live-item count.",
+          "Different heap variants and operation charges from separate analyses cannot be substituted; a 2026 improvement for standard heaps is recorded as an announcement.",
+          "A complete Lean-checked upper analysis and matching lower bound are required, not just another improvement."
         ],
         "basis": "saved_sources",
-        "source_basis": "source-text",
-        "written_on": "2026-09-13",
+        "source_basis": "individual_source_review",
+        "written_on": "2026-09-17",
         "source_refs": [
           "primary",
-          "recent"
+          "charges",
+          "sublog",
+          "lower"
         ]
       },
       "researcher_import": {
@@ -135794,12 +135841,41 @@
         ],
         "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
       },
-      "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+      "review_note": "Completed individual review against P versus NP on 2026-09-17; see research/card-completion-20260913/reviews.jsonl.",
       "id": "TCS-7328",
       "published_at": "2026-09-13T09:26:53+00:00",
-      "updated_at": "2026-09-13T09:26:53+00:00",
+      "updated_at": "2026-09-17T13:25:19+00:00",
       "is_new": true,
-      "context": "A logarithmic-logarithmic lower bound rules out the original constant-amortized decrease-key expectation under the other standard charges. Related self-adjusting heaps attaining that bound do not automatically analyze the original two-pass algorithm.\n\nThe July 2026 paper proves a smaller gap for pure pairing heaps and announces an improved bound for standard pairing heaps in a forthcoming companion paper. Its conclusion explicitly retains the remaining gap. The announcement is recorded separately from a checked proof for the standard algorithm.",
+      "source_formulation": {
+        "text": "The long-standing question is the tight amortized complexity of decrease-key in the standard pairing heap. The 2026 pure-heap paper explicitly separates the standard algorithm and retains the gap between known lower bounds and its announced improvement. This card fixes the other-operation charges and asks for the complete asymptotic rate.",
+        "caption": "Tarjan–Xu, Pure Pairing Heaps (25 July 2026), Introduction, §2 and §10; the constant insert/meld convention is checked against Iacono’s analysis.",
+        "citation": "primary",
+        "format": "editorial_paraphrase"
+      },
+      "quality_review": {
+        "reviewed_on": "2026-09-17",
+        "reference_card": "TCS-0001",
+        "state": "revised",
+        "changes": [
+          "Retained determination of the full asymptotic rate up to constant factors, rather than replacing it by an improved-bound barrier.",
+          "Fixed the standard left-to-right pairing and right-to-left assembly passes, link order, handles and decrease-key cuts.",
+          "Defined the aggregate cost inequality on every finite sequence from empty heaps with a global live-item bound.",
+          "Included make-heap in constant-cost operations and charged links, cuts and operation overhead explicitly.",
+          "Clarified that comparison constants in a matching lower bound may depend on the competing admissible charge function, but never on N or a sequence.",
+          "Read Iacono’s warning that amortized operation bounds from different analyses cannot simply be combined.",
+          "Recorded the July 2026 standard-heap improvement as an announcement, while distinguishing its proved pure-heap bound and the still-open tightness gap.",
+          "Preserved importance and required a complete Lean-checked upper analysis and matching lower bound."
+        ],
+        "checked_sources": [
+          "Read Tarjan–Xu, Pure Pairing Heaps, arXiv:2607.23118v1, 25 July 2026: abstract, Introduction pp.1–2, Section 2 pp.3–4 with the exact standard two-pass algorithm, and Section 10 p.21. The proved pure-heap decrease-key bound is O(log log n log log log n). The conclusion announces O((log log n)^2 log log log n) for standard heaps in a forthcoming companion paper and explicitly retains a tightness gap. No proof of that announced standard-heap result is supplied in this paper.",
+          "Read Iacono, Improved Upper Bounds for Pairing Heaps, arXiv:1110.4428v1, 20 October 2011, an expanded account of earlier SWAT 2000 work: abstract, Introduction, Figure 1 p.2 and subsequent comparison pp.2–3. It gives constant amortized insert/meld with logarithmic extract-min and decrease-key. Figure 1 explicitly warns that amortized charges for different operations cannot be mixed between analyses. This verifies that the selected charge convention has admissible upper bounds.",
+          "Read Pettie, Towards a Final Analysis of Pairing Heaps, Dagstuhl Seminar Proceedings 06091.5, published 30 November 2006, corresponding to FOCS 2005 work: abstract, Introduction Theorem 1, standard heap description and Section 5. This gives sublogarithmic charges to insert, meld and decrease-key simultaneously, with logarithmic delete-min. It is not asserted here to preserve constant insertion/meld charges. The downloaded PDF has corrupted mathematical font extraction, so the exponent is not reconstructed from garbled text; Iacono’s Figure 1 supplies the legible comparison.",
+          "The Fredman 1999 lower bound is recorded from its explicit descriptions in the primary Iacono and Tarjan–Xu papers, not from a newly read full original proof. Both identify a logarithmic-logarithmic decrease-key obstruction under the other-operation bounds. This review does not independently verify that lower-bound proof.",
+          "Bounded primary-source searches through 17 September 2026 found no verified tight analysis or independently checked companion proof resolving this target. Results for pure, multipass, lazy, smooth, slim or rank-pairing variants were distinguished from the specified algorithm."
+        ],
+        "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+      },
+      "context": "The immediate decrease-key operation uses only a constant number of pointer changes. Its amortized charge measures the extra work these changes can cause during later delete-min operations.\n\nA logarithmic-logarithmic lower bound rules out the original constant-amortized expectation under the relevant other-operation charges. This review records it through the later primary papers’ statements of Fredman’s result.\n\nIacono’s analysis gives constant insert and meld charges with logarithmic delete-min and decrease-key. Its comparison table explicitly warns against combining operation charges from unrelated amortized analyses.\n\nPettie’s sublogarithmic analysis also charges insert and meld a nonconstant amount. That result alone is not a simultaneous upper bound under this card’s constant-charge convention.\n\nThe July 2026 paper proves \\(O(\\log\\log N\\,\\log\\log\\log N)\\) for pure heaps and announces \\(O((\\log\\log N)^2\\log\\log\\log N)\\) for standard heaps in forthcoming work. The announcement and the remaining tightness question are distinct; no companion proof was independently checked.",
       "criterion_label": "Necessary resources",
       "original_area": "Data structures",
       "selection_group": "small",
@@ -136648,83 +136724,73 @@
       "title": "Deque conjecture",
       "area": "Data structures",
       "criterion": "tightness",
-      "formal": "Start from an arbitrary binary search tree containing \\(n\\) ordered keys, and perform \\(m\\) legal double-ended queue operations. Insert-min creates a new minimum as the root with the old tree as its right child; insert-max is symmetric. Delete-min splays the minimum to the root, removes it, and keeps its right subtree; delete-max is symmetric. Is the total number of primitive pointer operations and rotations always \\(O(n+m)\\), with a universal constant? This is Tarjan’s deque conjecture for the specified splay implementation.",
+      "formal": "Is there an absolute constant \\(C\\ge1\\) such that, for every finite binary search tree \\(T_0\\) with \\(n\\ge0\\) distinct ordered keys and every legal sequence \\(\\mathcal S\\) of \\(m\\ge0\\) deque operations, the specified bottom-up splay implementation satisfies\n\\[\nW(T_0,\\mathcal S)\\le C(n+m)?\n\\]\nThe operations are insertion of a new minimum or maximum and deletion of the current minimum or maximum. Insertions make the new key the root; deletions splay the requested extremum to the root and remove it. The cost \\(W\\) counts operation overhead, search edges and rotations as defined below.",
       "why": "I include this because it tests whether one general-purpose adaptive representation can recognize a workload whose optimal cost is linear. The remaining gap is tiny numerically but significant mathematically: a proof would explain why expensive local restructuring cannot accumulate across arbitrary alternations of the two ends.",
-      "definitions": "Splaying uses the standard zig, zig-zig, and zig-zag rules. Deletions are allowed only on a nonempty tree, and an inserted key must be outside the current key range at the specified end. Amortized cost is a bound on the total sequence, not a worst-case guarantee for each deletion. The initial tree may have any shape.",
+      "definitions": "A binary search tree is a finite rooted tree with at most one left child and one right child per node. Each node carries a key; all keys in its left subtree are smaller, and all keys in its right subtree are larger. Keys are opaque elements of a totally ordered set and are used only through order comparisons. The initial tree may have any shape and is supplied as a tree, rather than built by charged insertions. The \\(n\\) term in the target is its allowed initial credit.\n\nInsert-min supplies a key smaller than every currently present key. Allocate a new node with that key, no left child, and the former root as its right child; it becomes the root. Insert-max is symmetric. Both operations are allowed on an empty tree. Legality is promised, so no search to verify the new key’s extremal status is performed. A key that was deleted may be inserted again whenever the current extremal-order condition permits it.\n\nDelete-min is allowed only on a nonempty tree. Follow left-child pointers from the root until reaching the leftmost node \\(x\\), splay \\(x\\) to the root, remove it and make its right child the root of the remaining tree. Delete-max follows right-child pointers, splays the rightmost node and retains its left subtree. Removing the only node leaves the tree empty. There are no searches for internal keys, other update operations, balance conditions or promises about the order of deletions.\n\nA right rotation at a node \\(p\\) with left child \\(x\\) makes \\(x\\) replace \\(p\\), makes \\(p\\) the right child of \\(x\\), and makes the former right subtree of \\(x\\) the left subtree of \\(p\\), preserving all other attachments. A left rotation is the mirror image. Parent pointers and the root pointer are updated as needed. To splay \\(x\\), repeat until it is the root: if its parent \\(p\\) is the root, rotate \\(x\\) above \\(p\\) (zig); if \\(x,p\\) are both left children or both right children of their respective parents, first rotate \\(p\\) above its parent and then \\(x\\) above \\(p\\) (zig-zig); otherwise rotate \\(x\\) above \\(p\\) and then above its new parent (zig-zag). These are the standard bottom-up rules; the algorithm is fixed, not a choice among tree heuristics.\n\nLet \\(e\\) be the total number of child edges traversed while finding extrema for deletions, and \\(r\\) the total number of single rotations performed by all splay steps. Define \\(W=m+e+r\\). A node has a constant number of child and parent pointers. Reading or changing one such pointer, comparing keys, allocating or deleting one node and executing a branch are constant-cost primitives. The standard direct implementation takes time within constant factors of \\(W\\), since each search edge, rotation and operation uses only a constant amount of additional work. Key bit lengths, memory-allocation system overhead and an alternative implementation’s avoidable extra work are not part of this combinatorial cost model.\n\nThe conjecture is a bound on the entire sequence, including sequences with insertions and deletions interleaved arbitrarily. It does not assert a constant worst-case cost for an individual deletion. The constant \\(C\\) must be independent of \\(n,m\\), all keys, the initial shape and the operation sequence. The empty sequence has cost zero.",
       "progress": [
         {
-          "date": "2007 / 2008",
-          "text": "Pettie proves \\(O((n+m)\\alpha^*(n+m))\\) total cost, where \\(\\alpha^*\\) counts how many iterations of the inverse-Ackermann function reduce the argument to a constant.",
-          "citation": "upper"
+          "date": "2007-07-14",
+          "text": "The initial-tree-plus-sequence upper bound is reduced to a linear term times an iterated inverse-Ackermann factor; the result appears at SODA 2008.",
+          "citation": "primary"
         },
         {
-          "date": "2019",
-          "text": "Levy and Tarjan connect the deque conjecture to a subsequence property sufficient for dynamic optimality. This provides a structural route to a proof, not the required linear bound itself.",
-          "citation": "subsequence"
-        },
-        {
-          "date": "2026-07",
-          "text": "The new analysis of splay competitiveness still describes the deque guarantee as nearly constant per operation. Its general search bound does not supply constant amortized deque cost.",
+          "date": "2026-07-20",
+          "text": "A preprint proves substantially improved general splay competitiveness while separately retaining the deque conjecture and its known nonconstant-factor bound.",
           "citation": "current"
         }
       ],
       "references": [
         {
-          "id": "upper",
+          "id": "primary",
           "title": "Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture",
           "authors": "Seth Pettie",
           "year": 2007,
-          "url": "https://arxiv.org/abs/0707.2160",
-          "locator": "Introduction, deque implementation; Theorem 5.1; published at SODA 2008"
-        },
-        {
-          "id": "subsequence",
-          "title": "A New Path from Splay to Dynamic Optimality",
-          "authors": "Caleb Levy and Robert Tarjan",
-          "year": 2019,
-          "url": "https://doi.org/10.1137/1.9781611975482.80",
-          "locator": "Section on the deque conjecture"
+          "url": "https://arxiv.org/abs/0707.2160v1",
+          "locator": "14 July 2007; Introduction p.2, operation convention; Theorem 5.1 p.9; published at SODA 2008"
         },
         {
           "id": "current",
           "title": "Splay trees are almost dynamically optimal",
-          "authors": "Petr Chmel, Bernhard Haeupler, Richard Hladík, Michal Koucký, Antti Roeyskoe, Václav Rozhoň, Ondřej Sladký, and Robert E. Tarjan",
+          "authors": "Petr Chmel; Bernhard Haeupler; Richard Hladík; Michal Koucký; Antti Roeyskoe; Václav Rozhoň; Ondřej Sladký; Robert E. Tarjan",
           "year": 2026,
-          "url": "https://arxiv.org/abs/2607.18498",
-          "locator": "Introduction: known guarantees for deque operations"
+          "url": "https://arxiv.org/abs/2607.18498v1",
+          "locator": "20 July 2026; abstract, Introduction pp.1–2 and Appendix A deque discussion"
         }
       ],
       "status": "source_open",
-      "status_note": "Reviewed 10 September 2026, including the July 2026 splay result. The conjecture asks for linear total cost under insertions and deletions at either end.",
+      "status_note": "The July 2026 primary preprint separately records the deque conjecture and the known iterated-inverse-Ackermann upper bound. Bounded primary-source checks through 17 September 2026 found no verified proof or counterexample for the exact linear target. The recent general competitiveness theorem is not treated as a resolution of this specific conjecture.",
       "key": "splay-deque-conjecture",
       "context_blocks": [
         {
-          "text": "A deque allows insertion and deletion at either end of a sequence. A linked representation can implement this abstract interface in constant time per operation. The conjecture concerns what happens when the same interface is implemented by a self-adjusting search tree: it asks whether the tree automatically achieves the linear total cost available for this restricted workload."
+          "text": "A deque uses only the two extremes of an ordered set. Although a dedicated deque supports these operations easily, the conjecture concerns the behavior of the fixed splay-tree algorithm on every such sequence.",
+          "citation": "primary"
         },
         {
-          "text": "Deleting the minimum of a long left spine can require many rotations in a single operation. That does not disprove the conjecture, because the initial tree contributes an additive budget proportional to its size. The real difficulty is to understand whether alternating insertions and deletions at opposite ends can repeatedly rebuild expensive configurations."
+          "text": "Pettie proves \\(O((n+m)\\alpha^*(n+m))\\) total time, where \\(\\alpha^*\\) counts repeated applications of an inverse-Ackermann function until a fixed threshold is reached. Its growth is extremely slow but is not an absolute constant.",
+          "citation": "primary"
         },
         {
-          "text": "For a concrete contrast, deleting keys in increasing order is a sequential-access pattern. A deque workload can switch ends after every operation and introduce new extreme keys between deletions. A bound for one monotone scan therefore does not immediately control this more flexible sequence."
+          "text": "The arbitrary initial tree matters: the first extremal deletion may traverse a long path. The additive initial-size allowance permits that cost while still asking for a linear bound over the whole sequence.",
+          "citation": "primary"
         },
         {
-          "text": "The known total bound has an iterated inverse-Ackermann factor, which grows extraordinarily slowly but is asymptotically unbounded. Removing it would answer a structural question about how rotations reuse earlier work. This is a focused subproblem of the broader study of splaying, with updates included explicitly rather than only searches.",
-          "citation": "upper"
+          "text": "The July 2026 preprint obtains a near-double-logarithmic competitive ratio for general splay accesses and separately records the deque conjecture. A nonconstant general competitiveness guarantee is not itself the constant amortized deque bound.",
+          "citation": "current"
         }
       ],
       "id": "TCS-6508",
       "year": 2026,
       "is_new": true,
-      "review_note": "Individually written from the cited primary sources. The importance assessment is editorial. New preprint proofs have not been independently verified.",
+      "review_note": "Completed individual review against P versus NP on 2026-09-17; see research/card-completion-20260913/reviews.jsonl.",
       "reviewed_on": "2026-09-10",
       "published_at": "2026-09-10T08:07:18+00:00",
       "evidence": "reviewed",
       "model_self_contained": true,
       "related": [],
-      "updated_at": "2026-09-13T09:26:53+00:00",
+      "updated_at": "2026-09-17T13:20:06+00:00",
       "question_type": "yes_no",
-      "answer_criterion": "Prove a universal \\(O(n+m)\\) total bound for the specified splay implementation, or prove that the ratio between total cost and \\(n+m\\) is unbounded over legal initial trees and operation sequences.",
-      "formulation_reviewed_on": "2026-09-10",
+      "answer_criterion": "Give a complete mathematically correct Lean-checked proof of the displayed universal bound or its logical negation. A negative proof must show that for every proposed constant \\(C\\) there is a legal finite initial tree and sequence with \\(W>C(n+m)\\); equivalently, the cost ratio is unbounded over nonempty instances.\n\nA constant-cost deque implemented by a different data structure does not answer this question. A slowly growing nonconstant amortized factor, a guarantee for only deletion sequences or special initial shapes, and a nonconstant competitive ratio against an optimal search tree do not establish the full linear bound. No additive approximation tolerance is allowed.",
+      "formulation_reviewed_on": "2026-09-17",
       "importance": {
         "score": 81,
         "method": "editorial",
@@ -136738,18 +136804,17 @@
       },
       "working_summary": {
         "sentences": [
-          "A deque permits insertions and deletions at either end of an ordered collection.",
-          "This question studies the implementation that inserts extreme keys and splays an extreme key before deleting it.",
-          "It asks whether every operation sequence costs linear total time, including an allowance for the initial tree.",
-          "Alternating ends and inserting new keys creates behavior beyond a single sorted scan.",
-          "The conjecture would show that self-adjusting search trees automatically attain the efficiency expected from this restricted interface."
+          "Start with any binary search tree and update only the minimum or maximum end.",
+          "New extrema become roots, while deleting an extremum first moves it to the root by standard bottom-up splaying.",
+          "The conjecture asks whether total search and rotation work is linear in the initial size plus the number of operations.",
+          "A known bound has an extremely slowly growing extra factor, and the 2026 general competitiveness result does not remove it here.",
+          "A complete Lean-checked proof of the linear bound or an unbounded family of counterexample ratios is required."
         ],
         "basis": "saved_sources",
-        "source_basis": "saved-card",
-        "written_on": "2026-09-11",
+        "source_basis": "individual_source_review",
+        "written_on": "2026-09-17",
         "source_refs": [
-          "upper",
-          "subsequence",
+          "primary",
           "current"
         ]
       },
@@ -136770,7 +136835,49 @@
           "note": "Matched the requested researcher-list item to this active identity. Preserved its previously reviewed benchmark target; see the batch audit for scope distinctions."
         }
       ],
-      "context": "A deque allows insertion and deletion at either end of a sequence. A linked representation can implement this abstract interface in constant time per operation. The conjecture concerns what happens when the same interface is implemented by a self-adjusting search tree: it asks whether the tree automatically achieves the linear total cost available for this restricted workload.\n\nDeleting the minimum of a long left spine can require many rotations in a single operation. That does not disprove the conjecture, because the initial tree contributes an additive budget proportional to its size. The real difficulty is to understand whether alternating insertions and deletions at opposite ends can repeatedly rebuild expensive configurations.\n\nFor a concrete contrast, deleting keys in increasing order is a sequential-access pattern. A deque workload can switch ends after every operation and introduce new extreme keys between deletions. A bound for one monotone scan therefore does not immediately control this more flexible sequence.\n\nThe known total bound has an iterated inverse-Ackermann factor, which grows extraordinarily slowly but is asymptotically unbounded. Removing it would answer a structural question about how rotations reuse earlier work. This is a focused subproblem of the broader study of splaying, with updates included explicitly rather than only searches.",
+      "source_formulation": {
+        "text": "Tarjan’s deque conjecture, as stated by Pettie, says that splay-tree deque operations take constant amortized time. Pettie specifies new-root insertions and deletion by splaying the appropriate extremum. This card includes the initial-tree size explicitly, as in Pettie’s upper-bound theorem.",
+        "caption": "Pettie, Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture, July 2007 preprint, Introduction p.2 and Theorem 5.1 p.9; SODA 2008.",
+        "citation": "primary",
+        "format": "editorial_paraphrase"
+      },
+      "requires_context": false,
+      "statement_review": {
+        "status": "revised",
+        "reviewed_on": "2026-09-17",
+        "remaining_issue": "",
+        "notes": [
+          "Retained the exact linear-total-cost conjecture, arbitrary initial tree and the four specified deque operations.",
+          "Defined bottom-up splaying, rotations, the sequence cost and all quantifiers without leaving the machine primitives implicit.",
+          "Charged extremal search as well as rotations and constant operation overhead; inserted extrema are made roots without an extra search.",
+          "Allowed arbitrary valid interleavings and deletion to an empty tree, with no balance or monotone-deletion promise.",
+          "Read Pettie’s explicit initial-n, m-operation theorem and the July 2026 splay preprint’s separate deque discussion.",
+          "Kept almost-dynamic-optimality progress separate from a constant amortized deque theorem and preserved importance.",
+          "Required a complete Lean-checked proof of the universal bound or its unbounded-ratio negation, with no numerical tolerance."
+        ],
+        "scope": "Individual formulation and source review; current-status limits are recorded separately."
+      },
+      "quality_review": {
+        "reviewed_on": "2026-09-17",
+        "reference_card": "TCS-0001",
+        "state": "revised",
+        "changes": [
+          "Retained the exact linear-total-cost conjecture, arbitrary initial tree and the four specified deque operations.",
+          "Defined bottom-up splaying, rotations, the sequence cost and all quantifiers without leaving the machine primitives implicit.",
+          "Charged extremal search as well as rotations and constant operation overhead; inserted extrema are made roots without an extra search.",
+          "Allowed arbitrary valid interleavings and deletion to an empty tree, with no balance or monotone-deletion promise.",
+          "Read Pettie’s explicit initial-n, m-operation theorem and the July 2026 splay preprint’s separate deque discussion.",
+          "Kept almost-dynamic-optimality progress separate from a constant amortized deque theorem and preserved importance.",
+          "Required a complete Lean-checked proof of the universal bound or its unbounded-ratio negation, with no numerical tolerance."
+        ],
+        "checked_sources": [
+          "Read Pettie, Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture, arXiv:0707.2160v1, 14 July 2007, subsequently SODA 2008: Introduction p.2 specifies root insertion and extremal splay deletion; Theorem 5.1 p.9 states O((m+n) alpha-star(m+n)) for m operations starting from an n-node tree. This supplies the exact inherited operation convention and arbitrary-initial-tree scope.",
+          "Read Chmel–Haeupler–Hladík–Koucký–Roeyskoe–Rozhoň–Sladký–Tarjan, Splay trees are almost dynamically optimal, arXiv:2607.18498v1, 20 July 2026: abstract, Introduction pp.1–2 and Appendix A deque bullet. It proves an O(log log n (log log log n)^2) competitive ratio for the general access problem and separately lists the deque conjecture with Pettie’s iterated-inverse-Ackermann bound. The general theorem is not asserted to prove constant amortized deque operations.",
+          "Checked primary arXiv metadata and bounded subsequent-result searches through 17 September 2026. No verified resolution of the selected deque conjecture was found. A cached 2023 wait-free concurrent-deque paper was inspected and excluded as a different problem, not counted as progress on splay deques."
+        ],
+        "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+      },
+      "context": "A deque uses only the two extremes of an ordered set. Although a dedicated deque supports these operations easily, the conjecture concerns the behavior of the fixed splay-tree algorithm on every such sequence.\n\nPettie proves \\(O((n+m)\\alpha^*(n+m))\\) total time, where \\(\\alpha^*\\) counts repeated applications of an inverse-Ackermann function until a fixed threshold is reached. Its growth is extremely slow but is not an absolute constant.\n\nThe arbitrary initial tree matters: the first extremal deletion may traverse a long path. The additive initial-size allowance permits that cost while still asking for a linear bound over the whole sequence.\n\nThe July 2026 preprint obtains a near-double-logarithmic competitive ratio for general splay accesses and separately records the deque conjecture. A nonconstant general competitiveness guarantee is not itself the constant amortized deque bound.",
       "criterion_label": "Sharp bounds and thresholds",
       "selection_group": "small",
       "selection_target": 20,
@@ -138515,54 +138622,86 @@
       "area": "Dynamic graph algorithms",
       "criterion": "resources",
       "question_type": "yes_no",
-      "formal": "Does there exist a deterministic data structure maintaining a finite set \\(P\\subset\\mathbb R^2\\) under point insertion and deletion, using \\(O(1+|P|)\\) space, with \\(O(\\log(2+n))\\) worst-case time for every update and every extreme-point query? Here \\(n\\) is the larger set size immediately before and after the operation. An extreme-point query supplies \\(u\\in\\mathbb R^2\\setminus\\{0\\}\\) and returns a point maximizing \\(\\langle u,p\\rangle\\) over \\(p\\in P\\), or an empty marker.",
-      "definitions": "The set is initially empty. Insertions supply distinct points; deletions name a present point by a stable handle returned at insertion. Ties may be resolved by any fixed deterministic rule. Use an algebraic real RAM: exact real addition, subtraction, multiplication, division by a nonzero value and comparisons each cost one step, as do constant-size record and pointer operations; no floor, bit extraction from reals or arbitrary-precision encoding operation is supplied. A point, pointer or scalar occupies one cell. One finite program must handle every finite valid online sequence, without advance knowledge, with universal constants in the bounds. Only a maximizing point is returned, not an explicit list of all hull vertices.",
+      "formal": "Does there exist one uniform deterministic data structure and an absolute constant \\(K\\ge1\\) that maintain a finite set \\(P\\subset\\mathbb R^2\\), initially empty, with the following guarantees on every finite valid online sequence? Each point insertion, point deletion and extreme-point query takes at most \\(K\\log_2(n+2)\\) worst-case real-RAM steps, where \\(n\\) is the larger set size immediately before and after that operation. The stored representation uses at most \\(K(1+|P|)\\) cells. Given any \\(u\\in\\mathbb R^2\\setminus\\{0\\}\\), an extreme-point query returns a point \\(p\\in P\\) maximizing \\(\\langle u,p\\rangle\\), or an empty marker if \\(P=\\varnothing\\).",
+      "definitions": "Insert receives the two exact real coordinates of a point not currently in \\(P\\), adds it and returns a stable handle. Delete receives a valid handle for a currently present point and removes that point; the handle then becomes invalid. A previously deleted coordinate pair may be inserted again with a new handle. A handle is only a reference to an item, not an encoding of free auxiliary information. Each live handle must remain usable until its item is deleted, including across internal restructuring.\n\nFor \\(u=(u_x,u_y)\\) and \\(p=(p_x,p_y)\\), the objective is \\(\\langle u,p\\rangle=u_xp_x+u_yp_y\\). Any maximizing point is acceptable, chosen deterministically by the algorithm. All finite sets are allowed: no general-position, distinct-x-coordinate, noncollinearity, convex-position or bounded-coordinate promise is made. Updates may occur in arbitrary order. A query returns only one point or an empty marker, not a cyclic list of the entire convex hull, its edges, or all changes caused by an update.\n\nUse an algebraic real RAM with a fixed finite program. A cell stores an exact real scalar, a pointer or a constant-size control value. Copying a cell, reading or writing an addressed cell, following or changing a pointer, comparison, branching, exact real addition, subtraction, multiplication and division by a nonzero value each cost one step. Allocating or releasing a constant-size record also costs one step. The program contains only fixed rational numerical constants and uses ordinary discrete address bookkeeping; a real coordinate is not an address encoding. No floor, bit extraction from a real, arbitrary-precision packing primitive, unbounded parallel operation, randomness, advice or oracle is supplied. There is no charge for coordinate bit length: these are exact real-arithmetic costs, not rational-input bit complexity.\n\nAll stored points, handles, indexes, auxiliary records and retained historical information count toward space. All comparisons, rebuilding, initialization and query work count toward time. Initialization on the empty set takes constant time and space. Between operations at most \\(K(1+|P|)\\) cells are retained; during an operation at most \\(K(1+n)\\) cells, including its workspace, are used, after enlarging the same universal constant if necessary. The client holds input coordinates and handles but supplies no uncharged index or preprocessing. Deleted data may be retained only within the current space bound.\n\nThe algorithm must finish each operation and return its answer before seeing the next. It has no advance knowledge of the sequence length, future operations, maximum eventual set size or coordinate values. The one program and constant \\(K\\) work for every sequence and every direction. Both time and space are measured against current size; an occasional expensive update cannot be paid for by averaging over other operations. Reading two input coordinates or returning one stored point takes constant work.",
       "why": "This asks whether optimal dynamic geometric query performance can be guaranteed for individual updates rather than only averaged over a sequence.",
       "context_blocks": [
         {
-          "text": "Brodal and Jacob achieve logarithmic amortized insertion and deletion with logarithmic worst-case extreme-point queries in linear space. Their concluding questions explicitly include worst-case logarithmic updates.",
+          "text": "The known linear-space structure achieves logarithmic amortized update time and logarithmic extreme-point queries. The unresolved distinction is whether every individual update can satisfy the logarithmic time bound.",
           "citation": "primary"
         },
         {
-          "text": "A single update may change many hull vertices. The maintained query representation avoids requiring the entire polygon to be output after each change.",
+          "text": "One update may change many hull vertices. A query interface avoids having to list those changes, so an output-size argument for explicitly reporting a hull is not a lower bound for this target.",
           "citation": "primary"
+        },
+        {
+          "text": "The 2026 engineering paper develops a practical fully dynamic implementation with amortized logarithmic-times-log-log updates and logarithmic-squared queries. Its performance guarantees address a different endpoint.",
+          "citation": "engineering"
+        },
+        {
+          "text": "The same recent discussion distinguishes general updates from simple-path and ordered-update settings. Bounds for those restricted settings do not by themselves give the unrestricted guarantee here.",
+          "citation": "engineering"
         }
       ],
       "references": [
         {
           "id": "primary",
           "title": "Dynamic Planar Convex Hull",
-          "authors": "Gerth Stølting Brodal; Riko Jacob",
+          "authors": "Riko Jacob; Gerth Stølting Brodal",
           "year": 2019,
-          "url": "https://cs.au.dk/~gerth/papers/arxiv1902.11169.pdf",
-          "locator": "Full version of the FOCS 2002 work; §12, open problems, especially worst-case updates."
+          "url": "https://arxiv.org/abs/1902.11169v1",
+          "locator": "28 February 2019 full version of FOCS 2002 results; Theorems 1–2 p.2, §§2.1–2.2 pp.5–6 and §12 p.81"
+        },
+        {
+          "id": "engineering",
+          "title": "Engineering Fully Dynamic Convex Hulls",
+          "authors": "Ivor van der Hoog; Henrik Reinstädtler; Eva Rotenberg",
+          "year": 2026,
+          "url": "https://doi.org/10.4230/LIPIcs.SEA.2026.22",
+          "locator": "Published 15 June 2026; abstract and Introduction, implicit versus explicit hulls and amortized update guarantees"
         }
       ],
       "progress": [
         {
-          "date": "2019",
-          "text": "The full analysis gives logarithmic amortized updates and explicitly retains worst-case logarithmic updates as open.",
+          "date": "2002",
+          "text": "The conference result achieves linear space and logarithmic amortized updates with logarithmic extreme-point queries.",
           "citation": "primary"
+        },
+        {
+          "date": "2019-02-28",
+          "text": "The full version supplies the detailed analysis and explicitly retains worst-case logarithmic updates as an open question.",
+          "citation": "primary"
+        },
+        {
+          "date": "2026-06-15",
+          "text": "A new implemented fully dynamic structure improves practical performance, with amortized update guarantees.",
+          "citation": "engineering"
         }
       ],
-      "answer_criterion": "Give a complete Lean-checked proof of the stated existence claim or its logical negation, with the same inputs, computation model, space allowance, quantifiers and cost guarantees. A result for a restricted input family or a different model does not decide the full target.",
+      "answer_criterion": "Give a complete mathematically correct Lean-checked proof of the displayed existence proposition or its logical negation. A positive proof must establish exact answers, linear total storage and a logarithmic bound for every individual insertion, deletion and query, with all rebuilding and workspace charged. A negative proof must rule out all data structures in the stated model unconditionally; a conditional lower bound is only a conditional result.\n\nLogarithmic amortized updates, expected bounds, ordered or one-sided update restrictions, and data structures requiring superlinear storage do not meet the full target. An argument that explicitly reporting a changed hull can have linear output size does not refute this one-point query interface.",
       "related": [],
       "related_problem_ids": [],
       "year": 2019,
       "evidence": "reviewed",
       "status": "source_open",
-      "status_note": "Open in the cited dated sources. The bounded source and subsequent-result review on 13 September 2026 found no verified resolution of this target; this is not exhaustive certification of current openness.",
+      "status_note": "The 2019 full version explicitly leaves worst-case logarithmic updates open. The 2026 engineering paper has different amortized guarantees and does not settle this extreme-point target. Bounded primary-source checks through 17 September 2026 found no verified resolution; the review is not an independent audit of every geometric data-structure proof.",
       "model_self_contained": true,
       "requires_context": false,
-      "formulation_reviewed_on": "2026-09-13",
+      "formulation_reviewed_on": "2026-09-17",
       "statement_review": {
         "status": "revised",
-        "reviewed_on": "2026-09-13",
+        "reviewed_on": "2026-09-17",
         "remaining_issue": "",
         "notes": [
-          "Individual formulation, model, duplicate and category review for the user-requested researcher list."
+          "Retained the exact deterministic fully dynamic extreme-point interface, linear space and logarithmic worst-case time for each operation.",
+          "Specified current-size accounting, empty sets, arbitrary degeneracies, stable deletion handles and online quantifiers.",
+          "Made real-arithmetic and storage costs explicit and ruled out hidden uncharged rebuilding or a free copy of deleted input.",
+          "Distinguished querying an implicit hull from explicitly reporting all changed hull vertices.",
+          "Read the original full-version theorem, model and open-problems section and checked the 2026 engineering paper’s guarantees.",
+          "Kept amortized algorithms and restricted geometric update orders separate from this unrestricted worst-case target.",
+          "Preserved importance and required a complete Lean-checked binary answer without treating existing amortized optimality as a resolution."
         ],
-        "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+        "scope": "Individual formulation and source review; current-status limits are recorded separately."
       },
       "importance": {
         "score": 85,
@@ -138576,17 +138715,18 @@
       },
       "working_summary": {
         "sentences": [
-          "A planar point set changes by insertion and deletion.",
-          "A query asks for a point farthest in a supplied direction.",
-          "The target is linear storage and logarithmic time for each individual operation.",
-          "The known optimal update guarantee is amortized over a sequence.",
-          "The question isolates whether geometric maintenance must sometimes cause expensive update spikes."
+          "Maintain an arbitrary changing set of exact points in the plane, starting from the empty set.",
+          "Insertions and deletions may occur in any order, and a query asks for one point farthest in a supplied direction.",
+          "The target is deterministic logarithmic worst-case time for each operation and linear total space.",
+          "Known optimal amortized bounds and recent practical implementations do not provide that per-operation guarantee.",
+          "The answer must be a complete Lean-checked construction or unconditional refutation in the specified real-arithmetic model."
         ],
         "basis": "saved_sources",
-        "source_basis": "source-text",
-        "written_on": "2026-09-13",
+        "source_basis": "individual_source_review",
+        "written_on": "2026-09-17",
         "source_refs": [
-          "primary"
+          "primary",
+          "engineering"
         ]
       },
       "researcher_import": {
@@ -138596,12 +138736,38 @@
         ],
         "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
       },
-      "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+      "review_note": "Completed individual review against P versus NP on 2026-09-17; see research/card-completion-20260913/reviews.jsonl.",
       "id": "TCS-7326",
       "published_at": "2026-09-13T09:26:53+00:00",
-      "updated_at": "2026-09-13T09:26:53+00:00",
+      "updated_at": "2026-09-17T13:23:06+00:00",
       "is_new": true,
-      "context": "Brodal and Jacob achieve logarithmic amortized insertion and deletion with logarithmic worst-case extreme-point queries in linear space. Their concluding questions explicitly include worst-case logarithmic updates.\n\nA single update may change many hull vertices. The maintained query representation avoids requiring the entire polygon to be output after each change.",
+      "source_formulation": {
+        "text": "The full version leaves open whether logarithmic worst-case update time can coexist with fast extreme-point queries. This card retains the precise extreme-point-only interface, linear-space budget and deterministic exact real-arithmetic conventions already selected for that question.",
+        "caption": "Jacob–Brodal, Dynamic Planar Convex Hull, full version of 28 February 2019, §12, p.81; main amortized result originally published at FOCS 2002.",
+        "citation": "primary",
+        "format": "editorial_paraphrase"
+      },
+      "quality_review": {
+        "reviewed_on": "2026-09-17",
+        "reference_card": "TCS-0001",
+        "state": "revised",
+        "changes": [
+          "Retained the exact deterministic fully dynamic extreme-point interface, linear space and logarithmic worst-case time for each operation.",
+          "Specified current-size accounting, empty sets, arbitrary degeneracies, stable deletion handles and online quantifiers.",
+          "Made real-arithmetic and storage costs explicit and ruled out hidden uncharged rebuilding or a free copy of deleted input.",
+          "Distinguished querying an implicit hull from explicitly reporting all changed hull vertices.",
+          "Read the original full-version theorem, model and open-problems section and checked the 2026 engineering paper’s guarantees.",
+          "Kept amortized algorithms and restricted geometric update orders separate from this unrestricted worst-case target.",
+          "Preserved importance and required a complete Lean-checked binary answer without treating existing amortized optimality as a resolution."
+        ],
+        "checked_sources": [
+          "Read Jacob–Brodal, Dynamic Planar Convex Hull, arXiv:1902.11169v1, 28 February 2019, author PDF https://cs.au.dk/~gerth/papers/arxiv1902.11169.pdf: abstract, Theorems 1–2 p.2, Sections 2.1–2.2 pp.5–6 and Section 12 p.81. The upper bound has logarithmic amortized updates, logarithmic queries and linear space. The lower bound is in the algebraic real-RAM setting. Section 12 explicitly leaves worst-case logarithmic updates with fast extreme-point queries open. The full version states that the main results appeared at FOCS 2002; 2019 is the full-version date, not the date of the original breakthrough.",
+          "Read van der Hoog–Reinstädtler–Rotenberg, Engineering Fully Dynamic Convex Hulls, SEA 2026 article 22, DOI 10.4230/LIPIcs.SEA.2026.22, published 15 June 2026: full primary HTML abstract and Introduction. The implemented structure has O(log n log log n) amortized updates and O(log^2 n) query time. The introduction distinguishes explicit from implicit hulls, continues to cite the classical amortized optimum, and separates simple-path and ordered-update restrictions. These guarantees do not settle the selected worst-case target.",
+          "Bounded primary-source searches through 17 September 2026 found no verified resolution. Results for insertion-only, deletion-only, simple-path or ordered deque updates and practical empirical performance were not treated as unrestricted worst-case logarithmic updates."
+        ],
+        "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+      },
+      "context": "The known linear-space structure achieves logarithmic amortized update time and logarithmic extreme-point queries. The unresolved distinction is whether every individual update can satisfy the logarithmic time bound.\n\nOne update may change many hull vertices. A query interface avoids having to list those changes, so an output-size argument for explicitly reporting a hull is not a lower bound for this target.\n\nThe 2026 engineering paper develops a practical fully dynamic implementation with amortized logarithmic-times-log-log updates and logarithmic-squared queries. Its performance guarantees address a different endpoint.\n\nThe same recent discussion distinguishes general updates from simple-path and ordered-update settings. Bounds for those restricted settings do not by themselves give the unrestricted guarantee here.",
       "criterion_label": "Necessary resources",
       "original_area": "Dynamic graph algorithms",
       "selection_group": "small",
@@ -141843,73 +142009,87 @@
     {
       "title": "Constant-factor approximation of the smallest grammar",
       "area": "String algorithms and bioinformatics",
-      "criterion": "tightness",
+      "criterion": "resources",
       "question_type": "yes_no",
-      "formal": "Do there exist an absolute constant C and a deterministic polynomial-time algorithm that, for every explicit nonempty string s, outputs an acyclic context-free grammar generating exactly s whose size is at most $C g^*(s)$? There is one production per nonterminal, one designated start nonterminal, and every right-hand side is a nonempty string of terminals and nonterminals. The dependency graph on nonterminals must be acyclic. Grammar size is the sum of all right-hand-side lengths, and $g^*(s)$ is the minimum such size. The alphabet is part of the input, encoded by integer symbols in {1,...,|s|}.",
-      "answer_criterion": "Prove existence of one polynomial-time algorithm with some fixed approximation constant valid for all strings, or prove that no such algorithm exists. A hardness theorem conditional on \\(\\mathrm{P} \\ne  \\mathrm{NP}\\) should be reported with that assumption. Exact optimization and ratios tending to one are stronger targets than the constant-factor question.",
-      "definitions": "Expanding a nonterminal means repeatedly replacing it by its unique right-hand side. Acyclicity guarantees termination, and the start expansion must equal the input string with no extra strings generated. Each terminal or nonterminal occurrence on a right-hand side contributes one unit to size. Runtime is measured in the ordinary binary encoding of the explicit input, not the compressed output length. Constant C cannot depend on the alphabet size, string length, or optimal grammar size. Arbitrarily long right-hand sides are permitted; the size convention is not just the number of productions.",
+      "formal": "Do there exist absolute constants \\(C\\ge1\\), \\(K\\ge1\\), an integer \\(d\\ge1\\), and one uniform deterministic algorithm \\(A\\) such that, for every \\(n\\ge1\\) and explicitly supplied string \\(s\\in\\{1,\\ldots,n\\}^n\\), the algorithm outputs an acyclic grammar \\(G\\) generating exactly \\(s\\), with\n\\[\n|G|\\le C\\,g^*(s),\n\\]\nin at most \\(K(L(s)+1)^d\\) Turing-machine bit steps? Here \\(|G|\\) is the total number of terminal and nonterminal occurrences on all right-hand sides, \\(g^*(s)\\) is the minimum such size among grammars generating \\(s\\), and \\(L(s)\\) is the explicit binary input length.",
+      "answer_criterion": "Give a complete mathematically correct Lean-checked proof of the displayed existence proposition or its logical negation. A positive proof must construct one deterministic polynomial-time algorithm and prove its grammar is valid and within one fixed factor of the optimum for every allowed string. A negative proof must rule out every fixed constant factor and polynomial-time algorithm unconditionally. A theorem under \\(\\mathrm P\\ne\\mathrm{NP}\\) or another unproved hypothesis must be identified as conditional and does not alone prove the logical negation.\n\nHardness of exact optimization, a PTAS, or some small approximation constants does not refute all constant factors. An empirical bound, a guarantee only for a restricted string family, or a lower bound for one particular compressor does not decide the proposition. A proof in a different grammar-size convention must justify its transfer to the convention stated here.",
+      "definitions": "A permitted grammar consists of ordered nonterminals \\(X_1,\\ldots,X_r\\), one production \\(X_j\\to\\alpha_j\\) per nonterminal, and start nonterminal \\(X_r\\). Each \\(\\alpha_j\\) is a finite nonempty sequence whose entries are terminals from \\(\\{1,\\ldots,n\\}\\) or references to \\(X_i\\) with \\(i<j\\). Every nonterminal is reachable from the start. The order makes the dependency graph acyclic, and each variable has exactly one expansion into terminals. The expansion of \\(X_r\\) must equal \\(s\\), symbol for symbol. There are no alternatives, cycles, empty productions, reversal instructions, iteration instructions or extra generated strings. Right-hand sides may have arbitrary positive length; they need not be binary concatenations.\n\nThe size is \\(|G|=\\sum_{j=1}^r|\\alpha_j|\\). Every occurrence of a terminal or a referenced nonterminal contributes one unit, even when the same entry occurs repeatedly. This counts neither just the number of productions nor the binary description length. A repeated block written many times on a right-hand side is charged for each occurrence; a run-length exponent is not a substitute. The optimum \\(g^*(s)\\) ranges over all permitted grammars, independently of the algorithm. It exists and satisfies \\(1\\le g^*(s)\\le n\\), since one production containing \\(s\\) is permitted. Ordering the acyclic dependencies and removing unreachable rules does not change the optimal value.\n\nFor definiteness, let \\(\\operatorname{code}(a)\\), \\(a\\ge0\\), consist of \\(1^b0\\) followed by the \\(b\\)-bit binary representation of \\(a+1\\), where \\(b=\\lfloor\\log_2(a+1)\\rfloor+1\\). The input is \\(\\operatorname{code}(n)\\), followed by the \\(n\\) symbols, each in \\(\\lceil\\log_2(n+1)\\rceil\\) bits. Its full length is \\(L(s)\\). The alphabet is not required to have a fixed size, and symbols not used by \\(s\\) are allowed in the ambient alphabet.\n\nThe output explicitly lists \\(r\\), then for each production its right-hand-side length and all its entries. Lengths and identifiers use the same self-delimiting code, and each entry has a one-bit terminal/nonterminal tag. The start is \\(X_r\\). Writing this entire binary output counts toward runtime. The approximation inequality still uses the stated symbol-occurrence size, not the number of output bits.\n\nThe computational model is a fixed finite deterministic multitape Turing machine with finite tape alphabets, read-only binary input, initially blank work tapes and a binary output tape. Each step reads or writes the cells under its heads and moves each head at most one cell. All parsing, preprocessing, computation and output writing are charged. There is no advice, oracle, randomness, quantum computation or unit-cost arithmetic on unbounded integers. No separate workspace bound is imposed. Malformed inputs may be rejected in polynomial time.\n\nThe quantifier order is \\(\\exists(C,K,d,A)\\,\\forall n\\,\\forall s\\). The approximation factor and runtime exponent cannot depend on string length, alphabet size, repetition pattern or optimum grammar size. The task is to produce a grammar, not only estimate its minimum size. Exact optimization and approximation arbitrarily close to one are stronger targets than required here.",
       "why": "This is a fundamental compression-versus-optimization question: can an efficient procedure recover a representation within a fixed factor of the best hierarchical description? It also supplies a benchmark for compressed-data algorithms, whose costs often depend on grammar size rather than on the original string length.",
       "progress": [
         {
           "date": "2005",
-          "text": "Charikar and coauthors give an \\(O(1+\\log (|s|/g*(s)))\\) approximation and rule out approximation ratios below \\(8569/8568\\) unless \\(\\mathrm{P} = \\mathrm{NP}\\).",
+          "text": "Logarithmic approximation and a conditional inapproximability threshold below 8569/8568 leave a gap between known upper and lower guarantees.",
           "citation": "classical"
         },
         {
-          "date": "2020-11 / 2021",
-          "text": "Casel and coauthors establish hardness over fixed alphabets of size at least 17 and retain constant-factor approximation as Open Problem 2. The hardness result does not rule out every constant.",
-          "citation": "fixed"
+          "date": "2020-11-13",
+          "text": "Fixed-alphabet hardness is established, while constant-factor approximation remains an explicit separate open question.",
+          "citation": "primary"
+        },
+        {
+          "date": "2026",
+          "text": "An empirical assembly-index study compares compression heuristics without claiming the universal target.",
+          "citation": "empirical"
         }
       ],
       "references": [
         {
-          "id": "classical",
-          "title": "The Smallest Grammar Problem",
-          "authors": "Moses Charikar, Eric Lehman, Ding Liu, Rina Panigrahy, Manoj Prabhakaran, Amit Sahai, and abhi shelat",
-          "year": 2005,
-          "url": "https://doi.org/10.1109/TIT.2005.850116",
-          "locator": "Definition, approximation algorithm, and inapproximability theorem"
-        },
-        {
-          "id": "fixed",
+          "id": "primary",
           "title": "On the Complexity of the Smallest Grammar Problem over Fixed Alphabets",
-          "authors": "Katrin Casel, Henning Fernau, Serge Gaspers, Benjamin Gras, and Markus L. Schmid",
+          "authors": "Katrin Casel; Henning Fernau; Serge Gaspers; Benjamin Gras; Markus L. Schmid",
           "year": 2021,
           "url": "https://doi.org/10.1007/s00224-020-10013-w",
-          "locator": "Sections 1.3, 2.2, and 6.2; Open Problem 2; online 13 November 2020, journal volume 2021",
-          "pdf_url": "https://hpi.de/friedrich/docs/publications/2021/TOCS.pdf"
+          "locator": "Online 13 November 2020; §2, grammar conventions; §6.2, Open Problem 2"
+        },
+        {
+          "id": "classical",
+          "title": "The Smallest Grammar Problem",
+          "authors": "Moses Charikar and coauthors",
+          "year": 2005,
+          "url": "https://doi.org/10.1109/TIT.2005.850116",
+          "locator": "Introduction size definition, §V-A Theorem 1 and §VII approximation algorithms; author manuscript at https://shelat.khoury.northeastern.edu/dl/GrammarIEEE.pdf"
+        },
+        {
+          "id": "empirical",
+          "title": "Assembly Theory and the Smallest Grammar Problem",
+          "authors": "Wawrzyniec Bieniawski",
+          "year": 2026,
+          "url": "https://arxiv.org/abs/2608.19228",
+          "locator": "Primary abstract: empirical evaluation and branch-and-bound Re-Pair variant; not a verified universal approximation theorem"
         }
       ],
       "status": "source_open",
-      "status_note": "Reviewed 10 September 2026 using the primary approximation and fixed-alphabet papers, with a search for later results. No general constant-factor algorithm was located. Recent assembly-index work uses additional size conventions and is not treated as resolving this proposition.",
-      "formulation_reviewed_on": "2026-09-10",
+      "status_note": "The constant-factor target is explicitly open in the fixed-alphabet paper. Bounded primary-source checks through 17 September 2026 found no verified general constant-factor algorithm or theorem ruling out every constant under the specified grammar-size convention. The recent empirical abstract was checked only for scope, not independently validated as a proof.",
+      "formulation_reviewed_on": "2026-09-17",
       "key": "smallest-grammar-constant-approximation",
       "context_blocks": [
         {
-          "text": "A grammar can share repeated pieces of a string and then share larger pieces assembled from them. For example, a sequence of doubling rules represents an exponentially long run using only a linear number of rules. This makes grammar size a useful concrete measure of repetitive structure, with a finite optimum that can in principle be found by exhaustive search."
+          "text": "A grammar names reusable pieces and combines them hierarchically. The optimum measures how economically this can be done, while the algorithm must find a comparably small representation from the explicit string.",
+          "citation": "primary"
         },
         {
-          "text": "The problem is to choose the shared pieces. Two useful repeated substrings may overlap, and a locally attractive substitution can prevent a better organization at a larger scale. A method that compresses some families extremely well can therefore still have an unbounded ratio to the best grammar on other families. The proposed guarantee must cover every input, not only average compression performance."
-        },
-        {
-          "text": "Known approximation guarantees depend logarithmically on the ratio between the explicit string length and its optimal grammar size. Hardness rules out sufficiently accurate approximation under \\(\\mathrm{P} \\ne  \\mathrm{NP}\\), but this does not exclude a coarser universal constant. The space between these two conclusions is the question on this card.",
+          "text": "The classical guarantee is \\(O(1+\\log(n/g^*(s)))\\). The same work excludes ratios strictly below \\(8569/8568\\) unless \\(\\mathrm P=\\mathrm{NP}\\). This leaves the possibility of a larger universal constant.",
           "citation": "classical"
         },
         {
-          "text": "The size measure is essential. Counting productions, binary concatenations, or all right-hand-side symbols gives related but different optimization problems. Stating the measure explicitly also avoids confusing exact binary-alphabet hardness questions with the unrestricted constant-factor approximation target.",
-          "citation": "fixed"
+          "text": "The fixed-alphabet paper proves APX-hardness for alphabet sizes at least 17 and separately retains constant-factor approximation as an open problem. Exact hardness and absence of a PTAS do not rule out every constant.",
+          "citation": "primary"
+        },
+        {
+          "text": "Recent assembly-index work evaluates compressors on finite datasets. Such comparisons can assess practical performance but do not establish the worst-case all-string guarantee required here.",
+          "citation": "empirical"
         }
       ],
       "id": "TCS-6513",
       "year": 2021,
       "is_new": true,
-      "review_note": "Individually written from the cited primary sources. The importance assessment is editorial. New preprint proofs have not been independently verified.",
+      "review_note": "Completed individual review against P versus NP on 2026-09-17; see research/card-completion-20260913/reviews.jsonl.",
       "reviewed_on": "2026-09-10",
       "published_at": "2026-09-10T12:24:52+00:00",
       "evidence": "reviewed",
       "model_self_contained": true,
       "related": [],
-      "updated_at": "2026-09-13T11:10:27+00:00",
+      "updated_at": "2026-09-17T13:17:00+00:00",
       "importance": {
         "score": 87,
         "method": "editorial",
@@ -141923,17 +142103,19 @@
       },
       "working_summary": {
         "sentences": [
-          "A grammar can compress a string by naming repeated pieces and assembling them through acyclic production rules.",
-          "The question asks for a deterministic polynomial-time approximation within a universal constant of the smallest such grammar.",
-          "The size measure counts all symbols on right-hand sides, including references to other rules.",
-          "Choosing repeated pieces is difficult because useful substrings can overlap and interact across scales.",
-          "The saved review separates this constant-factor target from known logarithmic guarantees and emphasizes that alternative grammar-size conventions describe different optimization problems."
+          "The input is any explicit string over an integer alphabet that may grow with its length.",
+          "The algorithm must output an acyclic grammar whose unique expansion is that string.",
+          "Grammar size counts all symbols on production right-hand sides, and the target is one universal constant times the optimum.",
+          "The algorithm must be deterministic and polynomial in the full input bit length; known small-factor hardness does not rule out every constant.",
+          "A complete Lean-checked proof or unconditional refutation is required, with any conditional hardness result clearly distinguished."
         ],
         "basis": "saved_sources",
-        "written_on": "2026-09-11",
+        "source_basis": "individual_source_review",
+        "written_on": "2026-09-17",
         "source_refs": [
+          "primary",
           "classical",
-          "fixed"
+          "empirical"
         ]
       },
       "related_problem_ids": [
@@ -141954,8 +142136,51 @@
           "approved_on": "2026-09-13"
         }
       ],
-      "context": "A grammar can share repeated pieces of a string and then share larger pieces assembled from them. For example, a sequence of doubling rules represents an exponentially long run using only a linear number of rules. This makes grammar size a useful concrete measure of repetitive structure, with a finite optimum that can in principle be found by exhaustive search.\n\nThe problem is to choose the shared pieces. Two useful repeated substrings may overlap, and a locally attractive substitution can prevent a better organization at a larger scale. A method that compresses some families extremely well can therefore still have an unbounded ratio to the best grammar on other families. The proposed guarantee must cover every input, not only average compression performance.\n\nKnown approximation guarantees depend logarithmically on the ratio between the explicit string length and its optimal grammar size. Hardness rules out sufficiently accurate approximation under \\(\\mathrm{P} \\ne  \\mathrm{NP}\\), but this does not exclude a coarser universal constant. The space between these two conclusions is the question on this card.\n\nThe size measure is essential. Counting productions, binary concatenations, or all right-hand-side symbols gives related but different optimization problems. Stating the measure explicitly also avoids confusing exact binary-alphabet hardness questions with the unrestricted constant-factor approximation target.",
-      "criterion_label": "Sharp bounds and thresholds",
+      "source_formulation": {
+        "text": "Open Problem 2 asks whether the smallest grammar problem admits a constant-factor approximation. This card retains the deterministic polynomial-time interpretation, the sum-of-right-hand-side-lengths size measure and an alphabet that can grow with the explicit input.",
+        "caption": "Casel et al., On the Complexity of the Smallest Grammar Problem over Fixed Alphabets, §6.2, Open Problem 2; online November 2020, journal volume 2021.",
+        "citation": "primary",
+        "format": "editorial_paraphrase"
+      },
+      "requires_context": false,
+      "statement_review": {
+        "status": "revised",
+        "reviewed_on": "2026-09-17",
+        "remaining_issue": "",
+        "notes": [
+          "Retained deterministic polynomial bit-time, an unrestricted input alphabet and any absolute constant approximation ratio.",
+          "Specified the exact acyclic one-rule-per-variable grammar, unique start expansion and total right-hand-side-symbol size measure.",
+          "Made both input and output explicit binary encodings and charged all computation and output writing.",
+          "Separated hardness for ratios below 8569/8568 from nonexistence of every constant approximation.",
+          "Read the fixed-alphabet paper’s explicit Open Problem 2 and retained this target rather than exact optimization or a PTAS.",
+          "Checked recent assembly-index work at the abstract level and distinguished empirical performance from an all-string approximation theorem.",
+          "Preserved the assigned importance and added a complete Lean-checked answer criterion with an unconditional-versus-conditional distinction."
+        ],
+        "scope": "Individual formulation and source review; current-status limits are recorded separately."
+      },
+      "quality_review": {
+        "reviewed_on": "2026-09-17",
+        "reference_card": "TCS-0001",
+        "state": "revised",
+        "changes": [
+          "Retained deterministic polynomial bit-time, an unrestricted input alphabet and any absolute constant approximation ratio.",
+          "Specified the exact acyclic one-rule-per-variable grammar, unique start expansion and total right-hand-side-symbol size measure.",
+          "Made both input and output explicit binary encodings and charged all computation and output writing.",
+          "Separated hardness for ratios below 8569/8568 from nonexistence of every constant approximation.",
+          "Read the fixed-alphabet paper’s explicit Open Problem 2 and retained this target rather than exact optimization or a PTAS.",
+          "Checked recent assembly-index work at the abstract level and distinguished empirical performance from an all-string approximation theorem.",
+          "Preserved the assigned importance and added a complete Lean-checked answer criterion with an unconditional-versus-conditional distinction."
+        ],
+        "checked_sources": [
+          "Read Charikar and coauthors, The Smallest Grammar Problem, IEEE Transactions on Information Theory 51(7), 2554–2576 (2005), DOI 10.1109/TIT.2005.850116, author-hosted January 2005 manuscript https://shelat.khoury.northeastern.edu/dl/GrammarIEEE.pdf: abstract, Introduction size definition, Section V-A Theorem 1 and Section VII approximation discussion. The hardness threshold is strictly below 8569/8568 unless P=NP; the upper bound is logarithmic in string length divided by optimum grammar size. The author-hosted draft has a byline differing from some journal metadata, so the reference identifies the author group without silently asserting identical bylines.",
+          "Read Casel–Fernau–Gaspers–Gras–Schmid, On the Complexity of the Smallest Grammar Problem over Fixed Alphabets, DOI 10.1007/s00224-020-10013-w, online 13 November 2020, Theory of Computing Systems 65 (2021), 344–409: abstract, Section 2 grammar conventions and Section 6.2 including Open Problem 2. It explicitly asks for a constant-factor approximation and explains why APX-hardness on alphabets of size at least 17 does not settle that question. Read the full primary HTML after the linked HPI PDF returned HTTP 403.",
+          "Read the primary arXiv abstract of Bieniawski, Assembly Theory and the Smallest Grammar Problem, arXiv:2608.19228, 2026. It describes an empirical evaluation on 408 strings and a branch-and-bound tie-resolving variant of Re-Pair. The abstract does not claim a uniform polynomial-time constant approximation for every input under this card’s size convention. Only the abstract was checked; no independent proof audit is claimed.",
+          "Bounded primary-source searches through 17 September 2026 found no verified resolution of the universal constant-factor target. Fixed-alphabet exact hardness, particular compressor lower bounds, empirical comparisons and alternative assembly-size measures were kept separate."
+        ],
+        "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+      },
+      "context": "A grammar names reusable pieces and combines them hierarchically. The optimum measures how economically this can be done, while the algorithm must find a comparably small representation from the explicit string.\n\nThe classical guarantee is \\(O(1+\\log(n/g^*(s)))\\). The same work excludes ratios strictly below \\(8569/8568\\) unless \\(\\mathrm P=\\mathrm{NP}\\). This leaves the possibility of a larger universal constant.\n\nThe fixed-alphabet paper proves APX-hardness for alphabet sizes at least 17 and separately retains constant-factor approximation as an open problem. Exact hardness and absence of a PTAS do not rule out every constant.\n\nRecent assembly-index work evaluates compressors on finite datasets. Such comparisons can assess practical performance but do not establish the worst-case all-string guarantee required here.",
+      "criterion_label": "Necessary resources",
       "selection_group": "small",
       "selection_target": 20,
       "importance_rank": 10,
@@ -144110,13 +144335,13 @@
     },
     {
       "id": "TCS-0470",
-      "title": "Grammar random access in \\(O(g \\log  g)\\) bits",
+      "title": "Grammar random access in \\(O(g\\log g)\\) bits",
       "area": "String algorithms and bioinformatics",
       "criterion": "resources",
       "question_type": "yes_no",
-      "formal": "Is there a deterministic data structure that, for every binary straight-line program G with g rules generating a binary string T of length N, stores a representation in $O(g\\log(g+2))$ bits and returns \\(T[i]\\) for any $1\\le i\\le N$ in $O(\\log(N+2))$ worst-case time? Preprocessing must take time polynomial in g and is given G, not an expanded copy of T. The space bound includes every persistent index and any retained grammar. Use the word-RAM model below. The representation may replace G; it need only answer queries to T correctly.",
-      "definitions": "A binary straight-line program has ordered variables \\(X_{1},\\ldots ,X_{g}\\), one rule per variable, and start variable \\(X_{g}\\). A rule is \\(X_{j} -> 0, X_{j} -> 1\\), or \\(X_{j} -> X_{a} X_{b}\\) with \\(a,b < j\\). All variables must be reachable from the start variable. Expansion is unique and finite; g counts rules, not expanded occurrences. The input specifies rule types and indices in \\(O(g \\log (g+2))\\) bits. Machine words have $\\Theta(\\log(N+g+2))$ bits; random access, comparisons, word addition, subtraction, multiplication, integer division, Boolean operations, and shifts cost one step. Arithmetic results are restricted to a word. Stored bits may be packed; charge the final partially filled word as well. Queries may use \\(O(\\log (N+2))\\) temporary words, initially empty and discarded afterward; this workspace contains no persistent advice. Every input-dependent table retained between queries counts toward the representation budget.",
-      "answer_criterion": "Construct a uniform representation, preprocessing algorithm, and query algorithm satisfying all bounds for every valid G, or prove that no such data structure exists. Space linear in g machine words is insufficient when log N is asymptotically larger than log g. A scheme whose preprocessing first expands an exponentially longer T does not meet the polynomial-in-g preprocessing requirement.",
+      "formal": "Do there exist absolute constants \\(K\\ge1\\), integers \\(d\\ge1\\) and \\(B\\ge d+8\\), and uniform deterministic construction and query algorithms with the following guarantee? For every binary straight-line program \\(G\\) with \\(g\\ge1\\) reachable rules generating a binary string \\(T\\) of length \\(N\\), construction from \\(G\\) takes at most \\(K(g+1)^d\\) word-RAM instructions and produces a representation occupying at most \\(Kg\\log_2(g+2)\\) persistent bits. Given any \\(1\\le i\\le N\\), a query returns \\(T[i]\\) in at most \\(K\\log_2(N+2)\\) instructions. The word size is \\(w=B\\lceil\\log_2(N+g+2)\\rceil\\); the space bound includes the retained grammar, every auxiliary index and final-word padding.",
+      "definitions": "A binary straight-line program has ordered variables \\(X_1,\\ldots,X_g\\), one production per variable and start variable \\(X_g\\). A production is \\(X_j\\to0\\), \\(X_j\\to1\\), or \\(X_j\\to X_aX_b\\) with \\(1\\le a,b<j\\). Every variable must be reachable from the start. Expanding the start produces exactly one nonempty binary string \\(T\\). The quantity \\(g\\) counts rules, not occurrences in the expanded derivation tree, and \\(N=|T|\\). No balance, height, minimality or polynomial upper bound on \\(N\\) in terms of \\(g\\) is promised. In fact \\(N\\le2^{g-1}\\), so the logarithmic word size itself is at most linear in \\(g\\).\n\nThe input is an explicit packed binary list of the productions and the integer \\(g\\). Each production has a two-bit type tag, followed, for a concatenation, by two indices of \\(\\lceil\\log_2(g+1)\\rceil\\) bits each. A self-delimiting binary header for \\(g\\) is included. Thus the description has \\(O(g\\log(g+2))\\) bits. Construction receives this grammar, not its expanded string. The representation may replace the grammar and need not recover its original rule names or productions, but it must answer access queries to the generated string exactly.\n\nUse a sequential word RAM with a fixed finite program, unsigned \\(w\\)-bit registers and word-addressed memory. Unit-cost operations are reads, writes, comparisons, branches, addition, subtraction and multiplication modulo \\(2^w\\), integer quotient and remainder with nonzero divisor, bitwise Boolean operations and logical shifts; shifts by at least \\(w\\) yield zero. There is no randomness, advice, input-dependent oracle, quantum operation or unbounded-integer primitive. All addresses fit in a word. Construction time includes reading and repacking the grammar and building all tables. Its temporary storage is unrestricted except for what the time and address bounds permit, and is discarded when construction ends.\n\nThe permanent representation is a finite contiguous array of words. Its charged size is the number of allocated words multiplied by \\(w\\), including unused bits of its final word. All metadata, any retained grammar, expansion lengths and auxiliary tables are part of this array. The machine program is fixed, with no input-dependent constants hidden in its code. The word width is part of the machine model. Any separately retained input-dependent value, including \\(N\\) or \\(g\\), must be charged to the representation.\n\nEach query receives only this representation and the position \\(i\\), and starts with empty temporary storage. It may use at most \\(K\\log_2(N+2)\\) temporary words, which are discarded after the query. This workspace is separate from the persistent-bit budget and cannot retain information between queries. Every query must work independently, including the first query. The original input grammar is unavailable unless stored in the charged representation; there is no free text-access oracle or uncompressed text.\n\nThe same constants and finite construction and query programs must work for every grammar and every valid query position. Time is worst-case, not amortized. Space linear in \\(g\\) words is not the requested guarantee when \\(\\log N\\) is much larger than \\(\\log g\\). Conversely, a representation of the right bit size with polynomial-in-\\(N\\) construction does not meet the polynomial-in-\\(g\\) preprocessing requirement.",
+      "answer_criterion": "Give a complete mathematically correct Lean-checked proof of the displayed existence proposition or its logical negation. A positive proof must supply uniform construction and query algorithms and establish exact access, all charged space, polynomial preprocessing from the grammar and the worst-case query bound. A negative proof must rule out the full proposition in the specified model unconditionally; a conditional lower bound is only a conditional result.\n\nAn upper or lower bound for a larger space regime does not decide this smaller bit budget. The task does not demand reconstructing the original grammar or reporting long substrings, and it does not forbid the specified temporary query workspace.",
       "why": "Random access is the simplest useful operation on a compressed string. Resolving this target would determine whether the extra address-length information is an inherent price of efficient access or an artifact of current representations, and would make the distinction between compressed bits and machine words precise.",
       "importance": {
         "score": 80,
@@ -144126,37 +144351,37 @@
       },
       "progress": [
         {
-          "date": "2025",
-          "text": "Navarro asks whether efficient grammar random access can avoid the extra space used to store all expansion lengths.",
-          "citation": "seminar"
+          "date": "2025-05",
+          "text": "The seminar asks whether efficient access can avoid the expansion-length storage overhead.",
+          "citation": "primary"
         },
         {
           "date": "2026-04-13",
-          "text": "Takasaka and I obtain space-efficient SLP encodings supporting logarithmic access; their leading expansion-length term remains g log N in this card’s notation.",
+          "text": "New succinct grammar encodings support logarithmic access but retain the leading expansion-length term.",
           "citation": "encoding"
         },
         {
-          "date": "2026 (ICALP)",
-          "text": "Duyster and Kociumaka sharpen and largely match grammar random-access trade-offs in their stated parameter regimes. Theorem 1.1 assumes a space budget above g log N bits; it does not supply the representation asked for here.",
+          "date": "2026",
+          "text": "ICALP establishes improved and largely matching access trade-offs in a larger-space parameter range.",
           "citation": "tradeoffs"
         }
       ],
       "references": [
         {
-          "id": "seminar",
-          "title": "Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)",
-          "authors": "Gonzalo Navarro (problem contributor)",
+          "id": "primary",
+          "title": "Adaptive and Scalable Data Structures",
+          "authors": "Gonzalo Navarro (problem contributor); Michael A. Bender, John Iacono, László Kozma and Eva Rotenberg (editors)",
           "year": 2025,
           "url": "https://doi.org/10.4230/DagRep.15.5.1",
-          "locator": "Section 5.9"
+          "locator": "Seminar 25191, 4–9 May 2025; §5.9, p.19"
         },
         {
           "id": "encoding",
-          "title": "Space-Efficient SLP Encoding for \\(O(\\log  N)\\)-Time Random Access",
+          "title": "Space-Efficient SLP Encoding for \\(O(\\log N)\\)-Time Random Access",
           "authors": "Akito Takasaka; Tomohiro I",
           "year": 2026,
           "url": "https://doi.org/10.1007/s00224-025-10243-w",
-          "locator": "Theorem 1 and the following discussion of expansion-length space"
+          "locator": "Published 13 April 2026; Introduction, Theorem 1 and following discussion; §4, Conclusions and Future Work"
         },
         {
           "id": "tradeoffs",
@@ -144164,33 +144389,34 @@
           "authors": "Anouk Duyster; Tomasz Kociumaka",
           "year": 2026,
           "url": "https://doi.org/10.4230/LIPIcs.ICALP.2026.86",
-          "locator": "Theorems 1.1–1.2; translate their string length n and grammar size g to N and g here"
+          "locator": "Theorems 1.1–1.2, pp.86:3–86:4; source string length n becomes N here"
         }
       ],
       "status": "source_open",
-      "status_note": "Checked through 10 September 2026 against the April encoding paper and ICALP 2026 trade-offs. This fixes a particular target within the source’s space-reduction question; results using \\(O(g)\\) words must not be read as \\(O(g \\log  g)\\) bits.",
-      "formulation_reviewed_on": "2026-09-10",
+      "status_note": "Open in the seminar source, under the explicit specialization retained here. The April 2026 encoding theorem and ICALP 2026 trade-offs do not supply this all-grammar bit-space guarantee or rule it out. Bounded primary-source checks through 17 September 2026 found no verified resolution; the review does not independently certify every later proof.",
+      "formulation_reviewed_on": "2026-09-17",
       "key": "grammar-random-access-grammar-bit-space",
       "context_blocks": [
         {
-          "text": "A grammar rule stores references to smaller pieces, so its two references need only logarithmically many bits in the number of rules. A position in the expanded string can require many more bits. For example, a short chain of doubling rules can describe an exponentially long string. This difference is why a space bound stated in machine words can hide a substantial overhead relative to the grammar encoding."
+          "text": "A rule reference identifies one of g variables, whereas a text position identifies one of N expanded characters. A sequence of doubling productions can make the latter identifiers much longer. This creates the distinction between the grammar encoding and a word per stored expansion length.",
+          "citation": "primary"
         },
         {
-          "text": "To locate a position inside a concatenation, the usual navigation step compares that position with the length of the left expansion. Storing an exact expanded length with every variable is straightforward, but can consume g log N bits. The target asks whether this information can be organized or recovered using a representation comparable in bits to the original grammar, while keeping logarithmic access time.",
+          "text": "The April 2026 encodings achieve logarithmic access but retain a \\(g\\lceil\\log_2 N\\rceil\\)-bit expansion-length term in this card’s notation. The authors discuss reducing that term as future work, without proving it necessary.",
           "citation": "encoding"
         },
         {
-          "text": "The April 2026 encoding result improves the grammar representation and keeps logarithmic query time, but retains a g log N expansion-length term. The authors explicitly distinguish their encoding savings from removing that term. Their observation supports treating the latter as a separate question.",
-          "citation": "encoding"
-        },
-        {
-          "text": "ICALP 2026 gives much sharper time-space trade-offs in a broad range of parameters. Its main upper-bound theorem uses a space budget above the g log N scale. Consequently, the optimality statements in that range do not automatically settle the smaller bit budget here. This card fixes logarithmic query time, a binary alphabet, polynomial preprocessing, and explicit workspace rules as a concrete specialization of the seminar’s fewer-auxiliary-bits direction.",
+          "text": "The ICALP 2026 trade-off uses a bit-space parameter \\(Mw\\) above \\(g\\log N\\). Its matching lower bound also has parameter restrictions. Those results do not by themselves settle space \\(O(g\\log g)\\) when the expanded text is much larger than its grammar.",
           "citation": "tradeoffs"
+        },
+        {
+          "text": "This card fixes one concrete version of the seminar’s broader efficient-access question. Total persistent bits and construction from compressed input are essential parts of the target.",
+          "citation": "primary"
         }
       ],
       "year": 2026,
       "is_new": false,
-      "review_note": "Individually written from the cited primary sources. The importance assessment is editorial. New preprint proofs have not been independently verified.",
+      "review_note": "Completed individual review against P versus NP on 2026-09-17; see research/card-completion-20260913/reviews.jsonl.",
       "reviewed_on": "2026-09-10",
       "published_at": "2026-09-10T15:04:59+00:00",
       "evidence": "reviewed",
@@ -144211,7 +144437,7 @@
           }
         ]
       },
-      "updated_at": "2026-09-11T18:40:52+00:00",
+      "updated_at": "2026-09-17T13:15:02+00:00",
       "original_area": "Data structures and compressed data",
       "category_assignment": {
         "method": "topic_rule",
@@ -144219,16 +144445,17 @@
       },
       "working_summary": {
         "sentences": [
-          "A straight-line grammar can describe a string exponentially longer than its own rule list.",
-          "The question asks for logarithmic-time character access with total storage comparable in bits to the grammar encoding.",
-          "The representation must be built from the grammar in polynomial time without expanding the string.",
-          "The obstacle is that navigation often stores expansion lengths requiring logarithmically many bits in the much larger text length.",
-          "The saved review identifies removal of that length-storage overhead as the issue and distinguishes it from linear-word-space grammar access."
+          "A binary straight-line grammar may describe a string exponentially longer than its list of rules.",
+          "The question asks for exact character access in logarithmic time using total persistent storage of O(g log g) bits.",
+          "The representation must be constructed in polynomial time from the grammar itself.",
+          "All retained lengths, tables and grammar bits are charged, while each query has explicitly bounded temporary workspace.",
+          "The reviewed 2026 results retain a larger expansion-length space scale; a complete Lean-checked proof or refutation of this smaller-space target is required."
         ],
         "basis": "saved_sources",
-        "written_on": "2026-09-11",
+        "source_basis": "individual_source_review",
+        "written_on": "2026-09-17",
         "source_refs": [
-          "seminar",
+          "primary",
           "encoding",
           "tradeoffs"
         ]
@@ -144236,7 +144463,50 @@
       "related_problem_ids": [
         "TCS-0467"
       ],
-      "context": "A grammar rule stores references to smaller pieces, so its two references need only logarithmically many bits in the number of rules. A position in the expanded string can require many more bits. For example, a short chain of doubling rules can describe an exponentially long string. This difference is why a space bound stated in machine words can hide a substantial overhead relative to the grammar encoding.\n\nTo locate a position inside a concatenation, the usual navigation step compares that position with the length of the left expansion. Storing an exact expanded length with every variable is straightforward, but can consume g log N bits. The target asks whether this information can be organized or recovered using a representation comparable in bits to the original grammar, while keeping logarithmic access time.\n\nThe April 2026 encoding result improves the grammar representation and keeps logarithmic query time, but retains a g log N expansion-length term. The authors explicitly distinguish their encoding savings from removing that term. Their observation supports treating the latter as a separate question.\n\nICALP 2026 gives much sharper time-space trade-offs in a broad range of parameters. Its main upper-bound theorem uses a space budget above the g log N scale. Consequently, the optimality statements in that range do not automatically settle the smaller bit budget here. This card fixes logarithmic query time, a binary alphabet, polynomial preprocessing, and explicit workspace rules as a concrete specialization of the seminar’s fewer-auxiliary-bits direction.",
+      "source_formulation": {
+        "text": "Navarro asks whether efficient random access to a grammar-compressed text can avoid the additional space used for all nonterminal expansion lengths. This card retains the previously chosen exact specialization: binary grammars, total space comparable to their encoded bit size, logarithmic character access and polynomial preprocessing from the grammar.",
+        "caption": "Adaptive and Scalable Data Structures, Seminar 25191 (May 2025), §5.9, p.19; query time, alphabet and construction conventions are editorial specifications.",
+        "citation": "primary",
+        "format": "editorial_paraphrase"
+      },
+      "requires_context": false,
+      "statement_review": {
+        "status": "revised",
+        "reviewed_on": "2026-09-17",
+        "remaining_issue": "",
+        "notes": [
+          "Retained binary straight-line grammars, O(g log g) total persistent bits, logarithmic worst-case character access and polynomial-in-g preprocessing.",
+          "Specified finite uniform construction and query programs, absolute constants and the relationship between word size and preprocessing exponent.",
+          "Charged all persistent metadata, retained grammar bits, lookup tables and final-word padding, while preserving the selected temporary-query workspace allowance.",
+          "Made clear that the query receives only the index and position, with no free copy of the grammar, expansion lengths or decompressed text.",
+          "Read the 2026 encoding theorem and its future-work paragraph; the expansion-length term remains present.",
+          "Read ICALP 2026 Theorems 1.1–1.2 and separated their space regime from the smaller bit budget here.",
+          "Preserved importance and required a complete Lean-checked proof or refutation of this explicit specialization of the seminar question."
+        ],
+        "scope": "Individual formulation and source review; current-status limits are recorded separately."
+      },
+      "quality_review": {
+        "reviewed_on": "2026-09-17",
+        "reference_card": "TCS-0001",
+        "state": "revised",
+        "changes": [
+          "Retained binary straight-line grammars, O(g log g) total persistent bits, logarithmic worst-case character access and polynomial-in-g preprocessing.",
+          "Specified finite uniform construction and query programs, absolute constants and the relationship between word size and preprocessing exponent.",
+          "Charged all persistent metadata, retained grammar bits, lookup tables and final-word padding, while preserving the selected temporary-query workspace allowance.",
+          "Made clear that the query receives only the index and position, with no free copy of the grammar, expansion lengths or decompressed text.",
+          "Read the 2026 encoding theorem and its future-work paragraph; the expansion-length term remains present.",
+          "Read ICALP 2026 Theorems 1.1–1.2 and separated their space regime from the smaller bit budget here.",
+          "Preserved importance and required a complete Lean-checked proof or refutation of this explicit specialization of the seminar question."
+        ],
+        "checked_sources": [
+          "Read Navarro, A graph problem with applications to grammar compression, Adaptive and Scalable Data Structures, Dagstuhl Seminar 25191, DOI 10.4230/DagRep.15.5.1, Section 5.9 p.19. The source asks whether the expansion-length storage overhead can be removed while retaining efficient access; it does not itself specify the exact logarithmic query time or polynomial preprocessing convention. Those choices were already fixed in this card and are retained.",
+          "Read Takasaka–I, Space-Efficient SLP Encoding for O(log N)-Time Random Access, Theory of Computing Systems 70, article 28, DOI 10.1007/s00224-025-10243-w, published 13 April 2026: Introduction Theorem 1, following discussion and Section 4. All three encodings contain an n ceil(log N) term for expansion lengths, where n denotes grammar variables. The authors explicitly discuss reducing that term as future work and do not establish its necessity.",
+          "Read Duyster–Kociumaka, Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes, ICALP 2026 article 86, DOI 10.4230/LIPIcs.ICALP.2026.86: abstract, Theorem 1.1 p.86:3, Theorem 1.2 p.86:4 and the following scope discussion. The upper bound assumes g log n < Mw < n log sigma, with M measured in words. The matching lower bound also assumes space above the g log n scale, with extra factors and a grammar-size restriction. Neither establishes or rules out the selected O(g log g)-bit representation for every grammar.",
+          "Bounded primary-source checks through 17 September 2026 found no verified resolution of this target. The later results are checked for their stated parameter ranges, not treated as a full independent verification of their proofs."
+        ],
+        "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+      },
+      "context": "A rule reference identifies one of g variables, whereas a text position identifies one of N expanded characters. A sequence of doubling productions can make the latter identifiers much longer. This creates the distinction between the grammar encoding and a word per stored expansion length.\n\nThe April 2026 encodings achieve logarithmic access but retain a \\(g\\lceil\\log_2 N\\rceil\\)-bit expansion-length term in this card’s notation. The authors discuss reducing that term as future work, without proving it necessary.\n\nThe ICALP 2026 trade-off uses a bit-space parameter \\(Mw\\) above \\(g\\log N\\). Its matching lower bound also has parameter restrictions. Those results do not by themselves settle space \\(O(g\\log g)\\) when the expanded text is much larger than its grammar.\n\nThis card fixes one concrete version of the seminar’s broader efficient-access question. Total persistent bits and construction from compressed input are essential parts of the target.",
       "criterion_label": "Necessary resources",
       "selection_group": "small",
       "selection_target": 20,
