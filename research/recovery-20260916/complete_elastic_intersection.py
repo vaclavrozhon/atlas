@@ -1,0 +1,89 @@
+"""Complete the fixed exponent-saving target for ED-string intersection."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-7368';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Retained the imported two-input intersection target, integer alphabet, bounded-error randomization and fixed positive improvement below omega minus one.',
+ 'Made the language semantics, normalized nonempty-segment convention, explicit encoding and both size parameters self-contained.',
+ 'Expanded soft-O to one fixed logarithmic factor, with all executions bounded in worst-case word-RAM time and correctness at least two-thirds on every input.',
+ 'Kept the already selected rational uniform algebraic meaning of omega and distinguished its infimum from any achieved matrix-multiplication running time.',
+ 'Read the 2025 journal version, including its unchanged first open question in Section 9, rather than relying only on the 2024 preprint.',
+ 'Recorded that the paper charges empty alternatives one unit, whereas the normalized card measures character lengths; the two sizes differ by at most a factor two on this domain.',
+ 'Separated language intersection from solid-pattern matching, mismatches, founder-graph restrictions and compressed unary encodings in later results.',
+ 'Preserved importance 83 and the complete Lean-checked yes/no criterion, with no minimum numerical saving imposed on epsilon.',
+]
+sources=[
+ 'Read Gabory–Mwaniki–Pisanti–Pissis–Radoszewski–Sweering–Zuba, Elastic-degenerate string comparison, Information and Computation 304, 105296, online 14 March 2025, primary CWI-hosted published PDF https://ir.cwi.nl/pub/35131/35131.pdf: Introduction, size definitions, Section 2 conditional bounds, Theorems 4.6 and 4.12, and Section 9 first open question. The source asks for any fixed exponent saving below omega-1 and explicitly permits a non-combinatorial algorithm. Its size includes one unit for each empty alternative.',
+ 'Compared the corresponding 12 November 2024 arXiv:2411.07782v1 definitions, Theorem 4.12 and Section 9 with the journal version. The primary arXiv history lists v1. The source uses customary matrix-exponent notation; the card preserves its previous explicit rational/uniform convention, input-reading term and Monte Carlo allowance as editorial specifications rather than claiming they were all literal source wording.',
+ 'Read Ascone–Bernardini–Conte–Equi–Gabory–Grossi–Pisanti, Pattern matching with Elastic-Degenerate strings and Elastic-Founder graphs, Algorithms for Molecular Biology 21, Article 8, 28 April 2026, DOI 10.1186/s13015-025-00289-3: full primary HTML, abstract, Introduction, model taxonomy, main upper/lower statements and concluding open cases. Its bounds concern pattern occurrence and specified restricted representations; none of the checked statements gives the card’s two-input exponent improvement for arbitrary normalized ED strings.',
+ 'Read the primary abstract/history of Gawrychowski–Górkiewicz–Marciniak–Pissis–Pokorski, Faster ED-String Matching with k Mismatches, arXiv:2503.01388v1, 3 March 2025. Its reported soft-O(n*m^1.5+N) bound is for one ordinary pattern and a constant mismatch budget, not the exact intersection of two arbitrary ED languages. No full proof audit was performed.',
+ 'Bounded primary-source searches through 17 September 2026 located no verified resolution of the precise exponent-saving proposition. Conditional SETH/BMM results in their stated models, or NP-completeness under succinct unary encodings, are not unconditional refutations of this explicit-input bounded-error RAM target.',
+]
+complete(identifier,dict(
+ title='A fixed exponent improvement for elastic-degenerate string intersection',criterion='resources',question_type='yes_no',
+ formal=r'''Do there exist constants \(0<\varepsilon<1\), \(K>0\), an integer \(d\ge0\), an integer \(B\ge8\), and one uniform classical randomized word-RAM algorithm \(A\) such that, on every pair of explicitly represented elastic-degenerate strings \(E_1,E_2\) defined below, every execution takes at most
+\[
+K\left(N_1+N_2+n_2N_1^{\omega-1-\varepsilon}
+                 +n_1N_2^{\omega-1-\varepsilon}\right)
+\bigl(\log_2(N_1+N_2+2)\bigr)^d
+\]
+instructions and outputs the correct answer to
+\[
+\mathcal L(E_1)\cap\mathcal L(E_2)\ne\varnothing
+\]
+with probability at least \(2/3\)? Here \(n_i\) is the number of segments, \(N_i\) their total number of explicitly stored characters, and \(\omega\) is the rational algebraic matrix-multiplication exponent specified below. The word length is \(B\lceil\log_2(N_1+N_2+2)\rceil\). All constants, including the positive exponent saving, are chosen once for the algorithm.''',
+ definitions=r'''For \(i\in\{1,2\}\), an elastic-degenerate string is an ordered sequence
+\[
+E_i=(S_{i,1},\ldots,S_{i,n_i}),\qquad n_i\ge1,
+\]
+of finite sets of strings. Each set contains at least one string of positive length and may also contain the empty string \(\lambda\). Within one set the alternatives are distinct; no equal-length restriction is imposed. Put
+\[
+N_i=\sum_{j=1}^{n_i}\sum_{u\in S_{i,j}}|u|,
+\qquad
+\mathcal L(E_i)=\{u_1\cdots u_{n_i}:u_j\in S_{i,j}\text{ for all }j\}.
+\]
+Exactly one alternative is chosen independently in each segment and the choices are concatenated in segment order. The language is a set, so different choices producing the same string do not create additional elements. The empty string belongs to the language precisely when it is an alternative in every segment. A common string must be an entire member of both languages; substring occurrence, approximate agreement and equal segment boundaries are not the acceptance condition.
+
+Let \(L=N_1+N_2\). Both inputs use the same ordered integer alphabet \(\{0,\ldots,L^2-1\}\), with each character stored in one word. The explicit encoding gives each segment's number of alternatives, each alternative's length and its full character array, with boundaries or offsets. No alternative is specified by a grammar, run-length count or oracle. If \(M_i=\sum_j|S_{i,j}|\), then \(n_i\le N_i\) and \(M_i\le N_i+n_i\le2N_i\); hence the whole encoding has \(O(L)\) words. Reading the headers, alternatives and boundaries is charged. The positive-string promise is part of the normalized input domain; empty sets and segments consisting only of \(\lambda\) are excluded. It ensures that uncounted zero-length alternatives cannot dominate input size. In the source's convention an empty alternative contributes one unit to size; on this domain that convention lies between \(N_i\) and \(2N_i\).
+
+The output is a Boolean value; an explicit common string is not required. For every fixed valid pair, probability is over the independent uniform random words generated during this execution. Both false-positive and false-negative answers are allowed only within a total error probability of \(1/3\). The time bound must hold for every outcome of the randomness, including incorrect executions. There is no distributional promise on the inputs, and expected time alone does not meet the target. Deterministic algorithms are permitted as a special case.
+
+The sequential RAM executes one fixed finite program. Allowed unit-cost instructions are word reads and writes, copying, comparisons, branching, Boolean operations, logical shifts, addition, subtraction and multiplication modulo \(2^w\), integer quotient and remainder for a nonzero divisor, and generation of an independent uniform \(w\)-bit word. Shifts by at least \(w\) return zero. Addresses and stored values fit words; multiword operations pay for their constituent instructions. All initialization, preprocessing, tables, input access and output writes are counted. There is no advice, external oracle, free size-dependent table or previously built input index. No additional space bound is imposed. Algebraic methods are allowed; the algorithm is not required to be combinatorial.
+
+To fix the benchmark constant, use the uniform algebraic model over \(\mathbb Q\). A matrix-multiplication algorithm is a fixed finite arithmetic program that, for every integer \(t\ge2\), takes arbitrary \(t\)-by-\(t\) rational matrices \(U,V\) and outputs exactly all entries \(\sum_{h=1}^tU_{ih}V_{hj}\). Scalar addition, subtraction and multiplication are exact unit-cost operations. The program may contain finitely many fixed rational constants. Integer loop control, index arithmetic, reads and writes are charged as unit-cost operations as well; these indices depend only on \(t\) and the control, not on the matrix entries. There are no comparisons or branches on rational data, division, rounding, bit extraction, randomness or advice. Thus, for each dimension, the data computation is a straight-line arithmetic computation. The bit lengths of rational scalars are not charged in this auxiliary algebraic model. Define
+\[
+\omega=\inf\{a\ge2:\ \text{for every }\eta>0\text{ there exist such an algorithm and }C_\eta>0
+\text{ using at most }C_\eta t^{a+\eta}\text{ operations for every }t\ge2\}.
+\]
+The algorithm in this definition may depend on \(a,\eta\), but not on the dimension or matrix entries. The elementary multiplication formula makes the set nonempty and \(2\le\omega\le3\). The infimum need not be attained. This auxiliary definition supplies a real constant in the string algorithm's time bound, not a free arithmetic or matrix-multiplication instruction on the word RAM. In particular, the exponent saving is relative to \(\omega\) itself, not to one currently published numerical upper bound.
+
+The additive \(N_1+N_2\) term retains input cost even when an improved expression is smaller. The logarithmic factor has one fixed exponent \(d\), independent of every input parameter. The same bound must hold for all relative sizes of the two representations and all segment counts. Restricting the existential saving to \(\varepsilon<1\) loses no target: any larger saving also satisfies the weaker bound for some smaller positive saving.''',
+ answer_criterion=r'''Give a complete mathematically correct proof checked in Lean of the stated existence proposition or its logical negation. A positive result must supply one uniform algorithm, a fixed \(\varepsilon>0\), and proofs of the simultaneous all-input runtime and success-probability guarantees. Any fixed positive saving qualifies; no saving of at least \(1/100\) is required.
+
+Improving only a numerical upper bound on matrix multiplication, removing only logarithmic factors, solving one-pattern matching or a restricted class of alternatives, or providing an expected-time bound alone is insufficient. The input-linear term and both parameter-dependent terms must be respected. A conditional lower bound or a lower bound restricted to combinatorial algorithms does not establish an unconditional negation for the allowed model.''',
+ source_formulation=dict(text='The first question in Section 9 asks for any fixed positive reduction in both omega-minus-one exponents of the two-input intersection algorithm, allowing a non-combinatorial algorithm. The card retains its imported normalized input convention, explicit rational interpretation of omega, linear input term, fixed polylogarithmic factor and two-sided bounded-error model as editorial specifications.',caption='Gabory et al., Information and Computation 304 (2025), Theorem 4.12 and Section 9, first open question.',citation='primary',format='editorial_paraphrase'),
+ why='A sequence of alternative fragments represents many possible full strings without listing them all. Faster exact intersection would improve a basic comparison operation on these representations, including simplified pangenomes, while clarifying the role of segment count versus explicitly stored length.',
+ references=[
+ ref('primary','Elastic-degenerate string comparison','Estéban Gabory; Moses Njagi Mwaniki; Nadia Pisanti; Solon P. Pissis; Jakub Radoszewski; Michelle Sweering; Wiktor Zuba',2025,'https://doi.org/10.1016/j.ic.2025.105296','Information and Computation 304, 105296; online 14 March 2025; Introduction, Section 2, Theorems 4.6 and 4.12, Section 9; full published PDF at CWI record 35131'),
+ ref('preprint','Elastic-Degenerate String Comparison','Esteban Gabory; Moses Njagi Mwaniki; Nadia Pisanti; Solon P. Pissis; Jakub Radoszewski; Michelle Sweering; Wiktor Zuba',2024,'https://arxiv.org/abs/2411.07782v1','12 November 2024; input definitions, Theorem 4.12 and Section 9; historical source of the imported card'),
+ ref('taxonomy','Pattern matching with Elastic-Degenerate strings and Elastic-Founder graphs','Rocco Ascone; Giulia Bernardini; Alessio Conte; Massimo Equi; Esteban Gabory; Roberto Grossi; Nadia Pisanti',2026,'https://doi.org/10.1186/s13015-025-00289-3','Algorithms for Molecular Biology 21, Article 8, 28 April 2026; taxonomy, main algorithm/lower-bound statements and concluding open cases'),
+ ref('mismatches','Faster ED-String Matching with k Mismatches','Paweł Gawrychowski; Adam Górkiewicz; Pola Marciniak; Solon P. Pissis; Karol Pokorski',2025,'https://arxiv.org/abs/2503.01388v1','3 March 2025; primary abstract/history only, ordinary-pattern and constant-mismatch scope'),
+ ],
+ context_blocks=[
+ block('Two descriptions may represent exponentially many full strings. The decision problem asks whether there is one string represented by both, without requiring either language to be expanded.'),
+ block(r'The journal paper records a combinatorial bound \(O(N_1M_2+N_2M_1)\) and a matrix-multiplication-dependent bound written \(\widetilde O(n_2N_1^{\omega-1}+n_1N_2^{\omega-1})\). Here \(M_i\) counts alternatives. The question asks for a fixed improvement in the latter exponents, rather than just a smaller published upper estimate for \(\omega\).'),
+ block('The source also proves conditional lower bounds and a hardness result for a different succinct unary encoding. Those statements keep their hypotheses and representation assumptions; they do not by themselves refute this card.'),
+ block('Recent taxonomy results separate many pattern and text representations, with algorithms and conditional lower bounds for particular cases. Whole-language intersection and the dependence on both segment counts remain the specific target here.','taxonomy'),
+ block('The faster constant-mismatch result takes one ordinary pattern as input. Its guarantee is not a two-arbitrary-language intersection algorithm.','mismatches'),
+ ],
+ progress=[progress('2024-11-12','The extended preprint states algorithms, conditional bounds and the fixed exponent-saving question.','preprint'),progress('2025-03-14','The journal version retains the question in Section 9 and states the algebraic upper bound in Theorem 4.12.'),progress('2025-03-03','A separate preprint improves matching with a constant mismatch budget for an ordinary pattern.','mismatches'),progress('2026-04-28','A journal taxonomy refines the complexity landscape for specified string and founder-graph pattern-matching models.','taxonomy')],
+),notes,sources,'Bounded primary-source checks through 17 September 2026 found no verified resolution of the exact two-input exponent-saving target. The 2025 journal source explicitly retains this question, while the checked later results address pattern-matching variants and restricted representations. The review verifies input and theorem scope without independently certifying all proofs. The rational algebraic definition of omega, normalized encoding, input-linear term and bounded-error model preserve the imported editorial interpretation.',summary=[
+ 'Each input describes a language by concatenating one chosen string from each ordered segment of alternatives.',
+ 'The question asks whether the two languages contain a common entire string.',
+ 'The desired algorithm saves a fixed positive power below the matrix-multiplication-dependent length exponents while paying for both inputs.',
+ 'One bounded-error algorithm must satisfy the worst-case time bound for every combination of segment counts and explicit lengths.',
+ 'A complete Lean-checked answer must prove or refute this proposition; restricted pattern-matching results and conditional lower bounds alone do not settle it.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])

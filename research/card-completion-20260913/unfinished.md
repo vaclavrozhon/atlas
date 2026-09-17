@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **130**.
+Pending active reviews: **125**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -26,9 +26,7 @@ Pending active reviews: **130**.
 | [TCS-0597](../../data/cards/TCS-0597.json) | Parameterized coloring of H-free graphs | Parameterized and exact algorithms | pool |
 | [TCS-1945](../../data/cards/TCS-1945.json) | Parameterized Nearest Codeword hardness beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-2662](../../data/cards/TCS-2662.json) | Subexponential constant-gap Max-Clique under ETH | Parameterized and exact algorithms | pool |
-| [TCS-4637](../../data/cards/TCS-4637.json) | Subexponential Planar Steiner Tree by terminal count | Parameterized and exact algorithms | pool |
 | [TCS-5374](../../data/cards/TCS-5374.json) | Degeneracy-sensitive classification of homomorphism counting | Parameterized and exact algorithms | pool |
-| [TCS-6814](../../data/cards/TCS-6814.json) | Efficient PTAS for fixed-machine job-shop makespan | Parameterized and exact algorithms | pool |
 | [TCS-6974](../../data/cards/TCS-6974.json) | Formula-SAT below exhaustive search | Parameterized and exact algorithms | pool |
 | [TCS-0088](../../data/cards/TCS-0088.json) | Optimal approximation of Max Di-Cut | Approximation algorithms and hardness of approximation | pool |
 | [TCS-6309](../../data/cards/TCS-6309.json) | Constant-factor approximation for capacitated k-Median | Approximation algorithms and hardness of approximation | pool |
@@ -135,7 +133,4 @@ Pending active reviews: **130**.
 | [TCS-7340](../../data/cards/TCS-7340.json) | Optimal randomized memory-reallocation overhead | Data structures | existing_detailed_audit |
 | [TCS-7344](../../data/cards/TCS-7344.json) | Almost-linear exact directed global minimum cut | Structural graph theory | existing_detailed_audit |
 | [TCS-7345](../../data/cards/TCS-7345.json) | Almost-linear directed vertex connectivity | Structural graph theory | existing_detailed_audit |
-| [TCS-7366](../../data/cards/TCS-7366.json) | Linear-space k-mismatch text indexing | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-7368](../../data/cards/TCS-7368.json) | Faster elastic-degenerate string intersection | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-7370](../../data/cards/TCS-7370.json) | Polynomial-time construction of minimum-density DNA minimizers | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7376](../../data/cards/TCS-7376.json) | Polylogarithmic-space streaming Euclidean MST estimation | Distributed, parallel and sublinear algorithms | existing_detailed_audit |

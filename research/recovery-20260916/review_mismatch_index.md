@@ -1,7 +1,7 @@
-# TCS-7366: scope choice pending, 17 September 2026
+# TCS-7366: faster-query scope selected, 17 September 2026
 
-Claimed by recovery-20260916. No card or completion-queue write has been made.
-The existing target is O(n) words with O(m + log(n)^c(k) + occ) queries over
+Reviewed by recovery-20260916. The original target was O(n) words with
+O(m + log(n)^c(k) + occ) queries over
 alphabet [0,n), deterministic polynomial preprocessing and linear query workspace.
 
 Read Kociumaka–Radoszewski arXiv:2510.26264v1 (30 October 2025), SODA 2026
@@ -25,8 +25,12 @@ alphabet-scope ambiguity. Its growing-k lower bounds do not settle fixed k.
 Tam's 2010 thesis was located at hub.hku.hk/handle/10722/65311; the full-text
 link returned 403 and its contents were not read. Do not claim otherwise.
 
-An asynchronous user question asks whether to retain the sharper source-style
+An asynchronous user question asked whether to retain the sharper source-style
 query time O(m + log(n)^k log log n + occ) together with O(n) words (recommended),
 or retain the existing arbitrary-polylog target with explicitly uncertain status.
-No response yet. Do not change the target merely because time has elapsed.
+The user selected the recommended faster-query target on 17 September 2026.
+The authoring script `complete_fast_linear_mismatch_index.py` applies that
+decision, preserving fixed-k uniformity, deterministic polynomial preprocessing,
+the full integer alphabet and linear retained-plus-query memory. The uncertainty
+about the old result's alphabet does not establish or refute this sharper target.
 Source PDFs/texts are cached under the usual recovery-20260916 source directory.

@@ -723,3 +723,30 @@ Only this batch's five reviews, authoring scripts, pending research note and own
 queue, ledger and inventory changes enter the source checkpoint. Source
 checkpoint 9f513f9a and deployment b9667df2acef02efa6e6bd6eed46d9a4503c2bc9
 cover the first 135 dispositions. Unrelated edits remain in the shared worktree.
+
+After one hundred and forty-five recovery dispositions, the raw shared queue has
+790 completed records, 124 pending records and one outside its original active
+scope. The live queue has 117 pending active reviews, 711 completed active queue
+records and 152 active records outside the queue, for 980 active cards. Seven raw
+pending rows were archived by concurrent category work.
+
+This batch completes TCS-7370 (exact optimal DNA minimizer ordering), TCS-7368
+(elastic-degenerate language intersection), TCS-6814 (the general job-shop FPT
+approximation scheme), and TCS-7366 (the user-selected fast-query linear-space
+mismatch index). It archives TCS-4637 as conditionally resolved under ETH. The
+Steiner review distinguishes terminal count from solution size and pins the full
+proof to the original preprint version. The scheduling review allows machine
+revisits without making route length a hidden parameter. The mismatch choice
+supersedes the outstanding choice recorded at checkpoint 140; its note now
+records the applied decision and the remaining older-result verification limit.
+
+All five output hashes match their queue records; the shared ledger has 968 valid
+entries, including the archival event. The full offline check passes. Math checks pass on 35,007 expressions
+across 980 active cards, and desktop/mobile reader checks pass on publication
+88c4692158181ab20ea8. The publisher has 896 detailed records.
+
+Only these five reviews, their scripts, the updated mismatch research note and
+their own queue, ledger, inventory and archival changes enter this checkpoint.
+Source checkpoint 4a986662 and deployment
+11463d20ae6dcac4ebc67590868dbc5270b109c4 cover the first 140 dispositions.
+Unrelated changes remain in the shared worktree.
