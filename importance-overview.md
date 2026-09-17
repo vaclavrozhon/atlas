@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-947 records have an editorial importance assessment; 60 remain provisional.
+927 records have an editorial importance assessment; 54 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -362,22 +362,22 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 | 9 | [Fully polynomial randomized approximation of mixed discriminants](index.html#TCS-7355) | 90 |
 | 10 | [#BIS-easiness of Boolean log-supermodular counting CSPs](index.html#TCS-7320) | 89 |
 
-## 12. Structural graph theory and graph algorithms (small)
+## 12. Graph algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 53; importance assessed: 47; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance assessed: 26; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
-| 1 | [Hadwiger’s conjecture](index.html#TCS-6651) | 98 |
+| 1 | [Graph isomorphism in polynomial time](index.html#TCS-7222) | 97 |
 | 2 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) | 96 |
-| 3 | [Erdős–Hajnal conjecture](index.html#TCS-6652) | 97 |
-| 4 | [Reed’s conjecture](index.html#TCS-6682) | 97 |
-| 5 | [Graph isomorphism in polynomial time](index.html#TCS-7222) | 97 |
-| 6 | [Tutte’s 5-flow conjecture](index.html#TCS-7248) | 97 |
-| 7 | [Almost-linear-time exact maximum matching in general graphs](index.html#TCS-6538) | 96 |
-| 8 | [Gyárfás–Sumner conjecture](index.html#TCS-6653) | 96 |
-| 9 | [Optimal bounds in the Excluded Grid Theorem](index.html#TCS-6683) | 96 |
-| 10 | [Caccetta–Häggkvist conjecture](index.html#TCS-7251) | 96 |
+| 3 | [Almost-linear-time exact maximum matching in general graphs](index.html#TCS-6538) | 96 |
+| 4 | [Optimal bounds in the Excluded Grid Theorem](index.html#TCS-6683) | 96 |
+| 5 | [Almost-linear triangle detection](index.html#TCS-6539) | 95 |
+| 6 | [Exact directed maximum flow in \\(O((m+n) \\operatorname{polylog} n)\\) time](index.html#TCS-7228) | 95 |
+| 7 | [Cereceda’s conjecture](index.html#TCS-6655) | 94 |
+| 8 | [Strongly polynomial near-linear negative-weight shortest paths](index.html#TCS-7341) | 94 |
+| 9 | [Strongly polynomial maximum flow below the \\(mn\\) barrier](index.html#TCS-7346) | 94 |
+| 10 | [Strong thin tree conjecture](index.html#TCS-7377) | 94 |
 
 ## 13. Data structures (small)
 
@@ -579,9 +579,10 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 21; importance 
 
 ## 25. Miscellaneous (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 2; importance assessed: 2; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 3; importance assessed: 3; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [\\(1/3\\)–\\(2/3\\) conjecture](index.html#TCS-7177) | 90 |
-| 2 | [Extremal size of sunflower-free set families](index.html#TCS-7290) | 89 |
+| 2 | [Seese’s conjecture](index.html#TCS-6654) | 95 |
+| 3 | [Extremal size of sunflower-free set families](index.html#TCS-7290) | 89 |

@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-604 five-sentence working summaries, based on saved source material.
+578 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1412,10 +1412,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7354 — Optimal polynomial-time approximation ratio for metric k-means
 
-Metric k-means selects exactly k centers from an explicit candidate set. Its objective is the sum of squared distances to the nearest selected center. The card asks for the infimum of expected polynomial-time approximation ratios on arbitrary finite metrics. The July 2026 preprint reports an upper bound approaching 4.9 without a matching determination. The requested numerical precision is absolute error at most 0.01.
+Metric k-means chooses exactly k distinct centers from an explicit candidate set that includes every client. Its objective is the sum of squared metric distances to the nearest selected center. The target is the infimum of expected ratios achievable by uniform randomized polynomial-time algorithms. The July 2026 result reports an improved algorithmic ratio approaching 4.9 without determining the infimum. Acceptance requires a complete unconditional Lean-checked approximation to that constant within 0.01.
 
-[Read in atlas](index.html#TCS-7354) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7354) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654v1) · [k-Clustering via Iterative Randomized Rounding](https://arxiv.org/abs/2604.06046v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7318 — Constant-factor approximation for Dasgupta’s hierarchical clustering objective
 
@@ -1964,13 +1964,13 @@ The source asks to separate both polynomial-delay and incremental-polynomial enu
 [Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Structural graph theory and graph algorithms (53)
+## Graph algorithms (26)
 
-### TCS-6651 — Hadwiger’s conjecture
+### TCS-7222 — Graph isomorphism in polynomial time
 
-Hadwiger’s conjecture says that a finite graph needing at least t colors always contains a complete graph on t vertices as a minor. Such a minor consists of disjoint nonempty connected vertex sets with an edge between every pair of sets. There are no parity requirements, restrictions on the sizes of these sets, or algorithmic running-time requirements. The conjecture would extend the Four-Color Theorem to an exact relation between coloring and clique minors in all finite graphs. A solution must prove the full assertion or certify a finite counterexample in Lean; the recent coloring improvement and the disproof for odd minors do not settle this target.
+Graph isomorphism asks whether two finite simple graphs agree after a bijective relabeling of their vertices. The target is a single deterministic algorithm that answers correctly on every explicitly encoded pair in polynomial time. A proposed relabeling is easy to verify, while ruling out all relabelings can require substantially more structure. The checked general upper bound is quasipolynomial, and efficient algorithms for restricted graph classes do not establish the unrestricted polynomial bound. A resolution would settle a central structural comparison problem whose position between P and NP-completeness remains unresolved.
 
-[Read in atlas](index.html#TCS-6651) · [Beyond Halfway to Hadwiger’s Conjecture](https://arxiv.org/abs/2609.06867v2) · [Reducing Linear Hadwiger’s Conjecture to Coloring Small Graphs](https://arxiv.org/abs/2108.01633v5) · [Hadwiger’s conjecture for K6-free graphs](https://doi.org/10.1007/BF01202354) · [Disproof of the Odd Hadwiger Conjecture](https://arxiv.org/abs/2512.20392v1)
+[Read in atlas](index.html#TCS-7222) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Group, Graphs, Algorithms: The Graph Isomorphism Problem](https://people.cs.uchicago.edu/~laci/papers/icm18-babai.pdf) · [Parameterized complexity of graph isomorphism testing](https://doi.org/10.1016/j.cosrev.2026.100918) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/update.html) · [Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem](https://doi.org/10.4230/LIPIcs.MFCS.2021.27) · [On the Relative Power of Linear Algebraic Approximations of Graph Isomorphism](https://doi.org/10.4230/LIPIcs.MFCS.2021.37)
 Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6536 — Deterministic linear-time minimum spanning tree
@@ -1980,46 +1980,11 @@ The problem asks for an exact minimum spanning tree of every connected simple un
 [Read in atlas](index.html#TCS-6536) · [A Randomized Linear-Time Algorithm to Find Minimum Spanning Trees](https://people.csail.mit.edu/karger/Papers/mst.pdf) · [A Minimum Spanning Tree Algorithm with Inverse-Ackermann Type Complexity](https://www.cs.princeton.edu/~chazelle/pubs/mst.pdf) · [An Optimal Minimum Spanning Tree Algorithm](https://www.cs.princeton.edu/courses/archive/fall05/cos528/handouts/An%20Optimal%20Minimum.pdf) · [Trans-dichotomous algorithms for minimum spanning trees and shortest paths](https://www.sciencedirect.com/science/article/pii/S0022000005800649) · [Minimum Spanning Tree in Deterministic Linear Time For Graphs of High Girth](https://people.csail.mit.edu/dmoshkov/papers/mst/high-girth.pdf) · [Randomized minimum spanning tree algorithms using exponentially fewer random bits](https://doi.org/10.1145/1328911.1328916) · [Pseudorandomness Beating the Hybrid Argument for Insensitive Algorithms](https://eccc.weizmann.ac.il/report/2026/082/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-6652 — Erdős–Hajnal conjecture
-
-The Erdős–Hajnal conjecture predicts a polynomial-size clique or independent set whenever a graph excludes one fixed induced pattern. The positive exponent may depend on that entire forbidden pattern but must work for every size and every permitted host graph. An accepted answer proves this universal assertion or refutes it for one fixed forbidden graph with a complete Lean-checked proof. General bounds and recent special-case results still fall short of the universal guarantee recorded by the checked primary literature. A revised historical full-solution claim remains unverified here, so the card distinguishes that uncertainty from the precise mathematical target.
-
-[Read in atlas](index.html#TCS-6652) · [Ramsey-type theorems](https://mathweb.ucsd.edu/~asuk/erdos_hajnal.pdf) · [Induced subgraph density. I. A loglog step towards Erdős–Hajnal](https://arxiv.org/abs/2301.10147) · [Induced subgraph density. VII. The five-vertex path](https://arxiv.org/abs/2312.15333) · [Induced subgraph density. V. All paths approach Erdős–Hajnal](https://arxiv.org/abs/2307.15032) · [Erdős–Hajnal conjecture beyond five-vertex graphs](https://arxiv.org/abs/2606.06258) · [The Erdős–Hajnal Property for the six-vertex Graph with Edge Set \(\{ab,bc,cd,de,af,bf,df\}\)](https://arxiv.org/abs/2608.28551) · [Equivalence between Erdős–Hajnal and polynomial Rödl and Nikiforov conjectures](https://arxiv.org/abs/2403.08303) · [A Single-Exponential Erdős–Hajnal Bound for Graphs of Bounded VC-Dimension](https://arxiv.org/abs/2607.09049) · [On Induced Subgraphs of Finite Graphs not Containing Large Empty and Complete Subgraphs](https://arxiv.org/abs/1211.3876)
-Existing status: `uncertain` · Summary written: 2026-09-15
-
-### TCS-6682 — Reed’s conjecture
-
-Reed’s conjecture asks whether every finite simple undirected graph has a proper colouring using at most the rounded average of maximum degree plus one and clique number. The card fixes all graph parameters and includes disconnected graphs, isolated vertices and every maximum degree. Acceptance requires a complete Lean-checked proof of the universal exact bound or a certified finite counterexample, without requiring an efficient colouring algorithm. The sharp interpolation would relate local degree restrictions to the global need for independent colour classes, and clique blowups of a five-cycle explain why the half coefficient cannot be increased. The checked September 2026 primary revision still states the target as open; known smaller-coefficient and restricted recolouring results have different scopes.
-
-[Read in atlas](index.html#TCS-6682) · [\(\omega,\Delta\), and \(\chi\)](https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291097-0118%28199804%2927%3A4%3C177%3A%3AAID-JGT1%3E3.0.CO%3B2-K) · [Bounding \(\chi\) by a fraction of \(\Delta\) for graphs without large cliques](https://arxiv.org/abs/1803.01051v1) · [An improved procedure for colouring graphs of bounded local density](https://arxiv.org/abs/2007.07874v3) · [A Recolouring Version of a Conjecture of Reed](https://arxiv.org/abs/2502.10147v1) · [An analogue of Reed’s conjecture for digraphs](https://arxiv.org/abs/2407.05827v4)
-Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-7222 — Graph isomorphism in polynomial time
-
-Graph isomorphism asks whether two finite simple graphs agree after a bijective relabeling of their vertices. The target is a single deterministic algorithm that answers correctly on every explicitly encoded pair in polynomial time. A proposed relabeling is easy to verify, while ruling out all relabelings can require substantially more structure. The checked general upper bound is quasipolynomial, and efficient algorithms for restricted graph classes do not establish the unrestricted polynomial bound. A resolution would settle a central structural comparison problem whose position between P and NP-completeness remains unresolved.
-
-[Read in atlas](index.html#TCS-7222) · [Graph Isomorphism in Quasipolynomial Time](https://arxiv.org/abs/1512.03547) · [Group, Graphs, Algorithms: The Graph Isomorphism Problem](https://people.cs.uchicago.edu/~laci/papers/icm18-babai.pdf) · [Parameterized complexity of graph isomorphism testing](https://doi.org/10.1016/j.cosrev.2026.100918) · [Graph Isomorphism update, January 9, 2017](https://people.cs.uchicago.edu/~laci/update.html) · [Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem](https://doi.org/10.4230/LIPIcs.MFCS.2021.27) · [On the Relative Power of Linear Algebraic Approximations of Graph Isomorphism](https://doi.org/10.4230/LIPIcs.MFCS.2021.37)
-Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-7248 — Tutte’s 5-flow conjecture
-
-Tutte’s 5-flow conjecture asks whether every finite bridgeless graph can carry a nonzero integer circulation with edge magnitudes at most four. One orientation and one assignment of values must make the incoming and outgoing totals agree at every vertex. Parallel edges, disconnected graphs and isolated vertices are included, and no efficient construction is required. The assertion would sharpen the universal 6-flow theorem and improve a quantitative guarantee for packing sets that meet all directed cuts. A complete Lean proof must establish universal existence or certify a bridgeless counterexample; special graph classes, vector flows and reconfiguration results do not settle that question.
-
-[Read in atlas](index.html#TCS-7248) · [Approximately Packing Dijoins via Nowhere-Zero Flows](https://link.springer.com/article/10.1007/s00493-025-00159-x) · [Nowhere-zero flow reconfiguration](https://arxiv.org/abs/2512.17342v4) · [Nowhere-zero 5-flows for graphs with bounded genus](https://www.ort.shu.edu.cn/EN/abstract/abstract21516.shtml) · [High-Dimensional \(p\)-Normed Flows](https://arxiv.org/abs/2601.12036v1) · [5-flow conjecture](https://www.openproblemgarden.org/op/5_flow_conjecture)
-Existing status: `source_open` · Summary written: 2026-09-14
-
 ### TCS-6538 — Almost-linear-time exact maximum matching in general graphs
 
 Maximum-cardinality matching selects as many pairwise vertex-disjoint edges as possible in an arbitrary finite simple undirected graph. The target is one uniform randomized word-RAM algorithm that constructs an optimum matching with probability at least two thirds on every input. It must halt almost surely, always return a valid matching when it halts, and have expected time within every fixed positive exponent slack above the full explicit input size. A complete Lean proof must establish the algorithm and all these guarantees or rule out every permitted randomized program with this expected-time behavior. Known almost-linear bipartite algorithms, approximation schemes and catalytic-space results do not settle the general exact target, and the older Glauber-dynamics claim has an acknowledged error.
 
 [Read in atlas](index.html#TCS-6538) · [A Theory of Alternating Paths and Blossoms from the Perspective of Minimum Length](https://pubsonline.informs.org/doi/abs/10.1287/moor.2020.0388) · [Maximum Matchings via Gaussian Elimination](https://www.mimuw.edu.pl/~mucha/pub/mucha_sankowski_focs04.pdf) · [Scaling algorithms for approximate and exact maximum weight matching](https://arxiv.org/abs/1112.0790) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671) · [Gabow’s Cardinality Matching Algorithm in General Graphs: Implementation and Experiments](https://arxiv.org/abs/2409.14849) · [Maximum Matching and Related Problems in Catalytic Logspace](https://eccc.weizmann.ac.il/report/2026/080/) · [Maximum Matchings via Glauber Dynamics](https://arxiv.org/abs/1107.2482)
-Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-6653 — Gyárfás–Sumner conjecture
-
-The Gyárfás–Sumner conjecture asks whether excluding any fixed induced tree makes chromatic number bounded at each fixed clique bound. The host is an arbitrary finite simple undirected graph, and the bound may depend on the tree and clique bound but not on host size. An accepted answer requires a complete Lean proof, or one fixed tree and clique bound supporting graphs of unbounded chromatic number. Path-induced copies, fractional colouring and subpolynomial size-dependent bounds are distinct from the selected ordinary-colouring statement. The conjecture would identify forests as the precise single forbidden-pattern boundary for this form of hereditary graph colouring.
-
-[Read in atlas](index.html#TCS-6653) · [A Note on the Gyárfás–Sumner Conjecture](https://arxiv.org/abs/2302.08922) · [Radius two trees specify \(\chi\)-bounded classes](https://doi.org/10.1002/jgt.3190180203) · [Polynomial bounds for chromatic number. V. Excluding a tree of radius two and a complete multipartite graph](https://arxiv.org/abs/2202.05557) · [Trees and near-linear stable sets](https://link.springer.com/article/10.1007/s00493-025-00177-9) · [Polynomial Gyárfás–Sumner conjecture for graphs of bounded boxicity](https://igt.centre-mersenne.org/articles/10.5802/igt.17/) · [Clique Number of Tournaments II](https://arxiv.org/abs/2609.07481) · [A Domatic Analogue of \(\chi\)-Bounded Graph Classes and the Gyárfás–Sumner Conjecture](https://arxiv.org/abs/2606.02030)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6683 — Optimal bounds in the Excluded Grid Theorem
@@ -2029,26 +1994,12 @@ The excluded-grid threshold is the least treewidth that forces a square grid of 
 [Read in atlas](index.html#TCS-6683) · [Graph minors. V. Excluding a planar graph](https://doi.org/10.1016/0095-8956(86)90030-4) · [Quickly Excluding a Planar Graph](https://doi.org/10.1006/jctb.1994.1073) · [Polynomial Bounds for the Grid-Minor Theorem](https://arxiv.org/abs/1305.6577v5) · [Towards Tight(er) Bounds for the Excluded Grid Theorem](https://arxiv.org/abs/1901.07944) · [The Grid-Minor Theorem Revisited](https://link.springer.com/article/10.1007/s00493-025-00168-w) · [Catching Rats in \(H\)-minor-free Graphs](https://doi.org/10.1137/1.9781611978971.169) · [Quickly Excluding an Annotated Planar Graph](https://doi.org/10.4230/LIPIcs.ICALP.2026.99) · [Optimal Bounds for the \(k\)-Disjoint Paths Problem](https://arxiv.org/abs/2605.14902)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-7251 — Caccetta–Häggkvist conjecture
-
-The Caccetta–Häggkvist conjecture asks how short a directed cycle must exist when every vertex has many outgoing neighbors. For n vertices and minimum outdegree at least r, it predicts a cycle of length at most the ceiling of n divided by r. The graph may contain opposite arcs, which form a two-cycle, but has no loops or repeated arcs. The target is an exact theorem for every graph and degree threshold, with no extra regularity or indegree assumption. Sharp examples and many partial results are known, while the recent rainbow and regular-digraph results do not resolve the general statement.
-
-[Read in atlas](index.html#TCS-7251) · [The Caccetta–Haggkvist conjecture and additive number theory](https://arxiv.org/abs/math/0603469) · [Counting flags in triangle-free digraphs](https://arxiv.org/abs/0908.2791) · [Aharoni’s rainbow cycle conjecture holds up to an additive constant](https://arxiv.org/abs/2212.05697) · [Short rainbow cycles for families of small edge sets](https://arxiv.org/abs/2507.04581) · [Openly disjoint cycles and directed tree-width of regular digraphs](https://arxiv.org/abs/2604.13700) · [Short rainbow cycles in graphs and matroids](https://arxiv.org/abs/1806.00825) · [On Caccetta–Haggkvist Conjecture](https://arxiv.org/abs/0805.3631)
-Existing status: `source_open` · Summary written: 2026-09-16
-
 ### TCS-6539 — Almost-linear triangle detection
 
 The input is an explicit undirected graph, and the output says whether three distinct vertices are pairwise adjacent. One fixed randomized program must work on every graph and every adjacency-list order. Every execution must take almost linear time in the number of vertices plus edges, with a correct answer on each input with probability at least two thirds. A relevant local-sketching preprint remains unverified, so the card records current status as uncertain. A complete Lean-checked answer must supply this algorithm and its guarantees or prove that none exists in the specified model.
 
 [Read in atlas](index.html#TCS-6539) · [Popular conjectures imply strong lower bounds for dynamic problems](https://arxiv.org/abs/1402.0054v1) · [Finding and Counting Given Length Cycles](https://www.math.tau.ac.il/~nogaa/PDFS/ayz4.pdf) · [Arboricity and Subgraph Listing Algorithms](https://www.cs.cornell.edu/courses/cs6241/2019sp/readings/Chiba-1985-arboricity.pdf) · [Node-Weighted Triangles: Faster and Simpler](https://doi.org/10.4230/LIPIcs.ICALP.2026.10) · [Equivalent Dichotomies for Triangle Detection in Subgraph, Induced, and Colored H-Free Graphs](https://doi.org/10.4230/LIPIcs.ESA.2026.64) · [Triangle Detection in Worst-Case Sparse Graphs via Local Sketching](https://arxiv.org/abs/2509.03215v1) · [A Strongly Subcubic Combinatorial Algorithm for Triangle Detection with Applications](https://arxiv.org/abs/2403.01085v2) · [A Linear-Time Solution to the Triangle Finding Problem: The Aegypti Algorithm](https://www.preprints.org/manuscript/202506.0875/v3) · [Aegypti: A Combinatorial Algorithm for Triangle Detection](https://www.preprints.org/manuscript/202511.2197/v11)
 Existing status: `uncertain` · Summary written: 2026-09-17
-
-### TCS-6654 — Seese’s conjecture
-
-Seese’s conjecture concerns arbitrary classes of finite simple undirected graphs. Its premise is an algorithm deciding whether some graph in the class satisfies any input monadic second-order sentence over vertices and vertex sets. Its conclusion is one finite clique-width bound holding for all graphs in that class. The algorithm and bound may depend on the class, and parity predicates or edge-set quantifiers are excluded from the premise. A complete Lean-checked solution must prove the universal implication or verify a class with decidable satisfiability and unbounded clique-width.
-
-[Read in atlas](index.html#TCS-6654) · [Forbidden Induced Subgraphs for Bounded Shrub-Depth and the Expressive Power of MSO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.167) · [Vertex-minors, monadic second-order logic, and a conjecture by Seese](https://www.labri.fr/perso/courcell/Textes1/BC-Oum%282007%29.pdf) · [MSO undecidability for hereditary classes of unbounded clique-width](https://doi.org/10.1016/j.ejc.2023.103700) · [Hereditary 2-WQO Graph Classes Have Bounded Clique-Width](https://arxiv.org/abs/2607.10939v2)
-Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7228 — Exact directed maximum flow in \(O((m+n) \operatorname{polylog} n)\) time
 
@@ -2063,34 +2014,6 @@ A proper graph coloring can be changed one vertex at a time while remaining prop
 
 [Read in atlas](index.html#TCS-6655) · [Linear recoloring diameter of degenerate chordal graphs and bounded treewidth graphs](https://doi.org/10.1016/j.disc.2026.115055) · [A polynomial version of Cereceda’s conjecture](https://doi.org/10.1016/j.jctb.2022.01.006)
 Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-7216 — Vertex reconstruction conjecture
-
-The vertex reconstruction conjecture asks whether every finite simple graph with at least three vertices is determined by all its one-vertex-deleted views. The views forget vertex labels but retain the multiplicity of repeated isomorphism classes. Even the edge count and degree multiset can be recovered, while the full arrangement of edges is the unresolved target in current specialist sources. Finite computational checks and a theorem for interval graphs provide partial results. An earlier general proof claim is recorded without validation, and recent structured bipartite results are kept distinct from this full question.
-
-[Read in atlas](index.html#TCS-7216) · [Reconstruction of Small Graphs and Digraphs](https://arxiv.org/abs/2102.01942v4) · [Shuffling the Deck: Invariant Theory and the Graph Reconstruction Conjecture](https://arxiv.org/abs/2604.16567v1) · [Interval Graphs are Reconstructible](https://arxiv.org/abs/2504.02353v2) · [Advancing Mathematics Research with AI-Driven Formal Proof Search](https://arxiv.org/abs/2605.22763v2) · [Vertex-substitution framework verifies the reconstruction conjecture for finite undirected graphs](https://www.sciencedirect.com/science/article/pii/S0020025523014433)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-7249 — Berge–Fulkerson conjecture
-
-A perfect matching pairs every vertex with exactly one of its neighbors using edges of the graph. The Berge–Fulkerson conjecture asks for six perfect matchings in every finite bridgeless cubic multigraph. Each edge must belong to exactly two of the six matchings, and repeated matchings are allowed. The question has no algorithmic running-time requirement and includes nonplanar graphs and parallel edges. The checked 2026 results concern special families or equivalence with infinite versions and leave the full finite assertion unresolved.
-
-[Read in atlas](index.html#TCS-7249) · [On some perfect matching conjectures in infinite, cubic, bridgeless graphs](https://arxiv.org/abs/2607.29511v1) · [Berge–Fulkerson Conjecture, Perfect Matching Partial Coverings and Odd Dividers](https://doi.org/10.1002/jgt.70097) · [Graph Puzzles I.1: Oriented Berge-Fulkerson Conjecture](https://arxiv.org/abs/2501.05348v3)
-Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-7250 — Barnette’s conjecture
-
-Barnette’s conjecture concerns finite simple planar bipartite graphs in which every vertex has degree three and deleting any two vertices leaves the graph connected. It predicts that every such graph contains a single cycle through every vertex exactly once. Every edge of that cycle must already belong to the graph. Recent results cover bounded face sizes or allow missing adjacencies in a Hamiltonian augmentation. Those partial results do not settle the unrestricted existence claim, which the checked 2026 literature retains as open.
-
-[Read in atlas](index.html#TCS-7250) · [Approximating Barnette’s Conjecture](https://doi.org/10.4230/LIPIcs.GD.2025.6) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://doi.org/10.37236/13673) · [Barnette Graphs with Faces up to Size 8 are Hamiltonian](https://arxiv.org/abs/2508.03531v1)
-Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-7253 — Seymour’s second-neighborhood conjecture
-
-An oriented graph has directed edges but no loops or pair of opposite edges. Seymour’s conjecture asks for a vertex with at least as many new vertices reachable in two steps as vertices reachable in one step. A vertex already in the first neighborhood is excluded from the second even if a two-step path also reaches it. Known general constant-factor bounds and restricted-class results do not reach the exact universal inequality. A separate manuscript claims a full proof, but the later specialist literature retains the question; the card records that unverified claim conflict as uncertain.
-
-[Read in atlas](index.html#TCS-7253) · [Towards a strengthening of the second neighborhood conjecture](https://arxiv.org/abs/2607.18047v2) · [An improved bound on Seymour’s second neighborhood conjecture](https://arxiv.org/abs/2412.20234v1) · [A Minimum Counterexample Proof of the Seymour Second Neighborhood Conjecture via the Graph Level Order](https://arxiv.org/abs/2501.00614v14)
-Existing status: `uncertain` · Summary written: 2026-09-17
 
 ### TCS-7341 — Strongly polynomial near-linear negative-weight shortest paths
 
@@ -2120,39 +2043,11 @@ The Erdős girth conjecture asks for graphs with many edges and no short cycles.
 [Read in atlas](index.html#TCS-6500) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.31) · [Extremal Numbers of Cycles Revisited](https://authors.library.caltech.edu/records/8w53p-t0j17)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-7218 — List edge-coloring conjecture
-
-A proper edge coloring assigns different colors to edges that share an endpoint. In list edge coloring, each edge must choose its color from its own finite set of allowed colors. The conjecture asks whether giving every edge as many choices as the ordinary chromatic index always suffices, even with arbitrary list overlaps and parallel edges. It holds for bipartite multigraphs, and a general asymptotic theorem leaves only a vanishing relative gap. Exact equality for every finite loopless multigraph would show that local availability restrictions never impose an additional per-edge palette requirement.
-
-[Read in atlas](index.html#TCS-7218) · [The list chromatic index of a bipartite multigraph](https://doi.org/10.1006/jctb.1995.1011) · [Asymptotics of the list-chromatic index for multigraphs](https://sites.math.rutgers.edu/~jkahn/LMULTI.pdf) · [The List Edge-Coloring Conjecture for Two New Infinite Families of Complete Graphs](https://arxiv.org/abs/2608.22895v1)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7252 — Tuza’s triangle packing–covering conjecture
-
-A triangle packing is a collection of triangles sharing no edges, although they may share vertices. A triangle edge transversal is a set of edges whose deletion destroys every triangle. Tuza’s conjecture says that the minimum transversal has size at most twice the maximum packing in every finite simple undirected graph. The factor two is sharp already for the complete graph on four vertices. The target requires a complete Lean-checked proof or counterexample to this exact inequality, with no numerical tolerance.
-
-[Read in atlas](index.html#TCS-7252) · [Triangle-packing vs triangle edge-transversal](https://www.openproblemgarden.org/op/triangle_packing_vs_triangle_edge_transversal) · [On Tuza’s conjecture in dense graphs](https://doi.org/10.1016/j.dam.2025.06.049) · [Tuza's conjecture for graphs of maximum degree at most seven](https://arxiv.org/abs/2608.06538v1) · [A Bound Below 2.8 for Tuza's Conjecture](https://arxiv.org/abs/2609.13831v1)
-Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-1206 — Sparsification conjecture
-
-Monadic stability means that no fixed first-order formula defines arbitrarily long orders in graphs of the class after arbitrary unary coloring. The Sparsification Conjecture asks whether every such class can be obtained from a nowhere dense graph class by one fixed first-order transduction. The transduction uses finitely many unary colors and vertex and edge formulas, while the sparse source class excludes a sufficiently large clique as a shallow minor at every fixed radius. A resolution would decide whether this logical restriction on possibly dense graphs has an exact explanation through uniform sparse representations, beyond the restricted and almost nowhere dense cases already known. A complete Lean answer must prove the representation for every monadically stable class or exhibit one such class that defeats every nowhere dense source class and every allowed transduction.
-
-[Read in atlas](index.html#TCS-1206) · [Weakly-Sparse and Strongly Flip-Flat Classes of Graphs Are Uniformly Almost-Wide](https://doi.org/10.4230/LIPIcs.CSL.2026.41) · [First-Order Transductions of Graphs (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2021.2) · [Graph classes through the lens of logic](https://arxiv.org/abs/2501.04166v1) · [Existential Positive Transductions of Sparse Graphs](https://doi.org/10.4230/LIPIcs.LICS.2026.67) · [Efficient reversal of transductions of sparse graph classes](https://arxiv.org/abs/2601.14906v1) · [Neighborhood Complexity and Radius-1 Merge-Width in Monadically Dependent Graph Classes](https://arxiv.org/abs/2607.10941v1)
-Existing status: `source_open` · Summary written: 2026-09-16
-
 ### TCS-6511 — Deterministic Exact Matching
 
 Exact Matching asks whether a red/blue graph has a perfect matching with exactly the requested number of red edges. The target is one deterministic polynomial-time decision algorithm for all simple undirected graphs. Knowing only the minimum and maximum red counts does not determine which intermediate counts are attainable. The recent faster general algorithm remains randomized, while a separate claimed deterministic result is restricted to bipartite graphs. A complete Lean-checked solution must establish membership in P or prove its unconditional negation.
 
 [Read in atlas](index.html#TCS-6511) · [Exact Matching: Algorithms and Related Problems](https://doi.org/10.4230/LIPIcs.STACS.2023.29) · [Matching is as easy as matrix inversion](https://doi.org/10.1145/28395.383347) · [Exact Matching in Matrix Multiplication Time](https://arxiv.org/abs/2508.04081v2) · [Bipartite Exact Matching in P](https://arxiv.org/abs/2604.01571v3)
-Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-7254 — Neumann–Lara conjecture
-
-The Neumann–Lara conjecture asks for two acyclic vertex classes in every orientation of a finite simple planar graph. Arcs within a class are allowed, but every directed cycle must use both colours. Directed triangles, disconnected graphs and unrestricted vertex degrees are included. Known results without directed triangles and bounds on one large acyclic set leave the full partition question open. A complete Lean-checked solution must prove the all-graph assertion or certify a finite planar counterexample.
-
-[Read in atlas](index.html#TCS-7254) · [The Two Color Conjecture](https://www.openproblemgarden.org/op/partitioning_planar_digraphs) · [Planar digraphs of digirth four are 2-colourable](https://arxiv.org/abs/1606.06114v1) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://doi.org/10.37236/13673) · [Feedback vertex sets in oriented graphs](https://arxiv.org/abs/2607.13895v1)
 Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7180 — Graph canonization versus graph isomorphism
@@ -2164,10 +2059,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7342 — Steiner Shortcut Conjecture
 
-A Steiner shortcut augments a directed graph with new vertices and arcs. Reachability between all original vertices must remain exactly the same. The conjecture asks for near-linear many added arcs and polylogarithmic paths between reachable original pairs. The earlier conjecture forbidding new vertices was refuted, while this version remains a distinct structural question. The target concerns existence and does not impose a fast construction algorithm.
+A directed graph may be augmented with new arcs and new Steiner vertices. Reachability between every pair of original vertices must remain exactly unchanged. The target permits near-linearly many new arcs and requires polylogarithmic paths for every reachable original pair. The earlier refutation and newer lower bounds impose restrictions absent from this conjecture. A complete Lean-checked answer concerns universal structural existence, without requiring a fast construction algorithm.
 
-[Read in atlas](index.html#TCS-7342) · [Reviving Thorup's Shortcut Conjecture](https://arxiv.org/abs/2510.24954)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7342) · [Reviving Thorup's Shortcut Conjecture](https://arxiv.org/abs/2510.24954v2) · [Reviving Thorup’s Shortcut Conjecture](https://doi.org/10.1145/3798129.3800781)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7343 — Deterministic almost-linear vertex connectivity
 
@@ -2175,13 +2070,6 @@ Vertex connectivity is the smallest number of vertices whose deletion disconnect
 
 [Read in atlas](index.html#TCS-7343) · [Deterministic Vertex Connectivity via Common-Neighborhood Clustering and Pseudorandomness](https://arxiv.org/abs/2503.20985v1) · [Vertex Connectivity in Poly-logarithmic Max-flows](https://arxiv.org/abs/2104.00104v2) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671v2) · [Approximating Directed Connectivity in Almost-Linear Time](https://arxiv.org/abs/2512.00176v1)
 Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-7245 — Constant-factor treewidth preservation by subcubic subgraphs
-
-The question asks whether every finite graph contains a subgraph with maximum degree at most three and treewidth within a universal constant factor of the original. The subgraph may delete vertices and edges but cannot contract edges or add new ones. It need not be induced, connected or spanning, and no size or construction-time bound is required. The checked general theorem preserves treewidth up to a polylogarithmic factor, leaving the constant-factor target unresolved in the cited sources. A positive answer would show that bounded-degree subgraphs universally preserve the scale of treewidth, even in graphs of high degree.
-
-[Read in atlas](index.html#TCS-7245) · [Degree-3 Treewidth Sparsifiers](https://home.ttic.edu/~cjulia/papers/treewidth-sparsifiers-SODA.pdf) · [Degree-3 Treewidth Sparsifiers: full preprint](https://arxiv.org/abs/1410.1016v1) · [Sparse induced subgraphs of large treewidth](https://doi.org/10.1016/j.jctb.2025.03.002) · [Sparse Induced Subgraphs of Large Treewidth: preprint](https://arxiv.org/abs/2405.13797v1) · [Finding subgraphs with high treewidth and constant degree](https://cstheory.stackexchange.com/questions/38937/finding-subgraphs-with-high-treewidth-and-constant-degree) · [List of open questions: Linear treewidth and pathwidth sparsifiers](https://a3nm.net/work/research/questions/#linear-treewidth-and-pathwidth-sparsifiers)
-Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7263 — Linear-time directed shortest paths with nonnegative real weights
 
@@ -2192,31 +2080,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7348 — Single-exponential exact cut mimicking networks
 
-An exact cut mimicking network represents every minimum cut separating a group of terminals from its complement. It must preserve all terminal bipartition values simultaneously. The question asks whether every weighted undirected graph has such a representation with singly exponential size in the number of terminals. Arbitrary new nonterminal vertices are permitted, with no restriction to contractions. The general gap between exponential lower bounds and doubly exponential upper bounds remains the target.
+A terminal cut separates any selected group of labelled terminals from all the other terminals. One replacement graph must preserve the minimum cost of every such separation exactly. The question asks for at most 2^(Ck) vertices with a single absolute constant C. The replacement may use arbitrary new nonterminals and weights, so contraction lower bounds alone do not answer it. A complete Lean-checked proof must establish or refute this structural existence claim for all nonnegatively weighted undirected graphs.
 
-[Read in atlas](index.html#TCS-7348) · [Cut-Preserving Vertex Sparsifiers for Planar and Quasi-Bipartite Graphs](https://drops.dagstuhl.de/storage/00lipics/lipics-vol334-icalp2025/html/LIPIcs.ICALP.2025.53/LIPIcs.ICALP.2025.53.html) · [On Mimicking Networks Representing Minimum Terminal Cuts](https://arxiv.org/abs/1207.6371)
-Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-7217 — Edge reconstruction conjecture
-
-Delete each edge of a graph in turn, erase vertex labels and collect the resulting graphs with repetitions. The edge reconstruction conjecture asks whether this multiset determines every finite simple graph with at least four edges. All vertices survive deletion, and repeated copies of the same graph remain significant. A triangle plus an isolated vertex and a three-leaf star show why a three-edge version fails. Recent algebraic reformulations and results for promised graph classes leave the general uniqueness question open.
-
-[Read in atlas](index.html#TCS-7217) · [Reconstruction of Small Graphs and Digraphs](https://arxiv.org/abs/2102.01942) · [A combinatorial K-theory perspective on the Edge Reconstruction Conjecture in graph theory](https://arxiv.org/abs/2402.14986v2) · [The Class Edge-Reconstruction Number of a Maximal Planar Graph Is One or Two](https://arxiv.org/abs/2609.02389v1)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-1246 — Well-quasi-ordering Eulerian digraphs by weak immersion
-
-An Eulerian digraph is a finite directed multigraph with equal incoming and outgoing arc counts at every vertex, allowing loops, parallel arcs and disconnected components. A weak immersion represents vertices injectively and arcs by arc-disjoint directed trails, which may meet at vertices and pass through other represented vertices. The conjecture says that every infinite sequence of these digraphs contains an earlier graph weakly immersed in a later graph. The inspected 2026 results establish restricted width and degree cases, while a general proof announcement has not been verified in the available sources. A complete Lean answer must prove the unrestricted sequence statement or give one infinite sequence with no qualifying earlier-to-later pair.
-
-[Read in atlas](index.html#TCS-1246) · [Well-Quasi-Ordering Eulerian Digraphs: Bounded Carving Width](https://doi.org/10.4230/LIPIcs.ICALP.2026.51) · [Well-Quasi-Ordering Eulerian Digraphs: Bounded Carving Width — full version](https://arxiv.org/abs/2605.07468v1) · [Well-Quasi-Ordering Eulerian Digraphs Embeddable in Surfaces by Strong Immersion](https://arxiv.org/abs/2509.26260v1) · [Well-quasi-ordering Eulerian directed graphs by (strong) immersion — author seminar abstract](https://dimag.ibs.re.kr/event/2026-03-10/)
-Existing status: `uncertain` · Summary written: 2026-09-16
-
-### TCS-7289 — Lovász conjecture
-
-A graph is vertex-transitive when an adjacency-preserving permutation can send any vertex to any other vertex. The Lovász conjecture asks whether every finite nonempty connected vertex-transitive simple undirected graph has a path that visits each vertex exactly once. The path need not return to its starting vertex, and the statement includes graphs outside the Cayley-graph setting without requiring an efficient path-finding algorithm. A resolution would decide whether connectedness and vertex symmetry alone force a spanning path, beyond known long-cycle guarantees and restricted Hamiltonicity results. A complete Lean answer must prove the path exists for every graph in the stated class or prove that one graph in the class has no such path.
-
-[Read in atlas](index.html#TCS-7289) · [Towards the Lovász conjecture via sublinear expanders](https://arxiv.org/abs/2606.09742v2) · [The Lovász conjecture holds for moderately dense Cayley graphs](https://arxiv.org/abs/2603.08675v2) · [Long Directed Cycles in Vertex-Transitive Digraphs](https://arxiv.org/abs/2607.05807v2) · [On Hamilton cycles in connected vertex-transitive graphs of order 2pq](https://arxiv.org/abs/2608.02349v2)
-Existing status: `source_open` · Summary written: 2026-09-16
+[Read in atlas](index.html#TCS-7348) · [Cut-Preserving Vertex Sparsifiers for Planar and Quasi-Bipartite Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2025.53) · [On Mimicking Networks Representing Minimum Terminal Cuts](https://arxiv.org/abs/1207.6371v1) · [Lower Bounds on Flow Sparsifiers with Steiner Nodes](https://arxiv.org/abs/2602.12645v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7344 — Almost-linear exact directed global minimum cut
 
@@ -2267,13 +2134,6 @@ The problem asks whether three-colorability is decidable in deterministic polyno
 [Read in atlas](index.html#TCS-0594) · [Colouring Graphs of Bounded Diameter, in Graph Colouring: from Structure to Algorithms](https://doi.org/10.4230/DagRep.9.6.125) · [Algorithms and Almost Tight Results for 3-Colorability of Small Diameter Graphs](https://doi.org/10.1007/s00453-014-9949-6) · [Faster 3-coloring of small-diameter graphs](https://arxiv.org/abs/2104.13860v1) · [List 3-coloring \(C_{4}\)-free graphs of diameter-2 in polynomial-time](https://arxiv.org/abs/2606.30282v2)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-0587 — Polylogarithmic treewidth with forbidden induced minors
-
-Treewidth measures the largest bag needed to organize a graph in a tree decomposition. The question concerns graphs with no large clique and with neither a fixed complete bipartite graph nor a fixed wall as an induced minor. It asks whether their treewidth is bounded by a fixed power of the logarithm of their number of vertices. A March 2026 preprint proves a subpolynomial bound but still states the polylogarithmic target as a conjecture. The stronger bound would improve the structural and algorithmic understanding of these induced-minor-free graph classes.
-
-[Read in atlas](index.html#TCS-0587) · [Solving Problems on Graphs: From Structure to Algorithms](https://doi.org/10.4230/DagRep.15.1.105) · [Induced minors and subpolynomial treewidth](https://arxiv.org/abs/2512.18835)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-0775 — Optimal exact-distance label length for planar graphs
 
 Each vertex receives a short binary label. The exact distance between two vertices must follow from their labels alone. The same decoder serves every graph of the chosen size. The target is the optimal asymptotic number of label bits. Current lower and upper bounds differ by a polynomial factor.
@@ -2281,61 +2141,12 @@ Each vertex receives a short binary label. The exact distance between two vertic
 [Read in atlas](index.html#TCS-0775) · [Better Distance Labeling for Unweighted Planar Graphs](https://doi.org/10.1007/s00453-023-01133-z)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-0315 — Fat Minors
-
-A fat graph minor models vertices and edges by connected pieces that remain separated except at prescribed incidences. The source asks whether excluding a fixed such pattern forces balanced separators coverable by roughly a square-root number of bounded-radius balls. A related version assumes exclusion of an induced minor. The separator may contain many vertices, so its economical description is metric coverage rather than cardinality alone. The conjecture seeks a usable separator theorem from coarse geometric restrictions that are weaker than ordinary excluded-minor structure.
-
-[Read in atlas](index.html#TCS-0315) · [Metric Sketching and Dynamic Algorithms for Geometric and Topological Graphs](https://doi.org/10.4230/DagRep.15.5.134)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1639 — Linear neighborhood complexity of hereditary small graph classes
-
-Neighborhood complexity counts how many distinct intersections with a chosen vertex set can occur among graph neighborhoods. The conjecture concerns hereditary small graph classes, whose labeled graphs have at most factorial-times-exponential growth. It predicts a linear bound on this neighborhood diversity. The cited work connects such a bound to compact adjacency labels. The project asks whether a global restriction on how many graphs a class contains necessarily forces a strong local restriction on how their vertices can see a set.
-
-[Read in atlas](index.html#TCS-1639) · [Adjacency Labeling Schemes for Small Classes](https://doi.org/10.4230/LIPIcs.ITCS.2025.21)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2783 — Erdős girth conjecture
 
 The girth conjecture asks for dense graphs with every short cycle forbidden. For each fixed k, the target is \(\Omega (n^{1+1/k})\) edges and girth at least \(2k+2\). The lower bound must hold for every sufficiently large n, with constants depending on k. The known cases are \(k=1,2,3,5\), as still recorded in July 2026. A resolution would sharpen fundamental lower bounds for routing and graph spanners.
 
 [Read in atlas](index.html#TCS-2783) · [Space-Stretch Tradeoff in Routing Revisited](https://doi.org/10.4230/LIPIcs.DISC.2022.37) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://arxiv.org/abs/2607.07576)
 Existing status: `source_open` · Summary written: 2026-09-12
-
-### TCS-6874 — Ramanujan graphs of every degree
-
-A d-regular Ramanujan graph has nontrivial adjacency eigenvalues within the source's optimal spectral range. The saved survey conjecture asks for arbitrarily large examples at every degree d at least three. The goal is a family at each fixed degree, not simply isolated small graphs or a degree sequence that grows with size. Such families provide exceptionally strong sparse connectivity and underpin many expander applications. This is a dated survey formulation whose present status is not rechecked in the draft, and bipartite conventions and treatment of trivial eigenvalues must be retained when comparing later constructions.
-
-[Read in atlas](index.html#TCS-6874) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6875 — Two-sided Ramanujan signings
-
-A two-lift replaces each graph vertex by two copies and uses an edge signing to determine how the copies are connected. The source asks for lifts or signings satisfying two-sided Ramanujan spectral bounds. Controlling both ends of the new spectrum prevents large positive or negative nontrivial eigenvalues from spoiling the desired expansion guarantee. A construction would provide a systematic method for growing high-quality expander families. The saved survey groups several conjectures, so the starting-graph assumptions, exact spectral interval, and later status must be checked before treating a one-sided signing theorem as a full answer.
-
-[Read in atlas](index.html#TCS-6875) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7143 — Bipartite circle pivot-minors from large rank-width
-
-Pivot-minors use edge-pivot operations together with vertex deletion to simplify graphs. The source asks whether sufficiently large rank-width forces every fixed bipartite circle graph as such a minor. The conclusion would supply a universal family of structural obstructions witnessing high cut-rank complexity. This parallels excluded-grid principles while using graph transformations tailored to rank-width. The threshold may depend on the fixed target graph, and the source's pivot and circle-graph conventions must be recovered before the statement is compared with ordinary graph-minor or vertex-minor theorems.
-
-[Read in atlas](index.html#TCS-7143) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7144 — Tree vertex-minors from large linear rank-width
-
-Linear rank-width measures cut-rank complexity along a vertex ordering. The source asks whether a sufficiently large value forces any prescribed tree as a vertex-minor. A positive answer would make trees universal witnesses for high complexity in this linear decomposition model. The distinction between linear and ordinary rank-width matters because a branching decomposition can be simple while every linear layout is difficult. The saved note leaves the threshold as target-dependent and concerns existence, so an efficient algorithm to find the tree would be an additional requirement rather than part of the stated structural question.
-
-[Read in atlas](index.html#TCS-7144) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7145 — Well-quasi-ordering by pivot-minors
-
-A quasi-order is well-quasi-ordered when every infinite sequence contains an earlier object comparable below a later one. The source asks whether graphs have this property under pivot-minors. A positive answer would rule out infinite antichains and provide a strong finiteness principle for obstruction-based classifications. The challenge is that pivot operations preserve and transform structure differently from ordinary edge contractions. The saved survey question must retain its precise graph universe and pivot convention, and this draft does not infer the answer from the separate well-quasi-ordering theorem for ordinary graph minors.
-
-[Read in atlas](index.html#TCS-7145) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Data structures (17)
 
@@ -2646,10 +2457,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7362 — Optimal top-k document retrieval in compact space
 
-A query asks for the documents in which a pattern occurs most often. Documents are ranked by occurrence count with a fixed tie rule. The desired index occupies only a constant multiple of packed text size. The query cost must match reading the packed pattern and writing the requested identifiers. The current source retains additional space or query overhead.
+The task is a static index for an ordered collection of strings using space proportional to their packed text size. A query ranks documents by the exact number of occurrences of an arbitrary pattern, counting overlaps. It must output the requested best identifiers in frequency order in time proportional to the packed pattern length plus k. The 2025 compressed-index result has additional space costs and stronger guarantees only in restricted output or pattern regimes. Acceptance requires a complete Lean-checked proof or refutation with uniform deterministic algorithms and the full stated bounds.
 
-[Read in atlas](index.html#TCS-7362) · [Top-k Document Retrieval in Compressed Space](https://users.dcc.uchile.cl/~gnavarro/abstracts/soda25.html)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7362) · [Top-k Document Retrieval in Compressed Space](https://users.dcc.uchile.cl/~gnavarro/ps/soda25.pdf) · [Time-Optimal Top-k Document Retrieval](https://doi.org/10.1137/140998949)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7365 — General-alphabet Hamming oracles with optimal preprocessing
 
@@ -3653,12 +3464,12 @@ A binary tree code assigns output labels to every possible input history as that
 [Read in atlas](index.html#TCS-0013) · [Mathematics and Computation, draft of 27 March 2018](https://www.math.ias.edu/files/mathandcomp.pdf) · [Explicit Capacity Approaching Coding for Interactive Communication](https://www.math.ias.edu/~avi/PUBLICATIONS/GellsHaKoRoWi_Oct2018.pdf) · [The Rate-Immediacy Barrier in Explicit Tree Code Constructions](https://arxiv.org/abs/2504.09388v2)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-1012 — Explicit efficiently decoded binary codes beyond Gilbert–Varshamov
+### TCS-1012 — Explicit binary codes with efficient list decoding up to capacity
 
-This record concerns explicit binary codes that can be decoded efficiently at strong rate–error parameters. The saved textbook note specifically points to list decoding approaching capacity and flags a formulation caveat. List decoding permits several candidate messages, allowing recovery beyond the range guaranteed by unique decoding alone. A construction with optimal rate and efficient decoding would connect information-theoretic possibility to usable error correction. Because the inherited title invokes going beyond Gilbert–Varshamov while the note warns about the printed inequality, no inconsistent rate bound or minimum-distance breakthrough is asserted here.
+The question asks for explicit binary codes with efficient list decoding throughout the binary capacity region. For each fixed error fraction and strictly smaller admissible rate, one deterministic pair of programs must work for every message length. The decoder must list all messages consistent with any adversarially corrupted received word in polynomial time. The inherited title and reversed printed rate inequality are corrected explicitly rather than interpreted as a request to exceed capacity. A complete Lean-checked proof must establish the full construction proposition or its logical negation.
 
-[Read in atlas](index.html#TCS-1012) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1012) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf#page=154) · [Advances in List Decoding of Polynomial Codes](https://eccc.weizmann.ac.il/report/2026/032/) · [Time- and Space-Efficient List Decoding up to Capacity](https://arxiv.org/abs/2608.15937v1) · [Algorithmic List Decoding at Capacity and Optimal Proximity Gaps for Reed--Solomon Codes](https://eccc.weizmann.ac.il/report/2026/169/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-3513 — Explicit positive-rate codes below the Plotkin point
 
@@ -4265,7 +4076,7 @@ Constant-delay enumeration aims to produce query answers promptly after an initi
 [Read in atlas](index.html#TCS-7128) · [Constant Delay Enumeration for Conjunctive Queries](https://databasetheory.org/sites/default/files/2016-06/segoufin.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Miscellaneous (2)
+## Miscellaneous (3)
 
 ### TCS-7177 — \(1/3\)–\(2/3\) conjecture
 
@@ -4273,6 +4084,13 @@ A partial order records known comparisons, and its linear extensions are all com
 
 [Read in atlas](index.html#TCS-7177) · [Balancing pairs and the cross product conjecture](https://trotter.math.gatech.edu/papers/97.pdf) · [Linear extensions of finite posets](https://arxiv.org/abs/2311.02743) · [Balancing Extensions in Posets of Large Width](https://arxiv.org/abs/2509.11549) · [Balance Constants, Majority Cycles, and the Gold Partition Conjecture through Fourteen Elements](https://arxiv.org/abs/2607.23926v2)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6654 — Seese’s conjecture
+
+Seese’s conjecture concerns arbitrary classes of finite simple undirected graphs. Its premise is an algorithm deciding whether some graph in the class satisfies any input monadic second-order sentence over vertices and vertex sets. Its conclusion is one finite clique-width bound holding for all graphs in that class. The algorithm and bound may depend on the class, and parity predicates or edge-set quantifiers are excluded from the premise. A complete Lean-checked solution must prove the universal implication or verify a class with decidable satisfiability and unbounded clique-width.
+
+[Read in atlas](index.html#TCS-6654) · [Forbidden Induced Subgraphs for Bounded Shrub-Depth and the Expressive Power of MSO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.167) · [Vertex-minors, monadic second-order logic, and a conjecture by Seese](https://www.labri.fr/perso/courcell/Textes1/BC-Oum%282007%29.pdf) · [MSO undecidability for hereditary classes of unbounded clique-width](https://doi.org/10.1016/j.ejc.2023.103700) · [Hereditary 2-WQO Graph Classes Have Bounded Clique-Width](https://arxiv.org/abs/2607.10939v2)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7290 — Extremal size of sunflower-free set families
 

@@ -11,15 +11,15 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 484 | 16 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 800 | 200 |
+| [Top 500](index.html?benchmark=top500) | 500 | 485 | 15 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 801 | 199 |
 
 ## Unfilled places
 
 - top500: Optimization and numerical computation has 24/25 places.
 - top500: Sampling, Markov chains and mixing times has 9/10 places.
 - top500: Differential privacy has 4/10 places.
-- top500: Miscellaneous has 2/10 places.
+- top500: Miscellaneous has 3/10 places.
 - top1000: Algorithms has 27/50 places.
 - top1000: Automata and formal languages has 31/50 places.
 - top1000: Semantics, logic and verification has 37/50 places.
@@ -37,14 +37,13 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Differential privacy has 4/20 places.
 - top1000: Constraint satisfaction has 19/20 places.
 - top1000: Automated reasoning, rewriting and unification has 14/20 places.
-- top1000: Miscellaneous has 2/20 places.
+- top1000: Miscellaneous has 3/20 places.
 
 ## Review needed after catalogue changes
 
 - Unreviewed focus places in Algorithms: 1
 - Unreviewed focus places in Learning theory: 1
 - Unreviewed focus places in Online algorithms, scheduling and packing: 1
-- Unreviewed focus places in Miscellaneous: 1
 
 ## Computational complexity
 
@@ -349,18 +348,18 @@ Previous prefix: TCS-6628, TCS-6629, TCS-7112.
 
 Candidates considered: TCS-6628, TCS-6629, TCS-6671, TCS-1004, TCS-7221, TCS-7112.
 
-## Structural graph theory and graph algorithms
+## Graph algorithms
 
-The expanded category covers both graph structure and graph algorithms. Hadwiger represents structural graph theory; deterministic linear-time MST represents a foundational static algorithm. Erdős–Hajnal and general maximum matching remain important candidates beyond the two-place focus prefix.
+The narrowed Graph algorithms category focuses on computation and graph representations. Select polynomial-time graph isomorphism and deterministic linear-time minimum spanning tree as distinct foundational algorithmic targets; individually justified structural exceptions remain outside this two-card focus.
 
 Previous prefix: TCS-6651, TCS-6652.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Hadwiger’s conjecture](index.html#TCS-6651) (TCS-6651) | Graph minors and colouring | 98 | One of the central graph-theoretic conjectures, with an exact extremal target and consequences across coloring and minor structure. |
+| 1 | [Graph isomorphism in polynomial time](index.html#TCS-7222) (TCS-7222) | Graph isomorphism | 97 | A central unresolved graph decision problem whose polynomial-time complexity remains a foundational algorithmic target. |
 | 2 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) (TCS-6536) | Static graph algorithms | 96 | A foundational graph-algorithm question about the necessity of randomness and the relationship between comparison complexity and actual computation. |
 
-Candidates considered: TCS-6651, TCS-6652, TCS-6682, TCS-6653, TCS-6683, TCS-6654, TCS-6655, TCS-6500, TCS-6536, TCS-6538, TCS-6539, TCS-6511, TCS-0611, TCS-7180, TCS-0771, TCS-0594, TCS-0775.
+Candidates considered: TCS-6683, TCS-6654, TCS-6655, TCS-6500, TCS-6536, TCS-6538, TCS-6539, TCS-6511, TCS-0611, TCS-7180, TCS-0771, TCS-0594, TCS-0775, TCS-7222.
 
 ## Data structures
 
@@ -520,13 +519,13 @@ Candidates considered: TCS-6678, TCS-6645, TCS-0492, TCS-0488, TCS-0482, TCS-048
 
 ## Miscellaneous
 
-After reviewing active records for the restored Miscellaneous scope, select the 1/3–2/3 conjecture and pancake numbers as distinct foundational boundary questions. Keep gold partition outside the pair to avoid two partial-order balance questions; molecular computation and structural permutation classes remain provisional candidates. Graph isomorphism now has an explicit graph-algorithm home. The September 11 interest screen removed TCS-7176; replacement focus choices remain unreviewed.
+Retain partial-order balance as the existing computationally motivated combinatorial exception. Add Seese after individual review as a distinct foundational link between logical decidability and graph structure, moved here when the graph category was narrowed to algorithms.
 
 Previous prefix: TCS-7222.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [\(1/3\)–\(2/3\) conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
-| 2 | [Extremal size of sunflower-free set families](index.html#TCS-7290) (TCS-7290) | Needs review | 89 | Unreviewed replacement |
+| 2 | [Seese’s conjecture](index.html#TCS-6654) (TCS-6654) | Logical decidability and graph structure | 95 | Seese directly connects decidability of monadic second-order satisfiability with bounded clique-width; retain this major computability/structure boundary question as a cross-disciplinary exception. |
 
-Candidates considered: TCS-7222, TCS-7177.
+Candidates considered: TCS-7222, TCS-7177, TCS-6654.
