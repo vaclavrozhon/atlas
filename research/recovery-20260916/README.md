@@ -237,3 +237,15 @@ Source checkpoint 6e22a683 and deployment
 ab965ecb723d54c039740a4da8b0cccdb174d1f2 cover the first forty-four
 dispositions with publication edec3b5e07f009a8411c.
 Local publication after forty-seven is 35d3b83c975c97770175.
+
+After forty-nine dispositions the queue contains 693 completed records,
+221 pending records and one outside active scope. Of 1,012 active cards,
+791 have completed individual reviews. TCS-6945 fixes the signed-integer
+Exact-Weight k-Clique hypothesis and its word-RAM model; TCS-0854 expands
+the Promise-ZPP to Promise-BPP derandomization implication into explicit
+promise pairs and simulation quantifiers. All completed hashes match and
+all 851 ledger entries parse. Eleven scope choices remain pending.
+Source checkpoint 2aa0441b and deployment
+b243fad707c17590458cd5bf9675d5d7ab924fc4 cover the first forty-seven
+dispositions with publication 35d3b83c975c97770175.
+Local publication after forty-nine is cd09bba08a3bd4155a32.

@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **223**.
+Pending active reviews: **221**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -27,12 +27,10 @@ Pending active reviews: **223**.
 | [TCS-0560](../../data/cards/TCS-0560.json) | Fine-grained reductions from Hitting Set to 3SUM | Fine-grained complexity | pool |
 | [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
 | [TCS-6942](../../data/cards/TCS-6942.json) | Hitting Set hardness from Orthogonal Vectors | Fine-grained complexity | pool |
-| [TCS-6945](../../data/cards/TCS-6945.json) | Exact-Weight k-Clique hypothesis | Fine-grained complexity | pool |
 | [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
 | [TCS-6949](../../data/cards/TCS-6949.json) | Exhaustive-search lower bounds for Circuit-SAT | Fine-grained complexity | pool |
 | [TCS-6950](../../data/cards/TCS-6950.json) | Disjunction of SETH, APSP and 3SUM hypotheses | Fine-grained complexity | pool |
 | [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
-| [TCS-0854](../../data/cards/TCS-0854.json) | Promise-ZPP versus Promise-BPP derandomization | Pseudorandomness and derandomization | pool |
 | [TCS-1137](../../data/cards/TCS-1137.json) | Derandomization from almost-everywhere uniform hardness | Pseudorandomness and derandomization | pool |
 | [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
 | [TCS-1008](../../data/cards/TCS-1008.json) | Bipartite vertex expanders with constant expansion loss | Pseudorandomness and derandomization | pool |
