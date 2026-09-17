@@ -1,0 +1,62 @@
+"""Review the exact bipartite decision target and its unresolved claim verification."""
+import json,sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-0611';claim=read_claims(ROOT)[identifier]
+old=json.loads((ROOT/'data/cards'/f'{identifier}.json').read_text())
+notes=[
+ 'Retained bipartite Exact Matching and deterministic polynomial bit time as the mathematical yes/no target, separating it from the current-status discussion.',
+ 'Specified an explicit red/blue/absent incidence matrix, equal labelled sides, all allowed red counts, the empty instance, and one uniform exact decision algorithm.',
+ 'Made clear that an arithmetic-operation bound must be accompanied by bit-size analysis, and that sequential polynomial time does not demand a parallel NC algorithm.',
+ 'Re-read the April 2026 preprint’s main theorem and Appendix A; retained uncertain status because the top-level Lean result still assumes eight structural hypotheses.',
+ 'Checked the current arXiv version history and the August 2026 randomized general-graph improvement without claiming either proves or disproves the bipartite preprint.',
+ 'Preserved importance, removed first-person catalogue commentary from the significance field and required a complete Lean-checked unconditional answer.',
+]
+sources=[
+ 'Read El Maalouly, Exact Matching: Algorithms and Related Problems, STACS 2023, Article 29: abstract, Introduction pp.29:1–3 and Theorem 1 p.29:3. The bipartite approximation allows a red count between 0.5k and 1.5k, whereas the card requires exact equality. Dense bipartite subclasses and ordinary matching do not cover arbitrary bipartite exact matching.',
+ 'Read Du, Bipartite Exact Matching in P, arXiv:2604.01571v3, 9 April 2026: abstract, Theorem 1.1, its O(n^3) determinant evaluations and O(n^6) arithmetic-operation claim, and Appendix A printed pp.50–52. The appendix expressly calls the formalization partial and enumerates eight unproved Lean hypotheses. It claims corresponding mathematics in the paper or prior work; the review has not independently audited that complete mathematical argument or built and checked the Lean repository.',
+ 'Fetched the primary arXiv abstract page and version history on 17 September 2026. It lists v1 on 2 April, v2 on 4 April and v3 on 9 April, with no later revision shown. Bounded subsequent-work searches found no independent verification, correction or accepted final resolution sufficient to change the saved uncertain status.',
+ 'Read Sato–Yamaguchi, Exact Matching in Matrix Multiplication Time, arXiv:2508.04081v2, 10 August 2026, Introduction and Theorem 1.3, printed p.1. The simultaneous all-red-count decision bound is O(n^omega) field operations and randomized. It concerns general graphs and does not settle the deterministic bipartite claim.',
+]
+complete(identifier,dict(
+ status='uncertain',criterion='models',question_type='yes_no',
+ formal=r'''Do there exist one uniform deterministic Turing machine \(A\), a constant \(C\ge1\) and an integer \(d\ge1\) such that, for every finite simple bipartite graph \(G=(L\cup R,E)\) with \(|L|=|R|=n\ge0\), every red/blue coloring of its edges, and every integer \(0\le k\le n\), the machine decides within \(C(\ell+1)^d\) bit steps whether \(G\) has a perfect matching with exactly \(k\) red edges? Here \(\ell\) is the full explicit input encoding length. The answer must be correct on every allowed instance, with no randomness or additional promise.''',
+ definitions=r'''The left vertices are \(L=\{u_1,\ldots,u_n\}\) and the right vertices are \(R=\{v_1,\ldots,v_n\}\), with the two lists disjoint. Every edge has the form \(\{u_i,v_j\}\). There are no loops, edges within a side or parallel edges. Each present edge has exactly one color, red or blue. Missing edges are permitted, and the graph need not be connected, complete, regular, planar or of bounded degree.
+
+A perfect matching is a subset of edges containing exactly one edge incident to every vertex. Equivalently, it is specified by a permutation \(\pi\) of \(\{1,\ldots,n\}\) such that every \(\{u_i,v_{\pi(i)}\}\) is present. It satisfies the additional requirement precisely when
+\[
+\sum_{i=1}^n\mathbf 1[\{u_i,v_{\pi(i)}\}\text{ is red}]=k.
+\]
+There is no tolerance, interval or parity relaxation in this equality. For \(n=0\), the empty matching is perfect and the only allowed \(k=0\) has answer YES.
+
+For an explicit encoding, code a nonnegative integer \(z\) as \(1^b0\) followed by the \(b\)-bit expansion of \(z+1\), where \(b=\lfloor\log_2(z+1)\rfloor+1\). Supply the codes of \(n,k\), followed by the \(n\)-by-\(n\) matrix in row order, with two bits per position: 00 for absence, 01 for blue and 10 for red. The tag 11 and trailing data are invalid. The matrix lists every potential cross-edge, so this is not a succinct graph representation. The total bit length is \(\ell\).
+
+The machine is one finite classical deterministic multitape Turing program, with no advice, random bits, oracle or quantum operation. Reading, arithmetic on encoded numbers, intermediate storage manipulation and the final yes/no output are all charged. The same \(A,C,d\) must work for every size and color pattern. No separate space bound is imposed. The output need not exhibit a matching or count all matchings. An algebraic algorithm may be used, but polynomially many arithmetic operations alone do not replace a polynomial bit-time analysis. Only sequential polynomial time is requested; a polylogarithmic-depth parallel algorithm is a stronger requirement.''',
+ answer_criterion=r'''Give a complete mathematically correct Lean-checked proof of the displayed deterministic polynomial-time existence claim, or a complete Lean-checked proof of its unconditional negation. A positive answer must prove exact decision correctness on every bipartite input and one common polynomial bound in the full bit length. A negative answer must prove that this decision language does not belong to \(\mathrm P\), rather than assuming a complexity hypothesis.
+
+If the April 2026 proposed algorithm is used, every necessary mathematical ingredient must be proved, including any structural assertion supplied as a hypothesis to an existing formalization, and the bit complexity must be justified. The presence of a machine-checked conditional theorem is not a proof of its unproved premises. A flaw in that particular proposal would not by itself prove that no other algorithm exists. Randomized algorithms, restricted graph classes, approximate red counts and ordinary perfect matching do not answer the full target.''',
+ why='Determine whether randomness can be removed from an exact cardinality constraint on bipartite perfect matching, a concrete test case connecting combinatorial algorithms and polynomial identity testing.',
+ source_formulation=dict(text='Exact Matching asks for a perfect matching with a prescribed number of red edges. The historical deterministic polynomial-time question includes arbitrary bipartite graphs; a 2026 preprint claims a solution, whose verification status is recorded separately.',caption='El Maalouly, STACS 2023, Introduction and Theorem 1, pp.29:1–3; Du, arXiv:2604.01571v3, Theorem 1.1 and Appendix A. The explicit bit model fixes the historical target.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Exact Matching: Algorithms and Related Problems','Nicolas El Maalouly',2023,'https://doi.org/10.4230/LIPIcs.STACS.2023.29','Introduction pp.29:1–3 and Theorem 1 p.29:3; bipartite approximation versus exact equality'),
+ ref('claim','Bipartite Exact Matching in P','Yuefeng Du',2026,'https://arxiv.org/abs/2604.01571v3','Version 3, 9 April 2026; Theorem 1.1 and Appendix A, printed pp.50–52; version history checked 17 September 2026'),
+ ref('randomized','Exact Matching in Matrix Multiplication Time','Ryotaro Sato; Yutaro Yamaguchi',2026,'https://arxiv.org/abs/2508.04081v2','10 August 2026 revision; Introduction and Theorem 1.3, printed p.1'),
+ ],
+ context_blocks=[
+ block('The equality constraint adds information that minimum-cost or maximum-cost matching does not supply. In a complete graph with two vertices on each side, color the two diagonal edges red and the others blue: the only perfect matchings have zero or two red edges, so the intermediate count one is impossible.'),
+ block('The 2023 bipartite result permits a red count between one half and three halves of the target on feasible instances. Such a relaxation is useful but does not decide exact equality.'),
+ block('Du’s preprint claims a deterministic solution. Its third version identifies eight remaining assumptions in the top-level Lean theorem, while asserting mathematical arguments for them in the paper or prior work. This review has not independently verified that full argument.','claim'),
+ block('The August 2026 all-count improvement uses randomness and counts field operations. It applies to general graphs and does not validate or invalidate the separate deterministic bipartite proposal.','randomized'),
+ block('The historical question remains the existence of a complete deterministic polynomial-time algorithm. Its current status is marked uncertain because of the unresolved verification of the claimed advance, rather than being presented as a confirmed open problem.','claim'),
+ ],
+ progress=[progress('2023','The primary overview presents the deterministic problem and gives a bipartite approximation that relaxes the exact red-count requirement.'),progress('2026-04-02','The first preprint submission claims a deterministic bipartite solution.','claim'),progress('2026-04-09','Version 3 explicitly describes its Lean formalization as partial, with eight hypotheses at the top level.','claim'),progress('2026-08-10','A separate general-graph result improves randomized simultaneous decision for all red counts to matrix-multiplication time in field operations.','randomized')],
+),notes,sources,'Claimed resolution, verification pending. Rechecked on 17 September 2026: the primary arXiv history still lists version 3 of 9 April 2026 as latest, and its Appendix A leaves eight structural assumptions in the top-level Lean theorem. The full mathematical argument, formalization and bit complexity have not been independently audited here. No subsequent primary verification sufficient to change this uncertain status was found; the August general-graph speedup remains randomized.',summary=[
+ 'Bipartite Exact Matching asks whether a perfect matching can have exactly a specified number of red edges.',
+ 'The target is one deterministic algorithm with polynomial running time in an explicit bit encoding.',
+ 'Minimum and maximum red counts do not determine which intermediate counts are attainable.',
+ 'An April 2026 preprint claims a solution, but its stated Lean formalization retains eight structural hypotheses and the complete claim remains unaudited here.',
+ 'The card retains uncertain status and requires a complete Lean-checked proof of the historical algorithmic claim or its unconditional negation.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])

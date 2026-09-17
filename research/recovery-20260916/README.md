@@ -839,3 +839,33 @@ the three saved user decisions, and their own queue, ledger, inventory and
 archive changes enter this checkpoint. Source checkpoint 0d4a6321 and deployment
 6d92053adcef81b34fb515c6431a7e045c35de3a cover the first 155 dispositions.
 Unrelated edits remain in the shared worktree.
+
+
+After one hundred and sixty-five recovery dispositions, the raw shared queue
+contains 810 completed records, 104 pending records and one outside its original
+active scope. The live queue has 97 pending active reviews, 730 completed active
+queue records and 152 active records outside the queue, for 979 active cards.
+Seven raw pending rows were archived by concurrent category work.
+
+This batch completes TCS-0611 (deterministic bipartite Exact Matching), TCS-0474
+(pointer-machine working-set heaps), TCS-0481 (single-pair tropical shortest-path
+circuits), TCS-0482 (universal linear semiring-iteration convergence), and TCS-0478
+(exact fully dynamic APSP with edge-capacity-sensitive updates). Exact Matching
+keeps uncertain status because the recent claimed derandomization is not fully
+verified here. Semiring convergence likewise remains uncertain because the
+announced optimal-convergence paper has no theorem text in the inspected author
+listings. The other reviews distinguish constant operation charges from
+inverse-Ackermann or iterated-logarithmic overhead, single-pair from all-pairs
+circuit lower bounds, and exact online distance maintenance from approximate
+or planar offline results.
+
+All five output hashes match their queue records; the shared ledger has 989
+valid entries. The full offline check passes. Math checks pass on 35,470
+expressions across 979 active cards,
+and desktop/mobile reader checks pass on publication 8678fe573332fabc601a. The
+publisher has 899 detailed records.
+
+Only these five reviews, their authoring scripts and their own queue, ledger and
+inventory changes enter this checkpoint. Source checkpoint 9deb6680 and deployment
+266c7ecc32d6806b9c5bef469ed1ff8e1f6116f1 cover the first 160 dispositions.
+Unrelated edits remain in the shared worktree.

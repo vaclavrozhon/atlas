@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **110**.
+Pending active reviews: **105**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -96,13 +96,8 @@ Pending active reviews: **110**.
 | [TCS-4995](../../data/cards/TCS-4995.json) | Entropic width versus submodular width | Database theory and finite model theory | pool |
 | [TCS-6157](../../data/cards/TCS-6157.json) | Determinacy and rewriting of regular path queries | Database theory and finite model theory | pool |
 | [TCS-7128](../../data/cards/TCS-7128.json) | Unconditional constant-delay query-enumeration lower bounds | Database theory and finite model theory | pool |
-| [TCS-0474](../../data/cards/TCS-0474.json) | Constant-update working-set heaps on pointer machines | Data structures | existing_detailed_audit |
-| [TCS-0478](../../data/cards/TCS-0478.json) | Dynamic APSP with edge-linear updates | Dynamic graph algorithms | existing_detailed_audit |
-| [TCS-0481](../../data/cards/TCS-0481.json) | Cubic min-plus circuit lower bounds for shortest paths | Algebraic computation | existing_detailed_audit |
-| [TCS-0482](../../data/cards/TCS-0482.json) | Linear-round convergence over stable semirings | Database theory and finite model theory | existing_detailed_audit |
 | [TCS-0515](../../data/cards/TCS-0515.json) | Deterministic volume gap | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0524](../../data/cards/TCS-0524.json) | LOCAL coloring below square-root degree dependence | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-0611](../../data/cards/TCS-0611.json) | Bipartite Exact Matching: deterministic polynomial time | Structural graph theory | existing_detailed_audit |
 | [TCS-2997](../../data/cards/TCS-2997.json) | Triangle detection in CONGEST | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6454](../../data/cards/TCS-6454.json) | Low-noise LPN hardness from Nearest Codeword hardness | Cryptography | existing_detailed_audit |
 | [TCS-6499](../../data/cards/TCS-6499.json) | Sublogarithmic distributed MIS | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
