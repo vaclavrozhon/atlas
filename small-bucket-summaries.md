@@ -2909,10 +2909,10 @@ Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-1058 — Explicit rigidity at rank n over log log n
 
-Matrix rigidity measures how many entries must be changed before a matrix's rank falls below a target. This entry asks for explicit matrices that remain sufficiently rigid at rank roughly n divided by log log n. The explicitness requirement seeks a concrete computable family rather than an existence argument based on typical matrices. Such constructions connect linear-algebra structure to lower bounds for computational representations. The saved label identifies the rank scale but omits the required number of entry changes and field, so it cannot yet support a numerical rigidity conjecture or a particular circuit consequence.
+The target is a deterministic polynomial-time construction of one binary square matrix at each dimension. Reducing its rank over F_2 to any fixed multiple of n divided by log log n must require changing at least n^(1+epsilon) entries. One positive epsilon and the same family must work for all fixed multiples, with a separate sufficiently-large-length threshold allowed. Random matrices, conditional constructions and unselected lists of candidates do not meet the target. A complete Lean-checked construction and rigidity proof, or the precise negation, is required.
 
-[Read in atlas](index.html#TCS-1058) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1058) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank](https://doi.org/10.4230/LIPIcs.STACS.2026.28) · [Spiky Rank and Its Applications to Rigidity and Circuits](https://eccc.weizmann.ac.il/report/2026/030/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-2039 — Decidability of freeness in automaton groups
 
@@ -2951,10 +2951,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0010 — Superlinear constant-degree arithmetic circuit lower bounds
 
-This entry concerns lower bounds for arithmetic circuits computing polynomials of constant degree. Keeping degree fixed asks whether difficulty can arise from the interaction among many variables rather than from an enormous degree. The stated target is a superlinear lower bound, which would rule out computation with only a constant amount of arithmetic per input-scale unit. The saved reference points to a numbered problem in Wigderson's book but does not preserve its explicit polynomial family or field conventions. A completed statement must recover those choices, since changing constants, circuit restrictions, or the meaning of explicitness can alter the lower-bound challenge.
+The goal is an explicit rational polynomial family of one fixed total degree. One deterministic polynomial-time algorithm must print every coefficient exactly. Every linear size bound must fail at arbitrarily large lengths for arithmetic circuits with unrestricted depth, sharing and complex constants. Any unbounded improvement over linear size suffices, without a prescribed exponent gap. The answer must supply complete Lean-checked explicitness and lower-bound proofs or prove that all such families have linear-size circuits.
 
-[Read in atlas](index.html#TCS-0010) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0010) · [Mathematics and Computation (27 March 2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Arithmetic circuit lower bounds from sumset expansion](https://arxiv.org/abs/2607.15848) · [Partition Rank and Algebraic Circuit Lower Bounds](https://arxiv.org/abs/2607.02241v2)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-3959 — Approximate polynomial satisfiability in AM under GRH
 
@@ -2976,6 +2976,13 @@ Border VP allows polynomial families obtained through algebraic limits of small 
 
 [Read in atlas](index.html#TCS-1103) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5260 — Explicit rigid matrices over low-degree number fields
+
+The target is a deterministic polynomial-time construction of rigid complex square matrices with algebraic entries. All entries must lie in one common number field of polynomial degree, supplied by an exact polynomial-size representation. Reducing rank to any fixed multiple of n divided by log log n must require at least n^(1+epsilon) changed entries for one fixed positive epsilon. The low-rank replacement may use arbitrary complex values, so its coefficients are not confined to the original number field. The answer must include complete Lean-checked construction, representation and rigidity proofs or prove the exact negation.
+
+[Read in atlas](index.html#TCS-5260) · [Fourier and Circulant Matrices Are Not Rigid](https://doi.org/10.4230/LIPIcs.CCC.2019.17) · [Complexity Lower Bounds using Linear Algebra](https://www.cs.toronto.edu/~toni/Courses/CommComplexity/Papers/lokam-book.pdf) · [Arithmetic circuit lower bounds from sumset expansion](https://arxiv.org/abs/2607.15848)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7372 — Linear-time unit-Monge distance multiplication
 
@@ -3012,6 +3019,13 @@ The question asks for a family of one-variable integer polynomials whose smalles
 [Read in atlas](index.html#TCS-0009) · [Mathematics and Computation (27 March 2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [A Largish Sum-Of-Squares Implies Circuit Hardness and Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2021.23) · [Partial Derivatives in Arithmetic Complexity and Beyond](https://doi.org/10.1561/0400000043) · [Weighted Sum-of-Squares Lower Bounds for Univariate Polynomials Imply \(\mathrm{VP}\ne\mathrm{VNP}\)](https://doi.org/10.1007/s00037-024-00249-0) · [Polynomial Lower Bounds for Arithmetic Circuits over Non-Commutative Rings](https://eccc.weizmann.ac.il/report/2026/061/) · [Arithmetic circuit lower bounds from sumset expansion](https://arxiv.org/abs/2607.15848v1)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
+### TCS-1151 — Bounded-interval zero testing for exponential-trigonometric polynomials
+
+The input specifies a linear differential equation with constant coefficients, initial values and a nonnegative rational endpoint. The task is to decide exactly whether its real solution has any zero in the closed bounded interval. The question ranges over every fixed computable real subfield with effective arithmetic, equality and rational approximation. A decider may depend on the field but must handle every equation order, including endpoint zeros and zeros without sign changes. A complete Lean-checked unconditional decidability proof or a field-specific undecidability counterexample is required.
+
+[Read in atlas](index.html#TCS-1151) · [On Positivity of Exponential-Trigonometric Polynomials and Irrationality Exponents](https://doi.org/10.4230/LIPIcs.MFCS.2026.65) · [On the Zeros of Exponential Polynomials](https://doi.org/10.1145/3603543)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-0046 — Complexity of solving tropical or min-plus linear systems
 
 A min-plus linear equation equates two minima of affine expressions formed by adding coefficients to individual unknowns. Systems of these equations replace ordinary addition and multiplication with the operations of tropical arithmetic. The source asks for the computational complexity of deciding and solving such systems. Their piecewise-linear form does not immediately put them within ordinary linear programming, because the minimizing terms can change with the solution. A classification would explain which aspects of tropical linear algebra retain efficient linear-system behavior and which introduce a separate combinatorial search problem.
@@ -3042,23 +3056,16 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0095 — Efficient LRS evaluation
 
-A rational linear recurrence specifies an infinite sequence using finitely many initial values and recurrence coefficients. Given an index written in binary, this project asks whether testing that indexed term for exact equality to zero takes polynomial time. The requested index can be exponentially larger than its encoding, making step-by-step generation unsuitable. Fast algebraic evaluation also has to account for the bit lengths of intermediate values. The problem isolates the complexity of one succinctly addressed zero test, independently of searching for a zero anywhere in the sequence.
+The input gives a rational linear recurrence, its initial values and an index written in binary. The target is one deterministic algorithm that decides whether exactly that indexed term is zero. Its running time must be polynomial in the combined input bit length, including the recurrence order and coefficient descriptions. Randomized testing of a compact arithmetic representation is known, while printing the full term may take exponentially many bits. An answer must provide a complete Lean-checked uniform algorithm and time analysis or prove that no such algorithm exists.
 
-[Read in atlas](index.html#TCS-0095) · [Automata Exchange](https://automata.exchange/25.4-efficient-lrs-evaluation/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0095) · [25.4 Efficient LRS evaluation](https://automata.exchange/25.4-efficient-lrs-evaluation/) · [On the Complexity of the Skolem Problem at Low Orders](https://people.mpi-sws.org/~joel/publications/skolem-complexity25.pdf)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1069 — Complexity of testing Zariski-closure membership
 
 A semialgebraic set is described by polynomial equations and inequalities. The question asks for the complexity of deciding whether a designated point belongs to its Zariski closure. This closure is determined by polynomial relations vanishing on the set and differs from ordinary metric closure. The source contrasts the target with the classified Euclidean adherence problem. Understanding the complexity would quantify how difficult it is to infer algebraic consequences of a real feasible region when its limiting behavior is interpreted algebraically rather than by distance.
 
 [Read in atlas](index.html#TCS-1069) · [The Existential Theory of the Reals as a Complexity Class: A Compendium](https://arxiv.org/abs/2407.18006)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1151 — Bounded-interval zero testing for exponential-trigonometric polynomials
-
-Exponential-trigonometric polynomials combine oscillatory and exponential behavior in functions whose zeros need not resemble polynomial roots. The saved question asks whether one can decide the existence of a zero on a bounded interval with rational endpoints. Bounding the interval removes questions about behavior arbitrarily far away but still leaves exact equality difficult to certify. A solution would clarify the effective analysis of this particular function class, rather than merely provide numerical root approximations. The coefficient field denoted K and the precise permitted expressions are absent from the excerpt and remain necessary parts of the full decision problem.
-
-[Read in atlas](index.html#TCS-1151) · [On Positivity of Exponential-Trigonometric Polynomials and Irrationality Exponents](https://doi.org/10.4230/LIPIcs.MFCS.2026.65)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1544 — Complexity classification of finite-semigroup membership
@@ -3115,13 +3122,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Arithmetic circuit lower bounds measure how difficult it is to compute polynomial families. The source asks whether lower bounds for many-variable polynomials imply lower bounds in a constant number of variables. Packing information into fewer variables can increase degrees and alter how efficiently circuits represent the polynomial. A transfer would strengthen hardness-versus-randomness methods that require hard polynomials with restricted variable count. The cited work emphasizes low characteristic, and the saved sentence does not state the degree or size tradeoff, so a formal variable substitution alone does not establish the requested implication.
 
 [Read in atlas](index.html#TCS-5240) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5260 — Explicit rigid matrices over low-degree number fields
-
-Matrix rigidity measures how many entries must be changed before a matrix's rank falls substantially. Valiant's approach seeks explicit matrices rigid enough to imply lower bounds for small linear circuits. The cited paper shows that prominent structured candidates, including Fourier and circulant matrices in its setting, fail the required rigidity. The selected construction problem remains even when entries may lie in a number field of polynomially bounded dimension. An explicit successful family would supply a central missing ingredient in this lower-bound program and explain what structure avoids the weaknesses of earlier candidates.
-
-[Read in atlas](index.html#TCS-5260) · [Fourier and Circulant Matrices Are Not Rigid](https://doi.org/10.4230/LIPIcs.CCC.2019.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5739 — Collapse of rational recurrence systems to single recurrences
