@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **100**.
+Pending active reviews: **95**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -54,20 +54,15 @@ Pending active reviews: **100**.
 | [TCS-0010](../../data/cards/TCS-0010.json) | Superlinear constant-degree arithmetic circuit lower bounds | Algebraic computation | pool |
 | [TCS-1103](../../data/cards/TCS-1103.json) | Containment of border VP in VNP over arbitrary fields | Algebraic computation | pool |
 | [TCS-0046](../../data/cards/TCS-0046.json) | Complexity of solving tropical or min-plus linear systems | Algebraic computation | pool |
-| [TCS-1102](../../data/cards/TCS-1102.json) | VBP factor closure in positive characteristic | Algebraic computation | pool |
 | [TCS-0047](../../data/cards/TCS-0047.json) | Complexity of testing membership to Kronecker polytopes | Algebraic computation | pool |
 | [TCS-0095](../../data/cards/TCS-0095.json) | Efficient LRS evaluation | Algebraic computation | pool |
 | [TCS-1069](../../data/cards/TCS-1069.json) | Complexity of testing Zariski-closure membership | Algebraic computation | pool |
 | [TCS-1151](../../data/cards/TCS-1151.json) | Bounded-interval zero testing for exponential-trigonometric polynomials | Algebraic computation | pool |
 | [TCS-1544](../../data/cards/TCS-1544.json) | Complexity classification of finite-semigroup membership | Algebraic computation | pool |
-| [TCS-3318](../../data/cards/TCS-3318.json) | Arithmetic circuit closure under pth roots | Algebraic computation | pool |
 | [TCS-4490](../../data/cards/TCS-4490.json) | Complexity of positive matrix powers | Algebraic computation | pool |
 | [TCS-5240](../../data/cards/TCS-5240.json) | Transferring arithmetic hardness to constantly many variables | Algebraic computation | pool |
 | [TCS-5260](../../data/cards/TCS-5260.json) | Explicit rigid matrices over low-degree number fields | Algebraic computation | pool |
 | [TCS-5921](../../data/cards/TCS-5921.json) | Membership in \(2\times 2\) integer matrix semigroups | Algebraic computation | pool |
-| [TCS-6890](../../data/cards/TCS-6890.json) | Superpolynomial noncommutative circuit lower bounds | Algebraic computation | pool |
-| [TCS-6903](../../data/cards/TCS-6903.json) | Derandomizing noncommutative PIT | Algebraic computation | pool |
-| [TCS-6914](../../data/cards/TCS-6914.json) | Multivariate polynomial factorization from PIT derandomization | Algebraic computation | pool |
 | [TCS-0659](../../data/cards/TCS-0659.json) | Stronger worst-case reductions to SIS and LWE | Lattices and computational number theory | pool |
 | [TCS-0656](../../data/cards/TCS-0656.json) | Reducing factoring or discrete logarithms to approximate SVP | Lattices and computational number theory | pool |
 | [TCS-0655](../../data/cards/TCS-0655.json) | Polynomial-factor SVP hardness from standard assumptions | Lattices and computational number theory | pool |

@@ -914,3 +914,40 @@ the saved user choices, and their own queue, ledger, inventory and archive
 changes enter this checkpoint. Source checkpoint d3ea0ebc and deployment
 69fa663067f26c42130a38b66fe4cc502f4a0e6c cover the first 165 dispositions.
 Unrelated edits remain in the shared worktree.
+
+
+After one hundred and seventy-five recovery dispositions, the raw shared queue
+contains 820 completed records, 94 pending records and one outside its original
+active scope. The live queue has 87 pending active reviews, 738 completed active
+queue records and 152 active records outside the queue, for 977 active cards.
+Seven raw pending rows were archived by concurrent category work.
+
+This batch completes TCS-6903 (degree-sensitive deterministic noncommutative
+PIT), TCS-6890 (an explicit noncommutative circuit lower-bound family),
+TCS-6914 (the historical factoring-to-PIT reduction), TCS-3318 (degree-independent
+p-th-root circuit closure), and TCS-1102 (positive-characteristic VBP factor
+closure). Optional choices for the first, second, third and fourth were given
+reasonable time during independent work and then their recommended editorial
+defaults were announced and applied. They are not recorded as user confirmations.
+
+The noncommutative lower-bound review incorporates the May 2026 quadratic
+palindrome result and the July revision of the concurrent multiplication bound;
+the January claim that the general frontier remained only n log n is not reused
+as current. The September 2026 PIT preprint supplies a randomized restricted-depth
+result, not deterministic PIT for arbitrary circuits. TCS-6914 is archived as
+resolved by the Kopparty–Saraf–Shpilka reduction (2014/2015), with exact arithmetic
+cost and the univariate factoring primitive explicit. The two positive-characteristic
+closure cards distinguish degree-independent general circuits from degree-bounded
+branching programs, existential closure from algorithms, formal polynomials from
+finite-field functions, and same-field factors from field extensions.
+
+All five output hashes match their queue records; the shared ledger has 1002
+valid entries, including the archival event. The full offline check passes.
+Math checks pass on 35,662 expressions
+across 977 active cards, and desktop/mobile reader checks pass on publication
+3fcfd5af5d92aa67959b. The publisher has 906 detailed records.
+
+Only these five reviews, their authoring scripts and their own queue, ledger,
+inventory and archive changes enter this checkpoint. Source checkpoint 23ec902c
+and deployment 095fd1093763b1f63584355b779244a973fdba18 cover the first 170
+dispositions. Unrelated edits remain in the shared worktree.

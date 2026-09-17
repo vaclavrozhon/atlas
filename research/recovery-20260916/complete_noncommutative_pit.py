@@ -1,0 +1,61 @@
+"""Review degree-sensitive deterministic white-box noncommutative PIT."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-6903';claim=read_claims(ROOT)[identifier]
+complete(identifier,dict(
+ title='Deterministic noncommutative circuit identity testing in polynomial size and degree',
+ status='source_open',criterion='resources',question_type='yes_no',
+ formal=r'''Do there exist integers \(a,B\ge1\), a real constant \(K>0\), and one uniform deterministic algorithm which, given the complete description of a size-\(s\) noncommutative arithmetic circuit over \(\mathbb Q\) and an integer \(D\ge0\), decides whether its output is the zero formal polynomial in at most
+\[
+K(s+D+2)^a
+\]
+operations in the exact arithmetic model defined below, whenever the output polynomial has degree at most \(D\)? The degree promise includes the zero polynomial. Circuit depth, sharing and intermediate degrees are unrestricted.''',
+ definitions=r'''The free associative algebra \(\mathbb Q\langle x_1,\ldots,x_n\rangle\) consists of finite rational linear combinations of words in the variable symbols. The empty word is the multiplicative identity. Addition combines coefficients of equal words, and multiplication concatenates words and distributes over sums. Rational scalars commute with everything; variable symbols do not commute. In particular, \(x_1x_2-x_2x_1\) is not zero. The degree of a nonzero polynomial is the maximum length of a word with nonzero coefficient. Equality here means equality of all word coefficients, not equality under scalar substitutions or substitutions into matrices of one fixed dimension.
+
+An input circuit is a directed acyclic graph with one designated output. Its input gates contain variable labels or rational constants; each internal gate adds or multiplies two predecessors. The two inputs of a multiplication gate have a specified order. There are no division gates. A predecessor may supply both operands, and values may be shared. Size \(s\ge1\) counts all gates, including inputs. The input is a topologically ordered gate list with predecessor indices and the output index. Variable labels are integers in \(\{1,\ldots,n\}\), with \(n\le s\); unused names can be removed by renaming. Constants are supplied as exact rational atoms. The separate bound \(D\) concerns the actual output polynomial only. Neither syntactic degree nor the degrees of other gate values are promised to be at most \(D\).
+
+The computational model has exact rational registers and ordinary control words of \(w=B\lceil\log_2(s+D+2)\rceil\) bits. Reading, writing or copying a register, a rational addition, subtraction, multiplication, division by a nonzero rational, and a rational equality test each cost one operation. A control-word read, write, comparison, Boolean bit operation, shift, or integer addition, subtraction or multiplication modulo \(2^w\) also costs one operation; branching and addressed memory access each cost one operation. Shift counts at least \(w\) produce zero. The gate list, rational atoms, \(s,n,D\), and the output index are supplied in these registers and words. Initially other registers contain zero. Addresses are control words; there is no free parallel access or vector operation.
+
+The algorithm is a single finite program with finitely many fixed rational constants, independent of the input parameters and coefficients. It cannot inspect a rational atom's numerator or denominator bits, convert an arbitrarily large rational to a control word, or use floor, coefficient-extraction, polynomial-identity or factorization oracles. All control work as well as field arithmetic is charged. Rational bit lengths do not affect the cost: this is an arithmetic-operation question, not a polynomial bit-time assertion. The parameter \(B\) is a fixed constant and may be large enough to address the polynomial working space.
+
+The algorithm receives the entire circuit, so this is the white-box version of identity testing. It must halt within the bound on every syntactically valid input; correctness is required on all inputs satisfying the degree promise. It need not verify the promise and may answer arbitrarily when it fails. Randomness, nonuniform advice and restrictions to homogeneous, bounded-depth, formula or branching-program inputs are not allowed.''',
+ answer_criterion=r'''Give a complete mathematically correct Lean-checked proof of this deterministic algorithm existence statement or its logical negation. A positive answer must specify one algorithm, prove exact correctness on every promised circuit and justify its total operation bound, including preprocessing and control work. A randomized test, a deterministic test only for formulas or a restricted circuit class, or a bound polynomial in an exponentially larger syntactic degree is insufficient. A negative answer must exclude every algorithm in the stated model; failure of a particular matrix-substitution method alone is insufficient.''',
+ why='Deterministic identity testing asks whether the structure of an arithmetic computation can replace random evaluation. Ordered products retain information that scalar substitutions lose, while unrestricted reuse of intermediate computations prevents known formula algorithms from directly settling the circuit problem.',
+ importance=dict(score=87,method='editorial',reason='A central derandomization problem in algebraic complexity, beyond efficient deterministic tests for restricted noncommutative models.'),
+ source_formulation=dict(text='The survey asks to derandomize identity testing for noncommutative arithmetic circuits. Its preceding discussion measures randomized testing using a polynomial degree bound. This card fixes white-box access, rational exact arithmetic and polynomial dependence on a supplied output-degree bound as its precise version.',caption='Shpilka–Yehudayoff, §4.5, randomized circuit-testing discussion and Open Problem 23, printed pp.70–71; Open Problem 23 on PDF p.76.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Arithmetic Circuits: A Survey of Recent Results and Open Questions','Amir Shpilka; Amir Yehudayoff',2010,'https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf','§4.5, printed pp.70–71; Open Problems 22–23 distinguish black-box formulas from circuit derandomization; Open Problem 23 on PDF p.76'),
+ ref('random','Randomized Polynomial-Time Identity Testing for Noncommutative Circuits','V. Arvind; Pushkar S. Joglekar; Partha Mukhopadhyay; S. Raja',2019,'https://theoryofcomputing.org/articles/v015a007/','Theory of Computing 15(7), pp.1–36; abstract, Definition 1.1, Theorem 1.2, Introduction and Theorem 2.1/Corollary 2.2, printed pp.1–4'),
+ ref('recent','Matrix identities are hard: Fast blackbox PIT for noncommutative exponential-size constant-depth homogeneous circuits','Foram Lakhani; Nitin Saxena',2026,'https://eccc.weizmann.ac.il/report/2026/173/','10 September 2026; §1.1–1.2 and Theorem 1, printed pp.3–4; §7 Conclusion, printed p.27'),
+ ],
+ context_blocks=[
+ block('A nonzero ordered polynomial can vanish under every scalar substitution. Replacing variables by matrices can preserve enough noncommutative information to give randomized tests when the degree is bounded. The deterministic target asks for a guaranteed test on every input circuit.','random'),
+ block('Polynomial time in the degree is materially different from polynomial time in the circuit size alone: repeated squaring can produce exponentially large degrees in a small circuit. The supplied output-degree bound is an explicit parameter of this card.'),
+ block('The 2019 paper supplies randomized tests with further dependence on sparsity for high-degree inputs, and deterministic tests for a restricted regular circuit model. Neither claim establishes deterministic polynomial-size-and-degree testing for arbitrary circuits.','random'),
+ block('The September 2026 result gives randomized black-box testing for constant-depth homogeneous circuits and explicitly retains general circuit derandomization as open. Both the randomization and the circuit restrictions distinguish it from this target.','recent'),
+ block('Products here are associative. Algorithms for nonassociative algebras solve a different identity problem, because different parenthesizations there need not represent the same monomial.','recent'),
+ ],
+ progress=[progress('2010','The survey records noncommutative circuit PIT derandomization after discussing degree-sensitive randomized matrix and automaton evaluations.'),progress('2019-10-13','The published paper develops randomized high-degree sparse testing and distinguishes deterministic results for restricted regular circuits.','random'),progress('2026-09-10','A new randomized black-box result handles constant-depth homogeneous circuits while retaining the general derandomization question.','recent')],
+),[
+ 'Separated the general white-box circuit target from black-box formula testing and from the stronger unbounded-degree size-only target.',
+ 'Applied the announced recommended editorial default of polynomial dependence on circuit size and a supplied output-degree bound after the optional question remained unanswered; this is not recorded as user confirmation.',
+ 'Defined associative ordered-word semantics, rational constants, unrestricted sharing and an actual-output-degree promise rather than a syntactic-degree restriction.',
+ 'Specified one uniform deterministic exact-arithmetic program and charged control work; no claim about rational bit complexity is made.',
+ 'Read the 2019 randomized theorem and the September 2026 restricted randomized result, distinguishing them from a solution of the chosen target.',
+ 'Individually assessed importance and required a complete Lean-checked algorithm proof or the exact negation.',
+],[
+ 'Read Shpilka–Yehudayoff §4.5, printed pp.70–71, including the randomized degree-r matrix-evaluation argument, automaton interpretation, Open Problems 22–23 and their distinct access scopes. The exact rational register model and degree-promise convention are editorial precisifications, not literal source quotations.',
+ 'Read Arvind–Joglekar–Mukhopadhyay–Raja, Theory of Computing 15(7), 2019, abstract, Definition 1.1, Theorem 1.2 (matrix identities), discussion p.3, Theorem 2.1 and Corollary 2.2 pp.3–4. The unrestricted high-degree randomized bound depends on monomial count; it is not an unconditional polynomial-size deterministic circuit algorithm.',
+ 'Read Lakhani–Saxena ECCC TR26-173, submitted and published 10 September 2026, abstract, §1.1–1.2 and Theorem 1 pp.3–4, and §7 p.27. The claimed algorithm is randomized and restricted to constant-depth homogeneous circuits. The introduction explicitly retains general noncommutative circuit derandomization as open and distinguishes recent nonassociative testing.',
+ 'Bounded primary-source checks through 17 September 2026 found no resolution of this precise degree-sensitive deterministic white-box target. This is a source-status review, not independent verification of every cited theorem.',
+], 'Source-open for deterministic white-box noncommutative circuit PIT over Q with exact arithmetic cost polynomial in circuit size and a supplied output-degree bound. The 10 September 2026 primary discussion explicitly retains general circuit derandomization. Its new randomized restricted-circuit theorem does not settle this target. Rational bit complexity and degree-independent time are outside this precise formulation.',summary=[
+ 'The input is a complete circuit whose variables multiply as ordered words over the rational numbers.',
+ 'The algorithm must decide exactly whether every word coefficient in its output vanishes.',
+ 'It may use time polynomial in circuit size and a supplied bound on the actual output degree.',
+ 'One deterministic uniform program must handle arbitrary sharing and depth in an exact arithmetic model that also charges control work.',
+ 'A complete Lean-checked algorithm and running-time proof, or the logical negation, is required.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
