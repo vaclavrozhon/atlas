@@ -1018,3 +1018,36 @@ Only these five reviews, their authoring scripts, this log, and their own queue,
 ledger and inventory changes enter the checkpoint. Source checkpoint a9375cb1
 and deployment 4b847734ccb08339c959d0954a7a557bb127f669 cover the first 180
 dispositions. Concurrent unrelated changes are left in the shared worktree.
+
+After one hundred and ninety recovery dispositions, the raw shared queue contains
+835 completed records, 79 pending records and one outside its original scope.
+The live catalogue has 977 active cards: 72 pending active reviews, 753 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-1544 (the uniform Cayley-table membership dichotomy),
+TCS-1069 (real Zariski-adherence membership in existential real complexity),
+TCS-5240 (multivariate-to-univariate hardness over F₂), TCS-7082 (the clique-free
+domination candidate for a natural enumeration separation), and TCS-7084
+(enumeration time–space separations under P ≠ NP). Optional target questions
+received no replies during independent work; recommended editorial defaults were
+announced and applied, without being recorded as user confirmations.
+
+The semigroup review checks the expanded three-author revision of 14 September
+2026, including its promise on the generated subsemigroup and uniform reductions.
+The Zariski review keeps finite-bit explicit input and distinguishes Euclidean
+closure. The hardness-transfer card fixes both explicitness scales and does not
+misapply a characteristic-zero obstruction to a specific substitution. The two
+enumeration cards finish earlier source reviews whose precise targets were still
+pending. Their RAM arithmetic costs and memory conventions are explicit; the
+WADS 2025 subclass algorithm and July 2026 regularization theorem are not claimed
+to settle the broader chosen targets.
+
+All five output hashes match their queue records; the shared ledger contains
+1017 valid entries. The full offline check passes. Mathematical rendering passes
+for 36,031 expressions across 977 active cards, and desktop/mobile reader checks
+pass on publication ce9d5863a92eb2c1e6b2, with 921 detailed records.
+
+Only these five reviews, their authoring scripts, this log and their own queue,
+ledger and inventory changes enter the checkpoint. Source checkpoint 1eadde8c
+and deployment 60e68887022cb9571e7132c6458c83f0f65d63b9 cover the first 185
+dispositions. Concurrent unrelated work remains unstaged.

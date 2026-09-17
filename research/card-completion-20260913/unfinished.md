@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **85**.
+Pending active reviews: **80**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -38,8 +38,6 @@ Pending active reviews: **85**.
 | [TCS-6838](../../data/cards/TCS-6838.json) | Instance-optimal finite-time best-arm identification | Online algorithms | pool |
 | [TCS-6702](../../data/cards/TCS-6702.json) | Worst-case-to-average-case reductions within NP | Beyond worst-case and average-case analysis | pool |
 | [TCS-6703](../../data/cards/TCS-6703.json) | Optimal exponential-scale hardness amplification in NP | Beyond worst-case and average-case analysis | pool |
-| [TCS-7082](../../data/cards/TCS-7082.json) | OutputP versus IncP | Counting and enumeration | pool |
-| [TCS-7084](../../data/cards/TCS-7084.json) | Time–space separations in polynomial enumeration | Counting and enumeration | pool |
 | [TCS-0315](../../data/cards/TCS-0315.json) | Fat Minors | Structural graph theory | pool |
 | [TCS-1639](../../data/cards/TCS-1639.json) | Linear neighborhood complexity of hereditary small graph classes | Structural graph theory | pool |
 | [TCS-6874](../../data/cards/TCS-6874.json) | Ramanujan graphs of every degree | Structural graph theory | pool |
@@ -50,9 +48,6 @@ Pending active reviews: **85**.
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-1069](../../data/cards/TCS-1069.json) | Complexity of testing Zariski-closure membership | Algebraic computation | pool |
-| [TCS-1544](../../data/cards/TCS-1544.json) | Complexity classification of finite-semigroup membership | Algebraic computation | pool |
-| [TCS-5240](../../data/cards/TCS-5240.json) | Transferring arithmetic hardness to constantly many variables | Algebraic computation | pool |
 | [TCS-0659](../../data/cards/TCS-0659.json) | Stronger worst-case reductions to SIS and LWE | Lattices and computational number theory | pool |
 | [TCS-0656](../../data/cards/TCS-0656.json) | Reducing factoring or discrete logarithms to approximate SVP | Lattices and computational number theory | pool |
 | [TCS-0655](../../data/cards/TCS-0655.json) | Polynomial-factor SVP hardness from standard assumptions | Lattices and computational number theory | pool |
