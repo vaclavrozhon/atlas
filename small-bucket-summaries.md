@@ -3217,12 +3217,12 @@ Given a requested bit length in unary, the task is to output the ordinary binary
 [Read in atlas](index.html#TCS-7265) · [Theory and Applications of Probabilistic Kolmogorov Complexity](https://eccc.weizmann.ac.il/report/2022/081/) · [On Pseudodeterministic Approximation Algorithms](https://doi.org/10.4230/LIPIcs.MFCS.2018.61) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0659 — Stronger worst-case reductions to SIS and LWE
+### TCS-0659 — A classical SIS reduction from sublinear-factor GapSVP
 
-SIS and LWE are average-case lattice-related problems used as foundations for cryptographic constructions. The source asks for stronger reductions connecting their difficulty to worst-case lattice problems. Such reductions translate a solver on typical generated instances into a solver for every input of a geometric problem. Improved parameters could strengthen security interpretations or broaden the range of useful cryptographic settings. The title does not identify the desired approximation, dimension, modulus, or noise improvement, so a full formulation must specify which loss in the reduction is being reduced.
+A random SIS instance is a matrix modulo a polynomial-size integer, and the goal is a short nonzero integer vector in its modular kernel. The question asks for a classical reduction from every Euclidean GapSVP instance with approximation factor O(n^(1−ε)) for some fixed ε > 0. The chosen matrix dimensions ensure that a solution exists while excluding the trivial modulus-sized vector. The reduction must work even when its SIS oracle succeeds only on an inverse-polynomial fraction of uniformly random matrices. Polynomial overhead includes the inverse success probability, and a complete Lean-checked reduction or impossibility proof is required.
 
-[Read in atlas](index.html#TCS-0659) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0659) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-5317 — NP-hardness of Euclidean covering radius
 
@@ -3231,12 +3231,12 @@ A lattice covering radius is the largest distance from a point in its span to th
 [Read in atlas](index.html#TCS-5317) · [Hardness of the Binary Covering Radius Problem in Large \(\ell_p\) Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-0656 — Reducing factoring or discrete logarithms to approximate SVP
+### TCS-0656 — A classical reduction from semiprime factoring to polynomial-gap SVP
 
-Factoring and discrete logarithms are central number-theoretic search problems with no known classical polynomial-time algorithms in their general regimes. The recorded question asks for reductions from one of these tasks to approximate SVP. A reduction would explain how a sufficiently good short-vector solver could recover factors or logarithms. Such a connection could link lattice hardness to longstanding assumptions outside lattice geometry. The saved title does not specify the approximation factor, dimension growth, or number field, so a lattice encoding alone is insufficient unless solving it preserves the claimed computational consequence.
+The input is an integer promised to be the product of two distinct primes. The goal is to recover its factors with a classical randomized algorithm taking polynomial time in the integer’s bit length. The algorithm may query Euclidean GapSVP at approximation factor n^(2+ε), for some fixed ε > 0 and query rank n. It must succeed on every promised semiprime regardless of how the oracle answers inside its approximation gap. This would connect factoring to a lattice regime relevant for classical cryptographic reductions; a complete Lean-checked proof or refutation is required.
 
-[Read in atlas](index.html#TCS-0656) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0656) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7171 — Baillie–PSW pseudoprimes
 
@@ -3252,12 +3252,12 @@ An addition chain starts at one and builds its target by repeatedly adding two a
 [Read in atlas](index.html#TCS-7170) · [The Decompressed Tree Size of k-Ary Chains](https://link.springer.com/article/10.1007/s00026-026-00816-y) · [The Scholz Conjecture on Addition Chains Is True for Infinitely Many Integers with \(\ell\)\((2n)=\ell (n)\)](https://math.colgate.edu/~integers/a17Proc23/a17Proc23.pdf) · [The Scholz Conjecture Is True for \(2^{n}- 1\) for Almost All n](https://vixra.org/pdf/2605.0012v1.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0655 — Polynomial-factor SVP hardness from standard assumptions
+### TCS-0655 — Polynomial-factor Euclidean SVP hardness assuming NP is not contained in RP
 
-The source asks whether approximating SVP within a polynomial in the dimension can be proved hard under standard assumptions. This is a looser task than exact SVP because the returned vector may be substantially longer than optimum. Hardness reductions must preserve a correspondingly large geometric gap between their two cases. A theorem would address the approximation range central to many lattice-complexity questions. The saved title does not choose the polynomial exponent or hypothesis, so hardness for a smaller factor cannot automatically be promoted to the full polynomial-factor regime.
+Euclidean GapSVP distinguishes lattices with a short nonzero vector from lattices whose shortest vector is longer by a promised approximation factor. The question asks whether NP ⊄ RP rules out a randomized polynomial-time algorithm for some fixed factor n^ε. The exponent is positive and independent of the input, and running time counts the complete binary representation. A 2026 theorem proves polynomial-factor hardness for p > 2, but it does not cover this Euclidean target. The card retains that precise open specialization and requires a complete Lean-checked implication or refutation.
 
-[Read in atlas](index.html#TCS-0655) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0655) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Deterministic Hardness of Approximation For SVP in all Finite ℓ_p Norms](https://arxiv.org/abs/2604.01451v2) · [Euclidean SVP is deterministically NP-hard to approximate within any constant factor](https://arxiv.org/abs/2608.12664v2) · [Polynomial-Factor Deterministic NP-Hardness for SVP in Every ℓ_p Norm with p > 2](https://arxiv.org/abs/2608.14529v3)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-5395 — Downward self-reducibility of integer factoring
 
@@ -3273,12 +3273,12 @@ The input is a rational lattice basis, and the search task is to produce a nonze
 [Read in atlas](index.html#TCS-0652) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Search-to-Decision Reductions for Lattice Problems with Approximation Factors (Slightly) Greater Than One](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.19) · [Dimension-Preserving Reductions Between Lattice Problems](https://www.noahsd.com/latticeproblems.pdf) · [Open problems from the Summer 2022 Lattices Program](https://wiki.simons.berkeley.edu/doku.php?id=lat22:start)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0648 — Constant-gap hardness of unique SVP
+### TCS-0648 — NP-hardness of Euclidean unique SVP with a fixed gap greater than one
 
-Unique SVP assumes that one shortest lattice direction is separated from other independent short vectors by a gap. The saved question seeks hardness with a constant gap. Uniqueness can simplify recovery because near-optimal vectors may be forced to point in essentially the same direction. A hardness theorem would show how much of general lattice difficulty survives this isolation promise. The source title does not state the precise successive-minima condition, approximation goal, or hardness assumption, so ordinary exact-SVP hardness cannot be applied without preserving the unique-vector gap.
+The input is an explicit integer lattice basis in Euclidean space. It promises that every independent direction is longer than a shortest vector by one fixed factor greater than one. The task is to recover an exact shortest vector, with either sign allowed. The question asks whether this promise search problem is NP-hard under classical randomized polynomial-time oracle reductions. Shrinking uniqueness gaps and hardness in other norms do not establish this target, whose full proof or refutation must be Lean-checked.
 
-[Read in atlas](index.html#TCS-0648) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0648) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Improved hardness results for unique shortest vector problem](https://doi.org/10.1016/j.ipl.2016.05.003) · [Just how hard are rotations of Zⁿ? Algorithms and cryptography with the simplest lattice](https://eprint.iacr.org/2021/1548) · [Deterministic Hardness of Approximation of Unique-SVP and GapSVP in ℓ_p norms for p>2](https://arxiv.org/abs/2510.16991v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0661 — SVP hardness for fixed-rank cyclotomic modules
 
@@ -3294,12 +3294,12 @@ The input is a rational basis for an n-dimensional lattice and a positive radius
 [Read in atlas](index.html#TCS-0662) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Lattice Problems Beyond Polynomial Time](https://arxiv.org/abs/2211.11693)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0657 — Smaller-factor coNP or coAM certificates for SVP
+### TCS-0657 — coNP certificates for GapSVP at the square-root n/log n scale
 
-Gap versions of SVP distinguish lattices with a very short vector from those whose nonzero vectors are all much longer. The source asks for coNP or coAM certificates at smaller approximation factors. Certifying the absence of short vectors is different from exhibiting one, so alternate proof systems can provide useful upper bounds. Sharper certificates would clarify the structural complexity of accurate lattice approximation and constrain some routes to NP-hardness. The saved title does not provide the baseline factor or interactive-proof convention, and such certificates would not by themselves yield a polynomial-time search algorithm.
+GapSVP asks whether an input lattice has a vector of length at most a threshold or all nonzero vectors are longer by a promised factor. This card asks for short classical certificates of the second alternative at factor C√(n/log n). One deterministic verifier must check the certificates in polynomial time in the complete binary input length. Known certificates work at the larger scale C√n, while the smaller scale is known for an interactive randomized proof. The requested improvement and all promise guarantees require a complete Lean-checked proof or refutation.
 
-[Read in atlas](index.html#TCS-0657) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0657) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Lattice Problems in NP ∩ coNP](https://cims.nyu.edu/~regev/papers/cvpconp.pdf)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0653 — Explicit quantum exponential-time lower bounds for Euclidean SVP
 
