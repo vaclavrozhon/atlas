@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-578 five-sentence working summaries, based on saved source material.
+577 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -2716,7 +2716,7 @@ Mechanism implementation connects an allocation algorithm with strategic behavio
 [Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (62)
+## Algebraic computation (61)
 
 ### TCS-0007 — Matrix multiplication exponent
 
@@ -2872,6 +2872,13 @@ The input gives nonnegative real weights on every edge of a complete undirected 
 [Read in atlas](index.html#TCS-0481) · [Semirings in Databases, Automata, and Logic — Circuit Size for Reachability](https://doi.org/10.4230/DagRep.15.2.89) · [Lower Bounds for Tropical Circuits and Dynamic Programs](https://web.vu.lt/mif/s.jukna/ftp/tropical-manuscript.pdf) · [Is Bellman-Ford-Moore single source shortest paths (min,+) circuit optimal?](https://web.vu.lt/mif/s.jukna/tropical/problem-setA2.html)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-6893 — Superpolynomial multilinear circuit lower bounds
+
+The target is a multilinear polynomial family in VNP over the complex numbers. VNP membership is specified by a bounded-degree polynomial-size circuit summed over polynomially many Boolean witness coordinates. The family must require more than every polynomial size bound for circuits whose every intermediate polynomial is multilinear. No particular family such as the permanent is prescribed, and no small unrestricted output circuits are required. The answer must include complete Lean-checked membership and lower-bound proofs or prove that all such families have polynomial-size semantic multilinear circuits.
+
+[Read in atlas](index.html#TCS-6893) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Unbalancing Sets and an Almost Quadratic Lower Bound for Syntactically Multilinear Arithmetic Circuits](https://web.math.princeton.edu/~nalon/PDFS/mult2.pdf) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/) · [Withdrawal: An Unconditional Barrier for Proving Multilinear Algebraic Branching Program Lower Bounds](https://arxiv.org/abs/2604.00746v2)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7223 — Linear-size circuits for integer multiplication
 
 The input consists of two unsigned binary integers of the same width. The circuit must output every bit of their exact product on every input. The question is whether a constant times the input width always suffices in AND, OR and NOT gates. Known near-linear constructions and a conditional lower bound leave the unrestricted linear-size question unresolved in the checked sources. A complete Lean-checked proof of the circuit-family existence claim or its unconditional negation is required.
@@ -2881,10 +2888,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7269 — Optimal multilinear-formula size of the permanent
 
-The permanent is a canonical polynomial whose algebraic complexity captures a major explicit lower-bound challenge. A formula is a tree of additions and multiplications without shared intermediate results. Every intermediate polynomial must be multilinear, with complex constants and cancellation permitted. The question asks for the growth of the logarithm of the smallest formula size, up to constant factors. The known quasipolynomial lower bound and exponential upper bound leave a qualitative gap, with an exponential lower bound as the original conjectured endpoint.
+The permanent is evaluated by a binary tree of exact additions and multiplications over the complex numbers. Every intermediate polynomial must be multilinear, while sharing is forbidden and arbitrary complex constants are allowed. The question asks for the asymptotic growth of the logarithm of the minimum formula size, up to constant factors. The known lower and upper scales for that logarithm are quadratic in log n and linear in n, respectively. A complete Lean-checked answer must match the upper and lower exponents for every sufficiently large matrix dimension.
 
-[Read in atlas](index.html#TCS-7269) · [P=?NP](https://eccc.weizmann.ac.il/report/2017/004/)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-7269) · [P=?NP](https://eccc.weizmann.ac.il/report/2017/004/) · [Multi-Linear Formulas for Permanent and Determinant are of Super-Polynomial Size](https://eccc.weizmann.ac.il/report/2003/067/) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Multilinear Formula Lower Bounds for Sparse Determinants](https://eccc.weizmann.ac.il/report/2026/090/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6884 — Semantic versus syntactic multilinear circuits
 
@@ -2906,6 +2913,13 @@ A finite invertible Mealy machine describes bijections of all finite words, whos
 
 [Read in atlas](index.html#TCS-2039) · [The Freeness Problem for Automaton Semigroups](https://doi.org/10.4230/LIPIcs.MFCS.2024.44) · [Automata, Dynamical Systems, and Groups](https://ievgenbondarenko.wordpress.com/wp-content/uploads/2016/10/automata-dynamical-systems-and-groups.pdf) · [Automaton Semigroups and Groups: On the Undecidability of Problems Related to Freeness and Finiteness](https://arxiv.org/abs/1712.07408v3) · [The Freeness Problem for Automaton Semigroups — St Andrews seminar handout](https://jan-philipp-waechter.bitbucket.io/slides/StAndrews2026_handout.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-6883 — Multilinear versus general arithmetic circuits
+
+The outputs are multilinear polynomials over the complex numbers. The question asks whether polynomial-size unrestricted circuits can be superpolynomially smaller than circuits that remain multilinear at every gate. Circuits may share arbitrary intermediate computations and use arbitrary complex constants. Formula and syntactic multilinear lower bounds do not establish the requested semantic-circuit separation. The review records that a related April 2026 barrier claim was withdrawn and requires a complete Lean-checked proof of the precise comparison or its negation.
+
+[Read in atlas](index.html#TCS-6883) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Unbalancing Sets and an Almost Quadratic Lower Bound for Syntactically Multilinear Arithmetic Circuits](https://web.math.princeton.edu/~nalon/PDFS/mult2.pdf) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/) · [Withdrawal: An Unconditional Barrier for Proving Multilinear Algebraic Branching Program Lower Bounds](https://arxiv.org/abs/2604.00746v2)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0055 — Sum-of-square-roots problem
 
@@ -2934,6 +2948,13 @@ Approximate polynomial satisfiability asks whether a rational polynomial system 
 
 [Read in atlas](index.html#TCS-3959) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity](https://doi.org/10.4230/LIPIcs.CCC.2018.10) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity over Any Field](https://doi.org/10.4086/toc.2019.v015a016) · [When Hilbert approximates: A Strong Nullstellensatz for Approximate Polynomial Satisfiability](https://eccc.weizmann.ac.il/report/2026/026/)
 Existing status: `open` · Summary written: 2026-09-12
+
+### TCS-6882 — Homogeneous versus unrestricted arithmetic formulas
+
+A homogeneous polynomial has all its nonzero monomials at one ordinary total degree. The question compares arbitrary complex arithmetic formula trees with trees whose every intermediate polynomial is homogeneous. It asks for outputs with polynomial-size general formulas but no polynomial-size homogeneous formulas. Weighted homogeneity, multilinearity, monotonicity and bounded depth impose different restrictions and their lower bounds do not settle this target. The requested answer is a complete Lean-checked nonuniform family separation or proof that polynomial formula size always survives homogenization.
+
+[Read in atlas](index.html#TCS-6882) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [On the Power of Homogeneous Algebraic Formulas](https://eccc.weizmann.ac.il/report/2023/191/) · [On Approximate Symmetric Polynomials and Tightness of Homogenization Results](https://doi.org/10.1007/s00037-026-00286-x)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1103 — Containment of border VP in VNP over arbitrary fields
 
@@ -3103,39 +3124,11 @@ Given finitely many integer matrices, semigroup membership asks whether a target
 [Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6882 — Homogeneous versus unrestricted arithmetic formulas
-
-A homogeneous arithmetic formula keeps polynomial degree consistent at every intermediate computation. The source asks for a superpolynomial separation between these formulas and unrestricted formulas. The intended phenomenon is that allowing intermediate mixtures of degrees can make an otherwise costly polynomial substantially easier to compute. This tests whether homogenizing an expression tree can inherently require a large increase in size. The saved 2010 question is a dated research lead, and its polynomial-degree and field conventions must be retained before using it as a precise claim about a currently unresolved separation.
-
-[Read in atlas](index.html#TCS-6882) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6883 — Multilinear versus general arithmetic circuits
-
-Multilinear circuits restrict intermediate polynomials to use each variable with exponent at most one. The question seeks a superpolynomial gap between such circuits and general arithmetic circuits computing the same multilinear outputs. General circuits may introduce higher powers that later cancel, so output multilinearity does not automatically make the restriction harmless. A separation would show a substantial computational benefit from leaving the multilinear world temporarily. The saved survey question does not preserve the candidate family or field assumptions, and it should be interpreted as the source's lower-bound target rather than a fresh status assessment.
-
-[Read in atlas](index.html#TCS-6883) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6885 — Constant-overhead second differentiation of circuits
-
-An arithmetic circuit compactly represents a polynomial, and its second partial derivatives form a collection of related outputs. The question asks whether all of those derivatives can be computed with only constant-factor circuit overhead. It tests how far shared differentiation computations can avoid repeating essentially the same algebra across many output pairs. The result would sharpen the relationship between evaluating a function and obtaining its second-order information. The source's size accounting and output conventions are indispensable here, because the number of derivatives itself grows quadratically with the number of variables.
-
-[Read in atlas](index.html#TCS-6885) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6890 — Superpolynomial noncommutative circuit lower bounds
 
 Noncommutative arithmetic circuits compute polynomials in which products retain the order of their variables. The source asks for superpolynomial circuit lower bounds in this setting. Order supplies additional structure for lower-bound arguments, but circuit reuse can still combine many ordered expressions compactly. A successful construction would identify a concrete polynomial whose difficulty survives that sharing ability. The saved note does not specify the field or target family, and its 2010 provenance means it records a historical question rather than independently establishing the status of every related restricted model today.
 
 [Read in atlas](index.html#TCS-6890) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6893 — Superpolynomial multilinear circuit lower bounds
-
-Multilinear arithmetic circuits keep variable exponents at most one in their intermediate polynomials. The saved question seeks superpolynomial lower bounds against this circuit model. Unlike formulas, these circuits can share partial computations, which creates the central obstacle when transferring tree-based arguments. A lower bound would quantify the power still available under multilinearity and provide a stronger benchmark for algebraic complexity techniques. The short survey note does not select the explicit polynomial family or settle semantic versus syntactic conventions, so those details remain required before the question becomes a complete research card.
-
-[Read in atlas](index.html#TCS-6893) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6903 — Derandomizing noncommutative PIT
