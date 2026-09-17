@@ -1573,12 +1573,12 @@ Points arrive with distances to earlier points and must immediately be inserted 
 [Read in atlas](index.html#TCS-1241) · [Online Metric TSP: Beyond the \(\sqrt{n}\) Barrier](https://doi.org/10.4230/LIPIcs.ICALP.2026.18) · [Online Sorting and Online TSP: Randomized, Stochastic, and High-Dimensional](https://doi.org/10.4230/LIPIcs.ESA.2024.5) · [Online Metric TSP: Beyond the \(\sqrt{n}\) Barrier](https://arxiv.org/abs/2608.07369v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0935 — Unit-job precedence scheduling complexity
+### TCS-0935 — Polynomial-time unit-job precedence scheduling on fixed machines
 
-Unit-job precedence scheduling assigns equal-duration tasks to machines while respecting a partial order of dependencies. The source asks about the computational complexity of this restricted scheduling setting. Equal durations remove numerical variability but leave the problem of choosing which available jobs to run together. A classification would show how much difficulty arises from precedence structure alone. The saved label does not preserve the number of machines, time-horizon objective, or restrictions on the dependency graph, so it cannot be read as one universal hardness or tractability claim.
+Every job takes one time slot, and a directed acyclic graph specifies which jobs must finish before others start. At most k jobs may run simultaneously on k identical machines. The question asks for polynomial-time computation of the minimum number of slots for every fixed k greater than two. The polynomial and algorithm may depend on k, but must handle all job counts and precedence graphs. The recent exact subexponential algorithm improves the general upper bound without establishing the requested polynomial time.
 
-[Read in atlas](index.html#TCS-0935) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#complexity-of-makespan-scheduling-of-unit-jobs-with-precedence-constraints)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0935) · [List of open questions: Complexity of makespan scheduling of unit jobs with precedence constraints](https://a3nm.net/work/research/questions/#complexity-of-makespan-scheduling-of-unit-jobs-with-precedence-constraints) · [A Subexponential Time Algorithm for Makespan Scheduling of Unit Jobs with Precedence Constraints](https://doi.org/10.1137/1.9781611978322.16) · [A Simpler QPTAS for Scheduling Jobs with Precedence Constraints](https://doi.org/10.4230/LIPIcs.ESA.2022.40) · [Inapproximability of Unique-Machine Precedence Scheduling for Unit-Length Jobs](https://arxiv.org/abs/2607.26590v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7335 — Randomized competitive ratio of list update
 
@@ -2073,24 +2073,24 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7249 — Berge–Fulkerson conjecture
 
-Every bridgeless cubic multigraph is asked to admit six perfect matchings. Each edge must occur in exactly two positions of that six-matching list. The matchings may repeat, and parallel edges remain distinct. The target is an exact integral decomposition rather than an approximate or fractional cover. It captures a longstanding structural question about how perfect matchings fit together globally.
+A perfect matching pairs every vertex with exactly one of its neighbors using edges of the graph. The Berge–Fulkerson conjecture asks for six perfect matchings in every finite bridgeless cubic multigraph. Each edge must belong to exactly two of the six matchings, and repeated matchings are allowed. The question has no algorithmic running-time requirement and includes nonplanar graphs and parallel edges. The checked 2026 results concern special families or equivalence with infinite versions and leave the full finite assertion unresolved.
 
-[Read in atlas](index.html#TCS-7249) · [The Berge–Fulkerson conjecture](https://www.openproblemgarden.org/op/the_berge_fulkerson_conjecture) · [On some perfect matching conjectures in infinite, cubic, bridgeless graphs](https://arxiv.org/abs/2607.29511)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7249) · [On some perfect matching conjectures in infinite, cubic, bridgeless graphs](https://arxiv.org/abs/2607.29511v1) · [Berge–Fulkerson Conjecture, Perfect Matching Partial Coverings and Odd Dividers](https://doi.org/10.1002/jgt.70097) · [Graph Puzzles I.1: Oriented Berge-Fulkerson Conjecture](https://arxiv.org/abs/2501.05348v3)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7250 — Barnette’s conjecture
 
-Barnette’s conjecture concerns 3-connected cubic bipartite planar graphs. It predicts that every such graph contains a cycle through all vertices exactly once. Every consecutive pair on the cycle must be an existing graph edge. Relaxed book-embedding results may add missing adjacencies and therefore do not settle the conjecture. The question isolates a classical boundary between local structural restrictions and a global spanning traversal.
+Barnette’s conjecture concerns finite simple planar bipartite graphs in which every vertex has degree three and deleting any two vertices leaves the graph connected. It predicts that every such graph contains a single cycle through every vertex exactly once. Every edge of that cycle must already belong to the graph. Recent results cover bounded face sizes or allow missing adjacencies in a Hamiltonian augmentation. Those partial results do not settle the unrestricted existence claim, which the checked 2026 literature retains as open.
 
-[Read in atlas](index.html#TCS-7250) · [Barnette’s conjecture](https://www.openproblemgarden.org/op/barnettes_conjecture) · [Approximating Barnette’s Conjecture](https://drops.dagstuhl.de/storage/00lipics/lipics-vol357-gd2025/html/LIPIcs.GD.2025.6/LIPIcs.GD.2025.6.html) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://arxiv.org/abs/2412.11774)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7250) · [Approximating Barnette’s Conjecture](https://doi.org/10.4230/LIPIcs.GD.2025.6) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://doi.org/10.37236/13673) · [Barnette Graphs with Faces up to Size 8 are Hamiltonian](https://arxiv.org/abs/2508.03531v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7253 — Seymour’s second-neighborhood conjecture
 
-Seymour’s conjecture concerns oriented graphs with no loops or opposite pair of arcs. It asks for a vertex with at least as many vertices at distance exactly two as at distance one. Second neighbors exclude first neighbors and count vertices rather than paths. The statement is a general local expansion principle without degree or planarity promises. A complete-proof claim conflicts with a later specialist paper still treating the conjecture as open, and that status uncertainty is preserved.
+An oriented graph has directed edges but no loops or pair of opposite edges. Seymour’s conjecture asks for a vertex with at least as many new vertices reachable in two steps as vertices reachable in one step. A vertex already in the first neighborhood is excluded from the second even if a two-step path also reaches it. Known general constant-factor bounds and restricted-class results do not reach the exact universal inequality. A separate manuscript claims a full proof, but the later specialist literature retains the question; the card records that unverified claim conflict as uncertain.
 
-[Read in atlas](index.html#TCS-7253) · [Seymour’s second neighbourhood conjecture](https://www.openproblemgarden.org/op/seymours_second_neighbourhood_conjecture) · [Towards a strengthening of the second neighborhood conjecture](https://arxiv.org/abs/2607.18047)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7253) · [Towards a strengthening of the second neighborhood conjecture](https://arxiv.org/abs/2607.18047v2) · [An improved bound on Seymour’s second neighborhood conjecture](https://arxiv.org/abs/2412.20234v1) · [A Minimum Counterexample Proof of the Seymour Second Neighborhood Conjecture via the Graph Level Order](https://arxiv.org/abs/2501.00614v14)
+Existing status: `uncertain` · Summary written: 2026-09-17
 
 ### TCS-7341 — Strongly polynomial near-linear negative-weight shortest paths
 
