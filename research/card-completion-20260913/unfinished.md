@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **115**.
+Pending active reviews: **110**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -21,7 +21,6 @@ Pending active reviews: **115**.
 | [TCS-2201](../../data/cards/TCS-2201.json) | Non-malleable extractors from standard extractors | Pseudorandomness and derandomization | pool |
 | [TCS-3958](../../data/cards/TCS-3958.json) | Pseudorandom generators for superlinear-size depth-two threshold circuits | Pseudorandomness and derandomization | pool |
 | [TCS-4778](../../data/cards/TCS-4778.json) | Derandomizing amplified relational computation | Pseudorandomness and derandomization | pool |
-| [TCS-0734](../../data/cards/TCS-0734.json) | FPT Inapproximability Results Beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-0597](../../data/cards/TCS-0597.json) | Parameterized coloring of H-free graphs | Parameterized and exact algorithms | pool |
 | [TCS-1945](../../data/cards/TCS-1945.json) | Parameterized Nearest Codeword hardness beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-2662](../../data/cards/TCS-2662.json) | Subexponential constant-gap Max-Clique under ETH | Parameterized and exact algorithms | pool |
@@ -109,11 +108,9 @@ Pending active reviews: **115**.
 | [TCS-6499](../../data/cards/TCS-6499.json) | Sublogarithmic distributed MIS | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6505](../../data/cards/TCS-6505.json) | One-cycle versus two-cycles conjecture | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
 | [TCS-7269](../../data/cards/TCS-7269.json) | Optimal multilinear-formula size of the permanent | Algebraic computation | existing_detailed_audit |
-| [TCS-7270](../../data/cards/TCS-7270.json) | Linear-size Circuit-SAT below exhaustive search | Fine-grained complexity | existing_detailed_audit |
 | [TCS-7287](../../data/cards/TCS-7287.json) | Square-root logarithmic approximation for metric labeling | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7290](../../data/cards/TCS-7290.json) | Extremal size of sunflower-free set families | Miscellaneous | existing_detailed_audit |
 | [TCS-7319](../../data/cards/TCS-7319.json) | Minimax rate of sequential binary calibration | Online algorithms | existing_detailed_audit |
@@ -121,6 +118,4 @@ Pending active reviews: **115**.
 | [TCS-7333](../../data/cards/TCS-7333.json) | Space-query exponent curve of 3SUM indexing | Data structures | existing_detailed_audit |
 | [TCS-7339](../../data/cards/TCS-7339.json) | Near-linear incremental topological ordering | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7340](../../data/cards/TCS-7340.json) | Optimal randomized memory-reallocation overhead | Data structures | existing_detailed_audit |
-| [TCS-7344](../../data/cards/TCS-7344.json) | Almost-linear exact directed global minimum cut | Structural graph theory | existing_detailed_audit |
-| [TCS-7345](../../data/cards/TCS-7345.json) | Almost-linear directed vertex connectivity | Structural graph theory | existing_detailed_audit |
 | [TCS-7376](../../data/cards/TCS-7376.json) | Polylogarithmic-space streaming Euclidean MST estimation | Distributed, parallel and sublinear algorithms | existing_detailed_audit |

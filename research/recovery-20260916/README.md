@@ -802,3 +802,40 @@ Only these five reviews, their authoring scripts and their own queue, ledger and
 inventory changes enter this checkpoint. Source checkpoint c47cf66d and deployment
 a8652ea5c8e63573052d44b2487dc67bf977d179 cover the first 150 dispositions.
 Unrelated edits remain in the shared worktree.
+
+
+After one hundred and sixty recovery dispositions, the raw shared queue contains
+805 completed records, 109 pending records and one outside its original active
+scope. The live queue has 102 pending active reviews, 725 completed active queue
+records and 152 active records outside the queue, for 979 active cards. Seven raw
+pending rows were archived by concurrent category work.
+
+This batch completes TCS-7344 (exact almost-linear global directed edge cuts),
+TCS-7345 (exact almost-linear directed vertex connectivity), TCS-7223 (linear-size
+nonuniform multiplication circuits), TCS-7270 (fixed-density Circuit-SAT with a
+fixed exponential saving), and TCS-0734 (the selected Set Cover inapproximability
+question). TCS-0734 is archived as conditionally resolved by a parameter
+consequence of the explicit gap construction in the same-day Guruswami–Ren ECCC
+revision. The supporting note checks the universe-size convention and the
+completeness-parameter divisor; it does not certify the sharper headline ratio
+or a Lean formalization. The cut reviews separate exact computation from
+inverse-precision approximation costs. The Circuit-SAT review repairs the
+source attribution while retaining the previously selected stronger target.
+
+The user explicitly confirmed the existing TCS-6928 and TCS-6974 formulations
+and selected the Set Cover question for TCS-0734. The confirmations are saved in
+[current-user-decisions.json](current-user-decisions.json); the earlier account
+of the two editorial defaults remains an accurate record of their completion
+before those replies arrived. No mathematical amendment to them was necessary.
+
+All five output hashes match their queue records; the shared ledger has 984 valid
+entries, including the archival event. The full offline check passes. Math checks
+pass on 35,378 expressions
+across 979 active cards, and desktop/mobile reader checks pass on publication
+2bd22b1363ef3b81a57b. The publisher has 899 detailed records.
+
+Only these five reviews, their authoring scripts, the supporting Set Cover note,
+the three saved user decisions, and their own queue, ledger, inventory and
+archive changes enter this checkpoint. Source checkpoint 0d4a6321 and deployment
+6d92053adcef81b34fb515c6431a7e045c35de3a cover the first 155 dispositions.
+Unrelated edits remain in the shared worktree.

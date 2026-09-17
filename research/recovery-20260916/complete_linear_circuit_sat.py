@@ -1,0 +1,63 @@
+"""Specify the every-fixed-density Circuit-SAT speedup target."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-7270'; claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Retained deterministic Circuit-SAT for every fixed linear gate density, arbitrary depth, and a positive density-dependent saving in the variable exponent.',
+ 'Specified gate-list encoding, occurring variables, constants, bounded fan-in with unrestricted sharing, uniform bit computation and exact decision correctness.',
+ 'Made the quantifier order explicit: programs and positive savings may depend on the fixed density, with no common saving or effective program compiler required.',
+ 'Replaced the vague Wigderson locator as the source of the precise target by a directly read primary discussion of arbitrary-depth linear-size Circuit-SAT; explicitly identified the fixed exponential saving as the retained editorial strengthening of that broader question.',
+ 'Read deterministic small-density counting algorithms and bounded-treewidth algorithms without extrapolating them to arbitrary density and unrestricted circuit structure.',
+ 'Preserved importance and the unrestricted yes/no target, adding a complete Lean-checked acceptance criterion.',
+]
+sources=[
+ 'Read Lokshtanov–Mikhailin–Paturi–Pudlak, Beating Brute Force for (Quantified) Satisfiability of Circuits of Bounded Treewidth, author PDF dated 13 July 2017, published SODA 2018, DOI 10.1137/1.9781611975031.18. Introduction p.2 explicitly asks about a superpolynomial SAT speedup for linear-size unrestricted-depth circuits, even logarithmic depth. Abstract and Theorem 1 discussion pp.2–3 give fixed exponential savings for fixed density and bounded treewidth after input vertices are removed. The card retains its previously selected stronger fixed-exponent goal rather than claiming the source states that exact quantifier.',
+ 'Read Chen–Kabanets, Correlation Bounds and #SAT Algorithms for Small Linear-Size Circuits, author COCOON 2015 PDF: abstract, Section 1.1 pp.2–3, Section 2.1 model, Theorem 1 and Theorem 3. These deterministic counting algorithms give fixed savings for U2 gate count below (3-delta)n or B2 gate count below (2.5-delta)n, with fixed delta>0. U2 contains AND, OR and unary negation as a degenerate binary function; such restricted numerical densities do not cover every cn. The 2016 journal metadata at DOI 10.1016/j.tcs.2016.05.005 was also checked.',
+ 'Read Wigderson, Mathematics and Computation, 6 August 2019 author draft, Section 5.2.4, printed pp.55–56. It provides algorithms-to-lower-bounds background, not the exact every-density proposition. Read Golovnev–Kulikov–Williams, Circuit Depth Reductions, ITCS 2021, Introduction and Open Problem 2 p.24:5; this structural depth-reduction question is not substituted for an algorithmic SAT theorem.',
+ 'Bounded primary-source searches through 17 September 2026 found no verified deterministic algorithm achieving the selected fixed exponential saving for every fixed gate density. Bounded-depth, bounded-treewidth, small-density and formula-only guarantees were distinguished. This is not an exhaustive survey of all SAT algorithms.',
+]
+complete(identifier,dict(
+ formal=r'''For every fixed integer \(c\ge1\), do there exist a rational \(\delta_c\in(0,1)\), a constant \(K_c\ge1\), an integer \(d_c\ge1\), and one uniform deterministic algorithm \(A_c\) that decides satisfiability of every explicitly given Boolean circuit with \(n\ge1\) input variables and at most \(cn\) gates within
+\[
+K_c\,2^{(1-\delta_c)n}(L+1)^{d_c}
+\]
+Turing-machine bit steps? Here \(L\) is the full binary encoding length. Gates are binary AND and OR and unary NOT, with unrestricted depth and fan-out. The answer must be correct on every allowed circuit.''',
+ definitions=r'''A circuit is a finite directed acyclic graph with input nodes \(x_1,\ldots,x_n\), constant sources 0 and 1, operation gates, and one designated output. AND and OR have two incoming arguments; NOT has one. A gate value may be used by arbitrarily many later gates or as the output, so shared subcomputations are allowed. The designated output may also be an input or a constant. Size \(s\) counts operation gates only, excluding inputs, constants and output wires. The input promise is \(s\le cn\); no depth, treewidth, monotonicity, formula structure or satisfying-assignment promise is imposed.
+
+For an assignment \(a\in\{0,1\}^n\), evaluate the gates in a topological order with ordinary Boolean semantics. The circuit is satisfiable precisely when some assignment gives output 1. The requested output is the yes/no bit, not a satisfying assignment or a count of assignments. Declared input nodes may be unused; they are still explicitly listed and included in \(n\). This convention does not give the algorithm a succinctly declared exponentially long list of unused inputs.
+
+Use a fixed binary encoding: encode an integer \(z\ge0\) as \(1^b0\) followed by the \(b\)-bit binary expansion of \(z+1\), where \(b=\lfloor\log_2(z+1)\rfloor+1\). The input contains the codes of \(n,s\), then \(n\) input-node markers, and then the \(s\) gates in a topological order. Each gate has a fixed two-bit type tag and coded predecessor indices. Nodes are numbered with the constants first, then the \(n\) inputs, then the gates; predecessors must have smaller indices. Finish with the coded output-node index. There is no trailing data. Invalid encodings are outside the input domain. For fixed \(c\), this gives \(L=O_c(n\log(n+2))\), so a polynomial factor in \(L\) is equivalent to a polynomial factor in \(n\) in the original target.
+
+Each \(A_c\) is one classical deterministic multitape Turing machine with a finite program, no advice, no oracle and no random bits. All input processing, intermediate bit computation and output are charged. Its bound holds on every promised input. The quantifier order is
+\[
+\forall c\ge1\;\exists(A_c,\delta_c,K_c,d_c)\;\forall\text{ circuits of size at most }cn.
+\]
+Different fixed densities may have different programs and savings. No single positive saving valid for all \(c\), and no computable compiler from \(c\) to these programs, is demanded. Any positive \(\delta_c\) is admissible; there is no prescribed minimum improvement.''',
+ answer_criterion=r'''Give a complete mathematically correct Lean-checked proof of the displayed proposition or its logical negation. A positive proof must cover every fixed density \(c\), prove exact decision correctness, and justify a positive input-independent saving with the full charged bit-time bound. A negative proof must show that at least one fixed \(c\) admits no such deterministic algorithm for any positive saving and fixed polynomial factor; a conditional lower bound establishes only its conditional claim.
+
+An algorithm only for a small numerical range of \(c\), bounded depth, bounded treewidth or formula-shaped circuits does not prove the proposition. A saving of only a polynomial or superpolynomial multiplicative factor over \(2^n\), with no fixed positive saving in the exponent, does not reach the selected target. Conversely, the requested saving may shrink with \(c\).''',
+ source_formulation=dict(text='The source asks whether unrestricted-depth linear-size circuits admit satisfiability algorithms with a superpolynomial improvement over exhaustive search. This card retains the stronger, previously selected question of a fixed exponential saving for each fixed gate density.',caption='Lokshtanov–Mikhailin–Paturi–Pudlak, author PDF dated 13 July 2017, Introduction p.2; SODA 2018. The fixed-saving deterministic bit model is an explicit editorial specification, not a verbatim source conjecture.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Beating Brute Force for (Quantified) Satisfiability of Circuits of Bounded Treewidth','Daniel Lokshtanov; Ivan Mikhailin; Ramamohan Paturi; Pavel Pudlak',2018,'https://sites.cs.ucsb.edu/~daniello/papers/boundedTreewidthCircuitSatSODA18.pdf','Author version dated 13 July 2017; Introduction p.2, Theorem 1 discussion pp.2–3; SODA 2018 DOI 10.1137/1.9781611975031.18'),
+ ref('small','Correlation Bounds and #SAT Algorithms for Small Linear-Size Circuits','Ruiwen Chen; Valentine Kabanets',2015,'https://www2.cs.sfu.ca/~kabanets/papers/linsize-COCOON.pdf','COCOON 2015 author version; §1.1 pp.2–3, §2.1, Theorems 1 and 3; journal version TCS 654 (2016), pp.2–10'),
+ ref('background','Mathematics and Computation','Avi Wigderson',2019,'https://www.math.ias.edu/files/Book-online-Aug0619.pdf','6 August 2019 author draft, §5.2.4, printed pp.55–56; background only'),
+ ],
+ context_blocks=[
+ block('Exhaustive search evaluates the circuit on every assignment. The question asks whether a linear gate budget alone guarantees a fixed improvement in the exponential running-time rate, even when gates have arbitrary sharing and depth.'),
+ block(r'Deterministic counting algorithms already obtain fixed exponential savings in certain small-density regimes, such as \((3-\eta)n\) gates over the basis excluding XOR and equivalence, for fixed \(\eta>0\). Covering every fixed density is a stronger requirement.','small'),
+ block('Bounded treewidth after deleting the input nodes permits fixed exponential savings at every fixed density. General circuits have no such structural bound, so that result does not settle the target.'),
+ block('The source discusses the broader possibility of a superpolynomial improvement. The present statement fixes the stronger exponential-rate target already selected for this card.'),
+ block('Satisfiability speedups are closely connected to circuit lower bounds. The background book explains that connection but does not supply the exact quantified conjecture used here.','background'),
+ ],
+ progress=[progress('2015','Deterministic counting algorithms obtain exponential savings for specified small linear gate densities.','small'),progress('2018','The bounded-treewidth result gives speedups for unrestricted-depth circuits with a structural restriction and states the broader unrestricted question.'),progress('2019','The book presents the general algorithms-to-lower-bounds connection.','background')],
+),notes,sources,'The directly checked primary source leaves even a broader unrestricted linear-size Circuit-SAT speedup question open. Bounded later-work checks through 17 September 2026 found no verified resolution of this stronger fixed-saving formulation. The exact deterministic bit-time quantifiers are an editorial specification, and restricted-model algorithms are not treated as general solutions.',summary=[
+ 'The input is a Boolean circuit with a linear number of gates and no depth or sharing restriction.',
+ 'The algorithm must decide exactly whether some input assignment makes its output true.',
+ 'For every fixed gate density, the target is a deterministic algorithm with a fixed positive saving in the variable exponent.',
+ 'The algorithm and saving may depend on that density; small-density and bounded-treewidth results do not cover the full question.',
+ 'A complete Lean-checked proof of the quantified algorithmic claim or its unconditional negation is required.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
