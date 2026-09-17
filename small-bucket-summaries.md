@@ -2108,10 +2108,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-0611 — Bipartite Exact Matching: deterministic polynomial time
 
-Bipartite Exact Matching asks for a perfect matching containing exactly a specified number of red edges. Even a small complete bipartite graph can have attainable red counts separated by gaps. This makes the equality constraint stronger than minimizing or maximizing the count. The saved card records an April 2026 preprint claiming deterministic polynomial time, together with limits on its verification. The project is therefore to explain and assess that claimed resolution of the historical question, while keeping the bipartite restriction explicit.
+Bipartite Exact Matching asks whether a perfect matching can have exactly a specified number of red edges. The target is one deterministic algorithm with polynomial running time in an explicit bit encoding. Minimum and maximum red counts do not determine which intermediate counts are attainable. An April 2026 preprint claims a solution, but its stated Lean formalization retains eight structural hypotheses and the complete claim remains unaudited here. The card retains uncertain status and requires a complete Lean-checked proof of the historical algorithmic claim or its unconditional negation.
 
-[Read in atlas](index.html#TCS-0611) · [Exact Matching: Algorithms and Related Problems](https://doi.org/10.4230/LIPIcs.STACS.2023.29) · [Bipartite Exact Matching in P](https://arxiv.org/abs/2604.01571v3)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0611) · [Exact Matching: Algorithms and Related Problems](https://doi.org/10.4230/LIPIcs.STACS.2023.29) · [Bipartite Exact Matching in P](https://arxiv.org/abs/2604.01571v3) · [Exact Matching in Matrix Multiplication Time](https://arxiv.org/abs/2508.04081v2)
+Existing status: `uncertain` · Summary written: 2026-09-17
 
 ### TCS-0771 — Polynomial-time computation of planar treewidth
 
@@ -2243,10 +2243,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0474 — Constant-update working-set heaps on pointer machines
 
-A priority queue supports insertions, priority decreases and minimum extraction. The extraction charge depends on the number of items inserted since the extracted item arrived. The target combines this adaptive charge with constant amortized insertion and decrease-key. Only pointer-machine operations and key comparisons are available. The latest cited constructions retain a slowly growing factor in at least one update operation.
+The queue must support insertion, minimum lookup, priority decrease and minimum extraction online. An extraction is charged logarithmically in the number of insertions since that item arrived. The target combines that adaptive extraction cost with constant amortized charges for every other operation. The computation uses pointers, constant auxiliary bits and key comparisons; the checked recent results retain a growing factor in an update bound. A complete Lean-checked construction or unconditional refutation must cover every finite operation sequence.
 
-[Read in atlas](index.html#TCS-0474) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Near-Optimal Working-Set Heaps and Dijkstra on Pointer Machines](https://arxiv.org/abs/2604.24134v2) · [Heaps and Their Working Sets](https://arxiv.org/abs/2607.24621v1)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-0474) · [Adaptive and Scalable Data Structures — Working set heaps with decrease-key](https://doi.org/10.4230/DagRep.15.5.1) · [Near-Optimal Working-Set Heaps and Dijkstra on Pointer Machines](https://doi.org/10.4230/LIPIcs.ESA.2026.45) · [Heaps and Their Working Sets](https://arxiv.org/abs/2607.24621v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7327 — Buffered fully persistent search trees
 
@@ -2301,10 +2301,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0478 — Dynamic APSP with edge-linear updates
 
-Dynamic all-pairs shortest paths must answer exact distances while directed weighted edges change. The reviewed target combines polylogarithmic worst-case queries with amortized update time nearly linear in the edge bound m. It allows polynomial preprocessing and space while requiring deterministic answers. The principal gap is sparse graphs, where updates should cost much less than rebuilding a full distance table. The saved review explains that many distances changing simultaneously is not an impossibility argument, because the oracle may represent those changes implicitly and expose only one queried pair.
+The data structure maintains exact directed distances while individual weighted edges change. The supplied capacity m bounds the number of live edges throughout an arbitrary online operation sequence. The requested update charge is m times a fixed polylogarithmic factor, with polylogarithmic worst-case distance queries. The deterministic model allows polynomial preprocessing and space but requires the operation bound after preprocessing for every finite prefix. The review separates this sparse exact target from near-quadratic, approximate and planar offline results.
 
-[Read in atlas](index.html#TCS-0478) · [Scalable Data Structures (Dagstuhl Seminar 21071)](https://doi.org/10.4230/DagRep.11.1.1) · [A New Approach to Dynamic All Pairs Shortest Paths](https://www.diag.uniroma1.it/~demetres/docs/dapsp-full.pdf) · [Fully-Dynamic All-Pairs Shortest Paths: Likely Optimal Worst-Case Update Time](https://arxiv.org/abs/2306.02662v3) · [Bootstrapping Dynamic APSP via Sparsification](https://doi.org/10.4230/LIPIcs.ESA.2025.113)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0478) · [Scalable Data Structures — Dynamic All Pairs Shortest Paths](https://doi.org/10.4230/DagRep.11.1.1) · [A New Approach to Dynamic All Pairs Shortest Paths](https://www.diag.uniroma1.it/~demetres/docs/dapsp-full.pdf) · [Bootstrapping Dynamic APSP via Sparsification](https://doi.org/10.4230/LIPIcs.ESA.2025.113) · [A Near-Optimal Offline Algorithm for Dynamic All-Pairs Shortest Paths in Planar Digraphs](https://arxiv.org/abs/2606.01809v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7326 — Worst-case logarithmic dynamic planar convex hulls
 
@@ -2867,10 +2867,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0481 — Cubic min-plus circuit lower bounds for shortest paths
 
-A min-plus circuit computes by a fixed network of minimum and addition gates. The question asks whether even one shortest-path distance in a complete nonnegatively weighted graph requires cubic circuit size. Ordinary graph algorithms can branch on comparisons and therefore need not translate into equally small circuits. Repeated relaxation provides a cubic upper bound, while dependence on all edge inputs gives only a weaker basic lower bound. The project seeks to understand how much sharing fixed tropical computations can achieve across competing paths.
+The input gives nonnegative real weights on every edge of a complete undirected graph. A fixed circuit of minimum and addition gates must compute the exact distance between two designated vertices. The question is whether every such single-output circuit requires a cubic number of gates. The source records cubic upper and quadratic lower bounds; all-pairs and single-source results have different output requirements. A complete Lean-checked proof of the cubic lower bound or its exact logical negation is required.
 
-[Read in atlas](index.html#TCS-0481) · [Lower Bounds for Tropical Circuits and Dynamic Programs](https://doi.org/10.1007/s00224-014-9574-4) · [Semirings in Databases, Automata, and Logic (Dagstuhl Seminar 25081)](https://doi.org/10.4230/DagRep.15.2.89) · [Supplements to Tropical Circuit Complexity](https://web.vu.lt/mif/s.jukna/tropical/comments.html)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0481) · [Semirings in Databases, Automata, and Logic — Circuit Size for Reachability](https://doi.org/10.4230/DagRep.15.2.89) · [Lower Bounds for Tropical Circuits and Dynamic Programs](https://web.vu.lt/mif/s.jukna/ftp/tropical-manuscript.pdf) · [Is Bellman-Ford-Moore single source shortest paths (min,+) circuit optimal?](https://web.vu.lt/mif/s.jukna/tropical/problem-setA2.html)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7223 — Linear-size circuits for integer multiplication
 
@@ -3987,10 +3987,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0482 — Linear-round convergence over stable semirings
 
-A polynomial system over a commutative semiring can be evaluated by repeatedly updating every coordinate from the previous vector. The question asks whether p-stability guarantees convergence after \(O((p+1)n)\) rounds from the zero vector. The proposed bound is linear in the number of coordinates and uniform across coefficients and polynomial degrees. It would sharpen convergence guarantees for grounded Datalog computations carrying semiring annotations. The saved formulation counts synchronous rounds rather than arithmetic time, so a bound on evaluation cost or a result for a different update schedule would address a separate resource question.
+The system consists of finitely many polynomial recurrences over a commutative semiring. Every round updates all coordinates from the previous vector, starting from zero. The question asks whether p-stability forces a fixed point within a universal constant times (p+1)n rounds. An announced optimal-convergence paper makes the current status uncertain because its precise theorem was not available in the inspected sources. The requested answer remains a complete Lean-checked universal convergence proof or refutation for the specified synchronous rule.
 
-[Read in atlas](index.html#TCS-0482) · [Semirings in Databases, Automata, and Logic (Dagstuhl Seminar 25081)](https://doi.org/10.4230/DagRep.15.2.89) · [Polynomial Time Convergence of the Iterative Evaluation of Datalogo Programs](https://arxiv.org/abs/2312.14063v2) · [Publication listing: Optimal Convergence of Iterative Methods for Datalogo](https://hung-q-ngo.github.io/publications.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0482) · [Semirings in Databases, Automata, and Logic — Convergence rate of Datalogo over p-stable semirings](https://doi.org/10.4230/DagRep.15.2.89) · [Polynomial Time Convergence of the Iterative Evaluation of Datalogo Programs](https://arxiv.org/abs/2312.14063v2) · [Publication listing: Optimal Convergence of Iterative Methods for Datalogo](https://hung-q-ngo.github.io/publications.html) · [Publications by topic: Optimal Convergence of Iterative Methods for Datalogo](https://www.andrew.cmu.edu/user/moseleyb/bytopic.html)
+Existing status: `uncertain` · Summary written: 2026-09-17
 
 ### TCS-0487 — Complexity of polymatroid query-size bounds
 
