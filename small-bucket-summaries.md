@@ -811,12 +811,26 @@ A bipartite graph defines a transversal matroid by declaring a subset on its fir
 [Read in atlas](index.html#TCS-6729) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [Quasipolynomial-Time Deterministic Kernelization and (Gammoid) Representation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.54)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6693 — Subpolynomial-seed pseudorandom generators for \(\mathrm{AC}^{0}[2]\)
+
+The question asks for pseudorandom bits that fool constant-depth circuits built from AND, OR and parity gates. For each fixed depth, one generator family must work against every circuit with at most as many computation gates as output bits. The difference in acceptance probabilities must be at most one quarter for every permitted circuit. The seed length must eventually be smaller than every positive power of the output length. Uniform generation may take time polynomial in the number of seeds, and known restricted-circuit or larger-field results do not meet the whole target.
+
+[Read in atlas](index.html#TCS-6693) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [New Pseudorandom Generators and Correlation Bounds Using Extractors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2025.68) · [Optimal PRGs for Low-Degree Polynomials over Polynomial-Size Fields](https://arxiv.org/abs/2602.10030v1)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-1018 — Linear-seed hardness-to-randomness sampling
 
 A hard Boolean function can provide pseudorandom bits by being evaluated at carefully correlated inputs. The question asks for a uniform sampler using only a constant multiple of one input length as its random seed. It must produce polynomially many bits in the hardness parameter, each from exactly one evaluation of the original function. Every function with the specified average-case circuit hardness must yield a generator fooling the stated circuits to inverse-output-length error. General short-seed transformations and newer results under stronger hardness assumptions do not automatically preserve this required evaluation form.
 
 [Read in atlas](index.html#TCS-1018) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Nearly Optimal Pseudorandomness from Hardness](https://doi.org/10.1145/3555307)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-1956 — Super-bits from demi-bits
+
+A demi-bit is a polynomial-size generator that adds one output bit and resists nondeterministic tests rejecting every generated output. A super-bit also resists tests that accept generated outputs but accept uniformly random strings noticeably more often. Both notions here require hardness at least exponential in a fixed positive power of the seed length for every sufficiently large length. The question asks whether existence of the weaker generator guarantees existence of the stronger one, allowing different nonuniform circuit families. Known stretching and range-avoidance results give consequences of demi-bits without supplying this security upgrade.
+
+[Read in atlas](index.html#TCS-1956) · [Stretching Demi-Bits and Nondeterministic-Secure Pseudorandomness](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.95) · [Hardness of Range Avoidance and Proof Complexity Generators from Demi-Bits](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.111)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1015 — Seeded extraction with constant total entropy loss
 
@@ -838,6 +852,13 @@ The determinant test for a bipartite graph succeeds when its edge variables rece
 
 [Read in atlas](index.html#TCS-1006) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Bipartite Perfect Matching is in quasi-NC](https://arxiv.org/abs/1601.06319) · [Bipartite Matching is in NC](https://eccc.weizmann.ac.il/report/2026/100/revision/2/)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-6689 — Simultaneously optimal averaging samplers
+
+An averaging sampler estimates a function’s global mean by taking the ordinary mean of a short list of sampled values. The question asks for one explicit construction with both a logarithmic randomness budget and the sample count of independent sampling. Each sample must be computable efficiently from the seed and its index, without generating the whole list first. The guarantee applies to every function valued in the unit interval and to all positive error and failure regimes. The 2025 constructions approach both targets, but retain either an extra exponent in sample count or extra logarithmic randomness.
+
+[Read in atlas](index.html#TCS-6689) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Near-Optimal Averaging Samplers and Matrix Samplers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2025.6) · [Near-Optimal Averaging Samplers and Matrix Samplers](https://eccc.weizmann.ac.il/report/2024/097/revision/5/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1021 — Promise-BPP derandomization implying EXP circuit hardness
 
@@ -895,12 +916,12 @@ The question compares promise-Arthur–Merlin derandomization with the existence
 [Read in atlas](index.html#TCS-1135) · [New ways of studying the \(\mathrm{BPP}=\mathrm P\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/) · [Instance-Wise Hardness and Refutation versus Derandomization for Arthur-Merlin Protocols](https://pages.cs.wisc.edu/~dieter/Papers/r-am-instance-wise-cc.pdf)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-1137 — Derandomization from almost-everywhere uniform hardness
+### TCS-1137 — Derandomization from almost-all-inputs uniform hardness
 
-Hardness-based derandomization constructs useful pseudorandomness from functions that resist efficient computation. The source asks for derandomization from almost-everywhere uniform hardness. Uniform hardness concerns algorithms rather than arbitrary circuit families, while almost-everywhere hardness restricts exceptions across input lengths. A result from this premise could clarify which kinds of computational difficulty are sufficient to remove randomness. The saved title gives no hardness rate or target simulation class, so a complete version must specify both before comparing this premise with stronger nonuniform assumptions.
+For every fixed time exponent, assume that some polynomial-time function defeats each faster randomized algorithm on all but finitely many inputs. The hard function outputs as many bits as its input, and success means computing the entire output correctly with probability at least two thirds. The question asks whether this assumption forces deterministic polynomial-time solutions to all bounded-error randomized promise problems. The hard function and its evaluation time may depend on the adversarial exponent, while the finite exceptional set may also depend on the adversary. A converse is known with a circuit-depth restriction; the target removes that restriction without weakening the derandomization conclusion.
 
-[Read in atlas](index.html#TCS-1137) · [New ways of studying the \(\mathrm{BPP} = \mathrm{P}\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1137) · [New ways of studying the \(\mathrm{BPP}=\mathrm P\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/) · [Hardness vs. Randomness, Revised: Uniform, Non-Black-Box, and Instance-wise](https://epubs.siam.org/doi/10.1137/22M1475491) · [On the Complexity of Avoiding Heavy Elements](https://eccc.weizmann.ac.il/report/2024/115/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0987 — Deterministic Heavy-Hitters & Fast Matrix Algorithms
 
@@ -958,13 +979,6 @@ A universal traversal sequence is one list of absolute local port numbers that v
 [Read in atlas](index.html#TCS-1007) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Self-stabilizing Graph Exploration by a Single Agent](https://arxiv.org/abs/2010.08929v4) · [Self-stabilizing graph exploration by a single agent](https://doi.org/10.1016/j.tcs.2026.116085)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1956 — Super-bits from demi-bits
-
-The source studies demi-bits and super-bits as forms of pseudorandomness secure against nondeterministic tests. It asks whether the existence of a demi-bit implies the existence of a super-bit. These notions distinguish different ways that nondeterministic computation might detect a generator's outputs. An implication would unify two candidate primitives and could transfer construction consequences between their security models. The saved question does not reproduce either definition, so ordinary cryptographic one-way bits cannot be substituted for them or used to infer the direction's difficulty without the original conventions.
-
-[Read in atlas](index.html#TCS-1956) · [Stretching Demi-Bits and Nondeterministic-Secure Pseudorandomness](https://doi.org/10.4230/LIPIcs.ITCS.2024.95)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2201 — Non-malleable extractors from standard extractors
 
 A standard extractor turns weak randomness into near-uniform bits under its source assumptions. The cited question asks whether standard extractors can also be used to construct non-malleable extractors. Non-malleability requires output to remain useful even when an adversary creates related, tampered inputs or seeds. A general transformation would connect an established randomness primitive to the stronger guarantees needed in adversarial settings. The saved sentence does not fix the source or tampering model, so the two-source and affine variants named by the paper must be distinguished when stating an actual reduction.
@@ -999,20 +1013,6 @@ Given a length in unary, generate a prime with exactly that many binary digits i
 
 [Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6689 — Simultaneously optimal averaging samplers
-
-An averaging sampler chooses a small collection of locations whose observed average estimates a global average. The textbook asks for constructions simultaneously optimal in the number of random bits and the number of samples. Reducing randomness can introduce correlations, while reducing samples leaves less room to absorb the resulting estimation error. Achieving both goals would make a basic sampling primitive efficient in its two main resources. The saved note does not provide its error and failure probabilities or explicitness convention, so those parameters must be restored before optimality has one precise meaning.
-
-[Read in atlas](index.html#TCS-6689) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6693 — Subpolynomial-seed pseudorandom generators for \(\mathrm{AC}^{0}[2]\)
-
-\(\mathrm{AC}0[2]\) circuits combine constant-depth Boolean operations with parity gates. The textbook asks for pseudorandom generators with subpolynomial seed length that fool this circuit class. Such a seed would be smaller than every fixed positive power of the relevant input length. The target would provide a strong form of unconditional derandomization for circuits capable of detecting algebraic correlations. The saved historical note does not specify size, depth, or error dependencies, and a merely sublinear seed does not automatically meet the stronger subpolynomial requirement.
-
-[Read in atlas](index.html#TCS-6693) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Parameterized complexity and algorithms (41)
 
