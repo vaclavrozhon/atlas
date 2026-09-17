@@ -4,50 +4,88 @@
   "area": "Data structures",
   "criterion": "resources",
   "question_type": "asymptotic_complexity",
-  "formal": "Determine, up to constant factors, the amortized decrease-key bound \\(d(N)\\) of the standard two-pass pairing heap, while insert, meld and find-min are charged \\(O(1)\\) and delete-min is charged \\(O(\\log(2+N))\\). The bound is required for every finite sequence starting from empty heaps with at most \\(N\\) live items in all heaps combined.",
-  "definitions": "A heap is a rooted heap-ordered tree. Link compares two roots and makes the larger root the new leftmost child of the smaller. Insert links a singleton to the root; meld links the two roots. Decrease-key receives a handle, reduces its key and, if it is not a root, cuts its whole subtree and links it to the root. Delete-min removes the root, links consecutive children from left to right in disjoint pairs, leaving an unpaired last child unchanged, then combines the resulting roots from right to left by successive links. Find-min reads the root. Keys are opaque ordered values; ties follow a fixed identity order. Constant-size nodes have enough sibling and parent pointers for a cut in constant time. Charge comparisons, links, cuts and pointer work. An admissible upper bound is a function \\(d\\ge1\\) for which a universal \\(C\\) bounds total cost by \\(C(a+b\\log(2+N)+c d(N))\\), where \\(a\\) counts the constant-cost operations, \\(b\\) delete-min operations and \\(c\\) decreases. A tight answer must also prove that every admissible charge function dominates the supplied rate within a universal constant for sufficiently large \\(N\\); the constants cannot depend on the sequence. Variants changing either pass, rank metadata or the linking discipline are different algorithms.",
+  "formal": "Determine an explicit asymptotic growth rate \\(f:\\mathbb N_{\\ge1}\\to[1,\\infty)\\) that is a tight amortized decrease-key charge for the standard two-pass pairing heap. For every finite legal operation sequence \\(\\mathcal S\\) starting from empty heaps and having at most \\(N\\) live items in all heaps combined, require\n\\[\nW(\\mathcal S)\\le C\\bigl(a(\\mathcal S)+b(\\mathcal S)\\log_2(N+2)+c(\\mathcal S)f(N)\\bigr)\n\\]\nfor one absolute \\(C\\). Here \\(a\\) counts make-heap, insert, meld and find-min operations, \\(b\\) counts delete-min operations, and \\(c\\) counts decrease-key operations. Tightness means that every charge function satisfying such an inequality is \\(\\Omega(f(N))\\), with the quantifiers specified below. The algorithm itself and the other-operation charges are fixed.",
+  "definitions": "Each heap is empty or is a single rooted tree of items. Every item has an opaque key in a totally ordered set and a stable identity. Ties are resolved by a fixed total order on identities, so every comparison has a deterministic winner. A parent’s key, including this tie-breaking order, is no greater than a child’s. Children form a left-to-right list. A link of two disjoint trees compares their roots and makes the losing root the new leftmost child of the winner. A cut removes one parent-child edge and detaches the entire child subtree while preserving the order of remaining children.\n\nMake-heap creates an empty heap. Find-min returns its root, or an empty marker. Insert creates a new singleton item, links it with the heap’s root if present and returns a stable item handle. Meld takes two distinct item-disjoint heaps, links their roots when both are nonempty and returns the resulting heap, invalidating the old heap handles. If either is empty, the other tree is returned. Item handles remain valid until their items are deleted, including through melds.\n\nDecrease-key receives a heap handle, a handle to an item in it and a new key no larger than its old key. Replace the key. If the item is not the root, cut its entire subtree and link that subtree to the heap root, even if no heap-order violation would have occurred without the cut. If it is the root, no link or cut is needed. The operation’s inputs and membership promises are supplied, so searching for the item is not required.\n\nDelete-min requires a nonempty heap. Remove its root and detach its children into their existing ordered root list. In the pairing pass, link the first and second roots, then the third and fourth, and so on from left to right, leaving a final unpaired root unchanged. The resulting trees retain their pair order. In the assembly pass, start with the rightmost resulting tree and repeatedly link it to the next tree to its left, moving right to left until one tree remains. This becomes the heap. If the deleted root had no children, the result is empty. Changing the order of either pass, omitting the assembly pass, adding rank-driven restructuring or using multiple retained trees defines a different heap.\n\nA direct pointer implementation stores a constant number of fields per item, including the key and enough child, sibling and parent information for a cut given a handle in constant time. Comparisons of keys or identities, pointer reads and writes, branches and allocating or releasing a constant-size record are unit-cost primitives. There is no arithmetic on keys and no hidden balancing operation. Let \\(\\lambda\\) be the number of links and \\(\\chi\\) the number of edges cut, including child edges detached during delete-min. Define\n\\[\nW(\\mathcal S)=a(\\mathcal S)+b(\\mathcal S)+c(\\mathcal S)+\\lambda+\\chi.\n\\]\nThis is within constant factors of the work of the specified direct implementation. Only this fixed sequential deterministic algorithm is being analyzed.\n\nThe integer \\(N\\ge1\\) is a global upper bound on simultaneously live items throughout the sequence, not its total insertions, length, number of heap objects or final size. Sequences may create arbitrarily many heaps, interleave operations on them, merge them and leave items undeleted at the end. Every operation contributes to its count, even if it returns an empty result or changes no key value. The inequality must hold for every \\(N\\) and every sequence obeying that live-item bound, with no uncharged initial nonempty heaps or additive credit depending on the sequence.\n\nCall any function \\(d:\\mathbb N_{\\ge1}\\to[1,\\infty)\\) admissible if there exists a constant \\(C_d\\ge1\\) such that the displayed inequality holds with \\(d\\) in place of \\(f\\), for all \\(N\\) and all permitted sequences. A tight answer consists of an explicit rate \\(f\\) which is admissible and satisfies\n\\[\n\\forall d\\text{ admissible}\\ \\exists k_d>0\\ \\exists N_d\\ge1\\ \\forall N\\ge N_d:\\quad d(N)\\ge k_d f(N).\n\\]\nThe lower-comparison constants may depend on \\(d\\) and its admissibility constant, but not on \\(N\\) or a chosen sequence. Requiring one fixed lower-comparison constant for every rescaling of every admissible function would be inappropriate. No specific conjectured rate is imposed.",
   "why": "A tight analysis would resolve the central complexity uncertainty for one of the simplest and most widely studied self-adjusting priority queues.",
   "context_blocks": [
     {
-      "text": "A logarithmic-logarithmic lower bound rules out the original constant-amortized decrease-key expectation under the other standard charges. Related self-adjusting heaps attaining that bound do not automatically analyze the original two-pass algorithm.",
+      "text": "The immediate decrease-key operation uses only a constant number of pointer changes. Its amortized charge measures the extra work these changes can cause during later delete-min operations.",
       "citation": "primary"
     },
     {
-      "text": "The July 2026 paper proves a smaller gap for pure pairing heaps and announces an improved bound for standard pairing heaps in a forthcoming companion paper. Its conclusion explicitly retains the remaining gap. The announcement is recorded separately from a checked proof for the standard algorithm.",
-      "citation": "recent"
+      "text": "A logarithmic-logarithmic lower bound rules out the original constant-amortized expectation under the relevant other-operation charges. This review records it through the later primary papers’ statements of Fredman’s result.",
+      "citation": "lower"
+    },
+    {
+      "text": "Iacono’s analysis gives constant insert and meld charges with logarithmic delete-min and decrease-key. Its comparison table explicitly warns against combining operation charges from unrelated amortized analyses.",
+      "citation": "charges"
+    },
+    {
+      "text": "Pettie’s sublogarithmic analysis also charges insert and meld a nonconstant amount. That result alone is not a simultaneous upper bound under this card’s constant-charge convention.",
+      "citation": "sublog"
+    },
+    {
+      "text": "The July 2026 paper proves \\(O(\\log\\log N\\,\\log\\log\\log N)\\) for pure heaps and announces \\(O((\\log\\log N)^2\\log\\log\\log N)\\) for standard heaps in forthcoming work. The announcement and the remaining tightness question are distinct; no companion proof was independently checked.",
+      "citation": "primary"
     }
   ],
   "references": [
     {
       "id": "primary",
+      "title": "Pure Pairing Heaps",
+      "authors": "Robert E. Tarjan; Xiaoyang Xu",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2607.23118v1",
+      "locator": "25 July 2026; Introduction pp.1–2, standard algorithm in §2 pp.3–4, announcement and remaining gap in §10 p.21"
+    },
+    {
+      "id": "charges",
+      "title": "Improved Upper Bounds for Pairing Heaps",
+      "authors": "John Iacono",
+      "year": 2011,
+      "url": "https://arxiv.org/abs/1110.4428v1",
+      "locator": "20 October 2011 expanded account of earlier SWAT 2000 work; Introduction and Figure 1 pp.2–3, simultaneous charge conventions"
+    },
+    {
+      "id": "sublog",
+      "title": "Towards a Final Analysis of Pairing Heaps",
+      "authors": "Seth Pettie",
+      "year": 2006,
+      "url": "https://doi.org/10.4230/DagSemProc.06091.5",
+      "locator": "Published 30 November 2006, corresponding to FOCS 2005 work; Introduction Theorem 1 and §5, with nonconstant insert/meld charges"
+    },
+    {
+      "id": "lower",
       "title": "On the Efficiency of Pairing Heaps and Related Data Structures",
       "authors": "Michael L. Fredman",
       "year": 1999,
       "url": "https://doi.org/10.1145/320211.320214",
-      "locator": "Pairing-heap decrease-key lower bounds and charge assumptions."
-    },
-    {
-      "id": "recent",
-      "title": "Pure Pairing Heaps",
-      "authors": "Robert E. Tarjan; Xiaoyang Xu",
-      "year": 2026,
-      "url": "https://arxiv.org/html/2607.23118",
-      "locator": "Introduction, standard-versus-pure distinction and conclusion; 25 July 2026 preprint."
+      "locator": "Decrease-key lower bound; scope checked through its descriptions in the Iacono and Tarjan–Xu primary papers, not a new full-proof audit"
     }
   ],
   "progress": [
     {
       "date": "1999",
-      "text": "The classical lower bound is \\(\\Omega(\\log\\log N)\\) under the usual other-operation charges.",
-      "citation": "primary"
+      "text": "Fredman establishes a logarithmic-logarithmic decrease-key obstruction, as described in the later primary sources.",
+      "citation": "lower"
+    },
+    {
+      "date": "2000",
+      "text": "Iacono’s work establishes constant insert/meld charges while allowing logarithmic decrease-key; the expanded account appears on arXiv in 2011.",
+      "citation": "charges"
+    },
+    {
+      "date": "2005",
+      "text": "Pettie obtains sublogarithmic charges for insert, meld and decrease-key, retaining logarithmic delete-min.",
+      "citation": "sublog"
     },
     {
       "date": "2026-07-25",
-      "text": "The pure variant has \\(O(\\log\\log N\\log\\log\\log N)\\) decrease-key. The conclusion announces \\(O((\\log\\log N)^2\\log\\log\\log N)\\) for standard pairing heaps in forthcoming work; no independent verification of that announced proof was performed.",
-      "citation": "recent"
+      "text": "Pure heaps receive a near-log-log analysis; an improved standard-heap bound is announced, and a matching bound remains open.",
+      "citation": "primary"
     }
   ],
-  "answer_criterion": "Supply a growth rate with a complete Lean-checked upper analysis and matching lower bound under the charge convention defined here. An improved upper bound without tightness, or a tight bound for another heap variant, is insufficient.",
+  "answer_criterion": "Supply an explicit asymptotic rate and a complete mathematically correct Lean-checked proof of both admissibility and the matching universal lower statement. A characterization that merely renames the worst sequence cost or repeats the definition of admissibility is not a determination of the rate. Constants hidden by asymptotic notation must have the dependencies specified above.\n\nA better upper bound without matching tightness does not complete the task. Neither does a tight bound for another heap variant, or an analysis that increases the allowed insert or meld charge without proving the displayed inequality. Amortized bounds for individual operations from separate analyses cannot be combined without a simultaneous total-cost proof. This is an asymptotic classification up to constant factors, not a finite numerical approximation task.",
   "related": [],
   "related_problem_ids": [
     "TCS-0474"
@@ -55,18 +93,25 @@
   "year": 1999,
   "evidence": "reviewed",
   "status": "source_open",
-  "status_note": "Open in the cited dated sources. The bounded source and subsequent-result review on 13 September 2026 found no verified resolution of this target; this is not exhaustive certification of current openness.",
+  "status_note": "The July 2026 source explicitly retains the tightness gap and distinguishes its proved pure-heap analysis from an announced standard-heap improvement. Bounded primary-source searches through 17 September 2026 found no verified tight analysis under the stated simultaneous charges. No independent verification of the announced companion proof or Fredman’s full lower-bound proof is claimed.",
   "model_self_contained": true,
   "requires_context": false,
-  "formulation_reviewed_on": "2026-09-13",
+  "formulation_reviewed_on": "2026-09-17",
   "statement_review": {
     "status": "revised",
-    "reviewed_on": "2026-09-13",
+    "reviewed_on": "2026-09-17",
     "remaining_issue": "",
     "notes": [
-      "Individual formulation, model, duplicate and category review for the user-requested researcher list."
+      "Retained determination of the full asymptotic rate up to constant factors, rather than replacing it by an improved-bound barrier.",
+      "Fixed the standard left-to-right pairing and right-to-left assembly passes, link order, handles and decrease-key cuts.",
+      "Defined the aggregate cost inequality on every finite sequence from empty heaps with a global live-item bound.",
+      "Included make-heap in constant-cost operations and charged links, cuts and operation overhead explicitly.",
+      "Clarified that comparison constants in a matching lower bound may depend on the competing admissible charge function, but never on N or a sequence.",
+      "Read Iacono’s warning that amortized operation bounds from different analyses cannot simply be combined.",
+      "Recorded the July 2026 standard-heap improvement as an announcement, while distinguishing its proved pure-heap bound and the still-open tightness gap.",
+      "Preserved importance and required a complete Lean-checked upper analysis and matching lower bound."
     ],
-    "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
   "importance": {
     "score": 88,
@@ -80,18 +125,20 @@
   },
   "working_summary": {
     "sentences": [
-      "The standard pairing heap uses a fixed two-pass consolidation during delete-min.",
-      "Its pointer operations are simple, but decreases can affect the cost of future consolidations.",
-      "The target is a tight amortized charge for decrease-key with the conventional costs for other operations.",
-      "A logarithmic-logarithmic lower bound is known.",
-      "Results for pure, multipass, smooth or rank-pairing heaps concern different algorithms."
+      "The standard pairing heap performs a left-to-right pairing pass and a right-to-left assembly pass when deleting the minimum.",
+      "The question asks for the tight asymptotic amortized cost of decrease-key while keeping the stated charges for all other operations.",
+      "The bound must hold on every finite sequence from empty heaps, in terms of the maximum simultaneous live-item count.",
+      "Different heap variants and operation charges from separate analyses cannot be substituted; a 2026 improvement for standard heaps is recorded as an announcement.",
+      "A complete Lean-checked upper analysis and matching lower bound are required, not just another improvement."
     ],
     "basis": "saved_sources",
-    "source_basis": "source-text",
-    "written_on": "2026-09-13",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-17",
     "source_refs": [
       "primary",
-      "recent"
+      "charges",
+      "sublog",
+      "lower"
     ]
   },
   "researcher_import": {
@@ -101,9 +148,38 @@
     ],
     "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
   },
-  "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-17; see research/card-completion-20260913/reviews.jsonl.",
   "id": "TCS-7328",
   "published_at": "2026-09-13T09:26:53+00:00",
-  "updated_at": "2026-09-13T09:26:53+00:00",
-  "is_new": true
+  "updated_at": "2026-09-17T13:25:19+00:00",
+  "is_new": true,
+  "source_formulation": {
+    "text": "The long-standing question is the tight amortized complexity of decrease-key in the standard pairing heap. The 2026 pure-heap paper explicitly separates the standard algorithm and retains the gap between known lower bounds and its announced improvement. This card fixes the other-operation charges and asks for the complete asymptotic rate.",
+    "caption": "Tarjan–Xu, Pure Pairing Heaps (25 July 2026), Introduction, §2 and §10; the constant insert/meld convention is checked against Iacono’s analysis.",
+    "citation": "primary",
+    "format": "editorial_paraphrase"
+  },
+  "quality_review": {
+    "reviewed_on": "2026-09-17",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": [
+      "Retained determination of the full asymptotic rate up to constant factors, rather than replacing it by an improved-bound barrier.",
+      "Fixed the standard left-to-right pairing and right-to-left assembly passes, link order, handles and decrease-key cuts.",
+      "Defined the aggregate cost inequality on every finite sequence from empty heaps with a global live-item bound.",
+      "Included make-heap in constant-cost operations and charged links, cuts and operation overhead explicitly.",
+      "Clarified that comparison constants in a matching lower bound may depend on the competing admissible charge function, but never on N or a sequence.",
+      "Read Iacono’s warning that amortized operation bounds from different analyses cannot simply be combined.",
+      "Recorded the July 2026 standard-heap improvement as an announcement, while distinguishing its proved pure-heap bound and the still-open tightness gap.",
+      "Preserved importance and required a complete Lean-checked upper analysis and matching lower bound."
+    ],
+    "checked_sources": [
+      "Read Tarjan–Xu, Pure Pairing Heaps, arXiv:2607.23118v1, 25 July 2026: abstract, Introduction pp.1–2, Section 2 pp.3–4 with the exact standard two-pass algorithm, and Section 10 p.21. The proved pure-heap decrease-key bound is O(log log n log log log n). The conclusion announces O((log log n)^2 log log log n) for standard heaps in a forthcoming companion paper and explicitly retains a tightness gap. No proof of that announced standard-heap result is supplied in this paper.",
+      "Read Iacono, Improved Upper Bounds for Pairing Heaps, arXiv:1110.4428v1, 20 October 2011, an expanded account of earlier SWAT 2000 work: abstract, Introduction, Figure 1 p.2 and subsequent comparison pp.2–3. It gives constant amortized insert/meld with logarithmic extract-min and decrease-key. Figure 1 explicitly warns that amortized charges for different operations cannot be mixed between analyses. This verifies that the selected charge convention has admissible upper bounds.",
+      "Read Pettie, Towards a Final Analysis of Pairing Heaps, Dagstuhl Seminar Proceedings 06091.5, published 30 November 2006, corresponding to FOCS 2005 work: abstract, Introduction Theorem 1, standard heap description and Section 5. This gives sublogarithmic charges to insert, meld and decrease-key simultaneously, with logarithmic delete-min. It is not asserted here to preserve constant insertion/meld charges. The downloaded PDF has corrupted mathematical font extraction, so the exponent is not reconstructed from garbled text; Iacono’s Figure 1 supplies the legible comparison.",
+      "The Fredman 1999 lower bound is recorded from its explicit descriptions in the primary Iacono and Tarjan–Xu papers, not from a newly read full original proof. Both identify a logarithmic-logarithmic decrease-key obstruction under the other-operation bounds. This review does not independently verify that lower-bound proof.",
+      "Bounded primary-source searches through 17 September 2026 found no verified tight analysis or independently checked companion proof resolving this target. Results for pure, multipass, lazy, smooth, slim or rank-pairing variants were distinguished from the specified algorithm."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }

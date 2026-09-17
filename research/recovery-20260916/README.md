@@ -776,3 +776,29 @@ Only these five reviews, their authoring scripts and their own queue, ledger and
 inventory changes enter this checkpoint. Source checkpoint 1860dc61 and deployment
 a705c5e7898ecf8892d1f9fe25b3a48f65daa986 cover the first 145 dispositions.
 Unrelated edits remain in the shared worktree.
+
+After one hundred and fifty-five recovery dispositions, the raw shared queue has
+800 completed records, 114 pending records and one outside its original active
+scope. The live queue has 107 pending active reviews, 721 completed active queue
+records and 152 active records outside the queue, for 980 active cards. Seven raw
+pending rows were archived by concurrent category work.
+
+This batch completes TCS-0470 (grammar access at the grammar bit-space scale),
+TCS-6513 (constant approximation for minimum grammar size), TCS-6508 (the exact
+linear splay-deque conjecture), TCS-7326 (worst-case logarithmic dynamic planar
+extreme-point queries), and TCS-7328 (tight standard pairing-heap decrease-key
+charges). The reviews distinguish bits from words, small-ratio hardness from
+hardness of every constant, general competitiveness from deque optimality, and
+amortized from worst-case updates. The pairing review explicitly forbids mixing
+operation charges from different potential analyses and keeps the announced
+standard-heap improvement separate from the published pure-heap proof.
+
+All five output hashes match their queue records; the shared ledger has 978 valid
+entries. The full offline check passes. Math checks pass on 35,301 expressions
+across 980 active cards, and desktop/mobile reader checks pass on publication
+a4ba5da0916ab681c020. The publisher has 899 detailed records.
+
+Only these five reviews, their authoring scripts and their own queue, ledger and
+inventory changes enter this checkpoint. Source checkpoint c47cf66d and deployment
+a8652ea5c8e63573052d44b2487dc67bf977d179 cover the first 150 dispositions.
+Unrelated edits remain in the shared worktree.

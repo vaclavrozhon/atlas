@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **120**.
+Pending active reviews: **115**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -97,7 +97,6 @@ Pending active reviews: **120**.
 | [TCS-4995](../../data/cards/TCS-4995.json) | Entropic width versus submodular width | Database theory and finite model theory | pool |
 | [TCS-6157](../../data/cards/TCS-6157.json) | Determinacy and rewriting of regular path queries | Database theory and finite model theory | pool |
 | [TCS-7128](../../data/cards/TCS-7128.json) | Unconditional constant-delay query-enumeration lower bounds | Database theory and finite model theory | pool |
-| [TCS-0470](../../data/cards/TCS-0470.json) | Grammar random access in \(O(g \log  g)\) bits | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-0474](../../data/cards/TCS-0474.json) | Constant-update working-set heaps on pointer machines | Data structures | existing_detailed_audit |
 | [TCS-0478](../../data/cards/TCS-0478.json) | Dynamic APSP with edge-linear updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-0481](../../data/cards/TCS-0481.json) | Cubic min-plus circuit lower bounds for shortest paths | Algebraic computation | existing_detailed_audit |
@@ -110,8 +109,6 @@ Pending active reviews: **120**.
 | [TCS-6499](../../data/cards/TCS-6499.json) | Sublogarithmic distributed MIS | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6505](../../data/cards/TCS-6505.json) | One-cycle versus two-cycles conjecture | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-6508](../../data/cards/TCS-6508.json) | Deque conjecture | Data structures | existing_detailed_audit |
-| [TCS-6513](../../data/cards/TCS-6513.json) | Constant-factor approximation of the smallest grammar | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
@@ -121,8 +118,6 @@ Pending active reviews: **120**.
 | [TCS-7290](../../data/cards/TCS-7290.json) | Extremal size of sunflower-free set families | Miscellaneous | existing_detailed_audit |
 | [TCS-7319](../../data/cards/TCS-7319.json) | Minimax rate of sequential binary calibration | Online algorithms | existing_detailed_audit |
 | [TCS-7322](../../data/cards/TCS-7322.json) | Optimal approximation ratio for shortest common superstring | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-7326](../../data/cards/TCS-7326.json) | Worst-case logarithmic dynamic planar convex hulls | Dynamic graph algorithms | existing_detailed_audit |
-| [TCS-7328](../../data/cards/TCS-7328.json) | Amortized decrease-key complexity of standard pairing heaps | Data structures | existing_detailed_audit |
 | [TCS-7333](../../data/cards/TCS-7333.json) | Space-query exponent curve of 3SUM indexing | Data structures | existing_detailed_audit |
 | [TCS-7339](../../data/cards/TCS-7339.json) | Near-linear incremental topological ordering | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7340](../../data/cards/TCS-7340.json) | Optimal randomized memory-reallocation overhead | Data structures | existing_detailed_audit |
