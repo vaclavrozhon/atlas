@@ -951,3 +951,38 @@ Only these five reviews, their authoring scripts and their own queue, ledger,
 inventory and archive changes enter this checkpoint. Source checkpoint 23ec902c
 and deployment 095fd1093763b1f63584355b779244a973fdba18 cover the first 170
 dispositions. Unrelated edits remain in the shared worktree.
+
+
+After one hundred and eighty recovery dispositions, the raw shared queue has
+825 completed records, 89 pending records and one outside its original scope.
+The live catalogue has 977 active cards: 82 pending active reviews, 743 completed
+active queue records and 152 active records outside the queue. Seven raw pending
+rows have been archived by concurrent category work.
+
+This batch completes TCS-0010 (constant-degree unrestricted circuit lower bounds),
+TCS-1058 (binary matrix rigidity), TCS-5260 (rigidity over small number fields),
+TCS-0095 (uniform deterministic recurrence-term zero testing), and TCS-1151
+(bounded-interval continuous zero testing over effective real fields).
+The optional rational-coefficient, rigidity-quantifier and recurrence-uniformity
+choices received no reply during independent work; the recommended defaults were
+announced and applied as editorial choices, not recorded as user confirmations.
+
+The circuit card retains a superlinear target without silently strengthening it
+to a fixed power saving. Both rigidity cards specify their coefficient fields,
+efficient exact output and all fixed constants in the near-linear rank scale.
+The number-field card bounds the joint field degree, not just individual degrees.
+The recurrence card distinguishes uniform input from hardcoded fixed sequences
+and randomized circuit zero testing. The continuous card supplies the source's
+effective-field definition and retains endpoint and tangential zeros; a conditional
+algebraic-coefficient result does not resolve it. Relevant primary sources through
+September 2026 were checked, including final SODA 2026 and MFCS 2026 papers.
+
+All five output hashes match their queue records; the shared ledger has 1007 valid
+entries. The full offline check passes, mathematical rendering passes for 35,820
+expressions across 977 cards, and desktop/mobile reader checks pass on publication
+518b8b7b9602ac985e12. There are 911 detailed records in the published catalogue.
+
+Only these five reviews, their authoring scripts, this log, and their own queue,
+ledger and inventory changes enter the checkpoint. Source checkpoint cb1e039a
+and deployment 83bfd61f4b7d7b96107d10283c9b28818f0e9802 cover the first 175
+dispositions. Unrelated shared-worktree changes remain unstaged.

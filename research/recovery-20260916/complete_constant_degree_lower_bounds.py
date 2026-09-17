@@ -1,0 +1,64 @@
+"""Review the explicit constant-degree, non-linear-size arithmetic barrier."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-0010';claim=read_claims(ROOT)[identifier]
+complete(identifier,dict(
+ status='source_open',criterion='resources',question_type='yes_no',
+ formal=r'''Does there exist a fixed integer \(d\ge2\) and a uniformly explicit family of polynomials
+\[
+f_n\in\mathbb Q[x_1,\ldots,x_n],\qquad \deg(f_n)\le d\quad(n\ge2),
+\]
+whose arithmetic circuit sizes over \(\mathbb C\) are not \(O(n)\)? Precisely, require
+\[
+\forall L\ge1\ \forall N\ge2\ \exists n\ge N:
+\operatorname C_{\mathbb C}(f_n)>Ln,
+\]
+where \(L,N,n\) are integers and explicitness means that one deterministic polynomial-time Turing machine outputs the full rational coefficient list of \(f_n\). Circuit depth, sharing and complex constants are unrestricted.''',
+ definitions=r'''The variables commute. A formal polynomial is a finite sum \(\sum_\alpha c_\alpha x_1^{\alpha_1}\cdots x_n^{\alpha_n}\), and its total degree is the largest \(\sum_i\alpha_i\) among its nonzero coefficients. The zero polynomial satisfies the degree bound. The same integer \(d\) must work for the whole family; a degree growing with \(n\) is not allowed. Homogeneity and multilinearity are not additionally imposed.
+
+An arithmetic circuit over \(\mathbb C\) is a finite directed acyclic graph with one output gate. Its inputs are variable symbols or arbitrary complex constants. Each internal gate adds or multiplies two predecessor values; both operands may come from the same predecessor. Every gate computes a formal polynomial. There are no division, test, approximation or limit gates. Values can be reused and fan-out and depth are unrestricted. The size is the total number of gates, including inputs. Each complex constant costs one gate irrespective of its description length. \(\operatorname C_{\mathbb C}(f)\) is the minimum size of any such circuit computing \(f\) exactly. Intermediate values need not have degree at most \(d\). This is an algebraic circuit-size question, not a numerical approximation or bit-operation lower bound.
+
+Uniform explicitness requires one deterministic multi-tape Turing machine \(M\), a real \(K>0\) and an integer \(b\ge1\) such that for each unary input \(1^n\), \(M\) halts within \(Kn^b\) steps and outputs all nonzero coefficients of \(f_n\). Each record gives its exponent vector \(\alpha\in\mathbb N^n\) in binary and a reduced rational number \(u/v\), with signed binary numerator \(u\), positive binary denominator \(v\) and \(\gcd(|u|,v)=1\). There are no duplicate exponent vectors, omitted monomials have coefficient zero, and all listed total degrees are at most \(d\). An empty list represents zero. Output time and coefficient bit lengths are included in the bound. There is no advice depending on \(n\).
+
+Because the degree is constant, at most \(\binom{n+d}{d}\) monomials can appear; asking for the full coefficient list therefore does not force exponential output length. Rational target coefficients need not belong to \(\{0,1\}\), while the circuits being excluded may use any complex constants. Mere nonconstructive selection of a hard coefficient table does not meet the explicitness requirement.
+
+The quantifiers express exactly the failure of a linear upper bound: every proposed constant multiple of \(n\) fails at arbitrarily large lengths. They do not require a lower bound \(n^{1+\varepsilon}\) for a fixed positive \(\varepsilon\), nor a limit of the size-to-\(n\) ratio along every length. The source counts wires; for binary circuits the minimum wire and gate counts differ by constant factors apart from trivial constant-size cases, so the non-\(O(n)\) target is unchanged by the stated size convention.''',
+ answer_criterion=r'''Give a complete mathematically correct Lean-checked proof of the existence statement or its logical negation. A positive answer must provide the family and a uniform coefficient-list algorithm, prove the fixed degree and bit-time bounds, and prove failure of every linear size upper bound for unrestricted circuits over \(\mathbb C\). A negative answer must prove that each family meeting these explicitness and constant-degree requirements has an \(O(n)\)-size circuit family over \(\mathbb C\), with the implicit constant allowed to depend on the family. Lower bounds restricted to formulas, bounded depth, monotone circuits, noncommutative circuits, restricted constants or growing-degree polynomials are insufficient.''',
+ why='This isolates one of the most basic explicit arithmetic lower-bound barriers: even when polynomial degree is fixed, it is difficult to prove that unrestricted circuits require more than a linear number of gates. The target asks for any unbounded improvement over linear size.',
+ source_formulation=dict(text='Wigderson asks for explicit constant-degree n-variate polynomials whose arithmetic circuit size is not O(n). The card retains that precise asymptotic threshold and fixes rational coefficient explicitness and complex circuit constants.',caption='Mathematics and Computation, draft of 27 March 2018, §12.2 and Open Problem 12.4, printed pp.146–147.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Mathematics and Computation (27 March 2018 draft)','Avi Wigderson',2018,'https://www.math.ias.edu/files/mathandcomp.pdf','§12.2 definitions, printed p.146; Open Problem 12.4 and its preceding discussion, printed p.147'),
+ ref('sumsets','Arithmetic circuit lower bounds from sumset expansion','Anand Kumar Narayanan',2026,'https://arxiv.org/abs/2607.15848','17 July 2026, abstract; §1.4 Theorem 3 and comparison table, printed pp.5–6'),
+ ref('partition','Partition Rank and Algebraic Circuit Lower Bounds','Cornelius Brand; Petteri Kaski; Jiaheng Wang',2026,'https://arxiv.org/abs/2607.02241v2','Revision of 5 August 2026, abstract; Theorems 1–2 and subsequent motivation, printed pp.1–3'),
+ ],
+ context_blocks=[
+ block('Counting and algebraic dimension arguments establish that hard coefficient choices exist. The difficulty is to specify a family with an efficient exact description and prove that no unrestricted small circuit computes it.'),
+ block('Classical lower bounds involving a factor logarithmic in the degree can exceed linear size when degree grows. That mechanism gives only a constant factor when the degree is fixed, which explains the separate target.'),
+ block('The July 2026 sumset paper develops new lower-bound constructions with an explicit depth restriction; its comparison discusses the tradeoff between polynomial degree and allowed depth. These are meaningful restricted-model advances but do not settle the unrestricted constant-degree question.','sumsets'),
+ block('The August 2026 partition-rank paper gives a way to derive multiplicative lower bounds for constant-degree multilinear forms from suitable tensor-rank parameters. Its theorem supplies such a connection, not the missing explicit family with a proved superlinear unrestricted circuit bound.','partition'),
+ block('The threshold is deliberately the source’s non-linear-size barrier. A proof of any unbounded ratio suffices; it need not reach a prescribed exponent improvement.'),
+ ],
+ progress=[progress('2018-03-27','The book draft records explicit constant-degree circuit size beyond O(n) as Open Problem 12.4.'),progress('2026-07-17','The sumset-expansion preprint gives new superlinear bounds for depth-restricted circuits and distinguishes degree/depth tradeoffs.','sumsets'),progress('2026-08-05','The revised partition-rank paper supplies constant-degree multiplicative-complexity connections that could support future lower bounds.','partition')],
+),[
+ 'Preserved failure of O(n) exactly, rather than strengthening the source to a fixed n^(1+epsilon) lower bound.',
+ 'Fixed one constant total degree and unrestricted complex circuits; no formula, homogeneity, multilinearity or depth restriction is introduced.',
+ 'Applied the announced recommended rational coefficient-list explicitness default after the optional coefficient-scope question remained unanswered, without treating it as user confirmation.',
+ 'Defined deterministic bit-time coefficient generation, arbitrary complex circuit constants and the equivalence of the source’s wire-size and the card’s gate-size threshold.',
+ 'Read the July and August 2026 primary results and distinguished restricted depth and rank-to-complexity connections from a resolution.',
+ 'Preserved the existing individually assessed importance and required a complete Lean-checked construction and lower-bound proof or the precise negation.',
+],[
+ 'Read Wigderson’s 27 March 2018 draft, §12.2 printed pp.146–147: field discussion, binary arithmetic circuit definition, wire-count size, formal-versus-functional equality and Open Problem 12.4. The source threshold is S(f) not in O(n), not an explicitly fixed polynomial exponent gap.',
+ 'Read Narayanan arXiv:2607.15848v1, 17 July 2026, abstract and §1.4 Theorem 3/comparison discussion printed pp.5–6. The new theorem restricts depth and has growing polynomial degree. The paper’s table distinguishes the constant-degree depth-restricted Raz result; neither is presented as an unrestricted constant-degree superlinear construction.',
+ 'Read Brand–Kaski–Wang arXiv:2607.02241v2, 5 August 2026, abstract, Theorems 1–2 and ensuing motivation printed pp.1–3. It bounds multiplicative complexity using a partition-rank parameter; the displayed hyperclique application remains a strategy contingent on the corresponding rank lower bound, not an established explicit solution of this card.',
+ 'Checked the current arXiv version records and bounded primary-source searches through 17 September 2026. No resolution of the precise rational-explicit, complex unrestricted-circuit target was identified. Full cited proofs were not independently verified.',
+], 'Source-open for an explicit rational-coefficient constant-degree family with unrestricted complex circuit size not in O(n). The threshold and unrestricted model are retained from the book question; explicitness is specified as uniform polynomial bit-time coefficient-list generation. The inspected July/August 2026 depth-restricted and rank-method results do not provide a resolution. Bounded status review through 17 September 2026.',summary=[
+ 'The goal is an explicit rational polynomial family of one fixed total degree.',
+ 'One deterministic polynomial-time algorithm must print every coefficient exactly.',
+ 'Every linear size bound must fail at arbitrarily large lengths for arithmetic circuits with unrestricted depth, sharing and complex constants.',
+ 'Any unbounded improvement over linear size suffices, without a prescribed exponent gap.',
+ 'The answer must supply complete Lean-checked explicitness and lower-bound proofs or prove that all such families have linear-size circuits.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
