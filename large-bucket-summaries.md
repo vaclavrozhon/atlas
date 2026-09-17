@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-398 five-sentence working summaries, based on saved source material.
+399 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (71)
@@ -397,12 +397,12 @@ An interactive proof lets a verifier check a computation through a conversation 
 [Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient \(\mathrm{IP}=\mathrm{PSPACE}\)](https://eccc.weizmann.ac.il/report/2026/102/) · [Doubly-Efficient Interactive Arguments for Bounded-Space from One-Way Functions](https://eccc.weizmann.ac.il/report/2026/111/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-7257 — Formula versus circuit noise thresholds
+### TCS-7257 — Circuit noise tolerance beyond the formula threshold
 
-Each gate of a Boolean circuit independently flips its computed output with the same probability. The circuit may reuse noisy intermediate values and may be arbitrarily large. The question asks whether universal reliable computation is possible exactly below the known two-input formula threshold. Reliability requires one positive correctness advantage that works for every Boolean function and input length at the chosen noise level. A resolution would determine whether sharing intermediate computations changes the fundamental tolerance to gate errors.
+Each gate of a Boolean circuit independently flips its computed output with the same probability. The circuit may reuse noisy intermediate values and may be arbitrarily large. The question asks whether circuits permit reliable computation at some noise probability strictly above the two-input formula threshold \((3-\sqrt7)/4\). Any fixed positive increase qualifies, with a positive correctness advantage uniform over all Boolean functions and input lengths. The separate question of reliability exactly at the formula threshold is retained as context.
 
 [Read in atlas](index.html#TCS-7257) · [Noise Threshold for Universality of Two-Input Gates](https://ir.cwi.nl/pub/13657) · [Tight Limits on Nonlocality from Nontrivial Communication Complexity; a.k.a. Reliable Computation with Asymmetric Gate Noise](https://arxiv.org/abs/1809.09748v5) · [Noise Quantification and Control in Circuits via Strong Data-Processing Inequalities](https://arxiv.org/abs/2507.15108v1)
-Existing status: `source_open` · Summary written: 2026-09-14
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7260 — Polynomial-size closure of d-DNNF under negation
 
@@ -1457,10 +1457,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-0524 — LOCAL coloring below square-root degree dependence
 
-A proper coloring with Delta plus one colors always exists for a graph of maximum degree Delta. The question asks for a deterministic LOCAL algorithm running in O(\(Delta^{0.499}\) plus log-star n) rounds. The degree exponent deliberately lies just below one half, while the network-size dependence retains the small symmetry-breaking term. Processors must reduce a large identifier-based palette without causing conflicts among adjacent vertices acting simultaneously. Crossing this degree threshold would improve the coordination of dense local neighborhoods without paying a larger dependence on the total number of vertices.
+A proper coloring with \(\Delta+1\) colors always exists for a graph of maximum degree at most \(\Delta\). The question asks whether a uniform deterministic LOCAL algorithm can find one in \(O(\Delta^{1/2-\varepsilon}+\log^* n)\) rounds for some fixed \(\varepsilon>0\). Any positive constant saving in the degree exponent qualifies, however small, and it must be independent of both graph size and degree. Processors must reduce a large identifier-based palette without causing conflicts among adjacent vertices acting simultaneously. Crossing the square-root degree barrier would improve local coordination while preserving the small dependence on total network size.
 
 [Read in atlas](index.html#TCS-0524) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#local) · [Local Conflict Coloring Revisited: Linial for Lists](https://arxiv.org/abs/2007.15251) · [Faster Distributed Delta-Coloring via a Reduction to MIS](https://doi.org/10.1137/1.9781611978971.162)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6380 — Fractional-edge-cover load for general-message parallel joins
 
@@ -1539,7 +1539,7 @@ The question asks whether any fixed 2-vertex-connected graph can be detected in 
 [Read in atlas](index.html#TCS-4274) · [Lower Bounds for Subgraph Detection in the CONGEST Model](https://doi.org/10.4230/LIPIcs.OPODIS.2017.6) · [Distributed Subgraph Finding: Progress and Challenges](https://arxiv.org/abs/2203.06597) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Optimization and numerical computation (23)
+## Optimization and numerical computation (24)
 
 ### TCS-0008 — Strongly polynomial linear programming
 
@@ -1603,6 +1603,13 @@ The Beck–Fiala conjecture asks whether bounded participation of each element i
 
 [Read in atlas](index.html#TCS-7315) · [Decoupling via Affine Spectral-Independence: Beck-Fiala and Komlós Bounds Beyond Banaszczyk](https://arxiv.org/abs/2508.03961v2) · [Online Beck–Fiala Down to Logarithmic Sparsity](https://arxiv.org/abs/2607.14238v1) · [Vector Balancing via Directional Total Variation](https://arxiv.org/abs/2609.11189v1)
 Existing status: `uncertain` · Summary written: 2026-09-14
+
+### TCS-7264 — Single-exponential dependence on dimension for integer programming
+
+The input is an explicit system of rational linear inequalities whose variables must all be integers. The task is exact feasibility, with no boundedness, rank or coefficient-size promise. The question asks for one deterministic algorithm with a fixed exponential base in the number of variables and a fixed polynomial dependence on input length. The checked general randomized bound and recent determinant-dependent bound do not supply that guarantee. An accepted answer must give a complete Lean-checked construction or unconditional impossibility proof in the bit-computation model.
+
+[Read in atlas](index.html#TCS-7264) · [A Brief History of Parameterized Algorithms for Block-Structured Integer Programs](https://drops.dagstuhl.de/storage/00lipics/lipics-vol358-ipec2025/html/LIPIcs.IPEC.2025.1/LIPIcs.IPEC.2025.1.html) · [The Subspace Flatness Conjecture and Faster Integer Programming](https://arxiv.org/abs/2303.14605v5) · [From approximate to exact integer programming](https://link.springer.com/article/10.1007/s10107-024-02084-1) · [Algorithms for Standard-form ILP Problems via Komlós’ Discrepancy Setting (Refined \(2^{O(k)}\)-analysis)](https://arxiv.org/abs/2604.09806v4)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7283 — Superpolynomial semidefinite extension complexity of perfect matching
 

@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-950 records have an editorial importance assessment; 60 remain provisional.
+949 records have an editorial importance assessment; 60 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -289,7 +289,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 | 3 | [Polylogarithmic approximation for Directed Steiner Tree](index.html#TCS-6588) | 96 |
 | 4 | [Small-Set Expansion Hypothesis](index.html#TCS-7160) | 96 |
 | 5 | [Subtour-LP integrality gap for metric TSP](index.html#TCS-6589) | 95 |
-| 6 | [Optimal polynomial-time approximation ratio for metric k-Median](index.html#TCS-6659) | 95 |
+| 6 | [Breaking two for metric k-Median](index.html#TCS-6659) | 95 |
 | 7 | [Vertex Cover approximation below factor two](index.html#TCS-7282) | 95 |
 | 8 | [Does a fixed d-to-1 Games conjecture imply Unique Games?](index.html#TCS-5544) | 94 |
 | 9 | [Subtour-LP integrality gap for asymmetric TSP](index.html#TCS-6590) | 94 |
@@ -297,20 +297,20 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 26; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 25; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
-| 1 | [Deterministic competitiveness of k-server](index.html#TCS-6575) | 97 |
-| 2 | [Optimal approximation ratio for unrelated-machine makespan](index.html#TCS-6638) | 97 |
-| 3 | [Optimal approximation ratio for precedence-constrained makespan](index.html#TCS-6676) | 96 |
-| 4 | [Constant additive error for one-dimensional bin packing](index.html#TCS-6640) | 95 |
-| 5 | [Optimal competitive ratio for convex body chasing](index.html#TCS-6576) | 94 |
-| 6 | [Minimax dimension dependence in bandit convex optimization](index.html#TCS-6577) | 94 |
-| 7 | [Matroid secretary conjecture](index.html#TCS-7316) | 94 |
-| 8 | [Randomized competitiveness of k-server](index.html#TCS-7317) | 93 |
-| 9 | [Constant-factor online contention resolution for matroids](index.html#TCS-5779) | 92 |
-| 10 | [Constant-factor related-machine precedence scheduling](index.html#TCS-6724) | 91 |
+| 1 | [Breaking two for unrelated-machine makespan](index.html#TCS-6638) | 97 |
+| 2 | [Breaking two for precedence-constrained makespan](index.html#TCS-6676) | 96 |
+| 3 | [Constant additive error for one-dimensional bin packing](index.html#TCS-6640) | 95 |
+| 4 | [Optimal competitive ratio for convex body chasing](index.html#TCS-6576) | 94 |
+| 5 | [Minimax dimension dependence in bandit convex optimization](index.html#TCS-6577) | 94 |
+| 6 | [Matroid secretary conjecture](index.html#TCS-7316) | 94 |
+| 7 | [Randomized competitiveness of k-server](index.html#TCS-7317) | 93 |
+| 8 | [Constant-factor online contention resolution for matroids](index.html#TCS-5779) | 92 |
+| 9 | [Constant-factor related-machine precedence scheduling](index.html#TCS-6724) | 91 |
+| 10 | [Minimax rate of sequential binary calibration](index.html#TCS-7319) | 89 |
 
 ## 9. Beyond worst-case and average-case analysis (small)
 

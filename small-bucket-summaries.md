@@ -580,10 +580,10 @@ Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6503 — Online matrix–vector multiplication conjecture
 
-Online Boolean matrix-vector multiplication starts with a fixed Boolean matrix and then receives vectors individually. Each Boolean product must be returned before the next vector becomes available. The conjecture excludes a fixed polynomial improvement over cubic total time for a full sequence of vectors, including preprocessing. Batching the vectors into another matrix would violate the online requirement. Its importance comes from reductions that turn matrix queries into graph updates and thereby connect the conjecture to limits on dynamic algorithms.
+A fixed Boolean matrix is given first, followed by a sequence of Boolean vectors. The algorithm must return each Boolean product before it sees the next vector. The question asks for a fixed polynomial saving over cubic total time, including preprocessing, with a constant probability that every answer is correct. Known speedups, free-computation cell-probe bounds and faster structured-matrix queries do not resolve the unrestricted word-RAM target. A complete Lean-checked resolution would either refute or prove a central hypothesis behind dynamic-problem lower bounds.
 
-[Read in atlas](index.html#TCS-6503) · [Unifying and Strengthening Hardness for Dynamic Problems via the Online Matrix-Vector Multiplication Conjecture](https://arxiv.org/abs/1511.06773) · [Faster Online Matrix-Vector Multiplication](https://arxiv.org/abs/1605.01695) · [Non-Boolean OMv: One More Reason to Believe Lower Bounds for Dynamic Problems](https://doi.org/10.4230/LIPIcs.ESA.2025.54)
-Existing status: `open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6503) · [Unifying and Strengthening Hardness for Dynamic Problems via the Online Matrix-Vector Multiplication Conjecture](https://arxiv.org/abs/1511.06773v1) · [Faster Online Matrix-Vector Multiplication](https://arxiv.org/abs/1605.01695v2) · [Non-Boolean OMv: One More Reason to Believe Lower Bounds for Dynamic Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2025.54) · [The Structural Complexity of Matrix-Vector Multiplication](https://arxiv.org/abs/2502.21240v3)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6598 — Min-Plus Convolution Hypothesis
 
@@ -1032,10 +1032,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7241 — FPT approximation of twin-width
 
-Twin-width measures mixed adjacency during repeated merges of vertex groups. The question asks for an algorithm that finds a bounded-width merge sequence whenever the graph has twin-width at most k. Its running time may depend arbitrarily on k but only polynomially on graph size, with an exponent independent of k. The algorithm receives the graph alone, without a useful vertex order or decomposition. A positive answer would make twin-width-based algorithmic methods accessible from ordinary graph input.
+Twin-width measures how many mixed adjacency relations arise while vertex groups are merged. The desired algorithm receives a graph and a proposed width bound without an accompanying structural certificate. It must either reject that bound correctly or return a complete merge sequence whose width is bounded by a computable function of the parameter. Its running time may depend arbitrarily on the parameter but has one fixed polynomial exponent in the graph size. A complete Lean-checked resolution would settle whether these structural certificates are accessible in general fixed-parameter time.
 
-[Read in atlas](index.html#TCS-7241) · [Open problems in twin-width](https://perso.ens-lyon.fr/edouard.bonnet/openQuestions.html) · [Twin-width one](https://arxiv.org/abs/2501.00991)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7241) · [Open problems in twin-width](https://perso.ens-lyon.fr/edouard.bonnet/openQuestions.html) · [Twin-width one](https://arxiv.org/abs/2501.00991v1) · [Computing Twin-Width via Treedepth and Vertex Integrity](https://arxiv.org/abs/2606.20331v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6660 — Polynomial kernel for Edge Multiway Cut
 
@@ -1163,12 +1163,12 @@ The question asks for a randomized test for a Hamiltonian cycle in every finite 
 [Read in atlas](index.html#TCS-0801) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time — Directed Hamiltonicity](https://doi.org/10.4230/DagRep.3.8.40) · [Directed Hamiltonicity and Out-Branchings via Generalized Laplacians](https://arxiv.org/abs/1607.04002v2) · [Counting Perfect Matchings and Hamiltonian Cycles Faster](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.138) · [A Deterministic \(O^*((3/2)^n)\) Algorithm for the Parity of Directed Hamiltonian Cycles](https://arxiv.org/abs/2609.11982v1)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-0816 — Shortest common superstring in \(O^*(1.99^n)\) time
+### TCS-0816 — Sub-base-two exact shortest common superstring
 
-Shortest common superstring asks for a shortest string containing every input string as a contiguous substring. The parameter n counts input strings, while their full encoded lengths contribute only a fixed polynomial factor to the target running time. The selected question asks for a uniform deterministic classical algorithm with the literal exponential base 1.99 posed in the seminar report. String lengths and alphabet sizes are unrestricted, and the output must attain the exact optimum. Faster algorithms for bounded-length strings, quantum speedups and approximation advances do not settle this classical exact target.
+Shortest common superstring asks for a shortest string containing every input string as a contiguous substring. The parameter \(n\) counts input strings, while their full encoded lengths contribute only a fixed polynomial factor to running time. The question asks for a uniform deterministic classical algorithm running in \(O^*((2-\varepsilon)^n)\) time for some fixed \(\varepsilon>0\). Any constant improvement below base two qualifies, with unrestricted string lengths and alphabets and an exactly optimal output. Faster algorithms for bounded-length strings, quantum speedups and approximation advances concern different guarantees.
 
 [Read in atlas](index.html#TCS-0816) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [Solving SCS for bounded length strings in fewer than \(2^n\) steps](https://golovnev.org/papers/scs_exact.pdf) · [Collapsing Superstring Conjecture](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.26) · [Quantum Algorithm for the Shortest Superstring Problem](https://arxiv.org/abs/2112.13319v1) · [A Tight Cycle-Cover Inequality for Shortest Common Superstring](https://eccc.weizmann.ac.il/report/2026/157/)
-Existing status: `source_open` · Summary written: 2026-09-16
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0800 — Cutwidth
 
@@ -1275,7 +1275,7 @@ Boolean formula satisfiability asks whether some assignment makes a formula true
 [Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (27)
+## Approximation algorithms and inapproximability (28)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1312,12 +1312,12 @@ The metric traveling-salesperson problem asks for a cheapest tour through all ve
 [Read in atlas](index.html#TCS-6589) · [Maximum Entropy is a \(10/7\)-Approximation Algorithm for the TSP on Half-Integral Cycle Cut Instances](https://arxiv.org/abs/2607.01536v2) · [A (Slightly) Improved Bound on the Integrality Gap of the Subtour LP for TSP](https://arxiv.org/abs/2105.10043v3) · [From Trees to Polynomials and Back Again: New Capacity Bounds with Applications to TSP](https://arxiv.org/abs/2311.09072v2) · [Extending Exact Integrality Gap Computations for the Metric TSP](https://arxiv.org/abs/2603.12995v5) · [A Sharper Explicit Bound on the Subtour-LP Integrality Gap for Metric TSP](https://www.preprints.org/manuscript/202609.0140/v1)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-6659 — Optimal polynomial-time approximation ratio for metric k-Median
+### TCS-6659 — Breaking two for metric k-Median
 
-Metric k-Median selects at most k supplied facilities and minimizes the sum of distances from clients to their nearest selected facility. The target is the infimum approximation factor achievable by a uniform randomized polynomial-time algorithm on every finite rational metric input. Every execution must return a feasible set within polynomial bit time, and each input must receive the promised cost guarantee with probability at least two thirds. A complete Lean proof must determine this unconditional real infimum within absolute error one hundredth, including matching certified bounds without assuming that the infimum is attained. The current upper endpoint is two, while the coverage lower endpoint of one plus two divided by e is conditional on NP differing from RP; the checked2026 variants do not close this gap.
+Metric k-Median selects at most \(k\) supplied facilities and minimizes the sum of distances from clients to their nearest selected facility. The question asks for a uniform randomized polynomial-time approximation with factor \(2-\varepsilon\) for some fixed \(\varepsilon>0\). Every execution must return a feasible set within polynomial bit time, and the cost guarantee must hold with probability at least two thirds on each input. The same improvement must apply to all facility budgets and arbitrary finite rational metrics, however small the chosen positive constant is. Algorithms approaching two from above and the standard LP's gap approaching two do not supply such a strict improvement.
 
 [Read in atlas](index.html#TCS-6659) · [A \((2+\varepsilon )\)-Approximation Algorithm for Metric k-Median](https://arxiv.org/abs/2503.10972) · [A threshold of ln n for approximating set cover](https://courses.cs.duke.edu/cps296.2/spring07/papers/p634-feige.pdf) · [A new greedy approach for facility location problems](https://cgi.di.uoa.gr/~vassilis/co/co-papers/jain02.pdf) · [Tight FPT Approximations for k-Median and k-Means](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.42) · [Almost-Optimal Upper and Lower Bounds for Clustering in Low Dimensional Euclidean Spaces](https://arxiv.org/abs/2603.09846) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654) · [\(k\)-Clustering via Iterative Randomized Rounding](https://arxiv.org/abs/2604.06046)
-Existing status: `source_open` · Summary written: 2026-09-16
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7282 — Vertex Cover approximation below factor two
 
@@ -1339,6 +1339,13 @@ Asymmetric TSP finds a cheapest directed Hamiltonian tour in a directed metric. 
 
 [Read in atlas](index.html#TCS-6590) · [An Improved Approximation Algorithm for the Asymmetric Traveling Salesman Problem](https://epubs.siam.org/doi/10.1137/20M1339313) · [Approximation Algorithms for Traveling Salesman Problems](https://www.or.uni-bonn.de/tspbook/book.pdf) · [On the Integrality Gap of Small Asymmetric Traveling Salesman Problems: A Polyhedral and Computational Approach](https://arxiv.org/abs/2506.10671) · [The Cloven Traveling Salesman: Cycle Covers and the Integrality Gap of Small ATSP Instances](https://arxiv.org/abs/2511.05045v2)
 Existing status: `open` · Summary written: 2026-09-12
+
+### TCS-7281 — Unconditional NP-hardness at the Goemans–Williamson Max-Cut threshold
+
+Max-Cut asks for a bipartition crossing as many edges of a graph as possible. The question asks for unconditional NP-hardness of approximation arbitrarily close to the Goemans–Williamson ratio. The requested proof must reduce every 3-SAT formula deterministically to a simple unweighted graph with a fixed satisfiable-versus-unsatisfiable gap. Matching known hardness uses Unique Games, while the checked newer cut results have different graph restrictions or objectives. A complete Lean-checked proof must establish the full reduction statement or its exact logical negation.
+
+[Read in atlas](index.html#TCS-7281) · [Optimal Inapproximability Results for MAX-CUT and Other 2-Variable CSPs?](https://www.stat.berkeley.edu/~mossel/publications/max_cut_final.pdf) · [Improved Approximation Algorithms for Maximum Cut and Satisfiability Problems Using Semidefinite Programming](https://math.mit.edu/~goemans/PAPERS/maxcut-jacm.pdf) · [Some optimal inapproximability results](https://people.kth.se/~johanh/optimalinap.pdf) · [Triangles Improve 0.878 Approximation for Maxcut](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2025.27) · [Sharp Hardness for MAX-3-CUT and Quantum MAX-CUT](https://arxiv.org/abs/2608.00333v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7356 — Optimal polynomial-time approximation ratio for metric TSP
 
@@ -1466,28 +1473,21 @@ The input lists local constraints on variables with a finite common label domain
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Online algorithms, scheduling and packing (28)
+## Online algorithms, scheduling and packing (27)
 
-### TCS-6575 — Deterministic competitiveness of k-server
+### TCS-6638 — Breaking two for unrelated-machine makespan
 
-Exactly k identical servers serve successive requests in a known metric space, paying the sum of movement distances. The target is the infimum competitive ratio uniform over all finite or infinite metrics, while each metric and initial placement may have its own online rule and fixed additive constant. A complete Lean answer must approximate this dimensionless function within absolute one hundredth for every positive server count, without assuming endpoint attainment. A September 2026 preprint claims that the work-function algorithm attains factor k on every metric with an explicit fixed additive term. Together with the classical lower bound, that claim would determine the entire function exactly; its proof remains unverified in this review.
-
-[Read in atlas](index.html#TCS-6575) · [Competitive Algorithms for Server Problems](https://www.cs.cmu.edu/~sleator/papers/server-problems.pdf) · [On the k-server conjecture](https://cgi.di.uoa.gr/~elias/papers/paper-kp95.html) · [An Optimal On-Line Algorithm for K Servers on Trees](https://epubs.siam.org/doi/10.1137/0220008) · [Deterministic 3-server on a circle and the limitation of canonical potentials](https://arxiv.org/abs/2205.08103) · [The Randomized k-Server Conjecture Is False!](https://arxiv.org/abs/2211.05753) · [Time-Optimal k-Server](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ISAAC.2025.32) · [k-server-bench: Automating Potential Discovery for the k-Server Conjecture](https://arxiv.org/abs/2604.07240) · [Randomized k-Server in Polynomial Time](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.65) · [The k-server conjecture is true](https://arxiv.org/abs/2609.15979)
-Existing status: `uncertain` · Summary written: 2026-09-16
-
-### TCS-6638 — Optimal approximation ratio for unrelated-machine makespan
-
-Each job has a separately specified processing time on every eligible machine, and a schedule assigns every job without splitting it. The target is the infimum of universal approximation ratios achieved by finite deterministic programs running in polynomial time in the full binary input length. It requires a Lean-certified value within absolute error one hundredth, with both bounds and no implicit complexity assumption. Known factor-two upper bounds and conditional three-halves hardness leave a broad gap connected to fair allocation. Machine-count savings, prediction-assisted schedules and fair-mechanism existence results retain different quantifiers or inputs and do not determine this infimum.
+Jobs have machine-dependent processing times, and every job must be assigned wholly to one eligible machine. The objective is to minimize the maximum total load on any machine. The question asks whether a uniform deterministic polynomial-time algorithm can guarantee factor \(2-\varepsilon\) for some fixed \(\varepsilon>0\). The same improvement must hold for every input machine count and processing-time matrix, however small the chosen constant is. Instance-dependent savings and guarantees for restricted machine models do not establish this universal improvement.
 
 [Read in atlas](index.html#TCS-6638) · [Approximation Algorithms for Scheduling Unrelated Parallel Machines](https://ir.cwi.nl/pub/18055) · [An Optimal Rounding Gives a Better Approximation for Scheduling Unrelated Machines](https://www.sciencedirect.com/science/article/abs/pii/S0167637704000690) · [On the Configuration-LP for Scheduling on Unrelated Machines](https://arxiv.org/abs/1011.4957) · [Santa Claus Meets Makespan and Matroids: Algorithms and Reductions](https://arxiv.org/abs/2307.08453) · [Learning-Augmented Approximation for Unrelated-Machines Makespan Scheduling](https://arxiv.org/abs/2606.13133) · [Proportionally Fair Makespan Approximation](https://arxiv.org/abs/2412.08572)
-Existing status: `source_open` · Summary written: 2026-09-15
+Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-6676 — Optimal approximation ratio for precedence-constrained makespan
+### TCS-6676 — Breaking two for precedence-constrained makespan
 
-The problem schedules an input number of positive-duration jobs on an input number of identical machines while respecting every precedence and minimizing the last completion time. Its target is the infimum universal approximation factor of uniform deterministic algorithms polynomial in the full binary input length. The accepted answer must certify that real threshold within absolute error 1/100 in Lean, allowing that the infimum is not attained. Graham’s factor-two bound survives for all inputs, while existing lower bounds keep their explicit complexity assumptions. Fixed-machine schemes, faster exact unit-job algorithms and hardness with predetermined machine assignments do not determine the stated unconditional threshold.
+The problem schedules positive-duration jobs on an input number of identical machines while respecting all precedences and minimizing the last completion time. The question asks whether a uniform deterministic polynomial-time algorithm can achieve approximation factor \(2-\varepsilon\) for some fixed \(\varepsilon>0\). Any positive constant improvement qualifies, and the same improvement must hold for all job counts, machine counts and precedence graphs. Graham's \(2-1/m\) guarantee approaches two as the machine count grows and therefore does not give the requested fixed saving. Known conditional hardness and restricted-instance algorithms do not themselves settle this unconditional existence question.
 
 [Read in atlas](index.html#TCS-6676) · [Bounds for Certain Multiprocessing Anomalies](https://doi.org/10.1002/j.1538-7305.1966.tb01709.x) · [Complexity of Scheduling under Precedence Constraints](https://doi.org/10.1287/opre.26.1.22) · [Hardness of Precedence Constrained Scheduling on Identical Machines](https://theory.epfl.ch/osven/Ola%20Svensson_publications/SICOMP11b.pdf) · [A Simpler QPTAS for Scheduling Jobs with Precedence Constraints](https://doi.org/10.4230/LIPIcs.ESA.2022.40) · [A Subexponential Time Algorithm for Makespan Scheduling of Unit Jobs with Precedence Constraints](https://arxiv.org/abs/2312.03495) · [Inapproximability of Unique-Machine Precedence Scheduling for Unit-Length Jobs](https://arxiv.org/abs/2607.26590)
-Existing status: `source_open` · Summary written: 2026-09-16
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6640 — Constant additive error for one-dimensional bin packing
 
@@ -2348,10 +2348,10 @@ Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-7331 — Constant-time deterministic dynamic dictionaries
 
-A dynamic dictionary maintains key-value records under insertion and deletion. Hashing gives constant expected operation bounds using random choices. The question asks for the same basic performance from deterministic programs. The space budget excludes a table covering the entire key universe. Either such an implementation or a general impossibility result would clarify the value of randomization.
+A dictionary stores word-sized keys and values while keys are repeatedly inserted and deleted. Every lookup must return its answer in constant worst-case time, and updates share a constant amortized budget. The question asks whether a uniform deterministic program can achieve these bounds using space linear in a fixed capacity. Randomized hashing gives the basic benchmark, while restricted deterministic lower bounds do not cover every permitted program. A solution must give a complete Lean-checked construction or impossibility proof with the specified machine and online guarantees.
 
-[Read in atlas](index.html#TCS-7331) · [Research Statement](https://people.csail.mit.edu/mip/docs/job-application07/statements.pdf)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7331) · [Research Statement](https://people.csail.mit.edu/mip/docs/job-application07/statements.pdf) · [Dynamic Perfect Hashing: Upper and Lower Bounds](https://www.cs.princeton.edu/research/techreps/15) · [Uniform deterministic dictionaries](https://pure.itu.dk/en/publications/uniform-deterministic-dictionaries/) · [Optimal Static Dictionary with Worst-Case Constant Query Time](https://arxiv.org/abs/2412.10655v2) · [Compressing Dynamic Fully Indexable Dictionaries in Word-RAM](https://arxiv.org/abs/2603.23119v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7338 — Multiphase conjecture
 
