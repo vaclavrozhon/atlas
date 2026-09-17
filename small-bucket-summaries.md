@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-577 five-sentence working summaries, based on saved source material.
+576 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -2716,7 +2716,7 @@ Mechanism implementation connects an allocation algorithm with strategic behavio
 [Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (61)
+## Algebraic computation (60)
 
 ### TCS-0007 — Matrix multiplication exponent
 
@@ -2872,6 +2872,13 @@ The input gives nonnegative real weights on every edge of a complete undirected 
 [Read in atlas](index.html#TCS-0481) · [Semirings in Databases, Automata, and Logic — Circuit Size for Reachability](https://doi.org/10.4230/DagRep.15.2.89) · [Lower Bounds for Tropical Circuits and Dynamic Programs](https://web.vu.lt/mif/s.jukna/ftp/tropical-manuscript.pdf) · [Is Bellman-Ford-Moore single source shortest paths (min,+) circuit optimal?](https://web.vu.lt/mif/s.jukna/tropical/problem-setA2.html)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-6890 — Superpolynomial noncommutative circuit lower bounds
+
+The target is some polynomial-degree family with rational coefficients and ordered noncommuting variables. One deterministic polynomial-time algorithm must compute any requested word coefficient exactly. Every polynomial size bound must fail for unrestricted arithmetic circuits over the complex numbers at arbitrarily large input lengths. Depth, sharing, intermediate degrees and complex constants are unrestricted, so formula or restricted-circuit bounds are insufficient. The answer must provide complete Lean-checked explicitness and circuit lower-bound proofs or prove the exact negation.
+
+[Read in atlas](index.html#TCS-6890) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Separating ABPs and Some Structured Formulas in the Non-Commutative Setting](https://doi.org/10.4230/LIPIcs.CCC.2021.7) · [Lower Bounds for Noncommutative Circuits with Low Syntactic Degree](https://doi.org/10.4230/LIPIcs.ITCS.2026.115) · [A Quadratic Lower Bound for Noncommutative Circuits](https://arxiv.org/abs/2604.20575v3) · [Polynomial Lower Bounds for Arithmetic Circuits over Non-Commutative Rings](https://eccc.weizmann.ac.il/report/2026/061/)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-6893 — Superpolynomial multilinear circuit lower bounds
 
 The target is a multilinear polynomial family in VNP over the complex numbers. VNP membership is specified by a bounded-degree polynomial-size circuit summed over polynomially many Boolean witness coordinates. The family must require more than every polynomial size bound for circuits whose every intermediate polynomial is multilinear. No particular family such as the permanent is prescribed, and no small unrestricted output circuits are required. The answer must include complete Lean-checked membership and lower-bound proofs or prove that all such families have polynomial-size semantic multilinear circuits.
@@ -2919,6 +2926,13 @@ Existing status: `source_open` · Summary written: 2026-09-16
 The outputs are multilinear polynomials over the complex numbers. The question asks whether polynomial-size unrestricted circuits can be superpolynomially smaller than circuits that remain multilinear at every gate. Circuits may share arbitrary intermediate computations and use arbitrary complex constants. Formula and syntactic multilinear lower bounds do not establish the requested semantic-circuit separation. The review records that a related April 2026 barrier claim was withdrawn and requires a complete Lean-checked proof of the precise comparison or its negation.
 
 [Read in atlas](index.html#TCS-6883) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Unbalancing Sets and an Almost Quadratic Lower Bound for Syntactically Multilinear Arithmetic Circuits](https://web.math.princeton.edu/~nalon/PDFS/mult2.pdf) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/) · [Withdrawal: An Unconditional Barrier for Proving Multilinear Algebraic Branching Program Lower Bounds](https://arxiv.org/abs/2604.00746v2)
+Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-6903 — Deterministic noncommutative circuit identity testing in polynomial size and degree
+
+The input is a complete circuit whose variables multiply as ordered words over the rational numbers. The algorithm must decide exactly whether every word coefficient in its output vanishes. It may use time polynomial in circuit size and a supplied bound on the actual output degree. One deterministic uniform program must handle arbitrary sharing and depth in an exact arithmetic model that also charges control work. A complete Lean-checked algorithm and running-time proof, or the logical negation, is required.
+
+[Read in atlas](index.html#TCS-6903) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [Randomized Polynomial-Time Identity Testing for Noncommutative Circuits](https://theoryofcomputing.org/articles/v015a007/) · [Matrix identities are hard: Fast blackbox PIT for noncommutative exponential-size constant-depth homogeneous circuits](https://eccc.weizmann.ac.il/report/2026/173/)
 Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0055 — Sum-of-square-roots problem
@@ -2977,6 +2991,13 @@ An addition chain starts at one and repeatedly forms a new integer by adding two
 [Read in atlas](index.html#TCS-7224) · [Algorithms](https://jeffe.cs.illinois.edu/teaching/algorithms/book/01-recursion.pdf) · [On Fast Calculation of Addition Chains for Isogeny-Based Cryptography](https://faculty.eng.fau.edu/azarderakhsh/files/2016/11/Inscrypt2016.pdf) · [Assembly theory and its relationship with computational complexity](https://doi.org/10.1038/s44260-025-00049-9) · [The Decompressed Tree Size of k-Ary Chains](https://doi.org/10.1007/s00026-026-00816-y)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-3318 — Arithmetic circuit closure under pth roots
+
+For each fixed prime p, the question compares the circuit sizes of g and its p-th power over the algebraic closure of the prime field. The desired size overhead is polynomial in the original size and number of variables, with no degree dependence. Circuits may share arbitrary intermediate computations and use arbitrary constants, but may not use root gates. The target is formal polynomial computation and existence of small circuits, not equality of finite-field functions or efficient reconstruction. A complete Lean-checked universal size bound or a counterexample to every such bound in some fixed characteristic is required.
+
+[Read in atlas](index.html#TCS-3318) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37) · [Factorization of Polynomials Given by Arithmetic Branching Programs](https://image.informatik.htw-aalen.de/~thierauf/Papers/ABP-factors.pdf) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-4523 — Polynomial-time dimension expansion over finite fields
 
 Dimension expansion measures how much a collection of linear maps enlarges every subspace of dimension at most half the ambient dimension. This card asks for exact evaluation on arbitrary matrices over an explicitly represented finite field. The desired algorithm must use polynomial time in the complete input bit length, including the field representation. The output is the minimum ratio of image-span dimension to original dimension over all eligible nonzero subspaces. Explicit constructions and spectral expansion tests remain distinct from a general exact evaluator.
@@ -3007,10 +3028,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1102 — VBP factor closure in positive characteristic
 
-Algebraic branching programs compute polynomials as sums of products associated with paths through a directed graph. The question asks whether factors of polynomial-size branching-program families retain polynomial-size representations in positive characteristic. This tests whether a determinant-like computation model survives an elementary algebraic decomposition. A construction that outputs general arithmetic circuits would not by itself preserve the restricted representation being asked about. The saved entry refers to Question 4 of a factoring survey, so the exact field assumptions and quantitative degree dependence still need to be carried into the finished formulation.
+The question asks whether taking any factor preserves polynomial-size commutative arithmetic branching programs in every fixed field of positive characteristic. A branching program sums products of affine edge labels along its source-to-sink paths. The factor must have a small program over the original field, including when its multiplicity is divisible by the characteristic. This is a nonuniform existence question and does not require an efficient factorization algorithm. A complete Lean-checked polynomial size bound or a counterexample field and superpolynomial factor-size separation is required.
 
-[Read in atlas](index.html#TCS-1102) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1102) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/) · [Factorization of Polynomials Given by Arithmetic Branching Programs](https://image.informatik.htw-aalen.de/~thierauf/Papers/ABP-factors.pdf) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0047 — Complexity of testing membership to Kronecker polytopes
 
@@ -3075,13 +3096,6 @@ An equation for VP is a nonzero polynomial that eventually vanishes on coefficie
 [Read in atlas](index.html#TCS-2958) · [If VNP Is Hard, Then so Are Equations for It](https://doi.org/10.4230/LIPIcs.STACS.2022.44) · [On the Existence of Algebraic Natural Proofs — combined full version](https://arxiv.org/abs/2004.14147) · [On the Existence of Algebraic Natural Proofs](https://doi.org/10.1007/s00037-026-00289-8)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3318 — Arithmetic circuit closure under pth roots
-
-In positive characteristic p, taking a p-th power interacts strongly with the algebraic structure of a polynomial. The source asks whether a small circuit for \(g(x)^{p}\) implies a small circuit for \(g(x)\) itself. This tests whether taking a root can uncover computational difficulty hidden by the characteristic-p power operation. A positive result would support efforts to relate algebraic hardness and derandomization in low characteristic. The excerpt leaves the quantitative size bound and field assumptions implicit, so a finished version must specify how circuit size, degree, and available constants are controlled.
-
-[Read in atlas](index.html#TCS-3318) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4350 — Uniform compressed word problem for graph groups
 
 The input gives both a graph group and a compact straight-line program representing a word in its generators. The main question is whether one deterministic algorithm can test identity in polynomial time in the combined input size. Polynomial time for each fixed graph group does not provide that uniform guarantee. Randomized one-sided polynomial-time testing is known, while NP membership is a separate weaker target. A 2024 result handles uniform power words but explicitly leaves arbitrary straight-line programs open.
@@ -3123,27 +3137,6 @@ Given finitely many integer matrices, semigroup membership asks whether a target
 
 [Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6890 — Superpolynomial noncommutative circuit lower bounds
-
-Noncommutative arithmetic circuits compute polynomials in which products retain the order of their variables. The source asks for superpolynomial circuit lower bounds in this setting. Order supplies additional structure for lower-bound arguments, but circuit reuse can still combine many ordered expressions compactly. A successful construction would identify a concrete polynomial whose difficulty survives that sharing ability. The saved note does not specify the field or target family, and its 2010 provenance means it records a historical question rather than independently establishing the status of every related restricted model today.
-
-[Read in atlas](index.html#TCS-6890) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6903 — Derandomizing noncommutative PIT
-
-Noncommutative polynomial identity testing asks whether every ordered monomial cancels in the output of a circuit. The saved question seeks a deterministic efficient procedure for this task. Ordinary scalar substitutions erase variable order, so the evaluation model must respect noncommutativity to detect the right identities. A solution would clarify how algebraic structure can replace randomness in a computational setting with genuinely ordered products. The source's access model, degree bound, and allowed evaluation domain are absent from the short note, and must be recovered before comparing an algorithm to the intended target.
-
-[Read in atlas](index.html#TCS-6903) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6914 — Multivariate polynomial factorization from PIT derandomization
-
-Multivariate polynomial factorization decomposes a polynomial into simpler multiplicative components. The saved question seeks efficient deterministic factorization and asks whether derandomizing polynomial identity testing is enough to obtain it. This probes whether the randomness used by factoring algorithms can be reduced to testing algebraic equality. A positive reduction would connect two fundamental computer-algebra tasks through a single derandomization breakthrough. The polynomial representation, coefficient field, and treatment of factor output sizes are missing from the short note, so the eventual statement must specify them instead of combining dense and circuit-based models implicitly.
-
-[Read in atlas](index.html#TCS-6914) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Lattices and computational number theory (28)
 
