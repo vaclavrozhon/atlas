@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **217**.
+Pending active reviews: **214**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -45,9 +45,6 @@ Pending active reviews: **217**.
 | [TCS-2662](../../data/cards/TCS-2662.json) | Subexponential constant-gap Max-Clique under ETH | Parameterized and exact algorithms | pool |
 | [TCS-4637](../../data/cards/TCS-4637.json) | Subexponential Planar Steiner Tree by terminal count | Parameterized and exact algorithms | pool |
 | [TCS-5374](../../data/cards/TCS-5374.json) | Degeneracy-sensitive classification of homomorphism counting | Parameterized and exact algorithms | pool |
-| [TCS-6728](../../data/cards/TCS-6728.json) | Chromatic number in \(2^{n}\) time and polynomial space | Parameterized and exact algorithms | pool |
-| [TCS-6731](../../data/cards/TCS-6731.json) | Strictness of the W-hierarchy | Parameterized and exact algorithms | pool |
-| [TCS-6749](../../data/cards/TCS-6749.json) | Deterministic polynomial kernels for Almost 2-SAT | Parameterized and exact algorithms | pool |
 | [TCS-6814](../../data/cards/TCS-6814.json) | Efficient PTAS for fixed-machine job-shop makespan | Parameterized and exact algorithms | pool |
 | [TCS-6974](../../data/cards/TCS-6974.json) | Formula-SAT below exhaustive search | Parameterized and exact algorithms | pool |
 | [TCS-7027](../../data/cards/TCS-7027.json) | Fixed-parameter tractability of Perfect Deletion | Parameterized and exact algorithms | pool |

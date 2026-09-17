@@ -262,3 +262,26 @@ Source checkpoint b96622e2 and deployment
 2dd347c99a3703f8f1fdaf641c1c3b657c1dbcb7 cover the first forty-nine
 dispositions with publication cd09bba08a3bd4155a32.
 Local publication after fifty-three is bfb4557fcc711396a6ac.
+After fifty-five dispositions the queue contains 699 completed records,
+215 pending records and one outside active scope. Of 1,012 active cards,
+797 have completed individual reviews. TCS-6728 specifies deterministic
+base-two-time chromatic number computation with polynomial space; TCS-6749
+specifies a deterministic polynomial-time, polynomial-size clause-deletion
+Almost 2-SAT kernel. Recent results for both were checked against the full
+simultaneous resource requirements. All completed hashes match and all
+857 ledger entries parse. The formula check passes on 33,699 expressions.
+Thirteen source-scope choices are pending.
+Source checkpoint c8a596e2 and deployment
+0639bedd42a7920ee5c149f9e931321a94305c94 cover the first fifty-three
+dispositions with publication bfb4557fcc711396a6ac.
+Local publication after fifty-five is 6dfe9dd8633d08522505.
+
+The fifty-sixth disposition, TCS-6731, records strictness at every positive
+adjacent level of the W-hierarchy, with explicit weighted-circuit and reduction
+definitions. Its later oracle evidence is distinguished from the unrelativized
+question. The queue is now 700 completed, 214 pending and one outside active
+scope; 798 of 1,012 active cards are reviewed. All completed hashes match,
+all 859 ledger lines parse, and the formula check passes on 33,760 expressions.
+The complete offline check passed through disposition fifty-five. The final
+source-locator correction gives publication 6563b8c237e4314a5c87.
+
