@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-577 five-sentence working summaries, based on saved source material.
+578 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -520,7 +520,7 @@ Alice and Bob must jointly compute a total Boolean function of their private inp
 [Read in atlas](index.html#TCS-5892) · [Lifting Theorems for Equality](https://doi.org/10.4230/LIPIcs.STACS.2019.50) · [Efficient Communication Using Partial Information](https://eccc.weizmann.ac.il/report/2010/083/) · [Zero-error information equals amortized communication complexity](https://arxiv.org/abs/2608.04141)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Fine-grained complexity (27)
+## Fine-grained complexity (28)
 
 ### TCS-6595 — Strong Exponential Time Hypothesis
 
@@ -647,6 +647,13 @@ Orthogonal Vectors asks whether two lists of Boolean vectors contain a pair with
 
 [Read in atlas](index.html#TCS-5422) · [Superlinear Lower Bounds Based on ETH](https://doi.org/10.4230/LIPIcs.STACS.2022.55) · [Effective Guessing Has Unlikely Consequences](https://doi.org/10.1007/s00224-023-10119-x) · [The Orthogonal Vectors Conjecture and Non-Uniform Circuit Lower Bounds](https://eccc.weizmann.ac.il/report/2024/142/) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489v1) · [Faster Algorithms for \(k\)-Orthogonal Vectors in Low Dimension](https://doi.org/10.4230/LIPIcs.ICALP.2026.85)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7270 — Linear-size Circuit-SAT below exhaustive search
+
+The input is a Boolean circuit with a linear number of gates and no depth or sharing restriction. The algorithm must decide exactly whether some input assignment makes its output true. For every fixed gate density, the target is a deterministic algorithm with a fixed positive saving in the variable exponent. The algorithm and saving may depend on that density; small-density and bounded-treewidth results do not cover the full question. A complete Lean-checked proof of the quantified algorithmic claim or its unconditional negation is required.
+
+[Read in atlas](index.html#TCS-7270) · [Beating Brute Force for (Quantified) Satisfiability of Circuits of Bounded Treewidth](https://sites.cs.ucsb.edu/~daniello/papers/boundedTreewidthCircuitSatSODA18.pdf) · [Correlation Bounds and #SAT Algorithms for Small Linear-Size Circuits](https://www2.cs.sfu.ca/~kabanets/papers/linsize-COCOON.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6949 — NC-SETH for polynomial-size, polylogarithmic-depth circuits
 
@@ -1007,7 +1014,7 @@ Given a length in unary, generate a prime with exactly that many binary digits i
 [Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Parameterized complexity and algorithms (38)
+## Parameterized complexity and algorithms (37)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1169,13 +1176,6 @@ Treewidth is the smallest maximum bag size minus one among tree decompositions o
 
 [Read in atlas](index.html#TCS-0787) · [Optimality and Tight Results in Parameterized Complexity (Dagstuhl Seminar 14451)](https://doi.org/10.4230/DagRep.4.11.1) · [An Improved Parameterized Algorithm for Treewidth](https://arxiv.org/abs/2211.07154v2) · [Treewidth Inapproximability and Tight ETH Lower Bound](https://arxiv.org/abs/2406.11628v2) · [Treewidth Inapproximability and Tight ETH Lower Bound](https://doi.org/10.1145/3833387)
 Existing status: `source_open` · Summary written: 2026-09-15
-
-### TCS-0734 — FPT Inapproximability Results Beyond Gap-ETH
-
-The seminar asks for stronger fixed-parameter inapproximability results that remain beyond known techniques even when Gap-ETH is assumed. For k-Set Cover, one target is approximation hardness of order \(\log ^{0.99}(n)\), where n is the number of elements to cover. A second target is to rule out every \(g(k)\)-factor FPT approximation for Exact k-Set Cover, whose promise is that a size-k cover consisting of disjoint sets exists. It also asks for \(o(k)\)-factor hardness of Densest k-Subgraph with perfect completeness under Gap-ETH, matching a result based on the Strongish Planted Clique Hypothesis. In particular, hardness with disjoint-cover completeness would support further reductions to coding and lattice problems.
-
-[Read in atlas](index.html#TCS-0734) · [Parameterized Approximation: Algorithms and Hardness](https://doi.org/10.4230/DagRep.13.7.96)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0801 — Directed Hamiltonicity
 
@@ -2080,17 +2080,17 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7344 — Almost-linear exact directed global minimum cut
 
-A directed global cut removes every arc leaving a chosen nonempty proper vertex set. The task is to minimize its total weight without being given source and sink terminals. The question asks for exact almost-linear computation with bounded-error randomization and polynomially bounded integer weights. Known almost-linear approximation schemes retain a precision cost that matters for exact recovery. A resolution would address the global directed-cut bottleneck beyond single-pair maximum flow.
+The input is a directed graph with positive polynomially bounded integer arc weights. The algorithm must find the cheapest outgoing cut over all nontrivial vertex partitions and output its exact value. The target is one uniform almost-linear randomized algorithm, with bounded error and a time limit on every execution. Recent almost-linear approximations pay for inverse precision, while threshold-dependent exact results retain an extra connectivity factor. A complete Lean-checked exact construction or unconditional refutation is required.
 
-[Read in atlas](index.html#TCS-7344) · [Approximating Directed Connectivity in Almost-Linear Time](https://arxiv.org/abs/2512.00176) · [Almost-Optimal Approximation Algorithms for Global Minimum Cut in Directed Graphs](https://arxiv.org/abs/2512.09080)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7344) · [Approximating Directed Connectivity in Almost-Linear Time](https://arxiv.org/abs/2512.00176v1) · [Almost-Optimal Approximation Algorithms for Global Minimum Cut in Directed Graphs](https://arxiv.org/abs/2512.09080v3) · [Incremental Directed Minimum Cut by Dynamizing Gabow’s Algorithm](https://arxiv.org/abs/2608.16382v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7345 — Almost-linear directed vertex connectivity
 
-Directed vertex connectivity measures the smallest vertex failure set destroying strong connectivity or leaving at most one vertex. The task is to output its exact value and a minimum separator in an unweighted digraph. The question asks for a bounded-error randomized algorithm with almost-linear worst-case time. The reviewed algorithms cover important density and connectivity regimes but leave a general gap. The target demands one bound valid for every directed input graph.
+The input is any simple unweighted directed graph, with no connectivity or density promise. The output is the smallest number of vertices whose removal destroys strong connectivity, together with such a set. Leaving at most one vertex is allowed, so a complete bidirected graph has value n minus one. The target is exact almost-linear randomized computation on every input; known expected and approximation bounds have additional limitations. A complete Lean-checked construction or unconditional refutation must respect the worst-case time and bounded-error guarantees.
 
-[Read in atlas](index.html#TCS-7345) · [Faster Algorithms for Global Minimum Vertex-Cut in Directed Graphs](https://arxiv.org/abs/2512.24355) · [Approximating Directed Connectivity in Almost-Linear Time](https://arxiv.org/abs/2512.00176)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7345) · [Faster Algorithms for Global Minimum Vertex-Cut in Directed Graphs](https://arxiv.org/abs/2512.24355v1) · [Approximating Directed Connectivity in Almost-Linear Time](https://arxiv.org/abs/2512.00176v1) · [Almost-Optimal Approximation Algorithms for Global Minimum Cut in Directed Graphs](https://arxiv.org/abs/2512.09080v3)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7244 — Boolean dimension of posets with planar cover graphs
 
@@ -2716,7 +2716,7 @@ Mechanism implementation connects an allocation algorithm with strategic behavio
 [Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (61)
+## Algebraic computation (62)
 
 ### TCS-0007 — Matrix multiplication exponent
 
@@ -2871,6 +2871,13 @@ A min-plus circuit computes by a fixed network of minimum and addition gates. Th
 
 [Read in atlas](index.html#TCS-0481) · [Lower Bounds for Tropical Circuits and Dynamic Programs](https://doi.org/10.1007/s00224-014-9574-4) · [Semirings in Databases, Automata, and Logic (Dagstuhl Seminar 25081)](https://doi.org/10.4230/DagRep.15.2.89) · [Supplements to Tropical Circuit Complexity](https://web.vu.lt/mif/s.jukna/tropical/comments.html)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7223 — Linear-size circuits for integer multiplication
+
+The input consists of two unsigned binary integers of the same width. The circuit must output every bit of their exact product on every input. The question is whether a constant times the input width always suffices in AND, OR and NOT gates. Known near-linear constructions and a conditional lower bound leave the unrestricted linear-size question unresolved in the checked sources. A complete Lean-checked proof of the circuit-family existence claim or its unconditional negation is required.
+
+[Read in atlas](index.html#TCS-7223) · [Computational Complexity: A Conceptual Perspective (May 2007 author draft)](https://www.wisdom.weizmann.ac.il/~oded/CC/r6.pdf) · [Mathematics of the Impossible (author manuscript)](https://www.ccs.neu.edu/home/viola/papers/moti.pdf) · [Lower Bounds for Multiplication via Network Coding](https://doi.org/10.4230/LIPIcs.ICALP.2019.10)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7269 — Optimal multilinear-formula size of the permanent
 
