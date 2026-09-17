@@ -2415,10 +2415,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7367 — Text-to-pattern Hamming distances below the square-root barrier
 
-The task compares one pattern against every possible text alignment. Every mismatch count must be returned exactly. All preprocessing and output costs are charged. The target saves a fixed power of pattern length over the square-root bound. The known counting-3SUM equivalence does not itself prove the target impossible.
+The input is an explicit text and pattern over a polynomial-size integer alphabet. The output contains the exact number of mismatches at every alignment, in order. The target improves the square-root dependence on pattern length by one fixed positive exponent. Randomness may affect running time but must never produce an incorrect terminating answer. Acceptance requires a complete Lean-checked proof or refutation in the stated uniform word-RAM model.
 
-[Read in atlas](index.html#TCS-7367) · [Faster Algorithms for Text-to-Pattern Hamming Distances](https://arxiv.org/abs/2310.13174v3)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7367) · [Faster Algorithms for Text-to-Pattern Hamming Distances](https://arxiv.org/abs/2310.13174v3) · [New Applications of 3SUM-Counting in Fine-Grained Complexity and Pattern Matching](https://arxiv.org/abs/2410.20764v1) · [Hamming Distance Oracles](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7366 — Linear-space k-mismatch text indexing
 
@@ -2436,10 +2436,10 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7374 — Almost-quadratic unweighted tree edit distance
 
-The inputs are rooted ordered trees with symbol labels. Insertion, deletion and relabelling each have unit cost. The task computes the exact minimum edit cost. The proposed bound is almost quadratic in the total number of vertices. The earlier question of obtaining any truly subcubic algorithm has already been surpassed.
+The inputs are two explicit rooted ordered trees with integer vertex labels. Unit-cost edits insert, delete or relabel individual vertices while preserving the order of surviving children. The target is the exact edit distance in almost-quadratic worst-case time using one deterministic program. Recent static and derandomization results improve the cubic bound but do not reach this target. A complete Lean-checked answer must prove or refute the proposition with the stated edit convention and quantifiers.
 
-[Read in atlas](index.html#TCS-7374) · [Deterministic Monotone Min-Plus Product and Convolution](https://arxiv.org/abs/2605.07150v2) · [Hardness of Dynamic Tree Edit Distance and Friends](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.78)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7374) · [Faster Weighted and Unweighted Tree Edit Distance and APSP Equivalence](https://arxiv.org/abs/2411.06502v3) · [Deterministic Monotone Min-Plus Product and Convolution](https://arxiv.org/abs/2605.07150v2) · [Hardness of Dynamic Tree Edit Distance and Friends](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.78) · [Faster Algorithm for Bounded Tree Edit Distance in the Low-Distance Regime](https://arxiv.org/abs/2507.02701v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6513 — Constant-factor approximation of the smallest grammar
 
@@ -2485,10 +2485,10 @@ Existing status: `uncertain` · Summary written: 2026-09-16
 
 ### TCS-7364 — Preprocessing exponent of binary jumbled indexing
 
-The text is binary and queries prescribe counts of zeroes and ones. A query asks whether any substring has exactly those counts. The index has linear word space and constant query time. The target is the best uniform deterministic preprocessing exponent. The numerical benchmark asks for a certified value to absolute accuracy one hundredth.
+A query asks whether a binary text contains a contiguous substring with two specified symbol counts. The index must use linear word space and answer every query exactly in constant worst-case time. The numerical target is the infimum of deterministic preprocessing exponents, allowing a separate program for each positive exponent slack. The 2026 construction gives an exponent upper bound of 1.5 without determining the optimal value. Acceptance requires a complete unconditional Lean-checked approximation to that exponent within 0.01.
 
-[Read in atlas](index.html#TCS-7364) · [On Hardness of Jumbled Indexing](https://arxiv.org/abs/1405.0189) · [Deterministic Monotone Min-Plus Product and Convolution](https://arxiv.org/abs/2605.07150v2)
-Existing status: `uncertain` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7364) · [On Hardness of Jumbled Indexing](https://arxiv.org/abs/1405.0189v1) · [Deterministic Monotone Min-Plus Product and Convolution](https://arxiv.org/abs/2605.07150v2) · [Binary jumbled indexing: suffix tree histogram](https://doi.org/10.1007/s10878-026-01407-6) · [Improved Time-Space Tradeoffs for 3SUM-Indexing](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.78)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7370 — Polynomial-time construction of minimum-density DNA minimizers
 
@@ -2532,12 +2532,12 @@ A straight-line grammar can describe a string exponentially longer than its own 
 [Read in atlas](index.html#TCS-0470) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Space-Efficient SLP Encoding for \(O(\log  N)\)-Time Random Access](https://doi.org/10.1007/s00224-025-10243-w) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7375 — Fully functional suffix trees in BWT-run-linear space
+### TCS-7375 — Fully functional suffix trees in BWT-run-linear total space
 
-Repetitive texts can have few runs in their Burrows–Wheeler transform. The target stores a complete suffix-tree navigation interface in space proportional to that run count. Tree nodes are represented by their intervals of descendant suffixes. All specified navigation and text-access queries must take polylogarithmic time. Run-linear pattern search alone does not meet the full interface.
+A binary text with a sentinel determines a suffix tree and a run count in its Burrows–Wheeler transform. The target stores the entire specified navigation and direct-access interface in space proportional to that run count. Every query must be exact and take polylogarithmic worst-case time after deterministic polynomial-time construction. The space budget includes the text representation and any access oracle, which distinguishes the target from recent partial-interface results. A complete Lean-checked answer must establish or refute all of these guarantees simultaneously.
 
-[Read in atlas](index.html#TCS-7375) · [Optimal-Time Text Indexing in BWT-runs Bounded Space](https://arxiv.org/abs/1705.10382) · [Non-overlapping Indexing in BWT-Runs Bounded Space](https://par.nsf.gov/servlets/purl/10539699)
-Existing status: `uncertain` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7375) · [Fully-Functional Suffix Trees and Optimal Text Searching in BWT-runs Bounded Space](https://arxiv.org/abs/1809.02792v2) · [Compressing Suffix Trees by Path Decompositions](https://doi.org/10.4230/LIPIcs.ICALP.2026.24) · [Output-Sensitive Construction of CDAWGs from BWT-Runs](https://arxiv.org/abs/2607.01636v1) · [Suffixient Arrays: A New Efficient Suffix Array Compression Technique](https://doi.org/10.1007/s00224-026-10287-6) · [Non-overlapping Indexing in BWT-Runs Bounded Space](https://doi.org/10.1007/978-3-031-43980-3_21) · [Non-overlapping indexing in BWT-runs bounded space](https://doi.org/10.1016/j.tcs.2025.115512)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0466 — Certifying Karp–Rabin fingerprints
 
@@ -2944,10 +2944,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7372 — Linear-time unit-Monge distance multiplication
 
-The input consists of two permutations encoding structured distance matrices. The output must encode their exact min-plus product. All three representations have only linear size. The question asks whether the computation can match that size in time. The current general unit-Monge bound has a logarithmic overhead.
+Two permutations implicitly encode simple unit-Monge counting matrices. Their exact min-plus product is again encoded by a unique permutation. The question asks for one deterministic algorithm taking only linear worst-case time and space. The checked sequential algorithms retain a logarithmic factor, while constant-round parallel results use a different model. A complete Lean-checked answer must prove or refute the linear-time proposition for every pair of input permutations.
 
-[Read in atlas](index.html#TCS-7372) · [Fast Distance Multiplication of Unit-Monge Matrices](https://doi.org/10.1007/s00453-013-9830-z) · [Core-Sparse Monge Matrix Multiplication: Improved Algorithm and Applications](https://arxiv.org/abs/2408.04613v2)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7372) · [Fast Distance Multiplication of Unit-Monge Matrices](https://doi.org/10.1007/s00453-013-9830-z) · [Core-Sparse Monge Matrix Multiplication: Improved Algorithm and Applications](https://arxiv.org/abs/2408.04613v2) · [An Optimal MPC Algorithm for Subunit-Monge Matrix Multiplication, with Applications to LIS](https://arxiv.org/abs/2404.13486v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7224 — Polynomial-time computation of addition-chain length
 
