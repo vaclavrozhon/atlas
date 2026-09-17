@@ -2347,10 +2347,10 @@ Existing status: `source_open` · Summary written: 2026-09-15
 
 ### TCS-7359 — Public-key quantum money from LWE alone
 
-Public-key quantum money consists of a classical serial number and a reusable quantum note. Anyone can verify with the public key, but k honest notes must not enable production of k+1 accepted notes. This card fixes the decisional LWE parameters and asks for security under that assumption alone. Existing stronger-assumption constructions and restricted black-box barriers leave this implication unsettled. A complete answer must preserve both reusable correctness and security against polynomial-size quantum adversaries.
+A public-key quantum banknote can be checked using a classical public key without contacting the bank. The same note must survive every polynomial number of verifications with that fixed key. An efficient quantum holder of k valid notes must have negligible probability of producing k+1 accepted notes. The question asks whether a fixed quantum-hard Learning with Errors assumption alone guarantees such a scheme. A complete Lean-checked answer must prove this unrestricted implication or its ordinary-model negation.
 
-[Read in atlas](index.html#TCS-7359) · [Anonymous Public-Key Quantum Money and Quantum Voting](https://arxiv.org/abs/2411.04482) · [On Quantum Money and Evasive Obfuscation](https://eprint.iacr.org/2025/325) · [A General Quantum Duality for Representations of Groups with Applications to Quantum Money, Lightning, and Fire](https://mzhandry.github.io/pubs.quantum.html)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7359) · [Anonymous Public-Key Quantum Money and Quantum Voting](https://arxiv.org/abs/2411.04482v1) · [On Quantum Money and Evasive Obfuscation](https://eprint.iacr.org/2025/325) · [A General Quantum Duality for Representations of Groups with Applications to Quantum Money, Lightning, and Fire](https://mzhandry.github.io/pubs.quantum.html) · [Public-Key Quantum Money From Standard Assumptions (In The Generic Model)](https://doliskani.net/jake/pdfs/qm_group_action.pdf) · [How to Sign Quantum Messages](https://quantum-journal.org/papers/q-2026-01-22-1980/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7276 — Average-case RSA inversion versus factoring for exponent 65537
 

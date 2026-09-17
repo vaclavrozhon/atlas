@@ -2143,17 +2143,17 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6511 — Deterministic Exact Matching
 
-Exact Matching adds a prescribed red-edge count to the ordinary perfect matching problem. Given red and blue edges, an algorithm must decide whether some perfect matching contains exactly the requested number of red edges. The target is deterministic polynomial time on general graphs. Knowing the smallest and largest achievable counts is insufficient because intermediate counts can be absent. The problem isolates how to enforce an exact combinatorial constraint while avoiding the random algebraic choices used by existing approaches.
+Exact Matching asks whether a red/blue graph has a perfect matching with exactly the requested number of red edges. The target is one deterministic polynomial-time decision algorithm for all simple undirected graphs. Knowing only the minimum and maximum red counts does not determine which intermediate counts are attainable. The recent faster general algorithm remains randomized, while a separate claimed deterministic result is restricted to bipartite graphs. A complete Lean-checked solution must establish membership in P or prove its unconditional negation.
 
 [Read in atlas](index.html#TCS-6511) · [Exact Matching: Algorithms and Related Problems](https://doi.org/10.4230/LIPIcs.STACS.2023.29) · [Matching is as easy as matrix inversion](https://doi.org/10.1145/28395.383347) · [Exact Matching in Matrix Multiplication Time](https://arxiv.org/abs/2508.04081v2) · [Bipartite Exact Matching in P](https://arxiv.org/abs/2604.01571v3)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7254 — Neumann–Lara conjecture
 
-The conjecture asks whether every oriented planar graph has a two-coloring with no monochromatic directed cycle. Arcs within a color class are allowed, so the coloring need not be proper. Loops and opposite pairs of arcs are excluded. The case without directed triangles is known, but directed triangles are allowed in the general target. The question is a directed analogue of central planar graph-decomposition principles.
+The Neumann–Lara conjecture asks for two acyclic vertex classes in every orientation of a finite simple planar graph. Arcs within a class are allowed, but every directed cycle must use both colours. Directed triangles, disconnected graphs and unrestricted vertex degrees are included. Known results without directed triangles and bounds on one large acyclic set leave the full partition question open. A complete Lean-checked solution must prove the all-graph assertion or certify a finite planar counterexample.
 
-[Read in atlas](index.html#TCS-7254) · [Partitioning planar digraphs](https://www.openproblemgarden.org/op/partitioning_planar_digraphs) · [Planar digraphs of digirth four are 2-colourable](https://arxiv.org/abs/1606.06114) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://arxiv.org/abs/2412.11774)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7254) · [The Two Color Conjecture](https://www.openproblemgarden.org/op/partitioning_planar_digraphs) · [Planar digraphs of digirth four are 2-colourable](https://arxiv.org/abs/1606.06114v1) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://doi.org/10.37236/13673) · [Feedback vertex sets in oriented graphs](https://arxiv.org/abs/2607.13895v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7180 — Graph canonization versus graph isomorphism
 
@@ -3641,10 +3641,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1020 — Polynomial-length constant-query locally decodable codes
 
-A locally decodable binary code allows recovery of any message bit from only a constant number of codeword queries. The textbook asks whether such codes can have blocklength polynomial in the message length. The decoder must tolerate corruption without scanning the entire stored representation. Polynomial length would make strong locality compatible with a much more economical redundancy cost. The saved note does not state the corruption fraction, success probability, or fixed query count, so these constants must be chosen explicitly before comparing construction and lower-bound regimes.
+A binary locally decodable code lets a decoder recover any requested message bit from a few bits of a corrupted codeword. The target is a fixed constant number of probes with a fixed positive fraction of arbitrary errors. The stored length may be any fixed polynomial in the message length, and nonlinear encodings are allowed. The question concerns existence, without an extra demand for an efficient uniform construction. A complete Lean-checked answer must establish this family or rule out all such constant-query polynomial-length families.
 
-[Read in atlas](index.html#TCS-1020) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1020) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Improved Lower Bounds for all Odd-Query Locally Decodable Codes](https://arxiv.org/abs/2411.14361v1) · [Subexponential Upper Bounds for 3-Restricted Matching Vector Families](https://eccc.weizmann.ac.il/report/2026/141/) · [Improved Subexponential Upper Bounds for 3-Restricted Matching Vector Families](https://arxiv.org/abs/2608.27859v1) · [Relaxed vs. Full Local Decodability with Few Queries: Equivalence and Separations for Linear Codes](https://arxiv.org/abs/2511.02633) · [Amortized Relaxed Locally Decodable Codes](https://arxiv.org/abs/2609.16332v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0013 — Efficient explicit constant-rate tree codes
 
@@ -4155,10 +4155,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0492 — Conjunctive-query containment under bag semantics
 
-Under bag semantics, database tuples and query answers have multiplicities rather than just presence or absence. The question asks whether containment of two conjunctive queries is decidable when their output multiplicities must be ordered on every finite bag database. Each query sums products of input multiplicities over satisfying assignments, so ordinary set-containment reasoning does not directly capture the comparison. A decision procedure would settle a basic semantic question relevant to duplicate-preserving query transformations. The saved review distinguishes progress for unions or restricted joins from the plain unrestricted conjunctive-query problem retained here.
+A conjunctive database query produces answer multiplicities by summing products of input multiplicities. Containment means that the first query never produces more copies of any answer than the second on any finite bag database. The question asks whether one total algorithm can decide this property from the two unrestricted queries alone. Restricted joins are decidable and nearby extensions are undecidable, while new equivalence results do not settle this one-sided comparison. A complete Lean-checked answer must prove a terminating exact decision procedure or unconditional undecidability.
 
-[Read in atlas](index.html#TCS-0492) · [List of open questions: Decidability of conjunctive query containment under bag semantics](https://a3nm.net/work/research/questions/#decidability-of-conjunctive-query-containment-under-bag-semantics) · [Semirings in Databases, Automata, and Logic (Dagstuhl Seminar 25081)](https://doi.org/10.4230/DagRep.15.2.89) · [Bag Semantics Conjunctive Query Containment. Four Small Steps Towards Undecidability](https://doi.org/10.1145/3651604) · [Bag Containment of Join-On-Free Queries](https://doi.org/10.4230/LIPIcs.ICDT.2025.5) · [Bag Semantics Query Containment: The CQ vs. UCQ Case and Other Stories](https://arxiv.org/abs/2503.07219v3)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0492) · [List of open questions: Decidability of conjunctive query containment under bag semantics](https://a3nm.net/work/research/questions/#decidability-of-conjunctive-query-containment-under-bag-semantics) · [Semirings in Databases, Automata, and Logic (Dagstuhl Seminar 25081)](https://doi.org/10.4230/DagRep.15.2.89) · [Bag Semantics Conjunctive Query Containment. Four Small Steps Towards Undecidability](https://doi.org/10.1145/3651604) · [Bag Containment of Join-On-Free Queries](https://doi.org/10.4230/LIPIcs.ICDT.2025.5) · [Bag Semantics Query Containment: The CQ vs. UCQ Case and Other Stories](https://arxiv.org/abs/2503.07219v3) · [Time to Move on: Querying without Nulls and Bags](https://arxiv.org/abs/2608.10863) · [Few Rows Tell Them Apart: Equivalence of Queries Mixing Set and Bag Semantics](https://arxiv.org/abs/2609.09978v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-3631 — A logic capturing logarithmic space
 

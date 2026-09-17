@@ -103,7 +103,7 @@
     if(loading)return;
     if(!force&&Date.now()-lastAttempt<60000)return;
     if(!force&&loadedAt&&Date.now()-loadedAt<300000){status(`Shared contributions checked ${new Date(loadedAt).toLocaleString('en')}.`);return;}
-    if(location.protocol==='file:'){status('Offline snapshot. Public contributions saved in this browser are shown; use the online atlas to refresh them.');return;}
+    if(location.protocol==='file:'){status('Offline snapshot. Public contributions saved in this browser are shown; use the website to refresh them.');return;}
     loading=true;lastAttempt=Date.now();$('refresh-community').disabled=true;status('Loading shared contributions…');
     const results=await Promise.allSettled([(async()=>{
       const issues=[];
