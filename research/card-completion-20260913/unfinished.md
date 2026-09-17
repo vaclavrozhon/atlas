@@ -5,12 +5,11 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **170**.
+Pending active reviews: **165**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
 | [TCS-4927](../../data/cards/TCS-4927.json) | Classification of quantum gate sets | Quantum computation | pool |
-| [TCS-0240](../../data/cards/TCS-0240.json) | Communication for algorithmic secret-key agreement | Computability and algorithmic information | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
 | [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
 | [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |
@@ -127,9 +126,6 @@ Pending active reviews: **170**.
 | [TCS-6508](../../data/cards/TCS-6508.json) | Deque conjecture | Data structures | existing_detailed_audit |
 | [TCS-6511](../../data/cards/TCS-6511.json) | Deterministic Exact Matching | Structural graph theory | existing_detailed_audit |
 | [TCS-6513](../../data/cards/TCS-6513.json) | Constant-factor approximation of the smallest grammar | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-6539](../../data/cards/TCS-6539.json) | Almost-linear triangle detection | Structural graph theory | existing_detailed_audit |
-| [TCS-6546](../../data/cards/TCS-6546.json) | One-way permutations from one-way functions | Cryptography | existing_detailed_audit |
-| [TCS-6548](../../data/cards/TCS-6548.json) | Chosen-ciphertext security from ordinary public-key encryption | Cryptography | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |
@@ -166,7 +162,6 @@ Pending active reviews: **170**.
 | [TCS-7349](../../data/cards/TCS-7349.json) | Almost-linear-work parallel exact maximum flow | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-7353](../../data/cards/TCS-7353.json) | Optimal polynomial-time approximation ratio for Euclidean k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7354](../../data/cards/TCS-7354.json) | Optimal polynomial-time approximation ratio for metric k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-7356](../../data/cards/TCS-7356.json) | Optimal polynomial-time approximation ratio for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7359](../../data/cards/TCS-7359.json) | Public-key quantum money from LWE alone | Cryptography | existing_detailed_audit |
 | [TCS-7362](../../data/cards/TCS-7362.json) | Optimal top-k document retrieval in compact space | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7364](../../data/cards/TCS-7364.json) | Preprocessing exponent of binary jumbled indexing | String algorithms and bioinformatics | existing_detailed_audit |

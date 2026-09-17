@@ -495,3 +495,35 @@ ledger and inventory changes. Other-thread completions, archives, additions
 and reader/service edits remain in the shared worktree outside this commit.
 Source checkpoint 75dbca89 and deployment
 9eb087286c2c4031a57c7f82f18658eb92dee8be cover the first ninety-five dispositions.
+
+After one hundred and five recovery dispositions, the shared queue contains
+750 completed records, 164 pending records and one outside active scope.
+This batch completes TCS-6548 (unrestricted CPA-to-CCA2 public-key encryption),
+TCS-6546 (full-domain one-way permutations from one-way functions), TCS-6539
+(an almost-linear triangle detector), TCS-7356 (the unconditional algorithmic
+metric-TSP approximation threshold), and TCS-0240 (the Hamming-family secret-key
+communication-rate curve). TCS-6539 retains uncertain status: the directly
+relevant 2025 sketching claim was examined, including a specific discrepancy
+in its repetition probability estimate, without treating that limited audit
+as a complete refutation or verification.
+
+All eighteen saved scope selections are now applied. The user explicitly
+selected TCS-0240's asymptotic communication rate in bits per input bit, with
+pointwise absolute accuracy 1/100. Its formalization makes the logarithmic
+complexity deficiency and key/secrecy losses explicit, uses worst-case
+communication, and requires success separately for every promised input pair.
+The accidental TCS-6624 paste remains withdrawn.
+
+All completed output hashes match. The ledger has 925 valid entries, including
+a title-only correction to TCS-7356's hardness reference. The offline check
+passes through disposition 105 before that reference-title correction; the
+publisher validates the corrected record. The math check passes on 35,084
+expressions across 1,010 active cards, and desktop/mobile reader checks pass
+on the corrected publication 1d0b51ccb6fd299289ac. There are 915 detailed
+publisher records; this is not the individual-completion count.
+
+Only this batch's five reviews, their authoring scripts, the scope-choice
+update and their own queue/ledger/inventory changes enter the source commit.
+Other-thread completions, archives, additions and reader/service changes
+remain in the shared worktree. Source checkpoint 50301dbd and deployment
+1aac8ce538948e9605fc75004ac46ffb6df53bc5 cover the first one hundred dispositions.
