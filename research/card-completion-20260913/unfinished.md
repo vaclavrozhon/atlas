@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **198**.
+Pending active reviews: **190**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -37,8 +37,6 @@ Pending active reviews: **198**.
 | [TCS-3958](../../data/cards/TCS-3958.json) | Pseudorandom generators for superlinear-size depth-two threshold circuits | Pseudorandomness and derandomization | pool |
 | [TCS-4778](../../data/cards/TCS-4778.json) | Derandomizing amplified relational computation | Pseudorandomness and derandomization | pool |
 | [TCS-0734](../../data/cards/TCS-0734.json) | FPT Inapproximability Results Beyond Gap-ETH | Parameterized and exact algorithms | pool |
-| [TCS-0784](../../data/cards/TCS-0784.json) | Polynomial kernels for Edge-Disjoint Paths | Parameterized and exact algorithms | pool |
-| [TCS-0801](../../data/cards/TCS-0801.json) | Directed Hamiltonicity | Parameterized and exact algorithms | pool |
 | [TCS-0597](../../data/cards/TCS-0597.json) | Parameterized coloring of H-free graphs | Parameterized and exact algorithms | pool |
 | [TCS-1945](../../data/cards/TCS-1945.json) | Parameterized Nearest Codeword hardness beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-2662](../../data/cards/TCS-2662.json) | Subexponential constant-gap Max-Clique under ETH | Parameterized and exact algorithms | pool |
@@ -69,7 +67,6 @@ Pending active reviews: **198**.
 | [TCS-7144](../../data/cards/TCS-7144.json) | Tree vertex-minors from large linear rank-width | Structural graph theory | pool |
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
 | [TCS-6928](../../data/cards/TCS-6928.json) | Linear-space representation from smallest string attractors | String algorithms and bioinformatics | pool |
-| [TCS-0571](../../data/cards/TCS-0571.json) | Positional Nash Equilibria | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
@@ -152,11 +149,7 @@ Pending active reviews: **198**.
 | [TCS-6589](../../data/cards/TCS-6589.json) | Subtour-LP integrality gap for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
-| [TCS-6619](../../data/cards/TCS-6619.json) | Exact Euclidean SVP in single-exponential time and polynomial space | Lattices and computational number theory | existing_detailed_audit |
-| [TCS-6627](../../data/cards/TCS-6627.json) | Fully dynamic near-optimal matching with polylogarithmic updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6633](../../data/cards/TCS-6633.json) | Polynomial query complexity of exact envy-free cake cutting | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
-| [TCS-6640](../../data/cards/TCS-6640.json) | Constant additive error for one-dimensional bin packing | Online algorithms | existing_detailed_audit |
-| [TCS-6645](../../data/cards/TCS-6645.json) | Constant-delay conjunctive-query classification | Database theory and finite model theory | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |
@@ -191,7 +184,6 @@ Pending active reviews: **198**.
 | [TCS-7347](../../data/cards/TCS-7347.json) | Directed unweighted APSP below \(n^{5/2}\) | Fine-grained complexity | existing_detailed_audit |
 | [TCS-7348](../../data/cards/TCS-7348.json) | Single-exponential exact cut mimicking networks | Structural graph theory | existing_detailed_audit |
 | [TCS-7349](../../data/cards/TCS-7349.json) | Almost-linear-work parallel exact maximum flow | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-7352](../../data/cards/TCS-7352.json) | Real Grothendieck constant | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-7353](../../data/cards/TCS-7353.json) | Optimal polynomial-time approximation ratio for Euclidean k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7354](../../data/cards/TCS-7354.json) | Optimal polynomial-time approximation ratio for metric k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7356](../../data/cards/TCS-7356.json) | Optimal polynomial-time approximation ratio for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |

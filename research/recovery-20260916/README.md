@@ -355,3 +355,30 @@ page checks pass through disposition seventy-two. Eighteen source-scope
 choices remain pending. Publication is 3378b2a224eba38d5536.
 Source checkpoint 085c5a3b and deployment
 bf8f5188f8c04bfca925c4b78392efb69f62d22c cover the first sixty-eight dispositions.
+
+After eighty dispositions the original queue contains 724 completed records,
+190 pending records and one outside active scope. This batch completes
+TCS-6640 (constant additive bin packing), TCS-6619 (single-exponential-time
+polynomial-space exact SVP), TCS-6627 (explicit dynamic matching),
+TCS-6645 (effective CQ classifier), TCS-0571 (pure all-reachability equilibrium)
+and TCS-0801 (the user-selected existential base below two). TCS-0784 is
+archived with its explicit NP-not-in-coNP/poly assumption and TCS-7352 as
+the known unrestricted approximation target, both at the user's request.
+
+All eighteen pending scope questions were answered explicitly and saved;
+four are applied and fourteen are selected pending application. There are
+no unanswered scope questions in further-scope-choices.json. The formula
+check passes on 34,391 expressions and desktop/mobile page checks pass
+on publication 64e25e70a007a0c209e4. The full offline check also passes
+through disposition eighty.
+
+The shared checkout also contains another thread's authorized archival of
+TCS-2470, TCS-4193 and TCS-6125, plus seven newly created TCS+ cards,
+TCS-7377 through TCS-7383. These are separate from this recovery batch.
+The two completed queue entries moved by that archive have identical
+content hashes; their working-tree output paths have been reconciled.
+The currently published 1,013 active cards and 903 detailed records are
+not the individual-completion count. All completed queue hashes match
+and all 889 ledger lines parse in the shared checkout.
+Source checkpoint 2b41f9f6 and deployment
+7428909a44ba25f43873eb5b43a69a9dfc3572d4 cover the first seventy-two dispositions.
