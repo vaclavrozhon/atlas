@@ -3,7 +3,8 @@
 The user selected Vadhan Open Problem 7.13: linear seed in the underlying
 OWF input length, retaining distinguishing security s*(epsilon/m)^O(1).
 This is not the consolidated 2024 black-box seed-exponent question.
-The card remains claimed and pending; no completion has been applied.
+The user’s parameter-dependence choice has been applied and the card was
+completed on 17 September 2026 by complete_quantitative_prg.py.
 
 Read published Vadhan 2012 PDF, definitions 7.1, 7.3, 7.7, 7.9 and 7.10,
 Theorem 7.11 and discussion pp. 220–222, Open Problem 7.13 p. 222.
@@ -29,23 +30,25 @@ Read the 2024 Luca memorial column pp. 8–10, authored section on PRGs
 and OWFs, Open Problems 1–2. It discusses separate black-box query and
 seed exponents, with then-known exponent interval [1,3]. Regular OWF
 constructions have additional structural assumptions. Cache luca2024.txt.
-The complete regular-function 2024 Journal of Cryptology paper has NOT
-yet been read: https://link.springer.com/article/10.1007/s00145-024-09507-4.
-Search found no general quantitative linear-seed resolution but coverage
-needs further focused primary checks before completion.
+The publisher's full HTML introduction, comparison table and §1.1 of the
+2024 Journal of Cryptology article were subsequently read. Its nonadaptive
+construction has quadratic seed and a regularity assumption. The local ePrint
+PDF request returned HTTP 403; no unread local theorem is claimed.
 
-A new asynchronous secondary scope question was sent: may G depend on
-the target parameters s and epsilon, or must one G for f,m satisfy the
-whole security curve simultaneously? The former is recommended and closer
-to the pointwise (t,epsilon) construction request; no answer yet. The
-original selected target is retained regardless. The question and state
-are persisted in further-scope-choices.json.
+The user explicitly selected a construction allowed to depend on s and epsilon.
+The final finite-input formulation uses a supplied circuit of size ell^b for
+any fixed exponent b, one uniform compiler for that exponent, linear seed,
+and time polynomial in the output length. Construction constants may depend
+on b, but not the particular circuit or target parameters. Security is against
+nonuniform circuits, with inversion success at most one half and distinguishing
+size floor(s / (K*(m/epsilon)^q)). The output length exceeds the linear seed
+threshold. Dyadic errors and s <= 2^(2*ell) cover the positive-time asymptotic
+regime; outside that hardness range an inverse-selection lookup circuit exists.
+The model does not impose a black-box restriction or the stronger requirement
+that one generator satisfy all parameter pairs simultaneously.
 
-When formalizing, still resolve input representation and full explicitness:
-f is efficiently evaluable and length preserving; its description may be
-used without imposing a black-box construction restriction. Count the full
-description and precision of security/error parameters. Do not replace
-polynomial output-time by polynomial 1/epsilon-time without explanation,
-and do not require stretch for impossible output lengths below the allowed
-linear seed threshold. Do not add the stronger simultaneous-parameter
-condition without the user's selection.
+Also read the primary ECCC abstract and revision history of Mazor–Pass,
+Counting Unpredictable Bits, TR23-143 revision 3 of 17 July 2024. It reports
+logarithmic-factor efficiency improvements, not the selected linear-seed
+quantitative result. Bounded primary checks through 17 September 2026 found
+no verified resolution. These status checks do not certify all cited proofs.

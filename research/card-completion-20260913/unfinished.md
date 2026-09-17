@@ -5,13 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **180**.
+Pending active reviews: **175**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-6692](../../data/cards/TCS-6692.json) | Linear-seed pseudorandom generators from one-way functions | Cryptography | pool |
-| [TCS-6871](../../data/cards/TCS-6871.json) | Fully homomorphic encryption from worst-case hardness | Cryptography | pool |
-| [TCS-4734](../../data/cards/TCS-4734.json) | Locality-preserving quantum gap amplification | Quantum computation | pool |
 | [TCS-4927](../../data/cards/TCS-4927.json) | Classification of quantum gate sets | Quantum computation | pool |
 | [TCS-0240](../../data/cards/TCS-0240.json) | Communication for algorithmic secret-key agreement | Computability and algorithmic information | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
@@ -133,13 +130,11 @@ Pending active reviews: **180**.
 | [TCS-6539](../../data/cards/TCS-6539.json) | Almost-linear triangle detection | Structural graph theory | existing_detailed_audit |
 | [TCS-6546](../../data/cards/TCS-6546.json) | One-way permutations from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6548](../../data/cards/TCS-6548.json) | Chosen-ciphertext security from ordinary public-key encryption | Cryptography | existing_detailed_audit |
-| [TCS-6551](../../data/cards/TCS-6551.json) | Unleveled fully homomorphic encryption from LWE alone | Cryptography | existing_detailed_audit |
 | [TCS-6552](../../data/cards/TCS-6552.json) | Noninteractive zero knowledge from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6581](../../data/cards/TCS-6581.json) | Mansour’s conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
 | [TCS-6589](../../data/cards/TCS-6589.json) | Subtour-LP integrality gap for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
-| [TCS-6633](../../data/cards/TCS-6633.json) | Polynomial query complexity of exact envy-free cake cutting | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |

@@ -438,3 +438,37 @@ count. Another thread's TCS-7376 completion, three archive moves, seven new
 cards and reader changes remain outside this recovery source checkpoint.
 Source checkpoint 507b2e25 and deployment
 247733db639299d95849daf7cde03cbe1009445f cover the first eighty-five dispositions.
+
+After ninety-five dispositions, the shared queue contains 740 completed records,
+174 pending records and one outside active scope. This batch completes
+TCS-6871 (the selected sole GapSVP foundation with a quantum reduction),
+TCS-4734 (one locality-preserving amplification step with constant output
+local dimension), TCS-6692 (the selected quantitative linear-seed PRG,
+permitted to depend on security and error), TCS-6633 (polynomial worst-case
+queries for exact complete envy-free cake cutting), and TCS-6551 (classical
+unleveled FHE from the retained ordinary polynomial-modulus LWE assumption).
+
+All three follow-up choices have been explicitly answered and saved.
+Seventeen of the eighteen scope selections are applied. TCS-0240 retains
+Hamming-distance pairs of nearly maximal complexity and maximal-length keys;
+its further precision choice is pending, between a normalized asymptotic rate
+within 1/100 and a finite-length communication cost within O(log n).
+The accidental pasted TCS-6624 request was withdrawn by the user and did not
+trigger a new mathematical review.
+
+Other work archived TCS-5706 and TCS-7235 and adjusted only contextual
+comparisons and related links in TCS-6624 and TCS-7220. Their queue paths
+and hashes have been reconciled in the shared checkout, with explicit ledger
+entries and no change to their mathematical targets. These changes, the
+previous other-thread archive moves, TCS-7376 completion, seven new cards
+and reader/service changes remain outside this recovery source commit.
+Shared-file staging starts from HEAD and applies only this batch's five
+individual completion records; the worktree keeps the other threads' entries.
+
+All completed output hashes match and all 914 ledger lines parse. The full
+offline check passes through disposition ninety-three. The formula check
+passes on all 1,010 active cards and 34,899 expressions, and desktop/mobile
+reader checks pass through disposition ninety-five. Local publication is
+f4d4fc0c178879215cbd. The publisher's 914 detailed records are not the original
+queue's individual-completion count. Source checkpoint 97ead183 and deployment
+8e0ef1f07264cbaf12b2f8a2e84f20f91a77e3a6 cover the first ninety dispositions.
