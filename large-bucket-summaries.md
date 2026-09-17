@@ -1429,10 +1429,10 @@ Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-7376 — Polylogarithmic-space streaming Euclidean MST estimation
 
-Points arrive one at a time in Euclidean space, and the goal is to estimate the cost of connecting them by a minimum spanning tree. The algorithm gets one insertion-only pass and may keep only memory polynomial in the dimension and the logarithmic input parameters. It should return a constant-factor estimate with probability at least two thirds for every input order. The cited paper leaves a gap between its sublinear-space constant-factor result and this smaller memory budget. The question asks how compactly one can summarize global geometric connectivity, without requiring the summary to output the tree itself.
+Points arrive one at a time in Euclidean space, and the goal is to estimate the total cost of their minimum spanning tree. The algorithm gets one insertion-only pass and memory polynomial in the dimension and logarithmic input parameters. It must return a constant-factor estimate with probability at least two thirds for every fixed stream order. Known results obtain a growing approximation with polylogarithmic space or a constant approximation with a positive polynomial space exponent. Either a qualifying algorithm or an unconditional proof that no such algorithm exists would settle the question.
 
-[Read in atlas](index.html#TCS-7376) · [Community proposal: Streaming Euclidean MST to constant factor in space polylogarithmic in the number of points](https://github.com/vaclavrozhon/atlas/issues/2) · [Streaming Euclidean MST to a Constant Factor](https://doi.org/10.1145/3564246.3585168)
-Existing status: `source_open` · Summary written: 2026-09-14
+[Read in atlas](index.html#TCS-7376) · [Community proposal: Streaming Euclidean MST to constant factor in space polylogarithmic in the number of points](https://github.com/vaclavrozhon/atlas/issues/2) · [Streaming Euclidean MST to a Constant Factor](https://doi.org/10.1145/3564246.3585168) · [New Streaming Algorithms for High Dimensional EMD and MST](https://arxiv.org/abs/2111.03528)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0984 — Optimal measurements and near-linear decoding for universal ℓ₂/ℓ₁ sparse recovery
 
@@ -2676,6 +2676,13 @@ The question asks whether every problem with two unentangled quantum proofs can 
 [Read in atlas](index.html#TCS-0861) · [Is QMA(2) in BQEXP?](https://tcsopenproblems.com/problem/9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimisation](https://arxiv.org/abs/1001.0017) · [On the Pure Quantum Polynomial Hierarchy and Quantified Hamiltonian Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.103) · [The Power of Unentanglement Without Destructive Interference](https://arxiv.org/abs/2604.27886)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-5202 — Universal quantum stability of seeded extractors with output-linear error loss
+
+The question asks whether every classical seeded extractor remains secure against arbitrary finite-dimensional quantum side information with a universal quantitative loss. The selected target increases required min-entropy to C times the sum of k and log base two of one over epsilon, and allows trace-distance error at most C times m times the square root of epsilon. One constant must work for every extractor and all parameters, without a bound on the adversary’s computation or storage dimension. The seed is averaged out in the general formulation; if retained as part of a strong extractor’s output, its bits count toward the output length m. Specific quantum-proof constructions and known parameter-preserving counterexamples do not settle this claim, which requires a complete Lean-checked proof or refutation.
+
+[Read in atlas](index.html#TCS-5202) · [Quantum-Proof Multi-Source Randomness Extractors in the Markov Model](https://doi.org/10.4230/LIPIcs.TQC.2016.2) · [Quantum-proof randomness extractors via operator space theory](https://arxiv.org/abs/1409.3563v3) · [Cryptomite: A versatile and user-friendly library of randomness extractors](https://arxiv.org/abs/2402.09481v3)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-4715 — Succinct entangled proofs with efficient provers
 
 The question asks a classical verifier to check a quantum circuit’s acceptance using two separated quantum provers. Both the questions and answers together must use only polylogarithmically many bits in the circuit description length. Honest provers must prepare and execute their shared strategy efficiently from polynomially many copies of a valid quantum witness. Cheating provers may use arbitrary finite-dimensional entanglement and unlimited computation, but cannot communicate while answering. Known succinct computational arguments and entangled proofs without efficient honest preparation do not supply all of these requirements.
@@ -2801,10 +2808,3 @@ Two quantum players must win every copy of a fixed game repeated independently b
 
 [Read in atlas](index.html#TCS-5077) · [A Parallel Repetition Theorem for All Entangled Games](https://doi.org/10.4230/LIPIcs.ICALP.2016.77) · [Exponential Parallel Repetition for All Two-Player Entangled Games](https://cdn.openai.com/pdf/ten-proofs-oai.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-12
-
-### TCS-5202 — Quantum security of general seeded extractors
-
-Randomness extractors turn weakly random inputs into nearly uniform bits, often for use as cryptographic keys. Their guarantees must account for information an adversary already holds about the input. The selected passage asks whether general seeded extractors with multiple output bits remain secure against quantum side information with suitable parameter losses. The source contrasts this with more established one-bit guarantees and with specific multibit constructions already known to be quantum-proof. Resolving the general question would determine how freely classical extractor designs can be reused when an adversary stores quantum information.
-
-[Read in atlas](index.html#TCS-5202) · [Quantum-Proof Multi-Source Randomness Extractors in the Markov Model](https://doi.org/10.4230/LIPIcs.TQC.2016.2)
-Existing status: `uncertain` · Summary written: 2026-09-11

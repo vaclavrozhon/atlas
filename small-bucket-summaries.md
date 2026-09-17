@@ -450,12 +450,12 @@ A depth-two Boolean circuit computes a linear transformation using shared middle
 [Read in atlas](index.html#TCS-1059) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Block Rigidity: Strong Multiplayer Parallel Repetition implies Super-Linear Lower Bounds for Turing Machines](https://eccc.weizmann.ac.il/report/2020/173/) · [Efficient Linearization Implies the Multiphase Conjecture](https://eccc.weizmann.ac.il/report/2022/122/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0540 — Communication Complexity of Max-Flow
+### TCS-0540 — Near-linear communication for exact maximum flow with local outputs
 
-Maximum flow measures how much a network can send between terminals under capacity and conservation constraints. The saved question studies its communication complexity. When different parts of the graph are held separately, computing the answer may require exchanging substantial structural information. A lower bound or efficient protocol could illuminate barriers relevant to distributed and dynamic graph computation. The inherited label does not define the partition of the input, number of parties, or exactness requirement, so it cannot support a particular communication bound.
+Alice and Bob hold disjoint parts of a directed graph and want an exact maximum flow between public terminals. For every fixed polynomial bound on integer capacities, the target is a protocol using n times a fixed power of log n communicated bits. Each party outputs the flow only on its own edges, using free local computation and storage, with joint success probability at least two thirds. The bit bound is worst-case over inputs and randomness, while the number of interactive rounds is unrestricted. The checked recent protocols use roughly n to the three-halves power bits; a complete Lean-checked near-linear protocol or refutation is required.
 
-[Read in atlas](index.html#TCS-0540) · [Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0540) · [Communication Complexity of Max-Flow, in Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45) · [A Subquadratic Two-Party Communication Protocol for Minimum Cost Flow](https://arxiv.org/abs/2510.03427v1) · [Computing Flows in Subquadratic Space](https://doi.org/10.4230/LIPIcs.ICALP.2026.46)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0053 — Sign-representation
 
@@ -641,6 +641,20 @@ Orthogonal Vectors asks whether two lists of Boolean vectors contain a pair with
 [Read in atlas](index.html#TCS-5422) · [Superlinear Lower Bounds Based on ETH](https://doi.org/10.4230/LIPIcs.STACS.2022.55) · [Effective Guessing Has Unlikely Consequences](https://doi.org/10.1007/s00224-023-10119-x) · [The Orthogonal Vectors Conjecture and Non-Uniform Circuit Lower Bounds](https://eccc.weizmann.ac.il/report/2024/142/) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489v1) · [Faster Algorithms for \(k\)-Orthogonal Vectors in Low Dimension](https://doi.org/10.4230/LIPIcs.ICALP.2026.85)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6949 — NC-SETH for polynomial-size, polylogarithmic-depth circuits
+
+NC-SETH concerns satisfiability of bounded-fan-in circuits of polynomial size and polylogarithmic depth. For each fixed proposed exponential saving, the hypothesis requires some fixed size/depth exponent for which that saving is impossible. Algorithms are uniform within each fixed class, use the stated logarithmic-word RAM model and may err with probability at most one third on each input. A refutation needs one saving that works across every fixed class, though the algorithms and polynomial factors may vary with the class. A complete Lean-checked proof or refutation is required; arbitrary-depth and linear-depth circuit hypotheses are distinct targets.
+
+[Read in atlas](index.html#TCS-6949) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Simulating Branching Programs with Edit Distance and Friends or: A Polylog Shaved is a Lower Bound Made](https://arxiv.org/abs/1511.06022v1) · [Circuits and Backdoors: Five Shades of the SETH](https://arxiv.org/abs/2407.09683v2)
+Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-6942 — Does logarithmic-dimension OV hardness imply Hitting Set hardness?
+
+The question asks whether logarithmic-dimension Orthogonal Vectors hardness implies the corresponding Hitting Set hardness. Both hypotheses forbid one fixed subquadratic exponent saving that works across every fixed logarithmic dimension constant. Different uniform algorithms may be used for different constants, with bounded error on each input and worst-case running time. The equivalent algorithmic direction is from a general fast Hitting Set family to a general fast Orthogonal Vectors family, possibly losing some exponent saving. A complete Lean-checked answer must prove or refute the logical implication; conditional barriers to particular reductions do not settle it.
+
+[Read in atlas](index.html#TCS-6942) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Nondeterministic Extensions of the Strong Exponential Time Hypothesis and Consequences for Non-reducibility](https://people.csail.mit.edu/virgi/6.1420/papers/nseth.pdf) · [Complexity Framework for Forbidden Subgraphs I: The Framework](https://link.springer.com/article/10.1007/s00453-024-01289-2)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-6945 — Exact-Weight k-Clique hypothesis
 
 The input is a simple graph with signed integer weights on its edges. The decision is whether exactly k vertices form a clique whose edge weights sum to zero. For every fixed k, the hypothesis excludes a randomized algorithm with a fixed positive improvement over the enumeration exponent. Weights have magnitude at most n to the power 100k, and time is measured on a uniform logarithmic-word RAM. The hypothesis supports conditional clique-listing lower bounds and remains distinct from ordinary unweighted clique detection.
@@ -683,25 +697,11 @@ Subgraph isomorphism has general algorithms whose exponent depends on the patter
 [Read in atlas](index.html#TCS-6025) · [Current Algorithms for Detecting Subgraphs of Bounded Treewidth Are Probably Optimal](https://doi.org/10.4230/LIPIcs.ICALP.2021.40)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6942 — Hitting Set hardness from Orthogonal Vectors
-
-Orthogonal Vectors searches for a disjoint pair across two set families, while Hitting Set asks for one set intersecting every set in the other family. The source asks whether the former hypothesis implies the latter. Their different quantifier patterns make the connection subtler than complementing one pairwise intersection test. An implication would reduce the number of independent assumptions needed for fine-grained lower bounds. The saved question must be interpreted with matching universe dimensions, randomized guarantees, and exponent conventions, since a reduction losing too much time would not transfer the hypothesized barrier.
-
-[Read in atlas](index.html#TCS-6942) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6946 — Fine-grained relationship between APSP and 3SUM
 
 All-pairs shortest paths and 3SUM are central hypotheses for different families of fine-grained lower bounds. The source asks for a clearer relationship between their computational difficulties. One concerns many path minima, while the other searches for one exact arithmetic relation among three inputs. A suitable reduction could transfer a fixed exponent saving and consolidate barriers now supported by separate assumptions. The saved formulation leaves the direction and resource-preservation target open, so a complete question must select the integer or real model and the precise runtime implication sought.
 
 [Read in atlas](index.html#TCS-6946) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6949 — Exhaustive-search lower bounds for Circuit-SAT
-
-Circuit-SAT asks whether a Boolean circuit outputs one on some assignment to its n inputs. The source proposes near-exhaustive-search hardness for richer representations, especially polynomial-size circuits of polylogarithmic depth. These circuits can express computations more compactly than bounded-width CNF formulas. A hypothesis at this representation level can support stronger or differently structured fine-grained reductions. The saved note does not list every circuit class or algorithmic randomness convention, so the conjecture should not be conflated with ordinary SETH or treated as one identical statement across all succinct representations.
-
-[Read in atlas](index.html#TCS-6949) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6950 — Disjunction of SETH, APSP and 3SUM hypotheses
@@ -923,12 +923,12 @@ A restricted-isometry matrix approximately preserves the Euclidean lengths of al
 [Read in atlas](index.html#TCS-0987) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1008 — Bipartite vertex expanders with constant expansion loss
+### TCS-1008 — Fully explicit bipartite vertex expanders with constant additive loss
 
-A bipartite vertex expander sends every sufficiently small set of left vertices to many distinct right neighbors. The textbook asks for explicit balanced constructions with expansion \(D- O(1)\), where D is the degree. This means only a constant amount of expansion is lost relative to the maximum D neighbors per vertex. Such graphs provide highly efficient spreading and sampling structures from bounded local connectivity. The saved note omits the range of sets that must expand and the explicitness requirement, so these must be restored before the additive-loss target becomes a complete construction specification.
+The target is a balanced bipartite graph family in which every sufficiently small left set has at least D minus C times as many distinct right neighbors. One universal additive loss C must work for arbitrarily large fixed degrees D, while the positive density of expanding sets may depend on D. For each fixed degree, one deterministic algorithm must compute each numbered neighbor in time polynomial in the bit length of the vertex labels. The user selected an infinite effective family of unbounded sizes, without requiring every size or a dense size sequence. The checked recent multiplicative-loss constructions do not settle this target, which requires a complete Lean-checked construction or refutation.
 
-[Read in atlas](index.html#TCS-1008) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1008) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Explicit Lossless Vertex Expanders](https://arxiv.org/abs/2504.15087v1) · [Two-Sided Lossless Expanders in the Unbalanced Setting](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.34)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1013 — Optimal-size highly unbalanced lossless expanders
 
