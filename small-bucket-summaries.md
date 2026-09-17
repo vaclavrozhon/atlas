@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-605 five-sentence working summaries, based on saved source material.
+604 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -124,12 +124,12 @@ Algorithmic secret-key agreement studies parties holding correlated strings who 
 [Read in atlas](index.html#TCS-0240) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0279 — Extraction of mutual information about two strings
+### TCS-0279 — Random-oracle invariance of fully extractable common information
 
-Two strings can share algorithmic information even when that information is not visibly stored as a common substring. The source asks about extracting mutual information into an appropriate explicit object. The challenge is to construct a description that captures the shared part while respecting the source's complexity guarantees. An answer would clarify whether numerical mutual information has an operational interpretation for individual finite data. The saved entry does not specify the extractor's access, allowed communication, or complexity losses, so the exact extraction goal must be recovered before proposing a construction or impossibility claim.
+Two words have fully extractable common information when a word containing almost all their mutual information has short descriptions from either one. The premise allows such an extraction for at least two thirds of independent infinite fair random oracles. The question is whether an extraction must then exist without any oracle, with losses still logarithmic in the input lengths. Oracle-dependent witnesses may vary and use arbitrarily many oracle positions, so finite auxiliary-word results do not directly supply the required bound. A complete Lean-checked proof or refutation must respect the uniform loss constants; a recent broader profile claim has not been verified to settle this statement.
 
-[Read in atlas](index.html#TCS-0279) · [Computability, Complexity and Randomness](https://doi.org/10.4230/DagRep.2.1.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0279) · [Extraction of mutual information about two strings, in Computability, Complexity and Randomness](https://doi.org/10.4230/DagRep.2.1.19) · [Stability of Properties of Kolmogorov Complexity under Relativization](https://www.lirmm.fr/~romashchen/ps/itp2010.pdf) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Extracting Common Information: Solutions to Q7, Q8, and Q9 of the 27 Open Problems](https://doi.org/10.2139/ssrn.7251558)
+Existing status: `uncertain` · Summary written: 2026-09-17
 
 ## Proof complexity (26)
 
@@ -315,7 +315,7 @@ The input is a CNF formula and a proof-length budget written in unary. The algor
 [Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1) · [Regular resolution effectively simulates resolution](https://doi.org/10.1016/j.ipl.2024.106489) · [Automating Resolution is NP-Hard](https://arxiv.org/abs/1904.02991) · [The Proof Analysis Problem](https://arxiv.org/abs/2506.16956)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Communication complexity and Boolean function analysis (30)
+## Communication complexity and Boolean function analysis (29)
 
 ### TCS-6603 — Log-rank conjecture
 
@@ -457,19 +457,12 @@ Alice and Bob hold disjoint parts of a directed graph and want an exact maximum 
 [Read in atlas](index.html#TCS-0540) · [Communication Complexity of Max-Flow, in Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45) · [A Subquadratic Two-Party Communication Protocol for Minimum Cost Flow](https://arxiv.org/abs/2510.03427v1) · [Computing Flows in Subquadratic Space](https://doi.org/10.4230/LIPIcs.ICALP.2026.46)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-0053 — Sign-representation
+### TCS-0218 — Optimal one-bit cryptogenography success for every number of players
 
-A polynomial sign-represents a Boolean function when its positive and negative values give the function's outputs on the discrete input domain. The source considers sequences of integer polynomials containing only polynomially many monomials. It asks whether the same functions can always be represented while retaining that sparsity and also controlling the degrees. Sparse representation alone permits individual monomials with very large exponents. Understanding the relationship would clarify whether degree is an independent source of power in polynomial threshold descriptions or can be bounded without losing their compactness.
+One uniformly chosen player knows a uniformly random secret bit and the group can communicate only in public. The players succeed when their public output is correct and an optimal observer accuses someone other than the original owner. The target is the best achievable success probability as a function of every number of players from two onward. Private randomness and arbitrarily long finite interaction are allowed, without computational secrecy or a private channel. A complete Lean-checked approximation within one hundredth is required at every player count, even though existing bounds already meet that precision for two players alone.
 
-[Read in atlas](index.html#TCS-0053) · [Complexity of Symbolic and Numerical Problems](https://doi.org/10.4230/DagRep.5.6.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0218 — Cryptogenography
-
-Cryptogenography studies communication in which someone wants to convey hidden information while concealing who originally knew it. The competing objectives are successful transmission and maintaining uncertainty about the informed participant. The saved entry points to an open problem in this model but does not retain its numerical or asymptotic target. This setting connects distributed protocols with anonymity through a precise adversarial inference task. A completed version must recover the number of participants, initial information distribution, observer powers, and success criterion, since changing any of these can alter the optimal protocol and the meaning of a bound.
-
-[Read in atlas](index.html#TCS-0218) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:79)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0218) · [Problem 79: Cryptogenography](https://sublinear.info/79) · [Cryptogenography](https://doi.org/10.1145/2554797.2554800) · [Improved Protocols and Hardness Results for the Two-Player Cryptogenography Problem](https://doi.org/10.4230/LIPIcs.ICALP.2016.150) · [Searching for Cryptogenography Upper Bounds via Sum of Square Programming](https://doi.org/10.4230/LIPIcs.ISAAC.2019.31)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0811 — Large zero rectangles in low-rank real matrices
 

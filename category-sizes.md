@@ -18,7 +18,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | large 10 | Quantum computation and information | 5 | 25 | 50 | 52 |
 | small 1 | Computability and algorithmic information theory | 2 | 10 | 20 | 18 |
 | small 2 | Proof complexity | 2 | 10 | 20 | 26 |
-| small 3 | Communication complexity and Boolean function analysis | 2 | 10 | 20 | 30 |
+| small 3 | Communication complexity and Boolean function analysis | 2 | 10 | 20 | 29 |
 | small 4 | Fine-grained complexity | 2 | 10 | 20 | 28 |
 | small 5 | Pseudorandomness and derandomization | 2 | 10 | 20 | 42 |
 | small 6 | Parameterized complexity and algorithms | 2 | 10 | 20 | 39 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 21 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 2 |
 
-Candidate pool: 1013. Inactive records: 6369 (excluded from active work).
+Candidate pool: 1012. Inactive records: 6370 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

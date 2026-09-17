@@ -2676,6 +2676,13 @@ The question asks whether every problem with two unentangled quantum proofs can 
 [Read in atlas](index.html#TCS-0861) · [Is QMA(2) in BQEXP?](https://tcsopenproblems.com/problem/9) · [Testing Product States, Quantum Merlin-Arthur Games and Tensor Optimisation](https://arxiv.org/abs/1001.0017) · [On the Pure Quantum Polynomial Hierarchy and Quantified Hamiltonian Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2026.103) · [The Power of Unentanglement Without Destructive Interference](https://arxiv.org/abs/2604.27886)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-4991 — Polynomially many EPR pairs for bounded-error Boolean communication
+
+The target is to replace arbitrary prior entanglement in a Boolean quantum communication protocol by polynomially many perfect EPR pairs. One universal polynomial in the input length must work for all functions and promises, with only a constant factor more qubit communication. The selected constant-error convention allows error to increase from one quarter to one third on every promised input. Both parties may change the entire protocol and interact freely, while local computation and storage remain unbounded. Known EPR-type universality and later restricted-model separations do not settle this amount bound; a complete Lean-checked proof or refutation is required.
+
+[Read in atlas](index.html#TCS-4991) · [Universality of EPR Pairs in Entanglement-Assisted Communication Complexity, and the Communication Cost of State Conversion](https://doi.org/10.4230/LIPIcs.CCC.2019.20) · [Trade-Offs Between Entanglement and Communication](https://doi.org/10.4230/LIPIcs.CCC.2023.25) · [Maximum Separation of Quantum Communication Complexity With and Without Shared Entanglement](https://arxiv.org/abs/2505.16457v3) · [Non-local games and communication complexity with noisy entanglement](https://arxiv.org/abs/2609.05122v1)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-5202 — Universal quantum stability of seeded extractors with output-linear error loss
 
 The question asks whether every classical seeded extractor remains secure against arbitrary finite-dimensional quantum side information with a universal quantitative loss. The selected target increases required min-entropy to C times the sum of k and log base two of one over epsilon, and allows trace-distance error at most C times m times the square root of epsilon. One constant must work for every extractor and all parameters, without a bound on the adversary’s computation or storage dimension. The seed is averaged out in the general formulation; if retained as part of a strong extractor’s output, its bits count toward the output length m. Specific quantum-proof constructions and known parameter-preserving counterexamples do not settle this claim, which requires a complete Lean-checked proof or refutation.
@@ -2689,6 +2696,13 @@ The question asks a classical verifier to check a quantum circuit’s acceptance
 
 [Read in atlas](index.html#TCS-4715) · [Succinct Arguments for QMA from Standard Assumptions via Compiled Nonlocal Games](https://doi.org/10.1109/FOCS61266.2024.00078) · [The status of the quantum PCP conjecture (games version)](https://arxiv.org/abs/2403.13084) · [Succinct Perfect Zero-knowledge for MIP*](https://arxiv.org/abs/2503.04517v2) · [A Modular Approach to Succinct Arguments for QMA](https://arxiv.org/abs/2606.10408v1)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-2707 — Zero-free quantum partition functions with a tensor-product perturbation
+
+The input describes local quantum interactions together with one global tensor product of one-site operators. The task is to approximate the trace of the exponential after adding that product inside the exponent. The only analytic promise is that this partition function has no zeros in a fixed complex disk extending beyond the target temperature. The requested deterministic classical algorithm must achieve every relative accuracy in polynomial bit time for fixed local parameters. The known theorem treats a different position of the tensorized operator, and a complete Lean-checked proof or refutation of this extension is required.
+
+[Read in atlas](index.html#TCS-2707) · [Polynomial-Time Approximation of Zero-Free Partition Functions](https://doi.org/10.4230/LIPIcs.ICALP.2022.108) · [Algorithmic Cluster Expansions for Quantum Problems](https://doi.org/10.1103/PRXQuantum.5.010305)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6447 — Strong quantum IOPs with polynomial communication
 
@@ -2760,13 +2774,6 @@ The question asks whether every quantum-verifiable problem has a short classical
 [Read in atlas](index.html#TCS-1324) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15) · [The status of the quantum PCP conjecture (games version)](https://arxiv.org/abs/2403.13084v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-2707 — Quantum partition functions from zero-freeness
-
-A quantum partition function aggregates contributions from a Hamiltonian describing the system's interactions. The source asks for a polynomial-time approximation algorithm assuming only the relevant zero-freeness condition. Zero-freeness supports analytic approximation methods, but quantum interaction terms need not commute with one another. Extending the guarantee to this setting would clarify how far analytic information alone can support efficient partition-function computation. The saved passage explicitly identifies noncommutativity as the obstacle, while leaving the precise zero-free region and Hamiltonian access assumptions to the cited paper.
-
-[Read in atlas](index.html#TCS-2707) · [Polynomial-Time Approximation of Zero-Free Partition Functions](https://doi.org/10.4230/LIPIcs.ICALP.2022.108)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3275 — Completeness and soundness amplification in StoqMA
 
 A StoqMA verifier uses classical reversible gates, special initial ancillas and one final measurement in the plus/minus basis. It accepts a suitable nonnegative quantum witness on yes instances and must reject arbitrary witnesses with the prescribed soundness bound on no instances. The question asks whether every inverse-polynomial gap can be amplified to completeness exponentially close to one and soundness exponentially close to one half. Soundness-only repetition is known, but it does not provide this simultaneous improvement. A published theorem makes full error reduction equivalent to StoqMA=MA, and July 2026 work still states the general problem as open.
@@ -2793,13 +2800,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A classification of reversible classical gates describes which transformations become possible when a gate set is composed repeatedly. The source uses that completed classical picture to motivate an analogous classification for quantum gates. The quantum question is whether known nonuniversal families, such as stabilizer operations and basis-preserving constructions, account for all relevant possibilities. Additional discrete families or intermediate computational behavior could make the quantum landscape substantially richer. A full classification would organize quantum gate resources by the computations they enable and identify exactly where universality appears.
 
 [Read in atlas](index.html#TCS-4927) · [The Classification of Reversible Bit Operations](https://doi.org/10.4230/LIPIcs.ITCS.2017.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4991 — Reducing shared entanglement in communication protocols
-
-Entanglement-assisted communication protocols may begin with a large shared quantum state that does not count toward their communication cost. This project asks for a quantum analogue of reducing shared randomness in classical communication. The central issue is whether the amount of prior entanglement can be reduced while allowing the protocol itself to change and preserving comparable communication and error. Limitations on replacing the shared state inside a fixed protocol do not settle that more flexible question. A positive result would bound a currently separate resource and make comparisons between entanglement-assisted protocols more informative.
-
-[Read in atlas](index.html#TCS-4991) · [Universality of EPR Pairs in Entanglement-Assisted Communication Complexity, and the Communication Cost of State Conversion](https://doi.org/10.4230/LIPIcs.CCC.2019.20)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5077 — Exponential repetition of two-player entangled games
