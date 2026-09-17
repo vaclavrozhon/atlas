@@ -1,0 +1,74 @@
+"""Complete the inherited leading-exponent algebraic graph-clique hypothesis."""
+import json,sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-6597';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Retained the inherited leading-coefficient liminf formulation, rather than silently strengthening it to an exact exponent assertion at every fixed clique size.',
+ 'Specified fixed-k uniform randomized decision algorithms, pointwise success probability two thirds, worst-case time on every random tape, and logarithmic word size with explicitly listed operations.',
+ 'Separated the characteristic-zero arithmetic matrix exponent from the classical word-RAM graph model; algebraic names the benchmark, not a restriction on admissible graph algorithms.',
+ 'Defined both exponent infima and the order of limits explicitly; their infima need not be attained by a single best algorithm.',
+ 'Checked the source hypothesis, residue-class qualifications of the grouping bound, logarithmic combinatorial improvements, and the August 2026 matrix-exponent announcement.',
+ 'Preserved importance score 95, removed construction details from the context, and required a complete Lean-checked proof or refutation of the exact proposition.',
+]
+sources=[
+ 'Read Das–Lincoln–Lynch–Munro, Dynamic Boolean Formula Evaluation, ISAAC 2021 Article 61, §2.1 Definition 2 p. 61:3. It states n^{omega*k/3-o(k)} hardness for randomized or deterministic algorithms; Definition 3 is a separate informal combinatorial restriction.',
+ 'Read Fischer–Künnemann–Redžić–Stieß, The Role of Regularity in (Hyper-)Clique Detection, ICALP 2025 Article 78, §1.1 and footnotes 1–2 (full-preprint pp. 2–3): the square-matrix exponent expression applies directly when k is divisible by three; rectangular exponents refine other k. Theorem 1.1 is an exponent-preserving regularization result, not an unconditional hardness proof.',
+ 'Read Abboud–Fischer–Shechter, arXiv:2401.13502v2 of 3 August 2024, Introduction and Theorem 1/Corollary 1: graph detection improvements are logarithmic, while hypergraph detection and listing are distinct tasks. The v2 revision clarifies prior hypergraph work rather than announcing a new leading graph exponent.',
+ 'Read Dupont and coauthors, arXiv:2608.16884v1, submitted 17 August 2026, primary abstract and revision metadata. It reports omega < 2.371177. The optimization certificate was not replayed; the card compares with the mathematical exponent, not that reported decimal.',
+ f'Bounded primary-source searches through {DATE} found continued conditional uses of graph clique hardness, including the stronger fixed-k version in ICALP 2026 Article 94 Hypothesis 13, but no verified resolution of this retained leading-coefficient target.',
+]
+complete(identifier,dict(
+ criterion='tightness',question_type='yes_no',
+ formal=r'''For each fixed integer \(k\ge3\), let \(\tau(k)\) be the infimum worst-case time exponent for uniform classical randomized algorithms deciding whether an \(n\)-vertex graph contains a \(k\)-clique, in the word-RAM model defined below. Let \(\omega\) be the arithmetic matrix-multiplication exponent over \(\mathbb C\). Is
+\[
+ \liminf_{k\to\infty}\frac{\tau(k)}{k}=\frac{\omega}{3}?
+\]
+The input size \(n\) tends to infinity with \(k\) fixed when defining \(\tau(k)\); only afterwards does \(k\) grow in the displayed limit inferior.''',
+ definitions=r'''A graph is simple and undirected, with vertex set \(\{1,\ldots,n\}\), \(n\ge k\), and an explicitly given symmetric Boolean adjacency matrix with zero diagonal. Its \(n^2\) entries are stored in row order, one per word, together with \(n\). A \(k\)-clique is a set of \(k\) distinct vertices with all pairs adjacent. The algorithm outputs a YES or NO bit; it is not asked to list or count cliques.
+
+For fixed \(k\), call a real \(a\ge0\) admissible if there exist a finite uniform randomized program, an integer word-size constant \(B\ge3\), real \(C>0\) and integer \(N\ge k\), such that for every graph on \(n\ge N\) vertices every execution takes at most \(Cn^a\) instructions and the answer is correct with probability at least \(2/3\). The program must also terminate and meet the same probability guarantee on each valid smaller input. Constants and program may depend on \(k\) and \(a\), but not on \(n\) or the graph. Define
+\[
+ \tau(k)=\inf\{a\ge0:a\text{ is admissible for }k\}.
+\]
+Exhaustive enumeration makes this set nonempty. Its infimum need not itself be achieved. There is no requirement for an efficient compiler taking \(k\) to its program; uniformity here means one program handling every \(n\) for each fixed \(k\).
+
+At size \(n\), words contain \(w=B\lceil\log_2(n+2)\rceil\) bits. One instruction may read or write a word at a word-sized address, copy a word, perform addition, subtraction or multiplication modulo \(2^w\), divide two unsigned words with nonzero divisor and return quotient or remainder, apply a bitwise Boolean operation, shift a word, compare two unsigned words, or branch. Logical shifts discard bits beyond the word; a shift by at least \(w\) returns zero. A fresh independent uniform \(w\)-bit word may also be obtained in one instruction. All other memory is initially zero, and every preprocessing operation is charged. No nonuniform advice, free table depending on \(n\), arbitrary-precision unit-cost arithmetic or external oracle is allowed. The constant \(B\) may be chosen with the algorithm so that its polynomially many addressed cells fit in a word. The time bound holds on every random tape, not only in expectation, while success probability is over that tape on each fixed graph.
+
+To define \(\omega\), for each integer \(N\ge1\) let \(M(N)\) be the smallest number of binary addition, subtraction and multiplication gates in an arithmetic circuit over \(\mathbb C\) that computes every entry of the product of two formal \(N\)-by-\(N\) matrices. The \(2N^2\) entries of those matrices are independent indeterminates. Circuits may share intermediate results and use arbitrary complex constants, but not division or branching; they must compute the required polynomial identities exactly. Put
+\[
+ \omega=\inf\{a\ge0:\exists C>0\ \exists N_0\ \forall N\ge N_0,
+                       \ M(N)\le CN^a\}.
+\]
+This is the characteristic-zero arithmetic exponent, not a particular currently published numerical upper bound. The complex constants used to define it are not free constants or arithmetic oracles supplied to the word-RAM graph algorithm.
+
+For a real sequence \(u_k\), its limit inferior is \(\sup_K\inf_{k\ge K}u_k\). Thus the question concerns the leading coefficient of clique size in the optimal exponent. The standard matrix-multiplication benchmark gives the upper asymptotic coefficient \(\omega/3\); the hypothesis asserts the matching lower coefficient. The inherited leading-exponent formulation does not separately assert the precise optimum for each small fixed \(k\). Nor does it invoke an informal restriction to algorithms described as combinatorial: all classical algorithms in the specified machine model are included.''',
+ answer_criterion=r'''Give a complete Lean-checked proof of the displayed equality or a complete Lean-checked proof of its negation, with exactly the models and order of limits defined above.
+
+In view of the matrix-multiplication upper benchmark, an affirmative result must establish that for every real \(\delta>0\) there is \(K\) such that \(\tau(k)\ge(\omega/3-\delta)k\) for every integer \(k\ge K\). A negative result can establish one fixed positive saving \(\delta\) for arbitrarily large clique sizes, with proved algorithms and resource bounds, so that the limit inferior is strictly smaller than \(\omega/3\).
+
+An improvement confined to a single fixed \(k\), logarithmic factors in \(n\), or an additive \(o(k)\) saving in the exponent does not by itself refute this formulation. Beating an outdated numerical upper bound on \(\omega\) is also insufficient. Lower bounds only for a restricted algorithm family, or only conditional on an additional unproved hypothesis, do not prove the unrestricted proposition. This is an exact yes-or-no hypothesis about exponents; numerical accuracy within \(1/100\) is not a substitute for the equality or its negation.''',
+ source_formulation=dict(text='The inherited ISAAC source states graph k-clique hardness with exponent omega*k/3 minus a sublinear term in k, allowing randomized and deterministic algorithms. This card retains the corresponding leading-coefficient formulation and makes its machine conventions and quantifier order explicit. Stronger versions that assert the exact exponent for every fixed k are separate.',caption='Paraphrase of Das–Lincoln–Lynch–Munro, ISAAC 2021 §2.1 Definition 2, p. 61:3; characteristic-zero exponent and fixed-k word-RAM conventions retained from the existing card.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Dynamic Boolean Formula Evaluation','Rathish Das; Andrea Lincoln; Jayson Lynch; J. Ian Munro',2021,'https://doi.org/10.4230/LIPIcs.ISAAC.2021.61','ISAAC 2021 Article 61; §2.1 Definition 2 p. 61:3, leading-exponent randomized/deterministic clique hypothesis; Definition 3 is the separate combinatorial variant'),
+ ref('regularity','The Role of Regularity in (Hyper-)Clique Detection and Implications for Optimizing Boolean CSPs','Nick Fischer; Marvin Künnemann; Mirza Redžić; Julian Stieß',2025,'https://doi.org/10.4230/LIPIcs.ICALP.2025.78','ICALP 2025 Article 78; §1.1 footnotes 1–2, divisibility and rectangular-multiplication qualification; Theorem 1.1, exponent-preserving regularization'),
+ ref('combinatorial','Faster Combinatorial k-Clique Algorithms','Amir Abboud; Nick Fischer; Yarin Shechter',2024,'https://arxiv.org/abs/2401.13502v2','Version 2, 3 August 2024; Introduction and Theorem 1/Corollary 1, logarithmic graph-detection improvements; separate hypergraph and listing results'),
+ ref('matrix','Improving the matrix multiplication exponent with modern optimization and AlphaEvolve','Emilien Dupont; Marvin Eisenberger; Borislav Kozlovskii; Abbas Mehrabian; Francisco J. R. Ruiz; Abigail See; Renfei Zhou; Josh Alman; Virginia Vassilevska Williams; Matej Balog',2026,'https://arxiv.org/abs/2608.16884v1','Version 1, 17 August 2026; primary abstract reports omega < 2.371177; numerical optimization certificate not replayed'),
+ ],
+ context_blocks=[
+ block('The hypothesis concerns the exponent of a polynomial-time problem for each fixed clique size. Ordinary NP-hardness when the clique size varies with the input does not give the requested sharp leading coefficient.'),
+ block('Matrix multiplication supplies the asymptotic benchmark. Divisibility by three and rectangular refinements affect individual clique sizes, so the source’s leading-coefficient target should not be silently replaced by a stronger statement for every small size.','regularity'),
+ block('The 2024 graph-detection improvements save logarithmic factors. Those do not change the leading coefficient tested here; its hypergraph and clique-listing results concern different tasks.','combinatorial'),
+ block(r'The August 2026 preprint reports \(\omega<2.371177\). Such progress improves the matrix-based upper benchmark but does not prove its optimality for clique decision. The target uses the true exponent, with no numerical estimate substituted.','matrix'),
+ block('The source applies clique hardness to dynamic Boolean-formula problems. A precise form of the assumption therefore matters beyond clique detection itself. Conditional applications and exponent-preserving reductions are not unconditional proofs of the hypothesis.'),
+ ],
+ progress=[progress('2021','The source explicitly states the leading-exponent clique hypothesis with randomized and deterministic algorithms.'),progress('2024-08-03','The revised combinatorial-algorithms paper records logarithmic graph-detection improvements.','combinatorial'),progress('2025','Regularization reductions preserve the relevant clique and hyperclique exponents.','regularity'),progress('2026-08-17','A matrix-multiplication preprint reports a smaller numerical upper bound, without resolving clique optimality.','matrix')],
+),notes,sources,'The checked sources and 2026 conditional applications continue to use clique hardness as a hypothesis. Logarithmic combinatorial improvements, regularization reductions and the August 2026 matrix-exponent announcement do not resolve this leading-coefficient formulation. Bounded primary-source checks through 17 September 2026 found no verified proof or refutation; the numerical matrix certificate was not independently replayed.',summary=[
+ 'For each fixed clique size, the task is to decide whether an arbitrary graph contains that many pairwise adjacent vertices.',
+ 'The hypothesis compares the leading coefficient of the optimal randomized time exponent with one third of the true matrix-multiplication exponent.',
+ 'The graph algorithm uses logarithmic-size words, and its time bound must hold on every random tape.',
+ 'The graph size tends to infinity first, while the clique size is fixed; the outer limit then considers growing clique sizes.',
+ 'A complete Lean-checked proof or refutation must address that full asymptotic comparison, rather than only logarithmic savings or one fixed clique size.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])

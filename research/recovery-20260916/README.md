@@ -472,3 +472,26 @@ reader checks pass through disposition ninety-five. Local publication is
 f4d4fc0c178879215cbd. The publisher's 914 detailed records are not the original
 queue's individual-completion count. Source checkpoint 97ead183 and deployment
 8e0ef1f07264cbaf12b2f8a2e84f20f91a77e3a6 cover the first ninety dispositions.
+
+After one hundred recovery dispositions, the shared queue contains 745 completed
+records, 169 pending records and one outside active scope. The five new reviews
+are TCS-6589 (the universal metric-TSP subtour-LP integrality gap within 1/100),
+TCS-6597 (the asymptotic clique exponent relative to the matrix-multiplication
+exponent), TCS-6581 (the strong Mansour Fourier-concentration conjecture),
+TCS-6608 (exact decidability of unconditional entropy inequalities), and
+TCS-6552 (reusable adaptive NIZK arguments from ordinary one-way functions).
+The distinction between unrestricted targets and restricted, conditional or
+reverse-direction results is recorded in each individual review. Their existing
+importance assessments are preserved. TCS-0240's communication-precision choice
+remains pending; all previously answered scope choices remain saved.
+
+All completed output hashes match and all 919 ledger lines parse. The full
+offline check, formula check on 34,943 expressions and desktop/mobile reader
+checks pass through disposition one hundred. The local publication is
+3ca070208168265cfaa2, containing 1,010 active cards and 914 detailed publisher
+records; these publisher totals are not individual completion counts.
+The source commit stages only this batch's five card reviews and their queue,
+ledger and inventory changes. Other-thread completions, archives, additions
+and reader/service edits remain in the shared worktree outside this commit.
+Source checkpoint 75dbca89 and deployment
+9eb087286c2c4031a57c7f82f18658eb92dee8be cover the first ninety-five dispositions.

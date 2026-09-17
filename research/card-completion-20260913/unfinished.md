@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **175**.
+Pending active reviews: **170**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -130,11 +130,6 @@ Pending active reviews: **175**.
 | [TCS-6539](../../data/cards/TCS-6539.json) | Almost-linear triangle detection | Structural graph theory | existing_detailed_audit |
 | [TCS-6546](../../data/cards/TCS-6546.json) | One-way permutations from one-way functions | Cryptography | existing_detailed_audit |
 | [TCS-6548](../../data/cards/TCS-6548.json) | Chosen-ciphertext security from ordinary public-key encryption | Cryptography | existing_detailed_audit |
-| [TCS-6552](../../data/cards/TCS-6552.json) | Noninteractive zero knowledge from one-way functions | Cryptography | existing_detailed_audit |
-| [TCS-6581](../../data/cards/TCS-6581.json) | Mansour’s conjecture | Communication complexity and Boolean function analysis | existing_detailed_audit |
-| [TCS-6589](../../data/cards/TCS-6589.json) | Subtour-LP integrality gap for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
-| [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |
