@@ -638,3 +638,30 @@ Only these five reviews, their authoring scripts and their own queue, ledger
 and inventory changes enter the source commit. Other-thread work remains
 in the shared worktree. Source checkpoint fbbe2c81 and deployment
 c8ec014f72f94baaffbfefc1b9d154de5cd763fc cover the first 120 dispositions.
+
+After one hundred and thirty recovery dispositions, the shared queue contains
+775 completed records, 139 pending records and one outside active scope.
+This batch completes TCS-7371 (almost-linear constant-factor LCS), TCS-7332
+(logarithmic Las Vegas dynamic connectivity), TCS-7343 (deterministic
+almost-linear vertex connectivity), TCS-7353 (the unrestricted Euclidean
+k-means approximation constant), and TCS-7347 (directed unweighted APSP
+with a fixed exponent improvement below five-halves).
+
+The reviews preserve the distinction between one almost-linear algorithm and
+a family with fixed exponent slack, expected amortized updates and expected
+worst-case updates, and exact deterministic connectivity and parameterized
+or randomized bounds. The k-means card retains determination of the full
+constant; the July improvement is not automatically promoted to a new barrier.
+The APSP card retains any fixed positive exponent saving and records the
+assumptions of the 2026 equivalences separately.
+
+The five output hashes match their queue records; the shared ledger has 952
+valid entries. Other-thread hash changes remain outside this batch. The
+offline check passes through disposition 130, the math check passes on 35,567
+expressions across 1,007 active cards, and desktop/mobile reader checks pass
+on publication 3043f344400fa1c17c97. The publisher has 913 detailed records.
+
+Only these five reviews, their authoring scripts and their own queue, ledger
+and inventory changes enter the source commit. Other-thread work remains
+in the shared worktree. Source checkpoint 32e231f4 and deployment
+8fe0f1182fd94153d40e6e924a5b62ed0275657d cover the first 125 dispositions.

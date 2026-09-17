@@ -1,0 +1,65 @@
+"""Complete fixed exponent improvement for exact directed unweighted APSP."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-7347';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Preserved the unconditional binary question for any fixed positive exponent saving below n^(5/2), without an arbitrary minimum saving.',
+ 'Specified exact joint correctness of the full output matrix, diagonal zero, unreachable-pair encoding and charged output cost.',
+ 'Expanded uniform word-RAM quantifiers and the worst-case bound on all random executions.',
+ 'Distinguished the five-halves barrier from currently proved matrix-multiplication-dependent running times and from polylogarithmic savings.',
+ 'Checked the 2026 strong-APSP implication separately from the full equivalence requiring two additional assumptions.',
+ 'Removed an unrelated background textbook reference, preserved importance 91 and category, and required complete Lean verification.',
+]
+sources=[
+ 'Read Chan–Vassilevska Williams–Xu, arXiv:2102.06181v1, 11 February 2021: abstract, Introduction pp. 1–3 and Theorems 1.1–1.2. The directed unweighted barrier is n^(5/2) even in the omega=2 world; the precise current-time equivalence uses a rectangular multiplication parameter. This does not state an unconditional n^(5/2) upper bound. Only v1 was listed as of the review date.',
+ 'Read Fischer, arXiv:2603.27736v1, 29 March 2026, STOC 2026: Introduction, Hypotheses 1.1–1.6, Theorem 1.7 p. 3, Hypothesis 1.12 and Theorem 1.13 p. 5, and machine model Section 2.5 p. 15. Theorem 1.7 excludes a fixed sub-n^(5/2) exponent conditionally on the Strong APSP Hypothesis. The full three-way equivalence additionally uses omega=2 and the stated polynomial sum-order-preserving hashing assumption. The machine model permits randomized algorithms. Only v1 was listed on the review date.',
+ 'Read the primary abstract and history of Gupta–Shandilya, arXiv:2607.18714v1, 21 July 2026. Its nearly quadratic result is a factor-two approximation on undirected unweighted graphs for pairs above a constant distance threshold, not exact directed all-pairs distances. No full proof audit of that preprint is claimed.',
+ f'Bounded primary-source searches through {DATE} found no verified unconditional algorithm or impossibility proof for the stated fixed exponent improvement. Faster single-source algorithms, undirected algorithms and approximate distances were not counted as resolutions.',
+]
+complete(identifier,dict(
+ title=r'Directed unweighted APSP below \(n^{5/2}\)',criterion='resources',question_type='yes_no',
+ formal=r'''Do there exist real constants \(0<\varepsilon<1/2\) and \(K>0\), an integer \(d\ge4\), and one uniform classical randomized word-RAM algorithm \(A\) such that, for every explicitly given unweighted directed graph \(G\) on \([n]\), \(n\ge2\), every execution uses at most
+\[
+ K n^{5/2-\varepsilon}
+\]
+instructions, outputs an explicit \(n\times n\) matrix \(D\), and satisfies
+\[
+ \Pr\bigl[\forall u,v\in[n],\ D[u,v]=\operatorname{dist}_G(u,v)\bigr]\ge\frac23?
+\]
+The machine has word length \(w=d\lceil\log_2(n+2)\rceil\); distances, unreachable pairs and all charged costs use the conventions below. The claim has no matrix-multiplication or other computational hypothesis.''',
+ definitions=r'''The input contains an explicit list of all \(n\) labelled vertices and \(m\) ordered arcs, with length headers. There are no loops and no repeated arc for the same ordered pair, but both opposite arcs may occur. Each arc has length one. No connectivity, acyclicity, density or degree promise is given. The representation occupies \(\Theta(n+m)\) words, and its complete processing cost counts.
+
+A directed path follows arcs in their specified direction. The distance \(\operatorname{dist}_G(u,v)\) is the minimum number of arcs in such a path from \(u\) to \(v\). The empty path gives distance zero on the diagonal. When no path exists the distance is \(\infty\). Every finite distance is in \(\{0,\ldots,n-1\}\); the output encodes \(\infty\) by the distinguished word value \(n\). The output is the entire array, one word per ordered pair. Producing paths themselves is not required. An implicit oracle, a compressed distance representation or a matrix product left unevaluated is not the requested output.
+
+For each fixed input, the probability concerns simultaneous correctness of all \(n^2\) entries, not a separate success guarantee for one preselected pair. Randomness is internal to the algorithm and is independent of the input. Even an unsuccessful execution must halt within the displayed time bound and output a matrix in the specified format. Expected running time alone is insufficient.
+
+The uniform sequential word RAM is one finite program with unsigned \(w\)-bit words and addresses, no advice, no external oracle and no free precomputed table. Its unit-cost instructions are reads, writes, copies, comparisons, branching, Boolean operations, logical shifts, addition, subtraction and multiplication modulo \(2^w\), and integer quotient and remainder with nonzero divisor. Shifts by at least \(w\) return zero. Multiword calculations pay for their constituent instructions. Generating an independent uniform random word costs one step. All initialization, input accesses, preprocessing, table construction, auxiliary computation and output writes are charged.
+
+The same \(A,\varepsilon,K,d\) must work for every input size and graph. The exponent saving is a fixed positive real constant, with no prescribed minimum such as \(1/100\). A bound of \(n^{5/2}/\log^b n\) for fixed \(b\), or a saving in the exponent that tends to zero with \(n\), does not by itself imply the displayed target. Neither the statement \(\omega=2\) about the matrix-multiplication exponent nor any hardness or additive-combinatorics conjecture is assumed.''',
+ answer_criterion=r'''Give a complete Lean-checked proof that the stated constants and algorithm exist, or a complete Lean-checked proof of their logical nonexistence with the same input, machine and error model.
+
+A positive answer must establish exact simultaneous distances and a fixed exponent improvement for all directed unweighted graphs. A faster undirected algorithm, an approximation, a single-source result or an algorithm conditional on an unproved hypothesis does not establish the proposition. A lower bound conditional on an APSP hypothesis or limited to a restricted algorithmic technique does not prove the unconditional negative answer. No numerical approximation tolerance applies.''',
+ source_formulation=dict(text='Chan, Vassilevska Williams and Xu identify the five-halves exponent as a bottleneck for directed unweighted APSP even if matrix multiplication had exponent two. This card asks whether some fixed improvement below that barrier is possible unconditionally, with bounded-error randomization and explicit output.',caption='Paraphrase of the 2021 paper’s abstract and Introduction pp. 1–3, with the fixed-barrier algorithmic question made explicit.',citation='primary',format='editorial_paraphrase'),
+ why='Determine whether direction alone enforces a central exponent barrier for exact distances when every edge has unit length. The target concerns all algorithms and an explicit matrix, making it a basic test of fine-grained graph complexity.',
+ references=[
+ ref('primary','Algorithms, Reductions and Equivalences for Small Weight Variants of All-Pairs Shortest Paths','Timothy M. Chan; Virginia Vassilevska Williams; Yinzhan Xu',2021,'https://arxiv.org/abs/2102.06181v1','11 February 2021; Introduction pp. 1–3, Theorems 1.1–1.2 and the five-halves bottleneck'),
+ ref('universe','Universe Reduction for APSP: Equivalence of Three Fine-Grained Hypotheses','Nick Fischer',2026,'https://arxiv.org/abs/2603.27736v1','29 March 2026; Theorem 1.7 p. 3, Hypothesis 1.12 and Theorem 1.13 p. 5, machine model Section 2.5 p. 15'),
+ ],
+ context_blocks=[
+ block('The task asks for exact distances for every ordered pair. Merely knowing which vertices are reachable discards the path-length information, and reversing arc directions can change the answer.'),
+ block(r'The established directed bounds depend on rectangular matrix multiplication and meet an \(n^{5/2}\) barrier even when \(\omega=2\). This explains the selected threshold; it is not a claim that an unconditional \(O(n^{5/2})\) algorithm is already known.'),
+ block('The 2021 reductions connect directed unweighted distances to rectangular min-plus matrix products with bounded integer entries. These are equivalences between computational problems, not unconditional lower bounds.'),
+ block('Fischer’s 2026 Theorem 1.7 shows that a fixed exponent improvement below five-halves would refute the Strong APSP Hypothesis. The conclusion retains that hardness assumption.','universe'),
+ block('The full 2026 equivalence among ordinary, strong and directed unweighted APSP hypotheses additionally uses matrix-multiplication exponent two and a polynomial sum-order-preserving hashing assumption. Those conditions are absent from this card’s algorithmic target.','universe'),
+ ],
+ progress=[progress('2021-02-11','Fine-grained equivalences relate the directed unweighted problem to rectangular small-integer min-plus products.'),progress('2026-03-29','A strong-APSP conditional lower bound reaches the five-halves threshold; a broader equivalence has additional assumptions.','universe')],
+),notes,sources,'The 2026 primary paper still treats the target through fine-grained hypotheses and explicitly distinguishes conditional implications from algorithms. Bounded primary-source checks through 17 September 2026 found no verified unconditional fixed exponent improvement or impossibility proof. Recent undirected approximate-distance results have a different target; complete cited proofs were not independently audited.',summary=[
+ 'Every arc of the input directed graph has length one.',
+ 'The required output gives the exact distance for every ordered pair, including unreachable pairs.',
+ 'The target is any fixed positive saving in the exponent below five-halves.',
+ 'The algorithm may use randomness, but its full matrix must be jointly correct with probability at least two thirds.',
+ 'A complete Lean-checked answer must be unconditional; the recent APSP equivalences retain their stated assumptions.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
