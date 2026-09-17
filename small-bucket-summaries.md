@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-604 five-sentence working summaries, based on saved source material.
+602 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -2323,7 +2323,7 @@ A quasi-order is well-quasi-ordered when every infinite sequence contains an ear
 [Read in atlas](index.html#TCS-7145) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Data structures (18)
+## Data structures (17)
 
 ### TCS-6498 — Dynamic optimality conjecture
 
@@ -2393,13 +2393,6 @@ Existing status: `uncertain` · Summary written: 2026-09-13
 A family of sets is stored before the queries arrive. Each query names two stored sets and asks whether their intersection is empty. The conjecture says that retained space times squared query time cannot beat the squared total input size by more than polylogarithmic factors. Known upper bounds attain that tradeoff, while recent work still uses its lower-bound direction as an assumption. Preprocessing time is unrestricted and remains a separate resource from retained storage.
 
 [Read in atlas](index.html#TCS-7334) · [Conditional Lower Bounds for Space/Time Tradeoffs](https://arxiv.org/abs/1706.05847) · [On the Hardness of Set Disjointness and Set Intersection with Bounded Universe](https://doi.org/10.4230/LIPIcs.ISAAC.2019.7) · [Towards Optimal Set-Disjointness and Set-Intersection Data Structures](https://doi.org/10.4230/LIPIcs.ICALP.2020.74) · [Acyclic Join Sampling Under Selections: Dichotomy, Union Sampling, and Enumeration](https://doi.org/10.4230/LIPIcs.ICDT.2026.9)
-Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-5706 — Unified bound for binary search trees
-
-The unified bound makes an access inexpensive when its key is close in rank to a recently accessed key. This card uses the 2024 elapsed-access definition and asks for a single deterministic online binary search tree. The target is total cost within a constant factor of that bound plus one initialization allowance. The fixed program uses a constant number of logarithmic-bit fields and registers, and all local computation is charged. The checked 2024 and 2026 sources retain the BST question, while the older cache-splay claim and the newer heap result do not provide a verified resolution in this model.
-
-[Read in atlas](index.html#TCS-5706) · [The Group Access Bounds for Binary Search Trees](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.38) · [Combining Binary Search Trees](https://erikdemaine.org/papers/ComboBST_ICALP2013/) · [In pursuit of the dynamic optimality conjecture](https://arxiv.org/abs/1306.0207v1) · [Achieving the Unified Bound in the BST Model](https://www.diag.uniroma1.it/~demetres/events/ads11/abstracts/index.shtml) · [Sorting under Partial Information with Optimal Preprocessing Time via Unified Bound Heaps](https://arxiv.org/abs/2604.12653v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-5825 — Superconstant word-RAM time for prefix-\(U_1\)
@@ -2558,7 +2551,7 @@ The data structure maintains exact distances from a fixed source while weighted 
 [Read in atlas](index.html#TCS-5209) · [Deterministic Partially Dynamic Single Source Shortest Paths in Weighted Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2017.44) · [Deterministic Partially Dynamic Single Source Shortest Paths in Weighted Graphs — full version](https://arxiv.org/abs/1705.10097) · [Dynamic Approximate Shortest Paths and Beyond: Subquadratic and Worst-Case Update Time](https://arxiv.org/abs/1909.10850) · [Deterministic Fully Dynamic SSSP and More](https://doi.org/10.1109/FOCS57990.2023.00142)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## String algorithms and computational biology (26)
+## String algorithms and computational biology (25)
 
 ### TCS-6623 — Worst-case sample complexity of trace reconstruction
 
@@ -2572,13 +2565,6 @@ Existing status: `source_open` · Summary written: 2026-09-16
 Edit distance is the minimum number of unit-cost insertions, deletions and substitutions transforming one string into another. The question asks for one randomized algorithm with a universal constant approximation factor and only a fixed polylogarithmic overhead beyond linear input length. Its runtime must hold on every execution and its probability of a correct multiplicative estimate must be at least two thirds separately on every pair. Known fixed-slack constant-factor algorithms and earlier subpolynomial or additive approximations do not meet all these requirements simultaneously. The target remains distinct from the two retained questions about arbitrarily accurate estimates at slower stated runtimes.
 
 [Read in atlas](index.html#TCS-6624) · [Edit Distance in Near-Linear Time: It’s a Constant Factor](https://epubs.siam.org/doi/10.1137/21M1392322) · [Edit Distance in Near-Linear Time: it’s a Constant Factor — full manuscript](https://arxiv.org/abs/2005.07678v2) · [Approximating Edit Distance in Near-Linear Time](https://arxiv.org/abs/1109.5635v1) · [Constant factor approximations to edit distance on far input pairs in nearly linear time](https://arxiv.org/abs/1904.05459v2) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702v1) · [Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)](https://arxiv.org/abs/1412.0348v4)
-Existing status: `source_open` · Summary written: 2026-09-14
-
-### TCS-7235 — Almost-linear-time \((1+\varepsilon)\)-approximation of edit distance
-
-Edit distance counts unit-cost insertions, deletions and substitutions needed to transform one string into another. The question asks for an arbitrarily accurate fixed multiplicative estimate on every explicitly stored pair in almost-linear worst-case time. For each accuracy, one randomized algorithm must satisfy every positive fixed exponent slack and succeed separately on every input pair. Known constant-factor algorithms have different accuracy guarantees, while the 2026 near-exact scheme has a weaker stated running-time bound. This target strengthens the retained truly subquadratic near-exact question while remaining distinct from constant-factor approximation with a fixed polylogarithmic overhead.
-
-[Read in atlas](index.html#TCS-7235) · [Approximating Edit Distance](https://theorydish.blog/2018/07/20/approximating-edit-distance/) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://arxiv.org/abs/2005.07678v2) · [Edit Distance in Near-Linear Time: It’s a Constant Factor](https://epubs.siam.org/doi/10.1137/21M1392322) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702v1) · [Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)](https://arxiv.org/abs/1412.0348v4)
 Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7220 — Truly subquadratic \((1+\varepsilon)\)-approximation of edit distance
@@ -2774,10 +2760,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6633 — Polynomial query complexity of exact envy-free cake cutting
 
-Envy-free cake cutting divides a continuous resource so that nobody prefers another person's share under their own valuation. The reviewed question asks for an exact complete allocation using polynomially many deterministic Robertson–Webb queries. Disconnected pieces are allowed, and local computation between queries is unrestricted. A polynomial protocol would identify a manageable amount of preference information sufficient for exact global fairness. The saved review records a recent single-exponential query upper-bound preprint but distinguishes it from polynomial complexity, approximate fairness, and favorable average-case valuation models.
+The cake is a continuous interval whose value may differ arbitrarily between agents. The task is to allocate all of it exactly without any agent preferring another agent’s piece. Preferences are learned only through exact value and cut queries, and disconnected pieces are allowed. One deterministic protocol must use polynomially many queries on every profile, although computation between queries is unrestricted. A complete Lean-checked solution must prove the full protocol guarantee or rule out every such polynomial query bound.
 
-[Read in atlas](index.html#TCS-6633) · [Envy-free cake cutting: a polynomial number of queries with high probability](https://link.springer.com/article/10.1007/s00355-025-01633-7) · [Thou Shalt Covet Thy Neighbor’s Cake](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfreesq.pdf) · [A Discrete and Bounded Envy-Free Cake Cutting Protocol for Any Number of Agents](https://arxiv.org/abs/1604.03655) · [An Exponential Envy-Free Cake Cutting Protocol for n Agents](https://arxiv.org/abs/2306.03854) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191) · [The Query Complexity of Cake Cutting](https://proceedings.neurips.cc/paper_files/paper/2022/file/f7a7bb369e48f10e85fce85b67d8c516-Paper-Conference.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6633) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191v1) · [The Query Complexity of Cake Cutting](https://proceedings.neurips.cc/paper_files/paper/2022/file/f7a7bb369e48f10e85fce85b67d8c516-Paper-Conference.pdf) · [Thou Shalt Covet Thy Neighbor’s Cake](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfreesq.pdf) · [Envy-free cake cutting: a polynomial number of queries with high probability](https://doi.org/10.1007/s00355-025-01633-7)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6634 — Randomized metric distortion in social choice
 

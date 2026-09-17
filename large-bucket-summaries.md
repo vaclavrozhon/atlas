@@ -2263,10 +2263,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6551 — Unleveled fully homomorphic encryption from LWE alone
 
-Fully homomorphic encryption lets a server evaluate computations on encrypted data and return a compact encrypted answer. Leveled schemes choose their keys after fixing a maximum computation depth. This project asks whether ordinary polynomial-modulus LWE can support keys generated without such a depth bound while preserving compactness. It specifically excludes additional circular-security or key-dependent-message assumptions often associated with bootstrapping. A solution would establish whether unrestricted encrypted computation follows from the stated LWE assumption with no extra security hypothesis.
+Fully homomorphic encryption evaluates Boolean computations on encrypted bits and returns a compact encrypted result. The question asks for one classical key-generation procedure that needs no advance bound on the depth of those computations. The only hardness premise is the specified ordinary polynomial-modulus LWE assumption, without independent circular security. Security must hold against polynomial-size nonuniform classical adversaries who also see the evaluation key. A complete Lean-checked answer must establish the entire implication and its uniform correctness and compactness guarantees, or refute it.
 
-[Read in atlas](index.html#TCS-6551) · [Efficient Fully Homomorphic Encryption from (Standard) LWE](https://epubs.siam.org/doi/10.1137/120868669) · [Quantum FHE (Almost) As Secure As Classical](https://www.iacr.org/archive/crypto2018/10993383/10993383.pdf) · [Fully Homomorphic Encryption: definitional issues and open problems](https://cseweb.ucsd.edu/classes/wi23/cse208-a/FHEorg.pdf) · [Bootstrapping Homomorphic Encryption via Functional Encryption](https://eprint.iacr.org/2023/1376.pdf) · [Bootstrapping Homomorphic Encryption via Functional Encryption — conference version](https://drops.dagstuhl.de/storage/00lipics/lipics-vol251-itcs2023/LIPIcs.ITCS.2023.17/LIPIcs.ITCS.2023.17.pdf) · [Dynamic multi-key FHE without CRS from LWE](https://link.springer.com/article/10.1186/s42400-025-00431-z) · [Efficient Quantum Fully Homomorphic Encryption](https://arxiv.org/abs/2604.23490)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6551) · [Bootstrapping Homomorphic Encryption via Functional Encryption](https://doi.org/10.4230/LIPIcs.ITCS.2023.17) · [Efficient Fully Homomorphic Encryption from (Standard) LWE](https://doi.org/10.1137/120868669) · [Quantum FHE (Almost) As Secure As Classical](https://www.iacr.org/archive/crypto2018/10993383/10993383.pdf) · [Fully Homomorphic Encryption: definitional issues and open problems](https://cseweb.ucsd.edu/classes/wi23/cse208-a/FHEorg.pdf) · [Dynamic multi-key FHE without CRS from LWE](https://doi.org/10.1186/s42400-025-00431-z) · [Efficient Quantum Fully Homomorphic Encryption](https://arxiv.org/abs/2604.23490v1) · [SNARGs for NP from Unprovability of Mathematical Theorems](https://eccc.weizmann.ac.il/report/2026/098/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0465 — Sub-square-root share-size exponents in perfect secret sharing
 
@@ -2331,6 +2331,13 @@ Noninteractive zero knowledge lets a prover demonstrate an NP statement with one
 [Read in atlas](index.html#TCS-6552) · [Commitment Schemes and Zero-Knowledge Protocols (2011)](https://homepages.cwi.nl/~schaffne/courses/crypto/2014/papers/ComZK08.pdf) · [Noninteractive Zero Knowledge for NP from (Plain) Learning With Errors](https://web.eecs.umich.edu/~cpeikert/pubs/nizk-lwe.pdf) · [Batch Arguments to NIZKs from One-Way Functions](https://eprint.iacr.org/2023/1938) · [Black-Box Non-Interactive Zero Knowledge from Vector Trapdoor Hash](https://eprint.iacr.org/2024/1514) · [Fiat-Shamir in the Plain Model from Derandomization (Or: Do Efficient Algorithms Believe that \(\mathrm{NP} = \mathrm{PSPACE}\)?)](https://eccc.weizmann.ac.il/report/2024/116/) · [Non-Trivial Zero-Knowledge Implies One-Way Functions](https://arxiv.org/abs/2602.17651) · [Succinct Zero-Knowledge Proofs from One-Way Functions: The Blackbox Way](https://doi.org/10.1007/978-3-032-35424-2_6)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6871 — Unbounded fully homomorphic encryption from polynomial-factor GapSVP
+
+The target is classical compact fully homomorphic encryption with keys generated before any computation-depth limit is chosen. One scheme must correctly evaluate every polynomial-size Boolean circuit while keeping ciphertexts and decryption bounded by one fixed polynomial in the security parameter. Its only security foundation is the worst-case difficulty of Euclidean GapSVP with a fixed polynomial approximation factor. A quantum security reduction may inspect a classical attacker and must turn its distinguishing advantage into a solver for arbitrary promised lattice instances. A complete Lean-checked construction or refutation is required; additional circular-security assumptions and depth-dependent constructions do not settle the target.
+
+[Read in atlas](index.html#TCS-6871) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939) · [Bootstrapping Homomorphic Encryption via Functional Encryption](https://doi.org/10.4230/LIPIcs.ITCS.2023.17) · [Advanced cryptography from lattice isomorphism—new constructions of IBE and FHE](https://eprint.iacr.org/2026/465) · [Cryptanalysis of an Unbounded Fully Homomorphic Encryption Scheme](https://doi.org/10.53941/pc.2026.100017)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-6953 — One-way functions from errorless average-case NP hardness
 
 This card selects the average-case-to-one-way-function branch of a broader question in Wigderson’s book. The hardness assumption concerns exact deterministic decision under an efficiently samplable distribution, with average polynomial time defined by a runtime moment. The conclusion requires a polynomial-time function that every uniform probabilistic inverter fails to invert with more than negligible probability at all sufficiently large lengths. Recent heuristic-hardness characterizations, infinitely-often security results and oracle separations use different guarantees. A resolution would clarify whether broad distributional hardness already forces the computational structure underlying classical one-wayness.
@@ -2351,6 +2358,13 @@ Factoring an RSA modulus permits inversion of its encryption permutation. This c
 
 [Read in atlas](index.html#TCS-7276) · [Twenty Years of Attacks on the RSA Cryptosystem](https://crypto.stanford.edu/~dabo/papers/RSA-survey.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-6692 — Linear-seed pseudorandom generators from one-way functions
+
+A one-way function is easy to evaluate but hard to invert even when an inverter may return any preimage. The task is to construct a pseudorandom generator whose seed has length at most a fixed constant times the input length of that function. The distinguishing security must retain the original inversion hardness up to a fixed polynomial loss in output length and inverse error. The construction must run in polynomial output time, and it may use the requested security and error as explicit parameters. A complete Lean-checked solution must handle arbitrary efficiently evaluable one-way functions rather than only permutations or regular functions.
+
+[Read in atlas](index.html#TCS-6692) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Open problems in memory of Luca Trevisan: pseudorandom generators from one-way functions](https://www.cs.umd.edu/~gasarch/open/LUCA/luca.pdf) · [Simple Constructions from (Almost) Regular One-Way Functions](https://doi.org/10.1007/s00145-024-09507-4) · [Counting Unpredictable Bits: A Simple PRG from One-way Functions](https://eccc.weizmann.ac.il/report/2023/143/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7272 — Noninteractive SZK versus SZK
 
@@ -2428,20 +2442,6 @@ The input is a complete truth table promised to have either a small or a much la
 
 [Read in atlas](index.html#TCS-4754) · [A Relativization Perspective on Meta-Complexity](https://doi.org/10.4230/LIPIcs.STACS.2022.54) · [Robustness of Average-Case Meta-Complexity via Pseudorandomness](https://doi.org/10.1145/3519935.3520051) · [One-Way Functions and Zero Knowledge](https://doi.org/10.1137/24M1689971)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6692 — Linear-seed pseudorandom generators from one-way functions
-
-Pseudorandom generators expand a short random seed into a longer string that efficient observers cannot distinguish from uniform randomness. General one-way functions are known to imply such generators, but the quantitative loss in seed length can be substantial. This problem asks for a fully explicit construction whose seed is only linear in the input length of the underlying one-way function while retaining the specified security dependence. The source contrasts arbitrary one-way functions with one-way permutations, where the desired kind of construction is already available. A tighter reduction would preserve much more of the original function's hardness when converting it into pseudorandomness.
-
-[Read in atlas](index.html#TCS-6692) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6871 — Fully homomorphic encryption from worst-case hardness
-
-Unbounded fully homomorphic encryption supports arbitrarily deep permitted computations on ciphertexts. The source asks to base such a scheme solely on worst-case complexity assumptions. Some constructions require additional assumptions about encryptions of secret-key-related information to enable repeated refresh operations. Removing those extra premises would connect the security guarantee more directly to foundational hard problems. The saved 2016 note does not name the precise extra assumptions or compactness conventions, so its current status and exact target require separate review rather than treating any lattice-based FHE scheme as a resolution.
-
-[Read in atlas](index.html#TCS-6871) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Quantum computation and information (52)
 
@@ -2612,6 +2612,13 @@ EFI pairs are easy to generate quantum states that are statistically different b
 
 [Read in atlas](index.html#TCS-1961) · [One-Wayness in Quantum Cryptography](https://doi.org/10.4230/LIPIcs.TQC.2024.4) · [Commitments are equivalent to statistically-verifiable one-way state generators](https://arxiv.org/abs/2404.03220v4) · [A New World in the Depths of Microcrypt: Separating OWSGs and Quantum Money from QEFID](https://arxiv.org/abs/2410.03453v3) · [Equivalence Between Average-Case Hardness of Learning and Cryptography for Mixed Quantum States](https://arxiv.org/abs/2608.14331v1)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-4734 — Locality-preserving quantum gap amplification
+
+The input is a collection of local quantum projection constraints, and its energy is the smallest possible average violation over all quantum states. The task is one polynomial-time transformation that preserves zero energy and at least doubles sufficiently small positive normalized energy. Each output constraint must still involve at most the original number of particles, and the number of constraints may grow only by a constant factor. The local quantum dimension may increase to a larger constant but cannot grow with the size of the input instance. A complete Lean-checked proof or refutation must control entangled states as well as all stated representation and resource bounds.
+
+[Read in atlas](index.html#TCS-4734) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15) · [Derandomised tensor product gap amplification for quantum Hamiltonians](https://arxiv.org/abs/2510.01333v1) · [Gap Amplification for Local Hamiltonians with Combinatorial Soundness](https://simons.berkeley.edu/talks/quynh-t-nguyen-harvard-university-2026-07-23)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6481 — Bosonic quantum computation in PP
 
@@ -2787,13 +2794,6 @@ A fixed two-qubit interaction generates circuits by evolving selected ordered pa
 
 [Read in atlas](index.html#TCS-4457) · [Complexity Classification of Two-Qubit Commuting Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2016.28) · [The Space Around BQP](https://dspace.mit.edu/server/api/core/bitstreams/ad343002-e1d8-4966-96ac-7d32b3b215d4/content) · [General Conditions for Universality of Quantum Hamiltonians](https://doi.org/10.1103/PRXQuantum.3.010308)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-4734 — Locality-preserving quantum gap amplification
-
-Gap amplification increases the separation between satisfiable and unsatisfiable instances in a verification problem. The cited quantum construction can amplify a Hamiltonian promise gap repeatedly, but its terms act on progressively more qubits. This growing locality obstructs the composition steps used in the classical PCP strategy. The question asks for a quantum analogue that retains the important structural features of Dinur's classical amplification procedure. Such an operation would address a concrete missing ingredient in efforts to make quantum proofs locally checkable with a constant gap.
-
-[Read in atlas](index.html#TCS-4734) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4927 — Classification of quantum gate sets
 
