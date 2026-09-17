@@ -613,6 +613,13 @@ ETH asserts a fixed positive exponential-time lower bound for exact 3-SAT. The s
 [Read in atlas](index.html#TCS-7313) · [Dot-Product Proofs and Their Applications](https://eccc.weizmann.ac.il/report/2024/114/revision/2/) · [Parameterized Inapproximability Hypothesis under ETH](https://doi.org/10.1145/3749982) · [Quasi-Linear Size PCPs with Small Soundness from HDX](https://dspace.mit.edu/entities/publication/9bbf3cdb-ea42-4d50-8d98-7b0f2c30432e) · [Mind the Gap? Not for SVP Hardness under ETH!](https://arxiv.org/abs/2504.02695v2)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-6950 — Disjunction of randomized SETH, integer APSP and 3SUM hypotheses
+
+The question asks whether at least one of three core fine-grained hardness hypotheses is true. They concern fixed-width Boolean satisfiability, exact shortest paths with polynomially bounded integer weights, and integer 3SUM. The selected variants allow classical randomized word-RAM algorithms with bounded error and worst-case running time. Refuting the disjunction requires a fixed positive exponent saving for all three tasks, with the clause-width and weight-range quantifiers respected. A complete Lean-checked proof or refutation is required; existing conditional reductions do not settle the assertion.
+
+[Read in atlas](index.html#TCS-6950) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Matching Triangles and Basing Hardness on an Extremely Popular Conjecture](https://doi.org/10.1137/15M1050987) · [Hardness for Triangle Problems under Even More Believable Hypotheses: Reductions from Real APSP, Real 3SUM, and OV](https://arxiv.org/abs/2203.08356v1) · [Universe Reduction for APSP: Equivalence of Three Fine-Grained Hypotheses](https://arxiv.org/abs/2603.27736v1)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-6944 — Min-Weight k-Clique hypothesis
 
 The task finds a fixed-size clique minimizing the sum of its integer edge weights. The hypothesis says that no randomized algorithm saves a positive constant from the exponent k for the source’s full polynomial weight range. Its formal model charges uniform word-RAM computation and requires a correct complete answer with bounded error on every graph. A resolution would affect the fine-grained foundations of weighted graph, geometric and sequence optimization. The card preserves the fixed signed range and distinguishes newer conjectures whose weight exponent is quantified differently.
@@ -702,13 +709,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 All-pairs shortest paths and 3SUM are central hypotheses for different families of fine-grained lower bounds. The source asks for a clearer relationship between their computational difficulties. One concerns many path minima, while the other searches for one exact arithmetic relation among three inputs. A suitable reduction could transfer a fixed exponent saving and consolidate barriers now supported by separate assumptions. The saved formulation leaves the direction and resource-preservation target open, so a complete question must select the integer or real model and the precise runtime implication sought.
 
 [Read in atlas](index.html#TCS-6946) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6950 — Disjunction of SETH, APSP and 3SUM hypotheses
-
-SETH, the APSP hypothesis, and the 3SUM hypothesis assert precise barriers for three different computational tasks. The source asks whether at least one of these hypotheses must be true. This disjunction is weaker than proving any particular member, because it permits the others to fail. A proof would give a robust foundation for results whose conditional hardness follows from whichever barrier survives. The saved historical formulation still depends on the exact machine, numeric, and randomness conventions of its three constituents, so mixing incompatible versions would change the proposition.
-
-[Read in atlas](index.html#TCS-6950) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Pseudorandomness and derandomization (42)
@@ -1065,6 +1065,13 @@ The W-hierarchy groups parameterized decision problems by reductions to exact-we
 [Read in atlas](index.html#TCS-6731) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [On W(1)-Hardness as Evidence for Intractability](https://arxiv.org/abs/1712.05766v3)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-6974 — General Formula-SAT with a fixed exponential saving
+
+The input is any explicit Boolean formula tree, and the task is to decide exactly whether some assignment satisfies it. The time target is 2^((1-epsilon)n) times a fixed polynomial in the full formula length, for some fixed positive epsilon. One uniform deterministic algorithm must work for all sizes, depths and variable-occurrence patterns. Known faster algorithms for restricted-size formulas do not provide this full guarantee, and a positive answer would refute deterministic SETH. A complete Lean-checked proof or unconditional refutation is required; the precise saving is an editorial specification of the source’s qualitative question.
+
+[Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [#SAT Algorithms from Shrinkage](https://eccc.weizmann.ac.il/report/2015/114/) · [Towards Stronger Depth Lower Bounds](https://doi.org/10.4230/LIPIcs.ITCS.2024.10)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7035 — Single-exponential Directed Feedback Vertex Set
 
 A directed feedback vertex set meets every directed cycle by deleting its vertices. The question asks for an exact deterministic algorithm with a fixed exponential base in the allowed number of deletions. The remaining dependence on graph size must be polynomial with an exponent independent of the deletion budget. Known fixed-parameter algorithms retain a factorial-scale parameter cost, including the checked SOSA 2025 improvement. This card targets arbitrary digraphs, while the survey’s planar restriction and structural-parameter results remain distinct.
@@ -1267,13 +1274,6 @@ Directed Feedback Vertex Set asks whether deleting at most a given number of ver
 
 [Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55) · [Wannabe Bounded Treewidth Graphs Admit a Polynomial Kernel for Directed Feedback Vertex Set](https://doi.org/10.1145/3711669)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6974 — Formula-SAT below exhaustive search
-
-Boolean formula satisfiability asks whether some assignment makes a formula true. With n variables, exhaustive search checks all \(2^{n}\) assignments, paying an additional cost to evaluate the formula. The selected research direction seeks an algorithm that improves this worst-case search bound for general formulas. Restrictions on clause width, depth, or size can change which techniques apply, so gains for specialized families do not automatically answer it. A successful approach would identify exploitable structure in arbitrary formulas even when polynomial-time solvability remains out of reach.
-
-[Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Approximation algorithms and inapproximability (29)
 
@@ -2441,6 +2441,13 @@ A grammar can compress a string by naming repeated pieces and assembling them th
 [Read in atlas](index.html#TCS-6513) · [The Smallest Grammar Problem](https://doi.org/10.1109/TIT.2005.850116) · [On the Complexity of the Smallest Grammar Problem over Fixed Alphabets](https://doi.org/10.1007/s00224-020-10013-w)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-6928 — Linear-space encoding from smallest string attractors
+
+A string attractor is a set of positions crossed by some occurrence of each distinct nonempty substring. Its minimum size gamma measures repetitiveness without selecting a particular compression format. The question asks whether every string has a lossless code using only O(gamma) logarithmic-size words, including all metadata. The encoder and decoder are uniform and must terminate, but there is no time bound or fast-query requirement. A complete Lean-checked proof or refutation must cover arbitrary allowed strings and arbitrary computable lossless representations.
+
+[Read in atlas](index.html#TCS-6928) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781v10) · [Substring Complexity in Sublinear Space](https://doi.org/10.4230/LIPIcs.ISAAC.2023.12) · [Generalization of Repetitiveness Measures for Two-Dimensional Strings](https://doi.org/10.1007/s00224-025-10244-9)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7297 — Optimal \(\ell_{1}\) distortion of binary edit distance
 
 Binary edit distance counts unit-cost insertions, deletions and substitutions. One map of all length-n strings into a finite-dimensional l1 space must preserve every distance within a common multiplicative distortion. The dimension, real coordinates and computation needed to obtain the map are unrestricted. Verified bounds range from logarithmic distortion to the Ostrovsky–Rabani subpolynomial upper bound. The retained question asks for matching bounds within universal constant factors; recent distance algorithms and similarity-measure embeddings give different guarantees.
@@ -2513,10 +2520,10 @@ Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-0468 — Linear-time LZ77 pattern matching
 
-Compressed pattern matching asks whether an explicit pattern occurs in a text supplied only as LZ77 phrases. The reviewed target is deterministic time linear in the phrase count plus pattern length, with comparable working space. Occurrences can cross phrase boundaries or lie inside copied regions, so isolated phrase inspection is insufficient. Such an algorithm would make search depend on the compressed input rather than the potentially enormous expanded text. The statement includes all preprocessing and allows self-referencing phrases, preventing an uncharged index or an easier parsing convention from weakening the target.
+A text is supplied as literal and copy phrases, and the pattern is an explicit string. Copies may overlap themselves, so the decoded text can be much longer than the input representation. The question asks for exact deterministic occurrence detection in time and working space linear in the phrase count plus pattern length. The machine allows integer division, and all preprocessing is charged. Linear time for grammar input is known, but does not automatically give the required bound for LZ input; a complete Lean-checked answer is required.
 
-[Read in atlas](index.html#TCS-0468) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Pattern matching in Lempel-Ziv compressed strings: fast, simple, and deterministic](https://arxiv.org/abs/1104.4203) · [Pattern Matching on Grammar-Compressed Strings in Linear Time](https://arxiv.org/abs/2111.05016)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0468) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Pattern matching in Lempel-Ziv compressed strings: fast, simple, and deterministic](https://arxiv.org/abs/1104.4203v1) · [Pattern Matching on Grammar-Compressed Strings in Linear Time](https://arxiv.org/abs/2111.05016v1) · [Logarithmic-Time Internal Pattern Matching Queries in Compressed and Dynamic Texts](https://doi.org/10.1007/s00224-026-10266-x)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0470 — Grammar random access in \(O(g \log  g)\) bits
 
@@ -2534,17 +2541,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0466 — Certifying Karp–Rabin fingerprints
 
-A string and a prime modulus are supplied as input. Each substring has a polynomial fingerprint using the supplied modulus. The question asks whether any unequal substrings of the same length collide. The target is n log n time with no false certification of a bad modulus. A collision-free modulus may be rejected with bounded probability.
+The input is a string, its alphabet size and a fixed prime modulus. The algorithm must certify that unequal substrings of every common length have different polynomial fingerprints. The target is worst-case n log n time with all preprocessing included. A bad fingerprint must always be rejected, while every good fingerprint must be certified with probability at least two thirds. Verification of selected lengths or construction of a different fingerprint does not settle the target; a complete Lean-checked answer is required.
 
-[Read in atlas](index.html#TCS-0466) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1)
-Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-6928 — Linear-space representation from smallest string attractors
-
-A string attractor is a set of positions intersecting an occurrence of every distinct substring. Its minimum size \(\gamma\) provides a compact measure of repetitive structure. The saved question asks whether every string has an \(O(\gamma )\)-word representation, or at least an asymptotic improvement over the stated \(\gamma  \log  n\) scale. Such a result would clarify whether the attractor's succinct description can be converted into an equally compact usable encoding. The survey note does not specify access requirements or word-size conventions, so a representation-only result must remain distinct from an efficient index.
-
-[Read in atlas](index.html#TCS-6928) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0466) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Longest Common Extensions in Sublinear Space](https://arxiv.org/abs/1504.02671v1) · [Compressed Index with Construction in Compressed Space](https://doi.org/10.4230/LIPIcs.CPM.2026.25)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ## Game theory, social choice and fair division (24)
 
