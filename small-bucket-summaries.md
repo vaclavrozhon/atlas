@@ -648,6 +648,13 @@ Orthogonal Vectors asks whether two lists of Boolean vectors contain a pair with
 [Read in atlas](index.html#TCS-5422) · [Superlinear Lower Bounds Based on ETH](https://doi.org/10.4230/LIPIcs.STACS.2022.55) · [Effective Guessing Has Unlikely Consequences](https://doi.org/10.1007/s00224-023-10119-x) · [The Orthogonal Vectors Conjecture and Non-Uniform Circuit Lower Bounds](https://eccc.weizmann.ac.il/report/2024/142/) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489v1) · [Faster Algorithms for \(k\)-Orthogonal Vectors in Low Dimension](https://doi.org/10.4230/LIPIcs.ICALP.2026.85)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6945 — Exact-Weight k-Clique hypothesis
+
+The input is a simple graph with signed integer weights on its edges. The decision is whether exactly k vertices form a clique whose edge weights sum to zero. For every fixed k, the hypothesis excludes a randomized algorithm with a fixed positive improvement over the enumeration exponent. Weights have magnitude at most n to the power 100k, and time is measured on a uniform logarithmic-word RAM. The hypothesis supports conditional clique-listing lower bounds and remains distinct from ordinary unweighted clique detection.
+
+[Read in atlas](index.html#TCS-6945) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Towards Optimal Output-Sensitive Clique Listing or: Listing Cliques from Smaller Cliques](https://arxiv.org/abs/2307.15871v2) · [A Note on the Conditional Optimality of Chiba and Nishizeki's Algorithms](https://arxiv.org/abs/2407.08562v1)
+Existing status: `source_open` · Summary written: 2026-09-16
+
 ### TCS-0562 — Nondeterministic Strong Exponential Time Hypothesis
 
 NSETH asks whether certifying unsatisfiability remains close to exhaustive search even with nondeterministic choices. The requested refutation needs one positive saving in the exponent for every fixed clause width. Each unsatisfiable formula must have an accepting branch, while every branch on a satisfiable formula must reject. The running-time guarantee applies to every branch of a uniform machine and includes polynomial input-processing overhead. Known randomized-verifier protocols and conditional circuit lower bounds do not settle this exact nondeterministic question.
@@ -688,13 +695,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Orthogonal Vectors searches for a disjoint pair across two set families, while Hitting Set asks for one set intersecting every set in the other family. The source asks whether the former hypothesis implies the latter. Their different quantifier patterns make the connection subtler than complementing one pairwise intersection test. An implication would reduce the number of independent assumptions needed for fine-grained lower bounds. The saved question must be interpreted with matching universe dimensions, randomized guarantees, and exponent conventions, since a reduction losing too much time would not transfer the hypothesized barrier.
 
 [Read in atlas](index.html#TCS-6942) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6945 — Exact-Weight k-Clique hypothesis
-
-Exact-Weight k-Clique asks for a clique whose edge weights add to a prescribed target. The source conjectures that randomized algorithms require an exponent approaching k in the stated weight regime. Exact cancellation among weights introduces a numerical constraint beyond the clique's pairwise adjacency conditions. A sharp barrier would support quantitative hardness transfers to problems combining structural and arithmetic requirements. The saved note does not specify weight magnitude or target encoding, and finding a minimum-weight clique is a related but distinct task whose reductions must preserve those numeric parameters.
-
-[Read in atlas](index.html#TCS-6945) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6946 — Fine-grained relationship between APSP and 3SUM
@@ -883,10 +883,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0854 — Promise-ZPP versus Promise-BPP derandomization
 
-Promise-ZPP permits zero-error randomized computation on promised inputs, whereas Promise-BPP allows a bounded probability of error. The recorded question asks whether derandomizing the former would also derandomize the latter. A promise leaves some inputs outside the required correctness domain, affecting how reductions and simulations compose. A positive implication would connect two seemingly different routes to eliminating randomness. The source title alone does not state the precise deterministic promise class or simulation overhead, so these details must be retained from the original formulation rather than borrowed from total-language equalities.
+The question asks whether derandomizing every zero-error promise problem also derandomizes every bounded-error promise problem. Zero-error machines may abstain, but whenever a promised input receives a definite answer that answer is correct. Bounded-error machines instead distinguish acceptance probabilities at least two thirds from probabilities at most one third. Each randomized machine may have its own deterministic polynomial-time decider, which must halt on all inputs and be correct on the promise. The target is a general unrelativized implication; total-language equalities and specialized low-space results do not settle it.
 
-[Read in atlas](index.html#TCS-0854) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/LUCA/luca.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0854) · [Open Problems In Honor of Luca Trevisan — ZPP and Promise-ZPP](https://www.cs.umd.edu/~gasarch/open/LUCA/luca.pdf) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/)
+Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-1135 — Promise-AM derandomization via targeted hitting sets
 
