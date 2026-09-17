@@ -117,12 +117,12 @@ A network distributes correlated finite strings through directed channels with l
 [Read in atlas](index.html#TCS-0254) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Multisource Algorithmic Information Theory](https://doi.org/10.4230/DagSemProc.06051.9)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0240 — Communication for algorithmic secret-key agreement
+### TCS-0240 — Communication rate for secret-key agreement at fixed Hamming distance
 
-Algorithmic secret-key agreement studies parties holding correlated strings who communicate to obtain a shared key hidden from an observer. The saved question concerns the amount of communication required for that agreement. The difficulty is to exploit common information while ensuring that the public transcript does not reveal the key itself. A sharp bound would connect individual-string information profiles with the operational cost of secure coordination. The source label does not specify side information, key length, randomness, or permitted complexity error, so these must be restored before stating a concrete communication tradeoff.
+Alice and Bob hold binary strings at a specified Hamming distance and may communicate on a channel observed by an eavesdropper. The input pair must have nearly the largest Kolmogorov complexity possible in that distance layer, and its complexity profile is public. Using independent private randomness, they must agree on a key whose length is their mutual information up to logarithmic loss and which remains nearly incompressible given the transcript. The target is the smallest asymptotic worst-case number of communicated bits per input bit, as a function of relative distance. An answer must prove the whole rate function within absolute error 1/100 in Lean, with success guaranteed separately for every promised input pair.
 
-[Read in atlas](index.html#TCS-0240) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0240) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Communication Complexity of the Secret Key Agreement in Algorithmic Information Theory](https://arxiv.org/abs/2004.13411v6) · [Common Information in Well-Mixing Graphs and Applications to Information-Theoretic Cryptography](https://arxiv.org/abs/2405.05831v3) · [Algebraic Barriers to Halving Algorithmic Information Quantities in Correlated Strings](https://doi.org/10.4230/LIPIcs.MFCS.2025.84)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0279 — Random-oracle invariance of fully extractable common information
 
@@ -1342,10 +1342,10 @@ Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-7356 — Optimal polynomial-time approximation ratio for metric TSP
 
-Metric TSP asks for a shortest tour through every point of an arbitrary finite metric. This card asks for the best expected ratio achievable by any uniform randomized polynomial-time algorithm. The ratio compares a returned tour with the optimal tour, not with an LP solution. The breakthrough below 3/2 leaves the ultimate approximation threshold undetermined. A Lean-certified estimate within absolute error 0.01 must bound the algorithmic infimum on both sides.
+Metric TSP asks for a cheapest closed tour visiting every point in a finite metric. This card asks for the infimum of expected approximation ratios achieved by uniform randomized polynomial-time algorithms. All inputs are explicit rational metrics, every execution must finish in polynomial time, and every output must be a valid tour. Known improvements below three halves and conditional hardness results leave the unconditional optimal ratio undetermined. An answer needs a complete Lean-checked estimate within absolute error 1/100, controlling the algorithmic infimum on both sides.
 
-[Read in atlas](index.html#TCS-7356) · [A (Slightly) Improved Approximation Algorithm for Metric TSP](https://arxiv.org/abs/2007.01409)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7356) · [A (Slightly) Improved Approximation Algorithm for Metric TSP](https://arxiv.org/abs/2007.01409v6) · [New Inapproximability Bounds for TSP](https://arxiv.org/abs/1303.6437v2) · [A (Slightly) Improved Deterministic Approximation Algorithm for Metric TSP](https://arxiv.org/abs/2212.06296v1) · [From Trees to Polynomials and Back Again: New Capacity Bounds with Applications to TSP](https://arxiv.org/abs/2311.09072v2) · [Maximum Entropy is a \(10/7\)-Approximation Algorithm for the TSP on Half-Integral Cycle Cut Instances](https://arxiv.org/abs/2607.01536v2) · [A Sharper Explicit Bound on the Subtour-LP Integrality Gap for Metric TSP](https://www.preprints.org/manuscript/202609.0140/v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6591 — Constant-factor approximation for Directed Feedback Vertex Set
 
@@ -2024,10 +2024,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6539 — Almost-linear triangle detection
 
-Triangle detection asks whether an undirected graph contains three pairwise adjacent vertices. The proposed randomized algorithm must decide this in almost linear time on every explicitly supplied graph. Only existence is requested, so graphs with many triangles do not impose a large-output obstacle. Sparse special classes offer useful successes without covering arbitrary inputs. The challenge is to avoid examining too many combinations of neighbors while still giving a reliable negative answer when no triangle exists anywhere.
+The input is an explicit undirected graph, and the output says whether three distinct vertices are pairwise adjacent. One fixed randomized program must work on every graph and every adjacency-list order. Every execution must take almost linear time in the number of vertices plus edges, with a correct answer on each input with probability at least two thirds. A relevant local-sketching preprint remains unverified, so the card records current status as uncertain. A complete Lean-checked answer must supply this algorithm and its guarantees or prove that none exists in the specified model.
 
-[Read in atlas](index.html#TCS-6539) · [Arboricity and Subgraph Listing Algorithms](https://www.cs.cornell.edu/courses/cs6241/2019sp/readings/Chiba-1985-arboricity.pdf) · [Finding and Counting Given Length Cycles](https://www.math.tau.ac.il/~nogaa/PDFS/ayz4.pdf) · [Popular conjectures imply strong lower bounds for dynamic problems](https://arxiv.org/abs/1402.0054) · [Node-Weighted Triangles: Faster and Simpler](https://drops.dagstuhl.de/storage/00lipics/lipics-vol374-icalp2026/html/LIPIcs.ICALP.2026.10/LIPIcs.ICALP.2026.10.html) · [On the Complexity of the Matching Problem of Regular Expressions with Backreferences](https://drops.dagstuhl.de/storage/00lipics/lipics-vol374-icalp2026/html/LIPIcs.ICALP.2026.135/LIPIcs.ICALP.2026.135.html) · [A Strongly Subcubic Combinatorial Algorithm for Triangle Detection with Applications](https://arxiv.org/abs/2403.01085) · [A Linear-Time Solution to the Triangle Finding Problem: The Aegypti Algorithm](https://www.preprints.org/manuscript/202506.0875/v3) · [Aegypti: Feasible Quadratic-Time Combinatorial Triangle Detection via Sparse Bucket Reduction](https://www.preprints.org/manuscript/202511.2197/v10)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6539) · [Popular conjectures imply strong lower bounds for dynamic problems](https://arxiv.org/abs/1402.0054v1) · [Finding and Counting Given Length Cycles](https://www.math.tau.ac.il/~nogaa/PDFS/ayz4.pdf) · [Arboricity and Subgraph Listing Algorithms](https://www.cs.cornell.edu/courses/cs6241/2019sp/readings/Chiba-1985-arboricity.pdf) · [Node-Weighted Triangles: Faster and Simpler](https://doi.org/10.4230/LIPIcs.ICALP.2026.10) · [Equivalent Dichotomies for Triangle Detection in Subgraph, Induced, and Colored H-Free Graphs](https://doi.org/10.4230/LIPIcs.ESA.2026.64) · [Triangle Detection in Worst-Case Sparse Graphs via Local Sketching](https://arxiv.org/abs/2509.03215v1) · [A Strongly Subcubic Combinatorial Algorithm for Triangle Detection with Applications](https://arxiv.org/abs/2403.01085v2) · [A Linear-Time Solution to the Triangle Finding Problem: The Aegypti Algorithm](https://www.preprints.org/manuscript/202506.0875/v3) · [Aegypti: A Combinatorial Algorithm for Triangle Detection](https://www.preprints.org/manuscript/202511.2197/v11)
+Existing status: `uncertain` · Summary written: 2026-09-17
 
 ### TCS-6654 — Seese’s conjecture
 
