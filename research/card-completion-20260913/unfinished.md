@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **135**.
+Pending active reviews: **130**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -135,12 +135,7 @@ Pending active reviews: **135**.
 | [TCS-7340](../../data/cards/TCS-7340.json) | Optimal randomized memory-reallocation overhead | Data structures | existing_detailed_audit |
 | [TCS-7344](../../data/cards/TCS-7344.json) | Almost-linear exact directed global minimum cut | Structural graph theory | existing_detailed_audit |
 | [TCS-7345](../../data/cards/TCS-7345.json) | Almost-linear directed vertex connectivity | Structural graph theory | existing_detailed_audit |
-| [TCS-7364](../../data/cards/TCS-7364.json) | Preprocessing exponent of binary jumbled indexing | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7366](../../data/cards/TCS-7366.json) | Linear-space k-mismatch text indexing | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-7367](../../data/cards/TCS-7367.json) | Text-to-pattern Hamming distances below the square-root barrier | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7368](../../data/cards/TCS-7368.json) | Faster elastic-degenerate string intersection | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7370](../../data/cards/TCS-7370.json) | Polynomial-time construction of minimum-density DNA minimizers | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-7372](../../data/cards/TCS-7372.json) | Linear-time unit-Monge distance multiplication | Algebraic computation | existing_detailed_audit |
-| [TCS-7374](../../data/cards/TCS-7374.json) | Almost-quadratic unweighted tree edit distance | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-7375](../../data/cards/TCS-7375.json) | Fully functional suffix trees in BWT-run-linear space | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7376](../../data/cards/TCS-7376.json) | Polylogarithmic-space streaming Euclidean MST estimation | Distributed, parallel and sublinear algorithms | existing_detailed_audit |

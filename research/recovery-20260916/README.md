@@ -695,3 +695,31 @@ and inventory changes enter the source commit. Source checkpoint 0eb905ed and
 deployment 7ef629b6248d5b2d0d18ff7a537755e3e485d39f cover the first 130
 dispositions. Unrelated category, website and archival edits remain in the shared
 worktree.
+
+After one hundred and forty recovery dispositions, the raw shared queue contains
+785 completed records, 129 pending records and one outside its original active
+scope. The live queue reports 122 pending active reviews, 707 completed active
+queue records and 152 active records outside the queue, for 981 active cards.
+Seven raw pending rows were archived by concurrent category work.
+
+This batch completes TCS-7372 (linear-time implicit unit-Monge multiplication),
+TCS-7367 (a fixed exponent improvement for exact Hamming distances), TCS-7374
+(one almost-quadratic deterministic tree-edit algorithm), TCS-7364 (the optimal
+binary-jumbled-index preprocessing exponent), and TCS-7375 (the specified
+suffix-tree interface in run-linear total space). The reviews distinguish
+sequential time from MPC rounds, exact distances from approximations, static
+tree edit distance from dynamic conditional bounds, and total compressed space
+from index space additional to a text oracle. The jumbled-index card retains
+its full numerical target; the new upper bound is not automatically a barrier.
+
+The five output hashes match their queue records; the ledger has 962 valid
+entries. The offline check passes, the math check passes on 34,889 expressions
+across 981 active cards, and desktop/mobile reader checks pass on publication
+cc77a3df43f3435ea27b. The publisher has 895 detailed records.
+
+The separate TCS-7366 research note records an outstanding user choice of query
+time and the limits of the alphabet verification. It is not a completed review.
+Only this batch's five reviews, authoring scripts, pending research note and own
+queue, ledger and inventory changes enter the source checkpoint. Source
+checkpoint 9f513f9a and deployment b9667df2acef02efa6e6bd6eed46d9a4503c2bc9
+cover the first 135 dispositions. Unrelated edits remain in the shared worktree.
