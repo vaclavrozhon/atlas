@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **125**.
+Pending active reviews: **120**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -16,7 +16,6 @@ Pending active reviews: **125**.
 | [TCS-0560](../../data/cards/TCS-0560.json) | Fine-grained reductions from Hitting Set to 3SUM | Fine-grained complexity | pool |
 | [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
 | [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
-| [TCS-6950](../../data/cards/TCS-6950.json) | Disjunction of SETH, APSP and 3SUM hypotheses | Fine-grained complexity | pool |
 | [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
 | [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
 | [TCS-2201](../../data/cards/TCS-2201.json) | Non-malleable extractors from standard extractors | Pseudorandomness and derandomization | pool |
@@ -27,7 +26,6 @@ Pending active reviews: **125**.
 | [TCS-1945](../../data/cards/TCS-1945.json) | Parameterized Nearest Codeword hardness beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-2662](../../data/cards/TCS-2662.json) | Subexponential constant-gap Max-Clique under ETH | Parameterized and exact algorithms | pool |
 | [TCS-5374](../../data/cards/TCS-5374.json) | Degeneracy-sensitive classification of homomorphism counting | Parameterized and exact algorithms | pool |
-| [TCS-6974](../../data/cards/TCS-6974.json) | Formula-SAT below exhaustive search | Parameterized and exact algorithms | pool |
 | [TCS-0088](../../data/cards/TCS-0088.json) | Optimal approximation of Max Di-Cut | Approximation algorithms and hardness of approximation | pool |
 | [TCS-6309](../../data/cards/TCS-6309.json) | Constant-factor approximation for capacitated k-Median | Approximation algorithms and hardness of approximation | pool |
 | [TCS-0711](../../data/cards/TCS-0711.json) | Model Selection for Contextual Bandits | Online algorithms | pool |
@@ -50,7 +48,6 @@ Pending active reviews: **125**.
 | [TCS-7143](../../data/cards/TCS-7143.json) | Bipartite circle pivot-minors from large rank-width | Structural graph theory | pool |
 | [TCS-7144](../../data/cards/TCS-7144.json) | Tree vertex-minors from large linear rank-width | Structural graph theory | pool |
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
-| [TCS-6928](../../data/cards/TCS-6928.json) | Linear-space representation from smallest string attractors | String algorithms and bioinformatics | pool |
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
@@ -100,8 +97,6 @@ Pending active reviews: **125**.
 | [TCS-4995](../../data/cards/TCS-4995.json) | Entropic width versus submodular width | Database theory and finite model theory | pool |
 | [TCS-6157](../../data/cards/TCS-6157.json) | Determinacy and rewriting of regular path queries | Database theory and finite model theory | pool |
 | [TCS-7128](../../data/cards/TCS-7128.json) | Unconditional constant-delay query-enumeration lower bounds | Database theory and finite model theory | pool |
-| [TCS-0466](../../data/cards/TCS-0466.json) | Certifying Karp–Rabin fingerprints | String algorithms and bioinformatics | existing_detailed_audit |
-| [TCS-0468](../../data/cards/TCS-0468.json) | Linear-time LZ77 pattern matching | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-0470](../../data/cards/TCS-0470.json) | Grammar random access in \(O(g \log  g)\) bits | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-0474](../../data/cards/TCS-0474.json) | Constant-update working-set heaps on pointer machines | Data structures | existing_detailed_audit |
 | [TCS-0478](../../data/cards/TCS-0478.json) | Dynamic APSP with edge-linear updates | Dynamic graph algorithms | existing_detailed_audit |

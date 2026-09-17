@@ -750,3 +750,29 @@ their own queue, ledger, inventory and archival changes enter this checkpoint.
 Source checkpoint 4a986662 and deployment
 11463d20ae6dcac4ebc67590868dbc5270b109c4 cover the first 140 dispositions.
 Unrelated changes remain in the shared worktree.
+
+After one hundred and fifty recovery dispositions, the raw shared queue contains
+795 completed records, 119 pending records and one outside its original active
+scope. The live queue has 112 pending active reviews, 716 completed active queue
+records and 152 active records outside the queue, for 980 active cards. Seven raw
+pending rows were archived by concurrent category work.
+
+This batch completes TCS-6950 (the randomized SETH/APSP/3SUM disjunction),
+TCS-6928 (a computable encoding linear in minimum attractor size, measured in
+logarithmic words), TCS-6974 (a fixed exponential saving for unrestricted
+Formula-SAT), TCS-0468 (linear-time self-referential LZ matching), and TCS-0466
+(all-length certification of a supplied Karp–Rabin fingerprint). The attractor
+and formula targets are announced editorial defaults after optional questions;
+no user confirmation is claimed. The LZ review distinguishes grammar input and
+the division-free lower-bound model. The fingerprint review distinguishes all
+lengths from power-of-two and sampled-comparison verification.
+
+The five output hashes match their queue records; the shared ledger has 973 valid
+entries. The full offline check passes. Math checks pass on 35,178 expressions
+across 980 active cards, and desktop/mobile reader checks pass on publication
+f032744430512b737986. The publisher has 899 detailed records.
+
+Only these five reviews, their authoring scripts and their own queue, ledger and
+inventory changes enter this checkpoint. Source checkpoint 1860dc61 and deployment
+a705c5e7898ecf8892d1f9fe25b3a48f65daa986 cover the first 145 dispositions.
+Unrelated edits remain in the shared worktree.
