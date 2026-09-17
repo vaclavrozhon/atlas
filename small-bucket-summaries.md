@@ -1065,6 +1065,13 @@ Subset Sum asks whether some subcollection of given positive integers adds to a 
 [Read in atlas](index.html#TCS-4790) · [Subset Sum Quantumly in \(1.17^{n}\)](https://doi.org/10.4230/LIPIcs.TQC.2018.5) · [Derandomizing Pseudopolynomial Algorithms for Subset Sum](https://arxiv.org/abs/2601.01390)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-6731 — Strictness of the W-hierarchy
+
+The W-hierarchy groups parameterized decision problems by reductions to exact-weight satisfiability for restricted Boolean circuits. The question asks whether each positive level is strictly contained in the next. The circuit depth is fixed for each target problem, and reductions may spend arbitrary computable time in the parameter times a fixed polynomial in input length. Independent Set and Dominating Set illustrate the first two levels, whose known completeness does not itself separate them. A solution must prove all adjacent separations or prove equality at one particular adjacent pair; oracle-based evidence is insufficient.
+
+[Read in atlas](index.html#TCS-6731) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [On W(1)-Hardness as Evidence for Intractability](https://arxiv.org/abs/1712.05766v3)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7035 — Single-exponential Directed Feedback Vertex Set
 
 A directed feedback vertex set meets every directed cycle by deleting its vertices. The question asks for an exact deterministic algorithm with a fixed exponential base in the allowed number of deletions. The remaining dependence on graph size must be polynomial with an exponent independent of the deletion budget. Known fixed-parameter algorithms retain a factorial-scale parameter cost, including the checked SOSA 2025 improvement. This card targets arbitrary digraphs, while the survey’s planar restriction and structural-parameter results remain distinct.
@@ -1107,6 +1114,13 @@ Hitting Set asks whether at most k elements can intersect every set in an explic
 [Read in atlas](index.html#TCS-4289) · [Hitting Set for Hypergraphs of Low VC-dimension](https://doi.org/10.4230/LIPIcs.ESA.2016.23) · [The PACE 2025 Parameterized Algorithms and Computational Experiments Challenge: Dominating Set and Hitting Set](https://doi.org/10.4230/LIPIcs.IPEC.2025.32) · [The Parameterized Complexity of Independent Set and More when Excluding a Half-Graph, Co-Matching, or Matching](https://arxiv.org/abs/2602.07606v1) · [Fixed Budget vs. Covering Target: The Partial Set Cover Boundary for Bounded VC-Dimension](https://arxiv.org/abs/2608.03801v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6728 — Chromatic number in \(2^{n}\) time and polynomial space
+
+The chromatic number is the minimum number of colors needed so that adjacent vertices receive different colors. The question asks for one deterministic algorithm computing it on every graph in base-two exponential time up to polynomial factors. The same algorithm must use only polynomially many bits of working memory. Known algorithms separately achieve base-two time with exponential memory or polynomial memory with a larger time base. Recent randomized algorithms for each fixed color count and improved exponential-space bounds do not meet the complete target.
+
+[Read in atlas](index.html#TCS-6728) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [Faster Graph Coloring in Polynomial Space](https://link.springer.com/article/10.1007/s00453-022-01034-7) · [A space improved algorithm for chromatic number](https://doi.org/10.1016/j.tcs.2025.115584) · [k-Coloring is Faster than Computing the Chromatic Number](https://arxiv.org/abs/2607.25973v2)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7022 — Polynomial kernel for Planar Edge Deletion
 
 Planar Edge Deletion asks whether at most k edges can be removed from an arbitrary graph to make it planar. The question is whether deterministic polynomial-time preprocessing always produces one equivalent instance whose total size is polynomial in k. Both the deletion budget and the complete output encoding are bounded, with no randomness, approximation or oracle queries. Fixed-parameter algorithms and approximate vertex-deletion kernels have different guarantees and do not settle this exact edge problem. A complete Lean answer must establish such a uniform kernel or prove that every deterministic polynomial-time exact preprocessor fails a polynomial size bound.
@@ -1120,6 +1134,13 @@ A graph with terminals is queried by choosing labels for the terminals and a met
 
 [Read in atlas](index.html#TCS-3480) · [On Quasipolynomial Multicut-Mimicking Networks and Kernelization of Multiway Cut Problems](https://doi.org/10.4230/LIPIcs.ICALP.2020.101) · [Quasipolynomial multicut-mimicking networks and kernelization of multiway cut problems — corrected full version](https://arxiv.org/abs/2002.08825v3) · [Quasipolynomial Multicut-mimicking Networks and Kernels for Multiway Cut Problems](https://doi.org/10.1145/3501304) · [Approximating Small Sparse Cuts](https://arxiv.org/abs/2403.08983)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-6749 — Deterministic polynomial kernels for Almost 2-SAT
+
+Almost 2-SAT asks whether deleting at most a specified number of clauses can make a Boolean formula with at most two literals per clause satisfiable. The question asks for deterministic polynomial-time preprocessing that replaces any instance by an equivalent smaller instance of the same problem. The complete output size must be bounded by a fixed polynomial in the deletion budget alone. Randomized polynomial kernels are known, and a 2025 result obtains deterministic polynomial-size kernels with quasipolynomial preprocessing time. The remaining target requires both polynomial time and polynomial output size, with exact correctness for every input.
+
+[Read in atlas](index.html#TCS-6749) · [Parameterized Constraint Satisfaction Problems: a Survey](https://drops.dagstuhl.de/entities/document/10.4230/DFU.Vol7.15301.179) · [Quasipolynomial-Time Deterministic Kernelization and (Gammoid) Representation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.54)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7023 — Polynomial kernels for minor-free edge deletion
 
@@ -1253,27 +1274,6 @@ Directed Feedback Vertex Set asks whether deleting at most a given number of ver
 
 [Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55) · [Wannabe Bounded Treewidth Graphs Admit a Polynomial Kernel for Directed Feedback Vertex Set](https://doi.org/10.1145/3711669)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6728 — Chromatic number in \(2^{n}\) time and polynomial space
-
-The chromatic number is the fewest colors needed to color graph vertices so adjacent vertices receive different colors. The saved textbook question asks for \(O*(2^{n})\) exact running time using only polynomial space. The star suppresses polynomial factors, making the exponential base and memory requirement the essential targets. Meeting both bounds would combine fast subset-based computation with a memory footprint that does not grow exponentially. This is a dated textbook formulation; the saved note does not provide a review of later algorithms or establish present open status.
-
-[Read in atlas](index.html#TCS-6728) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6731 — Strictness of the W-hierarchy
-
-The W-hierarchy organizes parameterized problems into levels defined through controlled forms of computational complexity. The saved textbook question asks for strict separations between these levels, including those associated with Independent Set and Dominating Set. Such separations would distinguish different kinds of parameterized intractability rather than merely separate all of them from FPT. They would strengthen the interpretation of completeness results throughout parameterized complexity. The source records a broad hierarchy question without selecting one pair of levels, and its historical presentation does not supply an unconditional separation.
-
-[Read in atlas](index.html#TCS-6731) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6749 — Deterministic polynomial kernels for Almost 2-SAT
-
-Almost 2-SAT asks whether a limited number of clauses can be removed from a 2-CNF formula to make it satisfiable. The saved question asks for a deterministic polynomial kernel with the deletion budget as the intended parameter. Preprocessing must retain the interactions responsible for inconsistency while reducing the complete instance to polynomial size. A deterministic result would make that compression guarantee independent of random choices. The note records the question from the 2017 source without checking subsequent developments, so the draft does not infer a currently unresolved derandomization gap.
-
-[Read in atlas](index.html#TCS-6749) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6814 — Efficient PTAS for fixed-machine job-shop makespan
 
