@@ -249,3 +249,16 @@ Source checkpoint 2aa0441b and deployment
 b243fad707c17590458cd5bf9675d5d7ab924fc4 cover the first forty-seven
 dispositions with publication 35d3b83c975c97770175.
 Local publication after forty-nine is cd09bba08a3bd4155a32.
+
+After fifty-three dispositions the queue contains 697 completed records,
+217 pending records and one outside active scope. Of 1,012 active cards,
+795 have completed individual reviews. TCS-1137 now specifies the complete
+almost-all-inputs hardness converse; TCS-1956 preserves the nonuniform,
+signed-advantage demi-bit to super-bit implication; TCS-6693 preserves mildly
+explicit AC0[2] generators; and TCS-6689 restores indexed explicitness for
+simultaneously optimal averaging samplers. All completed hashes match and
+all 855 ledger entries parse. Eleven scope choices remain pending.
+Source checkpoint b96622e2 and deployment
+2dd347c99a3703f8f1fdaf641c1c3b657c1dbcb7 cover the first forty-nine
+dispositions with publication cd09bba08a3bd4155a32.
+Local publication after fifty-three is bfb4557fcc711396a6ac.

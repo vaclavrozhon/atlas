@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **221**.
+Pending active reviews: **217**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -31,15 +31,11 @@ Pending active reviews: **221**.
 | [TCS-6949](../../data/cards/TCS-6949.json) | Exhaustive-search lower bounds for Circuit-SAT | Fine-grained complexity | pool |
 | [TCS-6950](../../data/cards/TCS-6950.json) | Disjunction of SETH, APSP and 3SUM hypotheses | Fine-grained complexity | pool |
 | [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
-| [TCS-1137](../../data/cards/TCS-1137.json) | Derandomization from almost-everywhere uniform hardness | Pseudorandomness and derandomization | pool |
 | [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
 | [TCS-1008](../../data/cards/TCS-1008.json) | Bipartite vertex expanders with constant expansion loss | Pseudorandomness and derandomization | pool |
-| [TCS-1956](../../data/cards/TCS-1956.json) | Super-bits from demi-bits | Pseudorandomness and derandomization | pool |
 | [TCS-2201](../../data/cards/TCS-2201.json) | Non-malleable extractors from standard extractors | Pseudorandomness and derandomization | pool |
 | [TCS-3958](../../data/cards/TCS-3958.json) | Pseudorandom generators for superlinear-size depth-two threshold circuits | Pseudorandomness and derandomization | pool |
 | [TCS-4778](../../data/cards/TCS-4778.json) | Derandomizing amplified relational computation | Pseudorandomness and derandomization | pool |
-| [TCS-6689](../../data/cards/TCS-6689.json) | Simultaneously optimal averaging samplers | Pseudorandomness and derandomization | pool |
-| [TCS-6693](../../data/cards/TCS-6693.json) | Subpolynomial-seed pseudorandom generators for \(\mathrm{AC}^{0}[2]\) | Pseudorandomness and derandomization | pool |
 | [TCS-0734](../../data/cards/TCS-0734.json) | FPT Inapproximability Results Beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-0784](../../data/cards/TCS-0784.json) | Polynomial kernels for Edge-Disjoint Paths | Parameterized and exact algorithms | pool |
 | [TCS-0801](../../data/cards/TCS-0801.json) | Directed Hamiltonicity | Parameterized and exact algorithms | pool |
