@@ -493,7 +493,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 | 4 | [Li–Li conjecture](index.html#TCS-6584) | 96 |
 | 5 | [Capacity of the binary deletion channel](index.html#TCS-6607) | 96 |
 | 6 | [Binary codes beyond the Gilbert–Varshamov bound](index.html#TCS-7267) | 96 |
-| 7 | [Decidability of unconditional Shannon information inequalities](index.html#TCS-6608) | 95 |
+| 7 | [Decidability of unconditional entropy inequalities](index.html#TCS-6608) | 95 |
 | 8 | [Capacity of the general two-user interference channel](index.html#TCS-7210) | 95 |
 | 9 | [Positive-rate binary codes against adversarial deletions](index.html#TCS-4524) | 94 |
 | 10 | [Constant-rate binary locally decodable codes with logarithmic query complexity](index.html#TCS-6609) | 94 |
