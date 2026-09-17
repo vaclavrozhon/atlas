@@ -301,3 +301,22 @@ dispositions with publication 6563b8c237e4314a5c87.
 The complete offline check passed through disposition fifty-nine, and the
 formula check at that point covered 33,849 expressions.
 Local publication after sixty is a7f79e61e65e9a16b321.
+
+After sixty-four dispositions the queue contains 708 completed records,
+206 pending records and one outside active scope. Of 1,011 active cards,
+805 have completed this individual completion standard; the publisher's
+broader "detailed" count is 897 and is not the completion count.
+TCS-6615 specifies Cayley-table group isomorphism in polynomial bit time
+and retains uncertain status because of a separately identified unverified
+claim. TCS-6655 fixes the d-dependent quadratic Cereceda conjecture at
+d+2 colors. TCS-6078 states NP membership for ordinary infinite pinwheel
+packing and records the April 2026 NP-hardness advance. TCS-1115 specifies
+exact EF1 and integral Pareto optimality for arbitrary additive rational
+goods valuations in polynomial bit time.
+
+All completed hashes match, all 868 ledger entries parse, and the formula
+check passes on 34,062 expressions. The full offline check and desktop/mobile
+page checks pass through disposition sixty-four. Seventeen source-scope
+choices remain pending. Publication is 7918bf8c84d8a0313660.
+Source checkpoint e2371c78 and deployment
+2ea3c9b4ef05af10826bc0e432f26a2251fa3a96 cover the first sixty dispositions.

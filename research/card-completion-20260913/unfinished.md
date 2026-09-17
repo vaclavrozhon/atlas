@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **210**.
+Pending active reviews: **206**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -57,13 +57,11 @@ Pending active reviews: **210**.
 | [TCS-0716](../../data/cards/TCS-0716.json) | Online Local Learning | Online algorithms | pool |
 | [TCS-4983](../../data/cards/TCS-4983.json) | Sublinear competitive ratio for randomized k-server | Online algorithms | pool |
 | [TCS-5252](../../data/cards/TCS-5252.json) | Action-set-dependent regret in bandit combinatorial optimization | Online algorithms | pool |
-| [TCS-6078](../../data/cards/TCS-6078.json) | Pinwheel Packing in NP | Online algorithms | pool |
 | [TCS-6838](../../data/cards/TCS-6838.json) | Instance-optimal finite-time best-arm identification | Online algorithms | pool |
 | [TCS-6702](../../data/cards/TCS-6702.json) | Worst-case-to-average-case reductions within NP | Beyond worst-case and average-case analysis | pool |
 | [TCS-6703](../../data/cards/TCS-6703.json) | Optimal exponential-scale hardness amplification in NP | Beyond worst-case and average-case analysis | pool |
 | [TCS-7082](../../data/cards/TCS-7082.json) | OutputP versus IncP | Counting and enumeration | pool |
 | [TCS-7084](../../data/cards/TCS-7084.json) | Time–space separations in polynomial enumeration | Counting and enumeration | pool |
-| [TCS-6655](../../data/cards/TCS-6655.json) | Cereceda’s conjecture | Structural graph theory | pool |
 | [TCS-0315](../../data/cards/TCS-0315.json) | Fat Minors | Structural graph theory | pool |
 | [TCS-1639](../../data/cards/TCS-1639.json) | Linear neighborhood complexity of hereditary small graph classes | Structural graph theory | pool |
 | [TCS-6874](../../data/cards/TCS-6874.json) | Ramanujan graphs of every degree | Structural graph theory | pool |
@@ -72,12 +70,10 @@ Pending active reviews: **210**.
 | [TCS-7144](../../data/cards/TCS-7144.json) | Tree vertex-minors from large linear rank-width | Structural graph theory | pool |
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
 | [TCS-6928](../../data/cards/TCS-6928.json) | Linear-space representation from smallest string attractors | String algorithms and bioinformatics | pool |
-| [TCS-1115](../../data/cards/TCS-1115.json) | Polynomial-time EF1 and Pareto-optimal goods allocation | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-0571](../../data/cards/TCS-0571.json) | Positional Nash Equilibria | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-6615](../../data/cards/TCS-6615.json) | Polynomial-time finite-group isomorphism in the Cayley-table model | Algebraic computation | pool |
 | [TCS-1058](../../data/cards/TCS-1058.json) | Explicit rigidity at rank n over log log n | Algebraic computation | pool |
 | [TCS-0010](../../data/cards/TCS-0010.json) | Superlinear constant-degree arithmetic circuit lower bounds | Algebraic computation | pool |
 | [TCS-1103](../../data/cards/TCS-1103.json) | Containment of border VP in VNP over arbitrary fields | Algebraic computation | pool |
