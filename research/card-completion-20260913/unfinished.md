@@ -5,20 +5,15 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **185**.
+Pending active reviews: **180**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
 | [TCS-6692](../../data/cards/TCS-6692.json) | Linear-seed pseudorandom generators from one-way functions | Cryptography | pool |
 | [TCS-6871](../../data/cards/TCS-6871.json) | Fully homomorphic encryption from worst-case hardness | Cryptography | pool |
-| [TCS-2707](../../data/cards/TCS-2707.json) | Quantum partition functions from zero-freeness | Quantum computation | pool |
 | [TCS-4734](../../data/cards/TCS-4734.json) | Locality-preserving quantum gap amplification | Quantum computation | pool |
 | [TCS-4927](../../data/cards/TCS-4927.json) | Classification of quantum gate sets | Quantum computation | pool |
-| [TCS-4991](../../data/cards/TCS-4991.json) | Reducing shared entanglement in communication protocols | Quantum computation | pool |
 | [TCS-0240](../../data/cards/TCS-0240.json) | Communication for algorithmic secret-key agreement | Computability and algorithmic information | pool |
-| [TCS-0279](../../data/cards/TCS-0279.json) | Extraction of mutual information about two strings | Computability and algorithmic information | pool |
-| [TCS-0053](../../data/cards/TCS-0053.json) | Sign-representation | Communication complexity and Boolean function analysis | pool |
-| [TCS-0218](../../data/cards/TCS-0218.json) | Cryptogenography | Communication complexity and Boolean function analysis | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
 | [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
 | [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |

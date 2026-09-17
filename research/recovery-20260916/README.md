@@ -410,3 +410,31 @@ The formula check passes on 34,641 expressions and desktop/mobile page
 checks pass through disposition eighty-five, publication 734dfd3d3625b0fb8f87.
 Source checkpoint be8bb503 and deployment
 2aab7ced904b07267b66505b9285f0a0356a1a50 cover the first eighty dispositions.
+
+After ninety dispositions, the shared queue contains 735 completed records,
+179 pending records and one outside active scope. This batch applies five more
+user selections: TCS-0053 is archived because the unrestricted-growth computable
+degree bound follows from a published decidability theorem; TCS-4991 specifies
+a universal polynomial EPR-pair budget; TCS-2707 specifies the tensor-product
+perturbation inside the exponential; TCS-0218 asks for the full cryptogenography
+success function; and TCS-0279 specifies infinite-oracle extraction with a
+two-thirds probability threshold and logarithmic losses. The last card retains
+uncertain status because only the abstract of a related August 2026 claim was
+accessible. Its title was then adjusted to the required noun-phrase convention.
+
+Fourteen of the eighteen selections are applied. Three secondary scope
+questions are pending: TCS-6692's security/error parameter dependence,
+TCS-4734's local-dimension growth, and TCS-0240's Hamming-pair complexity
+restriction. TCS-6871 remains selected pending application. The existing
+choices themselves are preserved; no earlier selection is being asked again.
+
+All completed hashes match. All 904 ledger lines parse after the title-only
+amendment. The full offline check passes through disposition eighty-eight;
+the formula check passes on 34,813 expressions through disposition ninety.
+Desktop/mobile page checks pass through ninety before the title-only change.
+The resulting publication is c855bb588a2c1f98d444, with 1,012 active cards and
+913 detailed publisher records, which are not the original-queue completion
+count. Another thread's TCS-7376 completion, three archive moves, seven new
+cards and reader changes remain outside this recovery source checkpoint.
+Source checkpoint 507b2e25 and deployment
+247733db639299d95849daf7cde03cbe1009445f cover the first eighty-five dispositions.
