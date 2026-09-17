@@ -1082,3 +1082,37 @@ Only these five reviews, their authoring scripts, this log and their own queue,
 ledger and inventory changes enter the checkpoint. Source checkpoint dd82be69
 and deployment 55064d5a57511c36b382a44da60c78a513ecebe8 cover the first 190
 dispositions. Concurrent unrelated work remains unstaged.
+
+After two hundred recovery dispositions, the raw shared queue contains 845
+completed records, 69 pending records and one outside its original scope. The
+live catalogue has 976 active cards: 62 pending active reviews, 762 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-6868 (the historical NTRU reduction request, archived
+with a proved ratio-recovery specialization), TCS-0653 (the explicit quantum
+Euclidean SVP lower bound from QSETH), TCS-6861 (classical same-dimension SIVP
+to LWE), TCS-6864 (classical cyclotomic ideal-SVP to ring-LWE), and TCS-0205
+(the normalized Ingleton-score infimum). Unanswered optional target choices were
+announced and applied as editorial defaults, without recording user confirmation.
+
+The NTRU record distinguishes changed distributions and ratio recovery from
+standard ternary short-vector recovery, and does not import an ERH assumption
+from the separate worst-case branch into the search-to-decision theorem. The
+quantum card counts finite gates and classical control and retains the one-half
+QSETH baseline; the ICALP 2026 nonadaptive reduction barrier is not treated as a
+refutation. The LWE cards fix finite samples and oracle success guarantees. The
+ring variant preserves the bounded elliptical family and the dual-ring scaling
+rather than asserting fixed spherical-error hardness. The Ingleton review fixes
+opposite sign conventions, separates a modified score and a distinct violation
+index, and retains global two-sided numerical certification over all alphabets.
+
+All five output hashes match their queue records, including the archived record;
+the shared ledger contains 1028 valid entries. The full offline check passes.
+Mathematical rendering passes for 36,350 expressions across 976 active cards,
+and desktop/mobile reader checks pass on publication a9f63a22160cdf928565,
+with 930 detailed active records.
+
+Only these five reviews, their authoring scripts, this log, their queue/ledger/
+inventory changes and the NTRU archival entries enter the checkpoint. Source
+checkpoint d9b477e0 and deployment a96ebe93d2de3c6cfe7d210398d51eb820d0bdff
+cover the first 195 dispositions. Concurrent unrelated work remains unstaged.

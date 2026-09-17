@@ -1,0 +1,74 @@
+"""Archive the broad historical NTRU question with a precise proved variant."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-6868';claim=read_claims(ROOT)[identifier]
+complete(identifier,dict(
+ title='Search-to-decision reductions for NTRU-like problems',
+ status='resolved',criterion='reductions',question_type='yes_no',
+ formal=r'''Does there exist a uniform classical randomized polynomial-time oracle reduction from recovery of the short-trapdoor ratio in the NTRU distributions defined below to distinguishing their Gaussian-rerandomized distributions from uniform? Specifically, are there absolute constants \(K,a,d_0>0\) and one oracle algorithm \(\mathcal R\) satisfying the following guarantee?
+
+For every power of two \(d\ge d_0\), integers \(q,B,t\) with
+\[
+2\le B\le q,\qquad 16B^4d^4\le q\le 2^{d^2},\qquad 2\le t\le d^2,
+\]
+every distribution \(D_s\) supported on the \(B\)-well-behaved elements of \(R_q\), and every decision oracle \(A\) whose distinguishing advantage between \(\phi_B(D_s)\) and uniform \(R_q\) is at least \(1/t\), the algorithm \(\mathcal R^A(d,q,B,t,h)\), on \(h\leftarrow D_s\), outputs the exact short-trapdoor ratio \(h_K\) with probability at least \(1/(8t)\), using at most \(K(d+\lceil\log_2(q+1)\rceil+t)^a\) classical bit operations and oracle calls on every run?
+
+This is a concrete positive instance of the source's broad request for a reduction for an NTRU-like problem. Its distribution change and ratio-recovery output are part of the target.''',
+ definitions=r'''Let \(R=\mathbb Z[X]/(X^d+1)\), \(K=\mathbb Q[X]/(X^d+1)\), and \(R_q=R/qR\). Since \(d\) is a power of two, \(K\) is a number field and \(R\) is its ring of integers. Elements of \(R_q\) are given by their \(d\) coefficients in \(\{0,\ldots,q-1\}\), in binary. Elements of \(K\) are represented by \(d\) rational coefficients with binary numerators and positive denominators in the power basis. The embeddings \(\sigma_j:K\to\mathbb C\) send \(X\) to the \(d\) complex roots of \(X^d+1\). Define the canonical Euclidean norm by
+\[
+\|u\|_{\rm can}^2=\sum_{j=1}^d|\sigma_j(u)|^2.
+\]
+It equals \(d\) times the squared coefficient norm on this ring; these two conventions must not be interchanged in the Gaussian parameter.
+
+An element \(h\in R_q\) is \(B\)-well-behaved if there exist \(f,g\in R\) with \(gh=f\pmod{qR}\), with \(g\) invertible in \(R_q\), and with
+\[
+B^{-1}\le |\sigma_j(f)|,|\sigma_j(g)|\le B\quad(1\le j\le d).
+\]
+Neither \(f\) nor \(g\) is given to the algorithm. Put \(h_K=f/g\in K\), where division is in the number field, not in \(R_q\). The displayed bounds imply \(\|f\|_{\rm can},\|g\|_{\rm can}\le B\sqrt d\). In this parameter regime any two such short trapdoors have the same ratio: their cross-product difference belongs to \(qR\) and is too short to be a nonzero element of that ideal. Thus \(h_K\) is well-defined. The required output is its exact rational coefficient vector, not a short integral trapdoor.
+
+For \(s>0\), the discrete Gaussian \(D_{R,s}\) assigns to \(u\in R\) probability proportional to \(\exp(-\pi\|u\|_{\rm can}^2/s^2)\). The mathematical distribution \(\phi_B(D_s)\) is obtained by independently sampling \(h\leftarrow D_s\) and \(x,y\leftarrow D_{R,2Bd}\), then returning \(xh+y\pmod{qR}\). Let \(U_q\) be uniform on the \(q^d\) elements of \(R_q\). A decision oracle is a fixed randomized map \(A:R_q\to\{0,1\}\), with independent fresh randomness on each invocation, satisfying
+\[
+\left|\Pr_{z\leftarrow\phi_B(D_s)}[A(z)=1]
+-\Pr_{z\leftarrow U_q}[A(z)=1]\right|\ge 1/t.
+\]
+No pointwise correctness promise is imposed on \(A\). The reduction receives the parameters and one search instance \(h\), and may query \(A\) adaptively. It receives no description of \(D_s\), no sampler for its secrets and no advice. Success is averaged over \(h\), the reduction's independent fair random bits and oracle randomness. Oracle internal computation is excluded from the reduction cost; constructing queries and reading answers are included. Computation, precision control and finite approximations to Gaussian sampling must be classical finite-bit operations and are included. The exact distributions define the oracle promise; they are not unit-cost exact-real sampling primitives.
+
+The finite ranges on \(q\) and \(t\), the eventual lower cutoff \(d_0\), and the weakened constant \(1/8\) are explicit convenient specializations of the published asymptotic theorem. They keep its bit lengths subexponential and its advantage inverse-polynomial while leaving polynomial and exponential moduli available. This historical existence question permits a change from \(D_s\) to \(\phi_B(D_s)\).''',
+ answer_criterion='Give a complete mathematically correct Lean-checked proof of the stated uniform oracle reduction, including the well-defined ratio, parameter range, bit complexity and success probability, or prove its negation. The published positive theorem resolves the mathematical existence question; this record does not claim that its proof is already formalized in Lean. A reduction for unchanged ternary-key distributions or recovery of a short integral pair would be a different, stronger target.',
+ importance=dict(score=84,method='editorial',reason='Connecting NTRU assumptions to systematic worst-case and decision hardness is central to the theoretical foundations of widely studied lattice cryptography; the established distribution-sensitive result is historically significant.'),
+ why='NTRU has an algebraic short-secret relation, but recovering its hidden ratio and distinguishing its public distribution are different computational tasks. The positive reduction explains a substantial class of such relations while making clear which distributions and search outputs its security connection covers.',
+ source_formulation=dict(text='Question 8 asks for a worst-case hardness reduction or a search-to-decision reduction for an NTRU-like problem. It does not restrict the request to one deployed ternary distribution. The later paper explicitly identifies and answers this broad question; the formal statement here records a concrete specialization of its search-to-decision theorem.',caption='Peikert, A Decade of Lattice Cryptography, Question 8, printed p.75 / PDF p.77.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','A Decade of Lattice Cryptography','Chris Peikert',2016,'https://eprint.iacr.org/2015/939','Question 8, printed p.75 / PDF p.77; §4.4.4 NTRU background'),
+ ref('solution','On the hardness of the NTRU problem','Alice Pellet-Mary; Damien Stehlé',2021,'https://eprint.iacr.org/2021/821','Full version: introduction pp.2–5; §2.2 Gaussian convention p.7; Lemma 3.5 and Definition 3.6 pp.14–15; Definitions 5.1–5.2 and Theorem 5.4 pp.23–24; Lemmas 5.6–5.7 pp.25–26; Appendix D.2 p.58'),
+ ],
+ context_blocks=[
+ block('The historical question allowed either a worst-case connection or a search-to-decision connection for an NTRU-like problem. It was not a fixed-distribution claim about one particular cryptosystem.'),
+ block('Pellet-Mary and Stehlé explicitly quote that question and give positive results in both directions for specified variants. The search-to-decision result recovers the field ratio and uses a rerandomized decision distribution.','solution'),
+ block('In the full theorem, a (B,ε)-well-behaved search distribution and a decision advantage δ yield ratio recovery with probability at least (δ−2ε)/4. This card takes ε=0, power-of-two cyclotomics, polynomially bounded input bit lengths, and extra constant slack. In the power basis the paper’s embedding-size parameter δ_K equals 1.','solution'),
+ block('The reduction first isolates a set of useful search instances, recovers one complex embedding of the hidden ratio to sufficient precision using a hidden-center procedure, and then reconstructs its exact algebraic representation. It does not require access to the original secret sampler.','solution'),
+ block('The short-vector and ratio-recovery search variants are distinguished in the paper. The latter does not by itself produce a short integral pair. Likewise, the search and decision distributions in this theorem are not identical.','solution'),
+ block('The separate worst-case-to-average-case route uses an ideal-lattice distribution result and the extended Riemann hypothesis in its stated theorem; the search-to-decision result used here does not impose that hypothesis. Neither statement should be advertised as an unconditional worst-case theorem for ordinary ternary NTRU.','solution'),
+ ],
+ progress=[progress('2016','Question 8 poses the broad reduction problem.'),progress('2021','Theorem 5.4 proves a distribution-changing search-to-decision reduction for NTRU ratio recovery; the introduction explicitly presents it as answering the earlier question.','solution')],
+),[
+ 'After an unanswered optional archive-or-specialize question, announced and applied the recommended archival default; this was an editorial choice, not user confirmation.',
+ 'Preserved the broad historical existence direction and supplied a concrete power-of-two cyclotomic specialization of the known theorem.',
+ 'Defined the ring, embedding norm, well-behaved distribution, exact ratio output, Gaussian transformation and distinguishing advantage.',
+ 'Separated ratio recovery from short-vector recovery and changed distributions from unchanged ternary distributions; retained the separate ERH qualification.',
+ 'Assessed historical importance and included a complete Lean-checked answer criterion without claiming an existing formalization.',
+],[
+ 'Read Peikert Question 8 and the NTRU discussion in the saved full survey.',
+ 'Read the solution paper’s introduction, §§2.2, 3.1–3.3, Definitions 5.1–5.2, Theorem 5.4, Lemmas 5.6–5.7 and Appendix D.2; checked the separate worst-case route’s ERH assumption.',
+ 'Checked the source’s explicit attribution of a positive answer and performed a bounded later-work search through 17 September 2026; no stronger unchanged-distribution theorem is required or claimed.',
+], 'Resolved in the broad historical sense by Pellet-Mary and Stehlé, ASIACRYPT 2021, Theorem 5.4. The card records a concrete distribution-changing ratio-recovery specialization. Archival was the announced recommended editorial default after no reply to an optional question. It does not claim the standard ternary search-vector and same-distribution decision variants are settled, or that a Lean proof already exists.',summary=[
+ 'The historical question asks for a worst-case or search-to-decision connection for an NTRU-like problem.',
+ 'A 2021 theorem supplies a search-to-decision reduction for recovery of the field ratio of short secrets.',
+ 'Its decision distribution is a specified Gaussian rerandomization of the search distribution.',
+ 'The theorem does not recover a short integral pair or preserve the usual ternary distribution.',
+ 'This precise positive instance resolves the broad existence question, so the historical card is archived.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'],archive_reason='The original broad NTRU-like reduction request is answered by Pellet-Mary–Stehlé, ASIACRYPT 2021, Theorem 5.4. Completed with a concrete ratio-recovery, changed-distribution specialization; no claim about unchanged ternary NTRU. Recommended archival default announced after an unanswered optional choice.')

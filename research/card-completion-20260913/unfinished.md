@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **75**.
+Pending active reviews: **70**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -48,13 +48,8 @@ Pending active reviews: **75**.
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-0653](../../data/cards/TCS-0653.json) | Explicit quantum exponential-time lower bounds for Euclidean SVP | Lattices and computational number theory | pool |
-| [TCS-6861](../../data/cards/TCS-6861.json) | Classical reductions matching quantum LWE hardness | Lattices and computational number theory | pool |
-| [TCS-6864](../../data/cards/TCS-6864.json) | Classical worst-case reductions for ring-LWE | Lattices and computational number theory | pool |
-| [TCS-6868](../../data/cards/TCS-6868.json) | Worst-case and search-to-decision reductions for NTRU | Lattices and computational number theory | pool |
 | [TCS-0178](../../data/cards/TCS-0178.json) | Bounded-alphabet approximation of entropy-region faces | Coding and information theory | pool |
 | [TCS-0187](../../data/cards/TCS-0187.json) | Field dependence of linear-rank inequalities | Coding and information theory | pool |
-| [TCS-0205](../../data/cards/TCS-0205.json) | Infimum of the Ingleton score | Coding and information theory | pool |
 | [TCS-4802](../../data/cards/TCS-4802.json) | Noise tolerance of binary interactive codes | Coding and information theory | pool |
 | [TCS-4968](../../data/cards/TCS-4968.json) | Linear versus nonlinear code parameters | Coding and information theory | pool |
 | [TCS-6738](../../data/cards/TCS-6738.json) | Linear-length locally testable codes and proofs | Coding and information theory | pool |
