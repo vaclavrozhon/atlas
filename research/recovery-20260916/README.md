@@ -1051,3 +1051,34 @@ Only these five reviews, their authoring scripts, this log and their own queue,
 ledger and inventory changes enter the checkpoint. Source checkpoint 1eadde8c
 and deployment 60e68887022cb9571e7132c6458c83f0f65d63b9 cover the first 185
 dispositions. Concurrent unrelated work remains unstaged.
+
+After one hundred and ninety-five recovery dispositions, the raw shared queue
+contains 840 completed records, 74 pending records and one outside its original
+scope. The live catalogue has 977 active cards: 67 pending active reviews,
+758 completed active queue records and 152 active records outside the queue.
+
+This batch completes TCS-0648 (constant-gap Euclidean unique-SVP), TCS-0656
+(semiprime factoring to polynomial-factor GapSVP), TCS-0659 (a sublinear-factor
+classical SIS reduction), TCS-0657 (the logarithmically improved coNP certificate
+bound), and TCS-0655 (polynomial-factor Euclidean hardness under NP ⊄ RP).
+Unanswered optional choices were announced and applied as editorial defaults,
+not recorded as user confirmations.
+
+The reviews specify binary inputs, lattice rank, promise boundaries, reduction
+interfaces and error guarantees. The August 2026 polynomial-factor hardness
+result applies to p > 2; its explicit Euclidean obstruction was checked. A
+separate optional archival choice received no reply, and the recommended p = 2
+specialization was retained. The September revision of the deterministic
+hardness paper explicitly withdraws its older dimension-dependent claims;
+those claims are not used. The coNP target requires deterministic certificates,
+and the SIS target fixes ordinary compressing instances without auxiliary hints.
+
+All five output hashes match their queue records; the shared ledger contains
+1022 valid entries. The full offline check passes. Mathematical rendering passes
+for 36,180 expressions across 977 active cards, and desktop/mobile reader checks
+pass on publication 5dacd9c805fff7ffb66c, with 926 detailed records.
+
+Only these five reviews, their authoring scripts, this log and their own queue,
+ledger and inventory changes enter the checkpoint. Source checkpoint dd82be69
+and deployment 55064d5a57511c36b382a44da60c78a513ecebe8 cover the first 190
+dispositions. Concurrent unrelated work remains unstaged.

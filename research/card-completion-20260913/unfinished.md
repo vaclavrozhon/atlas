@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **80**.
+Pending active reviews: **75**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -48,11 +48,6 @@ Pending active reviews: **80**.
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-0659](../../data/cards/TCS-0659.json) | Stronger worst-case reductions to SIS and LWE | Lattices and computational number theory | pool |
-| [TCS-0656](../../data/cards/TCS-0656.json) | Reducing factoring or discrete logarithms to approximate SVP | Lattices and computational number theory | pool |
-| [TCS-0655](../../data/cards/TCS-0655.json) | Polynomial-factor SVP hardness from standard assumptions | Lattices and computational number theory | pool |
-| [TCS-0648](../../data/cards/TCS-0648.json) | Constant-gap hardness of unique SVP | Lattices and computational number theory | pool |
-| [TCS-0657](../../data/cards/TCS-0657.json) | Smaller-factor coNP or coAM certificates for SVP | Lattices and computational number theory | pool |
 | [TCS-0653](../../data/cards/TCS-0653.json) | Explicit quantum exponential-time lower bounds for Euclidean SVP | Lattices and computational number theory | pool |
 | [TCS-6861](../../data/cards/TCS-6861.json) | Classical reductions matching quantum LWE hardness | Lattices and computational number theory | pool |
 | [TCS-6864](../../data/cards/TCS-6864.json) | Classical worst-case reductions for ring-LWE | Lattices and computational number theory | pool |
