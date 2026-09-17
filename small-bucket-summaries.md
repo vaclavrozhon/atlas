@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-576 five-sentence working summaries, based on saved source material.
+575 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -3138,7 +3138,7 @@ A rationally recursive sequence is one coordinate of a finite system whose next 
 [Read in atlas](index.html#TCS-5739) · [On Rational Recursive Sequences](https://doi.org/10.4230/LIPIcs.STACS.2023.24) · [On Rational Recursive Sequences — full author version](https://arxiv.org/abs/2210.01635)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Lattices and computational number theory (28)
+## Lattices and computational number theory (27)
 
 ### TCS-6571 — Hilbert’s tenth problem over the rationals
 
@@ -3203,6 +3203,13 @@ The target is a conditional quantum lower bound for the Euclidean gap version of
 [Read in atlas](index.html#TCS-0658) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Quantum Meets the Minimum Circuit Size Problem](https://eccc.weizmann.ac.il/report/2021/116/revision/1/) · [Deterministic Hardness of Approximation of Unique-SVP and GapSVP in \(\ell_p\) Norms for \(p>2\)](https://doi.org/10.1145/3798129.3800803) · [NP-hardness of SVP in Euclidean Space](https://arxiv.org/abs/2603.27398)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-6861 — A classical same-dimension reduction from SIVP to polynomial-modulus LWE
+
+LWE hides a uniformly random modular vector behind noisy linear equations. The card asks for a classical reduction from worst-case short independent lattice vectors to polynomial-modulus LWE in the same dimension. The target approximation factor is n/α times a fixed power of a logarithm, with precise rounded Gaussian errors. Known quantum reductions achieve the relevant connection, while the reviewed classical route loses dimension and starts from a different lattice problem. A complete Lean-checked answer must settle the explicitly quantified reduction and its average-case oracle guarantees.
+
+[Read in atlas](index.html#TCS-6861) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939) · [On Lattices, Learning with Errors, Random Linear Codes, and Cryptography](https://cims.nyu.edu/~regev/papers/qcrypto.pdf) · [Classical Hardness of Learning with Errors](https://arxiv.org/abs/1306.0281v1)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-6863 — Polynomial-factor approximation of cyclotomic ideal SVP
 
 An ideal in a power-of-two cyclotomic ring is a full integer lattice closed under multiplication by the ring. The selected question asks for a classical randomized polynomial-time algorithm returning an actual nonzero vector within a fixed polynomial factor of the shortest length. One program and fixed exponents must work for every dimension and every explicitly supplied ideal basis, with all preprocessing and output charged. This is an expressly labeled specialization of Peikert’s broad question about algorithmic advantages of ideal-lattice structure. Conditional quantum algorithms, easy prime-ideal classes and the new exact-hardness claims in other rings do not determine this all-ideals target.
@@ -3230,6 +3237,13 @@ A lattice covering radius is the largest distance from a point in its span to th
 
 [Read in atlas](index.html#TCS-5317) · [Hardness of the Binary Covering Radius Problem in Large \(\ell_p\) Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
 Existing status: `source_open` · Summary written: 2026-09-15
+
+### TCS-6864 — Classical ideal-SVP hardness of ring-LWE in power-of-two cyclotomic rings
+
+Ring-LWE consists of noisy multiplication samples in a finite polynomial quotient ring. The card asks for a classical reduction from finding a short vector in every ideal of a power-of-two cyclotomic ring. The target keeps the degree and polynomial modulus and seeks the known quantum approximation scale Õ(√n/α). Its oracle must solve the full bounded elliptical error family, with explicit dual-ring scaling and finite coefficient rounding. The classical connection remains unresolved in the checked sources, and a full Lean-checked reduction or refutation is required.
+
+[Read in atlas](index.html#TCS-6864) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939) · [On Ideal Lattices and Learning with Errors Over Rings](https://cims.nyu.edu/~regev/papers/ideal-lwe.pdf) · [Classical Hardness of Learning with Errors](https://arxiv.org/abs/1306.0281v1) · [NP-hardness of ideal lattice problems](https://arxiv.org/abs/2609.15813v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0656 — A classical reduction from semiprime factoring to polynomial-gap SVP
 
@@ -3301,39 +3315,18 @@ GapSVP asks whether an input lattice has a vector of length at most a threshold 
 [Read in atlas](index.html#TCS-0657) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Lattice Problems in NP ∩ coNP](https://cims.nyu.edu/~regev/papers/cvpconp.pdf)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-0653 — Explicit quantum exponential-time lower bounds for Euclidean SVP
+### TCS-0653 — A quantum 2^(0.2075n) lower bound for exact Euclidean SVP from QSETH
 
-Quantum algorithms may exploit operations unavailable to classical lattice solvers. The source asks for explicit exponential-time lower bounds for Euclidean SVP in the quantum setting. Classical fine-grained assumptions cannot automatically exclude speedups using quantum search or other quantum primitives. A precise bound would clarify the strength of lattice hardness claims relevant when adversaries have quantum computation. The saved title does not name the starting hypothesis or approximation regime, so the requested result is not an existing unconditional quantum lower bound and must preserve the reduction's quantitative dimension dependence.
+Exact Euclidean SVP asks for a shortest nonzero vector of an explicitly given integer lattice. This card asks whether quantum SETH rules out time 2^(0.2075n) times a polynomial in the binary input length. The quantum SAT hypothesis uses the search baseline 2^(N/2), and both sides use the same uniform finite-gate model. Known barriers obstruct important families of reductions without resolving the full implication. A complete Lean-checked proof or refutation must establish the stated numerical exponent and computational guarantees.
 
-[Read in atlas](index.html#TCS-0653) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0653) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [On the (Classical and Quantum) Fine-Grained Complexity of Approximate CVP and Max-Cut](https://doi.org/10.4230/LIPIcs.ICALP.2026.111)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1170 — ETH hardness of constant-factor shortest-vector approximation for \(1\le p\le 2\)
 
 The shortest-vector problem asks how short a nonzero lattice vector can be. This card asks for constant-factor gap hardness in every norm \(\ell p\) with \(1\le p\le 2\). The proposed lower bound excludes subexponential dependence on ambient dimension, with polynomial dependence on input encoding length. Its premise is ordinary deterministic ETH, and the approximation factor must stay bounded away from one as dimension grows. The source’s shortest-vector hardness theorem for \(p>2\) uses randomized ETH and does not settle this stated interval or premise.
 
 [Read in atlas](index.html#TCS-1170) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6861 — Classical reductions matching quantum LWE hardness
-
-Learning With Errors asks for hidden linear information obscured by small random noise. The saved survey question seeks classical reductions matching the full worst-case hardness guarantees of a quantum reduction. A reduction may invoke quantum computation even when the resulting average-case problem is presented to classical algorithms. Matching it classically would clarify which security connections require quantum machinery rather than only lattice geometry. The historical note does not reproduce the approximation, modulus, or noise parameters, so a weaker classical reduction or a restricted regime does not automatically meet the full target.
-
-[Read in atlas](index.html#TCS-6861) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6864 — Classical worst-case reductions for ring-LWE
-
-Ring-LWE places noisy linear equations in an algebraic ring rather than an unstructured vector space. The survey asks for a meaningful classical reduction from worst-case problems to this average-case task. Such a reduction would explain how solving generated ring-LWE instances could solve every instance of an associated structured lattice problem. A classical connection could strengthen the interpretation of the hardness assumption without invoking quantum computation. The saved note does not define the intended quantitative strength or ring family, so “meaningful” still needs explicit approximation, dimension, and noise parameters.
-
-[Read in atlas](index.html#TCS-6864) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6868 — Worst-case and search-to-decision reductions for NTRU
-
-NTRU-like problems use structured algebraic relations involving short secret elements. The survey asks for worst-case reductions or reductions connecting search with decision versions. Recovering a hidden object can differ substantially from merely distinguishing its induced distribution from a comparison distribution. A strong connection would place these assumptions within a more systematic complexity framework. The saved historical note does not identify one NTRU variant or its distributions, so reductions for a neighboring ring problem cannot automatically supply the requested guarantees.
-
-[Read in atlas](index.html#TCS-6868) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Coding and information theory (28)
@@ -3499,12 +3492,12 @@ Linear-rank inequalities describe constraints satisfied by dimensions of subspac
 [Read in atlas](index.html#TCS-0187) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0205 — Infimum of the Ingleton score
+### TCS-0205 — The infimal normalized Ingleton score
 
-The Ingleton expression is a linear combination of entropies associated with a constraint familiar from linear representations. The recorded question asks for the infimum of its normalized score over the intended distributions. Negative scores quantify how far general information structures can deviate from linear-rank behavior. Determining the extremal value would sharpen a concrete measure of that separation. The saved title does not supply the normalization or admissible alphabet conventions, and an infimum need not be attained by a finite distribution, so those details are essential to an exact-value statement.
+The Ingleton score divides a particular linear combination of four-variable entropies by their joint entropy. Negative scores measure violations of an inequality satisfied by linear-rank configurations. The target is the infimum over all finite joint distributions, with no fixed alphabet bound, to certified absolute error 1/100. Known examples near −0.0925 disprove the four-atom conjecture but do not supply the needed global lower bound. A complete Lean-checked answer must certify both sides and need not prove algebraicity or attainment.
 
-[Read in atlas](index.html#TCS-0205) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0205) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Entropy region and convolution](https://arxiv.org/abs/1310.5957v1) · [Violations of the Ingleton inequality and revising the four-atom conjecture](https://doi.org/10.14736/kyb-2020-5-0916) · [Optimizing Distributions for Associated Entropic Vectors via Generative Convolutional Neural Networks](https://doi.org/10.3390/e26080711)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-4802 — Noise tolerance of binary interactive codes
 
