@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-604 five-sentence working summaries, based on saved source material.
+603 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1014,7 +1014,7 @@ Given a length in unary, generate a prime with exactly that many binary digits i
 [Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Parameterized complexity and algorithms (41)
+## Parameterized complexity and algorithms (40)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1142,6 +1142,13 @@ Almost 2-SAT asks whether deleting at most a specified number of clauses can mak
 [Read in atlas](index.html#TCS-6749) · [Parameterized Constraint Satisfaction Problems: a Survey](https://drops.dagstuhl.de/entities/document/10.4230/DFU.Vol7.15301.179) · [Quasipolynomial-Time Deterministic Kernelization and (Gammoid) Representation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.54)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-7027 — Fixed-parameter tractability of Perfect Edge Deletion
+
+A graph is perfect if every induced subgraph needs exactly as many colors as the size of its largest clique. The problem asks whether at most a given number of edges can be deleted to make an arbitrary graph perfect. The desired algorithm has a polynomial input-size exponent independent of that deletion budget, with a computable budget-dependent factor. The source concerns edge deletion, whereas the known parameterized hardness concerns deleting vertices. The question remains open in the checked survey, and recent work on essential vertices does not resolve this edge-deletion target.
+
+[Read in atlas](index.html#TCS-7027) · [A survey of parameterized algorithms and the complexity of edge modification](https://doi.org/10.1016/j.cosrev.2023.100556) · [Parameterized complexity of vertex deletion into perfect graph classes](https://doi.org/10.1016/j.tcs.2012.03.013) · [Search-space reduction via essential vertices revisited: Vertex multicut and cograph deletion](https://doi.org/10.1016/j.jcss.2025.103730)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7023 — Polynomial kernels for minor-free edge deletion
 
 The problem deletes at most k edges so that the remaining graph excludes every member of a fixed forbidden-minor family. It asks whether every such family permits a polynomial-time reduction to one equivalent instance of polynomial size in k. The input graph is arbitrary, and all vertices remain available during edge deletion. A general kernel would provide a broad preprocessing guarantee for structural graph repair beyond known fixed-parameter algorithms. The card restores the family quantifier and distinguishes vertex deletion, promised minor-free inputs and more general compressions.
@@ -1186,10 +1193,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0800 — Cutwidth
 
-A cutwidth layout orders vertices and measures how many edges cross the busiest prefix boundary. This entry asks about the computational complexity of optimizing that maximum. The objective captures how much simultaneous edge interaction a linear arrangement must accommodate. Sharper exact algorithms or lower bounds would help establish the intrinsic cost of this graph layout measure. The saved source contains only the topic label, leaving graph restrictions, approximation allowances, and the relevant size parameter unspecified rather than supporting an exact conjectured running time.
+The cutwidth of a graph is the smallest possible maximum number of edges crossing a boundary between consecutive vertices in a linear ordering. The question asks for one deterministic algorithm computing this value on every graph in exponential time with a fixed base below two. The running-time exponent is measured in the number of vertices, with no promise about a smaller structural parameter. Faster exact algorithms for bipartite graphs and for graphs with a small vertex cover do not meet the unrestricted target. The checked 2025 progress gives a faster factor-two approximation, which does not determine the exact optimum.
 
-[Read in atlas](index.html#TCS-0800) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0800) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://drops.dagstuhl.de/entities/document/10.4230/DagRep.3.8.40) · [On Cutwidth Parameterized by Vertex Cover](https://link.springer.com/article/10.1007/s00453-012-9707-6) · [Exponential-Time Approximation (Schemes) for Vertex-Ordering Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2025.15)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0808 — Sub-base-two exact maximum acyclic subgraph
 
@@ -1289,20 +1296,6 @@ Boolean formula satisfiability asks whether some assignment makes a formula true
 [Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7027 — Fixed-parameter tractability of Perfect Deletion
-
-A perfect graph has chromatic number equal to clique number in every induced subgraph. The edge-modification survey asks whether deleting a bounded number of edges to obtain such a graph is fixed-parameter tractable. The repair target imposes conditions across many induced subgraphs rather than only a single global coloring requirement. An algorithm would show that proximity to perfection can be exploited even when the input itself lacks that structure. The saved note gives no quantitative parameter dependence and preserves a historical question whose later developments have not been checked here.
-
-[Read in atlas](index.html#TCS-7027) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7033 — Polynomial kernels for directed feedback sets
-
-Directed feedback sets remove vertices or arcs until no directed cycle remains. The survey asks for polynomial kernels for both versions, parameterized by the allowed number of removals. The compression must preserve interactions among cycles that may share only selected portions of their routes. Resolving these questions would determine whether small directed cycle-repair budgets imply compact equivalent instances. The vertex and arc variants remain separate tasks, and the saved 2020 formulation supplies neither a current resolution nor a particular optimal polynomial size.
-
-[Read in atlas](index.html#TCS-7033) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ## Approximation algorithms and inapproximability (26)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
@@ -1377,10 +1370,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-6591 — Constant-factor approximation for Directed Feedback Vertex Set
 
-A directed feedback vertex set removes vertices so that the remaining directed graph has no directed cycle. The saved question asks for a polynomial-time constant-factor approximation when vertices have weights and the graph is unrestricted. Many cycles may overlap, making a locally attractive deletion interact with numerous other choices. Understanding this approximation target would clarify how efficiently algorithms can destroy cyclic dependencies in directed systems. The saved note distinguishes this target from finding a polynomial kernel and does not supply a reviewed account of current approximation bounds.
+A directed feedback vertex set deletes vertices so that no directed cycle remains. The question asks for one deterministic polynomial-time algorithm whose output weight is at most a fixed constant times the minimum possible weight. The guarantee must hold for every directed graph and every nonnegative rational assignment of vertex weights. General approximation remains polylogarithmic in the checked sources, and every constant factor faces a conditional Unique-Games hardness barrier. Recent constant-factor improvements apply to quasi-transitive digraphs and do not settle the unrestricted question.
 
-[Read in atlas](index.html#TCS-6591) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2016.55)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6591) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2016.55) · [Hardness of Vertex Deletion and Project Scheduling](https://theoryofcomputing.org/articles/v009a024/) · [A 9/4-Approximation for Directed Feedback Vertex Sets in Quasi-Transitive Digraphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.96) · [A deterministic \((2+\varepsilon)\)-approximation for directed feedback vertex sets in tournaments](https://arxiv.org/abs/2609.16723v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7357 — Optimal polynomial-time approximation ratio for asymmetric TSP
 
