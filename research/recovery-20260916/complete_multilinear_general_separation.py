@@ -1,0 +1,72 @@
+"""Review semantic multilinear versus unrestricted circuit power over C."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-6883';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Recovered Open Problem 3 and retained semantic multilinearity at every gate, distinct from the syntactic-versus-semantic question on TCS-6884.',
+ 'Used the announced complex-field editorial default after an optional question and independent work without a reply; no explicit user confirmation is claimed.',
+ 'Specified nonuniform binary division-free circuits, arbitrary complex constants, gate-count size, unrestricted sharing and depth, and exact polynomial equality.',
+ 'Required a polynomial-size unrestricted family and no polynomial-size semantic multilinear family; no explicit construction requirement or eventual-at-every-length lower bound was inserted.',
+ 'Read the source definitions and published syntactic near-quadratic bound, plus the January 2026 primary discussion of the stronger circuit frontier.',
+ 'Found the April 2026 rank-barrier manuscript but checked its May arXiv withdrawal for a proof gap; its claimed polynomial full-rank construction is not used as a valid result.',
+ 'Individually assessed importance and required a complete Lean-checked separation or universal simulation-in-size conclusion.',
+]
+sources=[
+ 'Read Shpilka–Yehudayoff, Arithmetic Circuits: A Survey of Recent Results and Open Questions: semantic and syntactic definitions, printed p.7; §2.2.1 Open Problem 3 and the distinct Open Problem 4, printed p.14 (PDF p.19); §3.6 Theorems 3.10–3.12 and Open Problem 13 pp.36–37. The general-circuit comparison explicitly concerns multilinear output polynomials.',
+ 'Read Alon–Kumar–Volk, Unbalancing Sets and an Almost Quadratic Lower Bound for Syntactically Multilinear Arithmetic Circuits, author-hosted manuscript: abstract, §1.1 and Theorem 1.1 printed pp.1–2. The Omega(n^2/log^2 n) bound is syntactic, not a superpolynomial semantic lower bound. The Introduction records polynomial unrestricted determinant circuits and the lack of corresponding known multilinear circuits at its date.',
+ 'Read Fabris–Limaye–Srinivasan–Yehudayoff, Multilinear Algebraic Branching Programs and the Min-Partition Rank Method, ECCC TR26-001 dated 1 January 2026: abstract and Introduction printed p.1, including footnote 1. The authors explicitly adopt the syntactic convention and retain superpolynomial lower bounds for multilinear branching programs as open. Their hierarchy discussion is not misrepresented as a semantic-circuit separation.',
+ 'Read Kush, ECCC TR26-043, 1 April 2026 manuscript, abstract, Introduction and Corollary 1.2. Then checked the current primary arXiv record 2604.00746v2, 11 May 2026, which explicitly withdraws the paper: its forced-probability estimate was unconditional while the supermartingale argument needed the conditional estimate. The author states that all results crucially rely on the affected lemma. The claimed polynomial full-rank mABP construction is therefore not recorded as an established barrier.',
+ 'Bounded primary-source checks through 17 September 2026 found no resolution of the selected semantic-multilinear versus unrestricted nonuniform circuit comparison over C. This does not claim an exhaustive literature search or independent verification of all cited proofs.',
+]
+complete(identifier,dict(
+ status='source_open',criterion='resources',question_type='yes_no',
+ formal=r'''Does there exist a family of multilinear polynomials \(f_n\in\mathbb C[x_1,\ldots,x_n]\), indexed by integers \(n\ge2\), and an integer \(a\ge1\), such that
+\[
+\operatorname{C}(f_n)\le n^a\qquad\text{for every }n\ge2,
+\]
+while
+\[
+\forall k\ge1\ \forall N\ge2\ \exists n\ge N:
+\operatorname{MC}(f_n)>n^k?
+\]
+The quantified \(k,N,n\) are integers. Here \(\operatorname{C}\) is unrestricted arithmetic circuit size and \(\operatorname{MC}\) is semantically multilinear arithmetic circuit size, both over \(\mathbb C\). Thus the outputs must have polynomial-size unrestricted circuits but no polynomial-size family of circuits that remain multilinear at every gate.''',
+ definitions=r'''An arithmetic circuit over \(\mathbb C\) is a finite directed acyclic graph with one designated output. Input gates are labeled by one variable or an arbitrary complex constant. Every other gate has two incoming operand occurrences and is labeled by addition or multiplication. The same predecessor may supply both operands. The polynomial at each gate is obtained by applying that operation in the commutative polynomial ring \(\mathbb C[x_1,\ldots,x_n]\). There are no division gates, tests, approximation or limit operations. Negative constants permit subtraction to be expressed through addition and multiplication. Computation means exact equality of formal polynomials.
+
+The size is the number of gates, including input gates. A computed value may feed any number of later gates without duplicating its computation. Depth and fan-out are unrestricted; arithmetic gates have fan-in two. Each complex constant counts as one input gate, without a bit-length restriction. Circuit size is therefore an algebraic resource and not a running-time bound for numerically evaluating complex inputs.
+
+A polynomial is multilinear when every variable has exponent at most one in each monomial with nonzero coefficient. Constants and the zero polynomial are multilinear. A circuit is semantically multilinear when the actual polynomial at every gate is multilinear. This is stronger than requiring only a multilinear output, but it does not impose syntactic disjointness of variables occurring in the two subcircuits entering a product gate. A variable may occur syntactically and then cancel before that product is formed. The distinction is substantive for circuits and is the subject of a separate card.
+
+For a polynomial \(f\), \(\operatorname{C}(f)\) is the smallest size of an unrestricted circuit computing it. For multilinear \(f\), \(\operatorname{MC}(f)\) is the smallest size of a semantically multilinear circuit computing it. These numbers are finite: expanding a multilinear polynomial into monomials gives a multilinear circuit, though possibly a very large one. Every output degree is at most \(n\). Unrestricted circuits computing it may use higher-degree intermediate polynomials that cancel later.
+
+The family and circuits are nonuniform; no algorithm generating their coefficients, constants or circuit descriptions is required. The field is fixed as \(\mathbb C\) on both sides, independently of \(n\). The lower-bound condition excludes every polynomial upper bound on multilinear circuit size. It permits arbitrarily large exceptional indices for each exponent; an eventual lower bound exceeding every polynomial at every sufficiently large index is not required.''',
+ answer_criterion=r'''Give a complete mathematically correct Lean-checked proof of the existence statement or its logical negation. A positive answer must exhibit or otherwise rigorously define one family, prove its polynomial unrestricted circuit upper bound, and prove the stated superpolynomial lower bound against all semantically multilinear circuits over \(\mathbb C\).
+
+A negative answer must show that every multilinear polynomial family with polynomial-size unrestricted circuits also has polynomial-size semantically multilinear circuits. An efficient circuit-conversion algorithm is not required, although such an algorithm with the requisite guarantees would suffice. Lower bounds against formulas, bounded-depth circuits, monotone circuits or only syntactically multilinear circuits do not prove this semantic-circuit separation. A superpolynomial lower bound for a family whose unrestricted circuit size is also unknown does not by itself prove the required comparison.''',
+ why='This asks whether leaving the multilinear class during an exact algebraic computation can provide a superpolynomial advantage even though the final answer is multilinear. It tests the gap between a central restricted circuit model and general algebraic computation, where cancellation and sharing may interact in ways current lower-bound methods do not capture.',
+ importance=dict(score=87,method='editorial',assessed_on='2026-09-17',reason='A core algebraic circuit-class comparison linking cancellation, multilinearity and unrestricted polynomial-size computation; broader than a lower bound for one depth or syntactic subclass.'),
+ source_formulation=dict(text='The survey asks whether multilinear circuits can be superpolynomially weaker than unrestricted circuits. It defines multilinearity by the polynomial at every gate, and separately asks whether semantic and syntactic multilinearity have different power.',caption='Shpilka–Yehudayoff, definition on printed p.7 and §2.2.1, Open Problems 3–4 on printed p.14; complex coefficients are the selected editorial specialization.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Arithmetic Circuits: A Survey of Recent Results and Open Questions','Amir Shpilka; Amir Yehudayoff',2010,'https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf','Printed p.7; §2.2.1 Open Problem 3, printed p.14 (PDF p.19); §3.6 pp.36–37'),
+ ref('quadratic','Unbalancing Sets and an Almost Quadratic Lower Bound for Syntactically Multilinear Arithmetic Circuits','Noga Alon; Mrinal Kumar; Ben Lee Volk',2020,'https://web.math.princeton.edu/~nalon/PDFS/mult2.pdf','Combinatorica paper; author manuscript, abstract, §1.1 and Theorem 1.1, printed pp.1–2'),
+ ref('rank','Multilinear Algebraic Branching Programs and the Min-Partition Rank Method','Théo Borém Fabris; Nutan Limaye; Srikanth Srinivasan; Amir Yehudayoff',2026,'https://eccc.weizmann.ac.il/report/2026/001/','1 January 2026; abstract, Introduction printed p.1 and footnote 1'),
+ ref('withdrawal','Withdrawal: An Unconditional Barrier for Proving Multilinear Algebraic Branching Program Lower Bounds','Deepanshu Kush',2026,'https://arxiv.org/abs/2604.00746v2','11 May 2026 withdrawal notice and Comments; the April theorem claims are not used as established results'),
+ ],
+ context_blocks=[
+ block('Output multilinearity does not prevent an unrestricted circuit from forming powers that cancel later. The selected comparison asks whether avoiding all such intermediate non-multilinearity always costs only polynomial size.'),
+ block('Formula lower bounds do not automatically extend to circuits because circuits share intermediate values. Nor do syntactic multilinear lower bounds automatically extend to semantic multilinearity; the survey treats these comparisons as distinct questions.'),
+ block(r'The published \(\Omega(n^2/\log^2 n)\) result is a lower bound for syntactically multilinear circuits. It is polynomial and concerns a restricted circuit class, so it does not establish the superpolynomial semantic comparison requested here.','quadratic'),
+ block('The January 2026 rank-method paper still describes superpolynomial lower bounds for multilinear branching programs as open and explicitly uses syntactic models. This places the requested general semantic-circuit separation beyond the frontier discussed there.','rank'),
+ block('An April 2026 manuscript claimed a stronger limitation of the rank method, but its author withdrew it in May after a proof gap was found. The withdrawn claim is not counted as a theorem or as a resolution of this comparison.','withdrawal'),
+ ],
+ progress=[progress('2010','The survey poses the unrestricted-versus-multilinear comparison separately from semantic-versus-syntactic multilinearity.'),progress('2020','The almost-quadratic syntactic multilinear circuit lower bound appears in Combinatorica.','quadratic'),progress('2026-01-01','The rank-method manuscript retains the related branching-program lower-bound frontier and states its syntactic convention.','rank'),progress('2026-05-11','The claimed unconditional rank-method barrier is withdrawn because its conditional probability estimate is not established.','withdrawal')],
+),notes,sources,'Source-open for the selected nonuniform semantic-multilinear comparison over C. The January 2026 primary discussion retains related weaker-model lower-bound questions. The April rank-barrier claim was explicitly withdrawn on 11 May 2026 and is not evidence of a theorem. Bounded checks through 17 September 2026 found no resolution of the precise family separation, without claiming exhaustive current openness.',summary=[
+ 'The outputs are multilinear polynomials over the complex numbers.',
+ 'The question asks whether polynomial-size unrestricted circuits can be superpolynomially smaller than circuits that remain multilinear at every gate.',
+ 'Circuits may share arbitrary intermediate computations and use arbitrary complex constants.',
+ 'Formula and syntactic multilinear lower bounds do not establish the requested semantic-circuit separation.',
+ 'The review records that a related April 2026 barrier claim was withdrawn and requires a complete Lean-checked proof of the precise comparison or its negation.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])

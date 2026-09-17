@@ -869,3 +869,48 @@ Only these five reviews, their authoring scripts and their own queue, ledger and
 inventory changes enter this checkpoint. Source checkpoint 9deb6680 and deployment
 266c7ecc32d6806b9c5bef469ed1ff8e1f6116f1 cover the first 160 dispositions.
 Unrelated edits remain in the shared worktree.
+
+
+After one hundred and seventy recovery dispositions, the raw shared queue
+contains 815 completed records, 99 pending records and one outside its original
+active scope. The live queue has 92 pending active reviews, 734 completed active
+queue records and 152 active records outside the queue, for 978 active cards.
+Seven raw pending rows were archived by concurrent category work.
+
+This batch completes TCS-6882 (homogeneous versus unrestricted formulas),
+TCS-6883 (semantic multilinear versus unrestricted circuits), TCS-6893 (a
+multilinear VNP family lower bound), TCS-7269 (the full logarithmic growth scale
+of permanent formula size), and TCS-6885 (literal constant-overhead full-Hessian
+computation). The first three use complex coefficients. The user explicitly
+confirmed that field choice for the first two after their announced default
+was applied, and selected a VNP family for the third before completion. These
+choices are saved in current-user-decisions.json. Semantic and syntactic
+multilinearity, formulas and circuits, ordinary and weighted homogeneity,
+and one lower-bound endpoint versus full scale determination remain distinct.
+
+The current arXiv record revealed that the April 2026 claimed unconditional
+multilinear rank-method barrier was withdrawn on 11 May because of a missing
+conditional probability estimate. Its claim is not used as an established
+result. The final May 2026 homogenization paper was read rather than relying
+on the older preprint's now-stale factorization discussion.
+
+TCS-6885 is archived with an explicit unconditional counterexample: the product
+of n variables has a linear-size circuit but quadratically many distinct mixed
+second derivatives, each requiring a different non-input gate. The supporting
+note checks the argument even with free repeated output labels. The optional
+choice of an output-sensitive replacement had no reply when the recommended
+archival default was announced and applied; that different target was not
+silently substituted. No completed Lean formalization is claimed.
+
+All five output hashes match their queue records; the shared ledger has 996
+valid entries, including an archival event and a correction of the Aaronson
+section locator to section 6.5.2. The full offline check passes. Math checks
+pass on 35,543 expressions across
+978 active cards, and desktop/mobile reader checks pass on publication
+4103e7b04f7c9b13c6df. The publisher has 902 detailed records.
+
+Only these five reviews, their authoring scripts, the supporting Hessian note,
+the saved user choices, and their own queue, ledger, inventory and archive
+changes enter this checkpoint. Source checkpoint d3ea0ebc and deployment
+69fa663067f26c42130a38b66fe4cc502f4a0e6c cover the first 165 dispositions.
+Unrelated edits remain in the shared worktree.

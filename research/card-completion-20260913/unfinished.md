@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **105**.
+Pending active reviews: **100**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -65,11 +65,7 @@ Pending active reviews: **105**.
 | [TCS-5240](../../data/cards/TCS-5240.json) | Transferring arithmetic hardness to constantly many variables | Algebraic computation | pool |
 | [TCS-5260](../../data/cards/TCS-5260.json) | Explicit rigid matrices over low-degree number fields | Algebraic computation | pool |
 | [TCS-5921](../../data/cards/TCS-5921.json) | Membership in \(2\times 2\) integer matrix semigroups | Algebraic computation | pool |
-| [TCS-6882](../../data/cards/TCS-6882.json) | Homogeneous versus unrestricted arithmetic formulas | Algebraic computation | pool |
-| [TCS-6883](../../data/cards/TCS-6883.json) | Multilinear versus general arithmetic circuits | Algebraic computation | pool |
-| [TCS-6885](../../data/cards/TCS-6885.json) | Constant-overhead second differentiation of circuits | Algebraic computation | pool |
 | [TCS-6890](../../data/cards/TCS-6890.json) | Superpolynomial noncommutative circuit lower bounds | Algebraic computation | pool |
-| [TCS-6893](../../data/cards/TCS-6893.json) | Superpolynomial multilinear circuit lower bounds | Algebraic computation | pool |
 | [TCS-6903](../../data/cards/TCS-6903.json) | Derandomizing noncommutative PIT | Algebraic computation | pool |
 | [TCS-6914](../../data/cards/TCS-6914.json) | Multivariate polynomial factorization from PIT derandomization | Algebraic computation | pool |
 | [TCS-0659](../../data/cards/TCS-0659.json) | Stronger worst-case reductions to SIS and LWE | Lattices and computational number theory | pool |
@@ -105,7 +101,6 @@ Pending active reviews: **105**.
 | [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
-| [TCS-7269](../../data/cards/TCS-7269.json) | Optimal multilinear-formula size of the permanent | Algebraic computation | existing_detailed_audit |
 | [TCS-7287](../../data/cards/TCS-7287.json) | Square-root logarithmic approximation for metric labeling | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7290](../../data/cards/TCS-7290.json) | Extremal size of sunflower-free set families | Miscellaneous | existing_detailed_audit |
 | [TCS-7319](../../data/cards/TCS-7319.json) | Minimax rate of sequential binary calibration | Online algorithms | existing_detailed_audit |
