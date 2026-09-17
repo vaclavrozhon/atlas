@@ -611,3 +611,30 @@ Only these five reviews, their authoring scripts and their own queue, ledger
 and inventory changes enter the source commit. Other-thread work remains in
 the shared worktree. Source checkpoint a3ee6ddb and deployment
 c949398d709c114bee76104d418ec3f50b522572 cover the first 115 dispositions.
+
+After one hundred and twenty-five recovery dispositions, the shared queue
+contains 770 completed records, 144 pending records and one outside active
+scope. This batch completes TCS-7359 (static public-key quantum money from
+plain LWE), TCS-7254 (Neumann–Lara's two-colour conjecture), TCS-0492
+(conjunctive-query containment under bag semantics), TCS-1020 (constant-query
+polynomial-length binary locally decodable codes), and TCS-6511
+(deterministic Exact Matching on general graphs).
+
+The source checks distinguish public verification with reusable notes from
+time-dependent or extra-assumption money schemes, bag containment from
+equivalence and unions, and unrestricted LDCs from relaxed or restricted
+code constructions. The August Exact Matching revision remains randomized;
+the bipartite preprint's formalization has explicit structural hypotheses
+and was not executed or independently certified by this review.
+
+The five new output hashes match their queue records; the ledger has 947
+valid entries at this checkpoint. Other-thread edits to ten completed cards
+remain outside this batch and are not globally reconciled here. The offline
+check passes through disposition 125, the math check passes on 35,479
+expressions across 1,007 active cards, and desktop/mobile reader checks pass
+on publication f42701935d8a6fb8f32d. The publisher has 913 detailed records.
+
+Only these five reviews, their authoring scripts and their own queue, ledger
+and inventory changes enter the source commit. Other-thread work remains
+in the shared worktree. Source checkpoint fbbe2c81 and deployment
+c8ec014f72f94baaffbfefc1b9d154de5cd763fc cover the first 120 dispositions.

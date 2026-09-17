@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **150**.
+Pending active reviews: **145**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -87,7 +87,6 @@ Pending active reviews: **150**.
 | [TCS-6861](../../data/cards/TCS-6861.json) | Classical reductions matching quantum LWE hardness | Lattices and computational number theory | pool |
 | [TCS-6864](../../data/cards/TCS-6864.json) | Classical worst-case reductions for ring-LWE | Lattices and computational number theory | pool |
 | [TCS-6868](../../data/cards/TCS-6868.json) | Worst-case and search-to-decision reductions for NTRU | Lattices and computational number theory | pool |
-| [TCS-1020](../../data/cards/TCS-1020.json) | Polynomial-length constant-query locally decodable codes | Coding and information theory | pool |
 | [TCS-1012](../../data/cards/TCS-1012.json) | Explicit efficiently decoded binary codes beyond Gilbert–Varshamov | Coding and information theory | pool |
 | [TCS-0178](../../data/cards/TCS-0178.json) | Bounded-alphabet approximation of entropy-region faces | Coding and information theory | pool |
 | [TCS-0187](../../data/cards/TCS-0187.json) | Field dependence of linear-rank inequalities | Coding and information theory | pool |
@@ -111,7 +110,6 @@ Pending active reviews: **150**.
 | [TCS-0478](../../data/cards/TCS-0478.json) | Dynamic APSP with edge-linear updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-0481](../../data/cards/TCS-0481.json) | Cubic min-plus circuit lower bounds for shortest paths | Algebraic computation | existing_detailed_audit |
 | [TCS-0482](../../data/cards/TCS-0482.json) | Linear-round convergence over stable semirings | Database theory and finite model theory | existing_detailed_audit |
-| [TCS-0492](../../data/cards/TCS-0492.json) | Conjunctive-query containment under bag semantics | Database theory and finite model theory | existing_detailed_audit |
 | [TCS-0515](../../data/cards/TCS-0515.json) | Deterministic volume gap | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0524](../../data/cards/TCS-0524.json) | LOCAL coloring below square-root degree dependence | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0611](../../data/cards/TCS-0611.json) | Bipartite Exact Matching: deterministic polynomial time | Structural graph theory | existing_detailed_audit |
@@ -121,11 +119,9 @@ Pending active reviews: **150**.
 | [TCS-6505](../../data/cards/TCS-6505.json) | One-cycle versus two-cycles conjecture | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6508](../../data/cards/TCS-6508.json) | Deque conjecture | Data structures | existing_detailed_audit |
-| [TCS-6511](../../data/cards/TCS-6511.json) | Deterministic Exact Matching | Structural graph theory | existing_detailed_audit |
 | [TCS-6513](../../data/cards/TCS-6513.json) | Constant-factor approximation of the smallest grammar | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
-| [TCS-7254](../../data/cards/TCS-7254.json) | Neumann–Lara conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
 | [TCS-7269](../../data/cards/TCS-7269.json) | Optimal multilinear-formula size of the permanent | Algebraic computation | existing_detailed_audit |
 | [TCS-7270](../../data/cards/TCS-7270.json) | Linear-size Circuit-SAT below exhaustive search | Fine-grained complexity | existing_detailed_audit |
@@ -147,7 +143,6 @@ Pending active reviews: **150**.
 | [TCS-7348](../../data/cards/TCS-7348.json) | Single-exponential exact cut mimicking networks | Structural graph theory | existing_detailed_audit |
 | [TCS-7353](../../data/cards/TCS-7353.json) | Optimal polynomial-time approximation ratio for Euclidean k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7354](../../data/cards/TCS-7354.json) | Optimal polynomial-time approximation ratio for metric k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-7359](../../data/cards/TCS-7359.json) | Public-key quantum money from LWE alone | Cryptography | existing_detailed_audit |
 | [TCS-7362](../../data/cards/TCS-7362.json) | Optimal top-k document retrieval in compact space | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7364](../../data/cards/TCS-7364.json) | Preprocessing exponent of binary jumbled indexing | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7366](../../data/cards/TCS-7366.json) | Linear-space k-mismatch text indexing | String algorithms and bioinformatics | existing_detailed_audit |
