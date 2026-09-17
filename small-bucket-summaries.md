@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-578 five-sentence working summaries, based on saved source material.
+577 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1007,7 +1007,7 @@ Given a length in unary, generate a prime with exactly that many binary digits i
 [Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Parameterized complexity and algorithms (39)
+## Parameterized complexity and algorithms (38)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1099,6 +1099,13 @@ A polynomial compression replaces an instance by a short string for a possibly d
 
 [Read in atlas](index.html#TCS-6734) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/parameterized-algorithms.pdf) · [Kernelization: Theory of Parameterized Preprocessing](https://fedorvf.github.io/BookKer/book_kernels.pdf) · [Abusing the Tutte Matrix: An Algebraic Instance Compression for the K-set-cycle Problem](https://doi.org/10.4230/LIPIcs.STACS.2013.341) · [Preprocessing Complexity for Some Graph Problems Parameterized by Structural Parameters](https://arxiv.org/abs/2306.12655v1) · [Boundaried Kernelization via Representative Sets](https://doi.org/10.4230/LIPIcs.IPEC.2025.6)
 Existing status: `uncertain` · Summary written: 2026-09-16
+
+### TCS-6814 — Job-shop approximation parameterized only by machines and accuracy
+
+Each job is a prescribed sequence of nonpreemptive operations on specified machines, with repeated machine visits allowed. The objective is to finish all jobs within a factor arbitrarily close to the optimum makespan. The requested running time is a fixed polynomial in the complete input length times a computable function of machine count and accuracy. Known schemes use the additional parameter of maximum operations per job, which must be removed here. A complete Lean-checked answer must establish or refute this uniform approximation scheme for arbitrarily long job routes.
+
+[Read in atlas](index.html#TCS-6814) · [Parameterized complexity of machine scheduling: 15 open problems](https://arxiv.org/abs/1709.01670v3) · [Makespan Minimization in Job Shops: A Linear Time Approximation Scheme](https://doi.org/10.1137/S0895480199363908)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-4289 — \(\mathrm{W}[2]\)-hardness of bounded-VC-dimension Hitting Set
 
@@ -1240,13 +1247,6 @@ A self-contained witness is a k-element subset whose validity survives restricti
 [Read in atlas](index.html#TCS-4440) · [Randomised Enumeration of Small Witnesses Using a Decision Oracle](https://doi.org/10.4230/LIPIcs.IPEC.2016.22) · [Randomised Enumeration of Small Witnesses Using a Decision Oracle](https://doi.org/10.1007/s00453-018-0404-y)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4637 — Subexponential Planar Steiner Tree by terminal count
-
-Planar Steiner Tree connects a specified terminal set at minimum cost in a planar graph. The saved question asks for subexponential time with respect to the number of terminals. The terminal count can be small even when the graph contains many possible intermediate connection points. An algorithm exploiting both facts would improve the parameter dependence for a central planar network problem. The excerpt does not specify weight conventions or the precise polynomial input factor, and the source's historical question is not a fresh verification of present open status.
-
-[Read in atlas](index.html#TCS-4637) · [Subexponential-Time Parameterized Algorithm for Steiner Tree on Planar Graphs](https://doi.org/10.4230/LIPIcs.STACS.2013.353)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4695 — Polynomial kernels for forbidden-minor vertex deletion
 
 Delete at most a specified number of vertices to eliminate every minor from a fixed finite family. The question asks for polynomial-time preprocessing to one equivalent instance of polynomial size in that budget. The polynomial may depend on the forbidden family. Families containing a planar obstruction are covered, while planarization remains a key open case. Later lossy and structural-parameter results do not establish the full exact-kernel claim.
@@ -1267,13 +1267,6 @@ Directed Feedback Vertex Set asks whether deleting at most a given number of ver
 
 [Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55) · [Wannabe Bounded Treewidth Graphs Admit a Polynomial Kernel for Directed Feedback Vertex Set](https://doi.org/10.1145/3711669)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6814 — Efficient PTAS for fixed-machine job-shop makespan
-
-Job-shop scheduling assigns each job a sequence of operations that must use specified machines. The saved question asks for a makespan approximation scheme running in \(f(m,\varepsilon )\) times a polynomial in n. The exponent of input size must stay independent of machine count and requested accuracy. Such a scheme would isolate the expensive dependence in the structural and approximation parameters while remaining scalable in the number of jobs. The source note does not define its operation restrictions or parameter conventions, so those details remain required before asserting the exact scheme model.
-
-[Read in atlas](index.html#TCS-6814) · [Parameterized complexity of machine scheduling: 15 open problems](https://arxiv.org/abs/1709.01670)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6974 — Formula-SAT below exhaustive search
 
@@ -2420,12 +2413,12 @@ The input is an explicit text and pattern over a polynomial-size integer alphabe
 [Read in atlas](index.html#TCS-7367) · [Faster Algorithms for Text-to-Pattern Hamming Distances](https://arxiv.org/abs/2310.13174v3) · [New Applications of 3SUM-Counting in Fine-Grained Complexity and Pattern Matching](https://arxiv.org/abs/2410.20764v1) · [Hamming Distance Oracles](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.1)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-7366 — Linear-space k-mismatch text indexing
+### TCS-7366 — Linear-space k-mismatch indexing with fast queries
 
-A text is indexed before query patterns arrive. A query reports all positions with at most a fixed number of substitutions. The proposed structure uses only linear word space. Its cost is pattern length, polylogarithmic overhead and output size. The recent general improvement still uses additional logarithmic factors in space.
+A fixed text is indexed so that later patterns can be searched with at most a fixed number of substitutions. Every matching starting position must be reported exactly, including overlaps. The user-selected target is linear word space with query cost O(m+log^k(n) log log(n)+occ) for each fixed k at least two. The guarantee must hold for all pattern lengths and an alphabet that can grow to the text length. A complete Lean-checked answer must prove or refute these simultaneous bounds; slower-query linear-space trade-offs do not suffice.
 
-[Read in atlas](index.html#TCS-7366) · [Space-Efficient k-Mismatch Text Indexes](https://arxiv.org/abs/2510.26264)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7366) · [Space-Efficient k-Mismatch Text Indexes](https://arxiv.org/abs/2510.26264v1) · [A Linear Size Index for Approximate String Matching](https://cpm.cs.helsinki.fi/cpm06/03-tam.pdf) · [A linear size index for approximate pattern matching](https://doi.org/10.1016/j.jda.2011.04.004) · [Lower bounds for text indexing with mismatches and differences](https://hal.science/hal-01960182)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7369 — Space-query exponent curve of gapped string indexing
 
@@ -2492,10 +2485,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7370 — Polynomial-time construction of minimum-density DNA minimizers
 
-A minimizer chooses the least k-mer in each sliding window. The density measures how often the chosen position changes on random DNA. The desired output is an order with globally minimum density. The running time must be polynomial in the explicit order-table size and window parameter. Known exact exponential search does not meet that resource bound.
+A DNA minimizer is determined by a total order on all strings of one fixed length. Its density is the probability that the selected position changes between consecutive random windows. The question asks for an exactly optimal order in deterministic time polynomial in its explicit size and the window parameter. Known exact search remains exponential in the number of distinct short strings, while practical low-density schemes have different guarantees. A complete Lean-checked answer must prove or refute the uniform polynomial bit-time construction for every allowed pair of parameters.
 
-[Read in atlas](index.html#TCS-7370) · [GreedyMini: generating low-density DNA minimizers](https://pmc.ncbi.nlm.nih.gov/articles/PMC12261476/) · [Generating minimum-density minimizers](https://doi.org/10.64898/2026.01.25.701585)
-Existing status: `uncertain` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7370) · [GreedyMini: generating low-density DNA minimizers](https://pmc.ncbi.nlm.nih.gov/articles/PMC12261476/) · [Generating minimum-density minimizers](https://doi.org/10.64898/2026.01.25.701585) · [On Minimizers of Minimum Density](https://arxiv.org/abs/2506.05277v1) · [The Anti-Lexicographic SUS-Anchor: An Empirically Optimal Selection Scheme](https://doi.org/10.4230/LIPIcs.WABI.2026.22)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0467 — Linear-space LZ77 random access
 
@@ -2504,12 +2497,12 @@ A greedy LZ77 parse stores a string as literals and references to earlier materi
 [Read in atlas](index.html#TCS-0467) · [Adaptive and Scalable Data Structures — Two problems on Lempel-Ziv compression](https://doi.org/10.4230/DagRep.15.5.1) · [Balancing Straight-Line Programs](https://arxiv.org/abs/1902.03568v5) · [Random Access to LZ-End: Faster and Deterministic](https://arxiv.org/abs/2607.14923v1) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86) · [LZBE: An LZ-Style Compressor Supporting O(log n)-Time Random Access](https://doi.org/10.4230/LIPIcs.CPM.2026.34)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-7368 — Faster elastic-degenerate string intersection
+### TCS-7368 — A fixed exponent improvement for elastic-degenerate string intersection
 
-Each input describes many strings through ordered sets of alternatives. The task asks whether their represented languages overlap. The inputs are explicit alternatives rather than compressed grammars. The target saves a fixed power over the current algebraic dependence on total alternative length. The running time still pays for reading both representations.
+Each input describes a language by concatenating one chosen string from each ordered segment of alternatives. The question asks whether the two languages contain a common entire string. The desired algorithm saves a fixed positive power below the matrix-multiplication-dependent length exponents while paying for both inputs. One bounded-error algorithm must satisfy the worst-case time bound for every combination of segment counts and explicit lengths. A complete Lean-checked answer must prove or refute this proposition; restricted pattern-matching results and conditional lower bounds alone do not settle it.
 
-[Read in atlas](index.html#TCS-7368) · [Elastic-Degenerate String Comparison](https://arxiv.org/abs/2411.07782)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7368) · [Elastic-degenerate string comparison](https://doi.org/10.1016/j.ic.2025.105296) · [Elastic-Degenerate String Comparison](https://arxiv.org/abs/2411.07782v1) · [Pattern matching with Elastic-Degenerate strings and Elastic-Founder graphs](https://doi.org/10.1186/s13015-025-00289-3) · [Faster ED-String Matching with k Mismatches](https://arxiv.org/abs/2503.01388v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7361 — Input-optimal construction of compact inverse suffix arrays
 

@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-927 records have an editorial importance assessment; 54 remain provisional.
+928 records have an editorial importance assessment; 52 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -263,7 +263,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance 
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 39; importance assessed: 33; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 38; importance assessed: 34; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -425,7 +425,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 25; importance 
 | 4 | [Breaking two for sum-of-pairs multiple sequence alignment](index.html#TCS-6669) | 92 |
 | 5 | [Almost-linear constant-factor approximation of LCS](index.html#TCS-7371) | 91 |
 | 6 | [Text-to-pattern Hamming distances below the square-root barrier](index.html#TCS-7367) | 89 |
-| 7 | [Linear-space k-mismatch text indexing](index.html#TCS-7366) | 88 |
+| 7 | [Linear-space k-mismatch indexing with fast queries](index.html#TCS-7366) | 88 |
 | 8 | [Space-query exponent curve of gapped string indexing](index.html#TCS-7369) | 88 |
 | 9 | [Almost-quadratic unweighted tree edit distance](index.html#TCS-7374) | 88 |
 | 10 | [Constant-factor approximation of the smallest grammar](index.html#TCS-6513) | 87 |
