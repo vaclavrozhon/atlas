@@ -338,3 +338,20 @@ equilibrium theorem does not settle TCS-0571's original pure-strategy question.
 Publication is 6b5ac04f34e87e46eaed.
 Source checkpoint 31c86cbb and deployment
 e360eeb75e1f35fb1550bbcd013ce5479a8a722c cover the first sixty-four dispositions.
+
+After seventy-two dispositions the queue contains 716 completed records,
+198 pending records and one outside active scope. Of 1,011 active cards,
+813 have completed this individual completion standard. TCS-6649 specifies
+formal provability of omega-jump closure from full Hindman over RCA0 and
+records the July 2026 one-application limitation without treating it as a
+separation of theories. TCS-6614 fixes unconditional uniform deterministic
+finite-field factorization in polynomial bit time. TCS-6642 preserves uniform
+one-relator conjugacy decidability, and TCS-6654 preserves plain vertex-set
+MSO decidability implying bounded clique-width.
+
+All completed hashes match, all 877 ledger entries parse, and the formula
+check passes on 34,239 expressions. The full offline check and desktop/mobile
+page checks pass through disposition seventy-two. Eighteen source-scope
+choices remain pending. Publication is 3378b2a224eba38d5536.
+Source checkpoint 085c5a3b and deployment
+bf8f5188f8c04bfca925c4b78392efb69f62d22c cover the first sixty-eight dispositions.

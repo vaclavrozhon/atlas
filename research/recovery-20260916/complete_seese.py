@@ -1,0 +1,89 @@
+"""Complete plain vertex-set MSO decidability implying bounded clique-width."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-6654'
+claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Preserved the implication for every isomorphism-closed class of finite simple undirected graphs, with no hereditary promise.',
+ 'Specified the plain vertex-set MSO syntax and finite semantics, the existential satisfiability language and the class-dependent total decider.',
+ 'Expanded all four clique-width operations and made the class-dependent uniform width bound explicit, including empty graphs and classes.',
+ 'Distinguished satisfiability from model checking, ordinary MSO from parity and edge-set extensions, and existential width bounds from effective extraction.',
+ 'Checked the exact stronger scope of the inherited Conjecture 40 and the distinct July 2026 hereditary 2-WQO theorem.',
+ 'Required a complete Lean-checked universal implication or counterexample class with its decider and unbounded-width proof; retained importance 95.',
+]
+sources=[
+ 'Read the inherited Mählmann ICALP 2025 paper, concluding MSO-Dependence discussion and Conjecture 40, printed p. 167:16. It states the stronger MSO-dependence conjecture and explicitly identifies Seese’s plain-MSO undecidability implication as a consequence, not a proved result. Checked the publisher metadata: 30 June 2025, LIPIcs 334, Art. 167.',
+ 'Read Courcelle–Oum, Journal of Combinatorial Theory, Series B 97(1), 91–126 (2007), DOI 10.1016/j.jctb.2006.04.003, introduction pp. 91–93 and §5.4 pp. 107–108, Proposition 5.4 and Theorem 5.6. The proved implication assumes decidability for MSO extended with the even-cardinality predicate, while the stated conjecture assumes plain MSO. The PDF records first online 21 June 2006.',
+ 'Read Dawar–Sankaran, accepted manuscript dated 8 February 2023, abstract, §2 pp. 7–8 and §3 pp. 9–10, Proposition 3.1 and Theorem 3.2. The latter decomposes the stronger grid-interpretation conjecture and does not settle all hereditary classes. Journal metadata inherited and checked against the DOI record: European Journal of Combinatorics 123, 103700 (2025), DOI 10.1016/j.ejc.2023.103700; direct publisher rendering unavailable.',
+ 'Read Duron–Mählmann–Toruńczyk, arXiv:2607.10939v2 (26 July 2026; cover 28 July), abstract and §1–2 pp. 1–3, Theorems 1.3–1.4 and definition of 2-WQO. The bounded-width theorem assumes hereditary labelled well-quasi-ordering, not merely decidable MSO theory. Full structural proof not independently certified.',
+ f'Bounded primary-source searches through {DATE} found the recent labelled-ordering result and its separate pattern-free follow-up, but no resolution of plain-MSO Seese. A misleading clique-width example in the accepted Dawar–Sankaran manuscript was not copied; the card uses the standard explicit four-operation definition.',
+]
+status='The checked literature retains the plain-MSO Seese implication as open. The inherited 2025 source conjectures a stronger characterization, the classical proved variant adds a parity predicate, and the July 2026 theorem assumes hereditary 2-WQO. No resolution of the stated implication was found in the bounded later-work search.'
+complete(identifier,dict(
+ criterion='characterization',question_type='yes_no',year=2026,
+ formal=r'''For every isomorphism-closed class \(\mathcal C\) of finite simple undirected graphs, does
+\[
+\operatorname{Sat}_{\mathrm{MSO}_1}(\mathcal C)\ \text{decidable}
+\quad\Longrightarrow\quad
+\exists k\ge1\ \forall G\in\mathcal C,\quad\operatorname{cw}(G)\le k
+\]
+hold?
+
+The language \(\operatorname{Sat}_{\mathrm{MSO}_1}(\mathcal C)\) contains exactly the encoded vertex-set monadic second-order sentences satisfied by at least one graph in \(\mathcal C\). The bound \(k\) may depend on the whole class but must hold for every graph in it.''',
+ definitions=r'''A finite simple undirected graph \(G=(V,E)\) has a finite vertex set and an edge set consisting of unordered pairs of distinct vertices. There are no loops, multiple edges, labels or additional relations in the logical vocabulary. The empty graph is allowed. A graph class \(\mathcal C\) contains only such graphs and is closed under isomorphism: renaming vertices does not change membership. It may be empty, finite or infinite, and no hereditary, degree, minor or forbidden-subgraph restriction is imposed. Equivalently, classes can be viewed as arbitrary collections of finite graph isomorphism types.
+
+The logic \(\mathrm{MSO}_1\) has individual variables \(x,y,\ldots\) and vertex-set variables \(X,Y,\ldots\). Its atomic formulas are \(x=y\), \(E(x,y)\) and \(x\in X\). Formulas are finite expressions built from these atoms using Boolean connectives and existential or universal quantification over either sort. Set equality, when used, is shorthand for equality of membership at every vertex. A sentence has no free variables. On a finite graph, individual quantifiers range over \(V\) and set quantifiers over all subsets of \(V\), with the ordinary truth conditions. There is no vertex order, arithmetic relation, edge-set quantifier, cardinality predicate or modular counting extension.
+
+Fix an effective, uniquely parsed finite-string encoding of this syntax, with binary variable indices and symbols for the finitely many logical operations. Define
+\[
+\operatorname{Sat}_{\mathrm{MSO}_1}(\mathcal C)
+=\{\operatorname{enc}(\varphi):
+\varphi\text{ is an }\mathrm{MSO}_1\text{ sentence and }
+\exists G\in\mathcal C\ (G\models\varphi)\}.
+\]
+Decidable means that some deterministic Turing machine halts on every string, rejects malformed encodings and answers membership in this language correctly. That machine may depend on \(\mathcal C\); its only input is the sentence encoding. The class is not supplied as another input or as an oracle, and no running-time bound is imposed. No effective presentation of the class is assumed separately from this decidability premise. By negation of sentences, the premise is equivalent to decidability of the theory consisting of sentences true in every graph of \(\mathcal C\). It is not the model-checking problem in which a particular finite graph is also supplied.
+
+For a positive integer \(k\), a \(k\)-expression is a finite term constructing a graph with temporary vertex labels in \(\{1,\ldots,k\}\). Its permitted operations are creation of a single vertex with any one label; disjoint union of two previously constructed labelled graphs; relabelling every vertex with label \(i\) to label \(j\); and, for distinct labels \(i,j\), adding every missing edge between a vertex labelled \(i\) and a vertex labelled \(j\). Vertices and existing edges are never deleted. Repeated edge additions have no further effect. The labels are forgotten in the final graph and are not extra relations available to the logic.
+
+For a nonempty graph \(G\), the clique-width \(\operatorname{cw}(G)\) is the minimum positive \(k\) for which a \(k\)-expression yields a graph isomorphic to \(G\). Set \(\operatorname{cw}(\varnothing)=0\). Every finite graph has finite clique-width, but bounded clique-width of a class requires a single \(k\) independent of its members and their orders. For the empty class the conclusion is vacuous.
+
+The quantifier order is: for every class, if some class-specific sentence decider exists, then some class-specific finite width bound exists. The proposition does not demand one decider for all classes, a method to extract \(k\) from machine code, or an algorithm producing clique-width expressions. It is an exact universal implication, not a request for a numerical estimate of a width.''',
+ answer_criterion=r'''Supply a complete Lean-checked proof of the implication for every stated graph class. Alternatively, specify one isomorphism-closed class \(\mathcal C\), a total sentence-deciding machine, and complete Lean-checked proofs of its correctness and of
+\[
+\forall k\ge1\ \exists G\in\mathcal C,\qquad\operatorname{cw}(G)>k.
+\]
+A single finite graph cannot refute a class-wide boundedness claim. Decidability for a restricted set of sentences, model checking on a given graph, a theorem with parity or edge-set quantification in the premise, or a result for only specially restricted graph classes does not establish the full target.''',
+ source_formulation=dict(text='The inherited paper states that Seese’s conjecture says the MSO theory of every graph class of unbounded clique-width is undecidable. It places this as a consequence of its stronger Conjecture 40. The card retains Seese’s original plain-MSO implication, equivalently phrased using satisfiability.',caption='Paraphrase of Mählmann, ICALP 2025, p. 167:16, following Conjecture 40; satisfiability equivalence and exact conjecture in Courcelle–Oum §5.4.',citation='primary',format='editorial_paraphrase'),
+ why='The conjecture asks whether decidability of an expressive graph language forces a uniform structural restriction. It connects computability of theories to finite graph construction with a bounded number of labels, without assuming an efficient decision procedure or a restricted graph class.',
+ references=[
+ ref('primary','Forbidden Induced Subgraphs for Bounded Shrub-Depth and the Expressive Power of MSO','Nikolas Mählmann',2025,'https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.167','ICALP 2025, LIPIcs 334, 167:1–167:18; published 30 June 2025; concluding MSO-Dependence discussion and Conjecture 40, p. 167:16'),
+ ref('parity','Vertex-minors, monadic second-order logic, and a conjecture by Seese','Bruno Courcelle; Sang-il Oum',2007,'https://www.labri.fr/perso/courcell/Textes1/BC-Oum%282007%29.pdf','Journal of Combinatorial Theory, Series B 97(1), 91–126; first online 21 June 2006; DOI 10.1016/j.jctb.2006.04.003; introduction pp. 91–93 and §5.4 pp. 107–108, Proposition 5.4 and Theorem 5.6'),
+ ref('hereditary','MSO undecidability for hereditary classes of unbounded clique-width','Anuj Dawar; Abhisekh Sankaran',2025,'https://doi.org/10.1016/j.ejc.2023.103700','European Journal of Combinatorics 123, 103700; accepted author manuscript dated 8 February 2023, §2 pp. 7–8 and §3 pp. 9–10, Proposition 3.1 and Theorem 3.2'),
+ ref('wqo','Hereditary 2-WQO Graph Classes Have Bounded Clique-Width','Julien Duron; Nikolas Mählmann; Szymon Toruńczyk',2026,'https://arxiv.org/abs/2607.10939v2','Version 2, posted 26 July 2026; cover dated 28 July; §1–2 pp. 1–3, Theorems 1.3–1.4 and labelled induced-subgraph definitions'),
+ ],
+ context_blocks=[
+ block('A finite graph can be checked against any one MSO sentence by exhaustive evaluation. The difficult premise here concerns a whole class: the algorithm must decide whether any member, of any size, satisfies the input sentence.','hereditary'),
+ block('Clique-width measures how many temporary vertex labels suffice to build a graph with repeated disjoint unions, complete joins between labels and relabellings. The conjectured bound concerns every member of a class together; individual finiteness of clique-width is automatic.','parity'),
+ block('Courcelle and Oum prove the implication when the language additionally tests whether a vertex set has even cardinality. Deciding that larger language is a stronger premise than deciding ordinary MSO, so the theorem does not prove the card’s assertion.','parity'),
+ block('The inherited ICALP paper concerns shrub-depth and expressiveness and ends with a stronger conjecture about MSO dependence. Its discussion explicitly presents Seese’s conjecture as an unresolved consequence, rather than a theorem established in that paper.'),
+ block('Dawar and Sankaran establish results for specified hereditary families and analyze a stronger grid-interpretation conjecture. Their title does not mean that all hereditary classes of unbounded clique-width have already been covered.','hereditary'),
+ block('The July 2026 theorem gives bounded clique-width for hereditary classes that are 2-WQO: after arbitrary two-colour vertex labellings, every infinite sequence contains an earlier graph embedded as a label-preserving induced subgraph of a later one. That hypothesis is different from a decision procedure for the plain MSO theory.','wqo'),
+ ],
+ progress=[
+ progress('1991','Seese formulates the decidability question, as recalled in Courcelle–Oum §5.4.','parity'),
+ progress('2006–2007','The parity-extended satisfiability premise is proved to force bounded clique-width.','parity'),
+ progress('2023–2025','Work on hereditary classes supplies partial results and a decomposition of the stronger grid-interpretation conjecture.','hereditary'),
+ progress('2025-06-30','The inherited ICALP source states a stronger open conjecture and explicitly identifies its implication for Seese.'),
+ progress('2026-07-26','The revised hereditary 2-WQO paper proves bounded clique-width under a distinct labelled-ordering hypothesis.','wqo'),
+ ],
+),notes,sources,status,summary=[
+ 'Seese’s conjecture concerns arbitrary classes of finite simple undirected graphs.',
+ 'Its premise is an algorithm deciding whether some graph in the class satisfies any input monadic second-order sentence over vertices and vertex sets.',
+ 'Its conclusion is one finite clique-width bound holding for all graphs in that class.',
+ 'The algorithm and bound may depend on the class, and parity predicates or edge-set quantifiers are excluded from the premise.',
+ 'A complete Lean-checked solution must prove the universal implication or verify a class with decidable satisfiability and unbounded clique-width.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])

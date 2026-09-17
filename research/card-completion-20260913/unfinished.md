@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **202**.
+Pending active reviews: **198**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -152,15 +152,11 @@ Pending active reviews: **202**.
 | [TCS-6589](../../data/cards/TCS-6589.json) | Subtour-LP integrality gap for metric TSP | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-6597](../../data/cards/TCS-6597.json) | Algebraic k-Clique Hypothesis | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6608](../../data/cards/TCS-6608.json) | Decidability of unconditional Shannon information inequalities | Coding and information theory | existing_detailed_audit |
-| [TCS-6614](../../data/cards/TCS-6614.json) | Deterministic polynomial-time factorization over finite fields | Algebraic computation | existing_detailed_audit |
 | [TCS-6619](../../data/cards/TCS-6619.json) | Exact Euclidean SVP in single-exponential time and polynomial space | Lattices and computational number theory | existing_detailed_audit |
 | [TCS-6627](../../data/cards/TCS-6627.json) | Fully dynamic near-optimal matching with polylogarithmic updates | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-6633](../../data/cards/TCS-6633.json) | Polynomial query complexity of exact envy-free cake cutting | Algorithmic game theory, mechanism design and fair division | existing_detailed_audit |
 | [TCS-6640](../../data/cards/TCS-6640.json) | Constant additive error for one-dimensional bin packing | Online algorithms | existing_detailed_audit |
-| [TCS-6642](../../data/cards/TCS-6642.json) | Conjugacy problem for one-relator groups | Algebraic computation | existing_detailed_audit |
 | [TCS-6645](../../data/cards/TCS-6645.json) | Constant-delay conjunctive-query classification | Database theory and finite model theory | existing_detailed_audit |
-| [TCS-6649](../../data/cards/TCS-6649.json) | Reversal of Hindman’s theorem to the \(\omega\)-jump | Computability and algorithmic information | existing_detailed_audit |
-| [TCS-6654](../../data/cards/TCS-6654.json) | Seese’s conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |
