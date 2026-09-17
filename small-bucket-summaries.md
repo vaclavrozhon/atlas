@@ -1922,12 +1922,26 @@ Enumeration CSP asks for every satisfying assignment of a fixed finite constrain
 [Read in atlas](index.html#TCS-7099) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Enumerating all Solutions for Constraint Satisfaction Problems](https://doi.org/10.4230/DagSemProc.06401.6) · [A dichotomy theorem for nonuniform CSPs](https://arxiv.org/abs/1703.03021v2) · [A Proof of the CSP Dichotomy Conjecture](https://arxiv.org/abs/1704.01914v11)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-7084 — Does P ≠ NP imply both polynomial-space enumeration separations?
+
+An enumeration problem has polynomial-length solutions whose validity can be checked in polynomial time. Polynomial delay bounds each wait for the next answer, while incremental polynomial time bounds the cost of every initial segment. The question asks whether P ≠ NP forces both timing classes to become strictly weaker when the same algorithm must also use input-polynomial space. Output order is unrestricted, and the two separations may have different witness problems. Known regularization and broader-framework results do not settle this precise implication, whose complete proof or refutation must be Lean-checked.
+
+[Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7086 — Incremental polynomial-time binary-matroid circuit enumeration
 
 A circuit of a binary matroid is a nonempty inclusion-minimal linearly dependent set of matrix columns. The question asks to enumerate all circuits exactly once in incremental polynomial time using memory polynomial only in the matrix input length. The running time for the first k circuits may be polynomial in k, but the memory bound must remain independent of the number already output. Incremental enumeration is known with large saturation storage, while polynomial-space regularization assumes that this memory problem has already been solved. A positive answer would expose all minimal binary dependencies efficiently without storing an exponentially large circuit history.
 
 [Read in atlas](index.html#TCS-7086) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [On the Complexity of Some Enumeration Problems for Matroids](https://doi.org/10.1137/S0895480103428338) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7082 — A natural OutputP versus IncP separation from clique-free domination
+
+For a fixed forbidden clique size, the task is to list every inclusion-minimal dominating set of the input graph once. An algorithm with total running time polynomial in the input and the entire output is already known. The question asks whether TFNP ≠ FP forces some fixed clique size for which no algorithm produces every initial output segment in incremental polynomial time. This selects the concrete graph candidate suggested by the source instead of imposing an undefined condition of naturalness. The existing abstract separation and algorithms for smaller graph classes do not settle this implication, whose proof or refutation must be Lean-checked.
+
+[Read in atlas](index.html#TCS-7082) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [On The Complexity of Enumeration](https://arxiv.org/abs/1703.01928v2) · [Enumerating minimal dominating sets in K_t-free graphs and variants](https://arxiv.org/abs/1810.00789v3) · [Enumerating Minimal Dominating Sets and Variants in Chordal Bipartite Graphs](https://doi.org/10.4230/LIPIcs.WADS.2025.15)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-3635 — Treewidth classification of approximate counting CSP
 
@@ -1942,20 +1956,6 @@ A fixed-width CNF formula has a finite number of satisfying assignments. Decisio
 
 [Read in atlas](index.html#TCS-4671) · [An Approximation Algorithm for #k-SAT](https://doi.org/10.4230/LIPIcs.STACS.2012.78) · [Exploiting Independent Subformulas: A Faster Approximation Scheme for #k-SAT](https://doi.org/10.1016/j.ipl.2013.02.013) · [Fine-Grained Reductions from Approximate Counting to Decision](https://doi.org/10.1145/3442352)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-7082 — OutputP versus IncP
-
-The source asks for a natural enumeration problem with polynomial total time but no incremental polynomial-time algorithm. OutputP measures the complete output, while IncP also controls the time to produce each initial segment. Bare separation of these classes is equivalent to the existence of a total polynomially verifiable search problem with no polynomial-time selector. Minimal dominating sets in graphs excluding a fixed clique have the required total-time upper bound and are suggested only as a candidate. The naturalness requirement and precise lower-bound criterion remain unspecified, so the card stays pending.
-
-[Read in atlas](index.html#TCS-7082) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [On The Complexity of Enumeration](https://arxiv.org/abs/1703.01928v2) · [Enumerating minimal dominating sets in K_t-free graphs and variants](https://arxiv.org/abs/1810.00789v3)
-Existing status: `uncertain` · Summary written: 2026-09-16
-
-### TCS-7084 — Time–space separations in polynomial enumeration
-
-The source asks to separate both polynomial-delay and incremental-polynomial enumeration from their polynomial-space counterparts under a complexity hypothesis. All target problems retain efficiently checkable, polynomial-length solutions and must enumerate each solution exactly once. The timing guarantees must hold simultaneously with a memory bound polynomial only in the input size. Known results either drop polynomial-time verification or compare classes that already both use polynomial space, so they do not settle these separations. The source does not select the supporting hypothesis, leaving the exact conditional completion target pending.
-
-[Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
-Existing status: `uncertain` · Summary written: 2026-09-16
 
 ## Graph algorithms (26)
 
@@ -2963,6 +2963,13 @@ Approximate polynomial satisfiability asks whether a rational polynomial system 
 [Read in atlas](index.html#TCS-3959) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity](https://doi.org/10.4230/LIPIcs.CCC.2018.10) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity over Any Field](https://doi.org/10.4086/toc.2019.v015a016) · [When Hilbert approximates: A Strong Nullstellensatz for Approximate Polynomial Satisfiability](https://eccc.weizmann.ac.il/report/2026/026/)
 Existing status: `open` · Summary written: 2026-09-12
 
+### TCS-5240 — Does explicit multivariate hardness imply univariate hardness over F₂?
+
+Assume an explicit family of multilinear polynomials over F₂ requires circuits of exponential size in its number of variables. The question asks whether some explicit family of univariate polynomials must then require size polynomial in its degree. Coefficients must be computable uniformly in exponential time in the first parameter and polynomial time in the second. Circuit complexity concerns exact formal polynomials and permits unrestricted arithmetic circuits with constants in F₂. The requested transfer is an existence implication, not a claim about one substitution, and requires a complete Lean-checked proof or refutation.
+
+[Read in atlas](index.html#TCS-5240) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://arxiv.org/abs/2005.10885v1)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-6882 — Homogeneous versus unrestricted arithmetic formulas
 
 A homogeneous polynomial has all its nonzero monomials at one ordinary total degree. The question compares arbitrary complex arithmetic formula trees with trees whose every intermediate polynomial is homogeneous. It asks for outputs with polynomial-size general formulas but no polynomial-size homogeneous formulas. Weighted homogeneity, multilinearity, monotonicity and bounded depth impose different restrictions and their lower bounds do not settle this target. The requested answer is a complete Lean-checked nonuniform family separation or proof that polynomial formula size always survives homogenization.
@@ -3010,6 +3017,13 @@ Existing status: `source_open` · Summary written: 2026-09-17
 The input is a finite list of integer matrices of size two by two and a target matrix of the same size. The question asks whether any nonempty finite product of the listed matrices equals the target exactly. Generators may repeat and may include both singular and nonsingular matrices with arbitrary determinants. The desired algorithm must terminate on every input, without any prescribed running-time bound. A complete Lean-checked decision procedure or undecidability proof must cover the unrestricted input class.
 
 [Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44) · [Decidability of Membership Problems for Flat Rational Subsets of GL(2, Q) and Singular Matrices](https://doi.org/10.1137/22M1512612)
+Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-1544 — A qAC⁰ versus NL-complete dichotomy for Cayley semigroup membership
+
+The input gives a finite semigroup by its complete multiplication table, a generator set and a target element. The promise places the generated subsemigroup in one fixed pseudovariety, and the task is to test whether it contains the target. The question asks whether every such class has either uniform shallow quasipolynomial circuits or an NL-complete membership problem. Hardness uses uniform constant-depth polynomial-size reductions that preserve the input promise. The September 2026 source retains this dichotomy as open; a complete Lean-checked universal proof or counterexample is required.
+
+[Read in atlas](index.html#TCS-1544) · [Efficient Compression in Semigroups](https://arxiv.org/abs/2601.04747v2) · [Efficient Compression in Semigroups](https://doi.org/10.4230/LIPIcs.STACS.2026.80) · [Membership and Conjugacy in Inverse Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2025.156)
 Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-4523 — Polynomial-time dimension expansion over finite fields
@@ -3075,19 +3089,12 @@ The input gives a rational linear recurrence, its initial values and an index wr
 [Read in atlas](index.html#TCS-0095) · [25.4 Efficient LRS evaluation](https://automata.exchange/25.4-efficient-lrs-evaluation/) · [On the Complexity of the Skolem Problem at Low Orders](https://people.mpi-sws.org/~joel/publications/skolem-complexity25.pdf)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-1069 — Complexity of testing Zariski-closure membership
+### TCS-1069 — Does real Zariski-closure membership belong to ∃R?
 
-A semialgebraic set is described by polynomial equations and inequalities. The question asks for the complexity of deciding whether a designated point belongs to its Zariski closure. This closure is determined by polynomial relations vanishing on the set and differs from ordinary metric closure. The source contrasts the target with the classified Euclidean adherence problem. Understanding the complexity would quantify how difficult it is to infer algebraic consequences of a real feasible region when its limiting behavior is interpreted algebraically rather than by distance.
+The input describes a real semialgebraic set by a Boolean formula of explicitly written integer polynomial constraints. Its real Zariski closure consists of the points satisfying every real polynomial relation that vanishes on the set. The question asks whether testing that the origin lies in this closure belongs to the existential theory of the reals complexity class. A positive answer needs one polynomial-bit-time transformation to an equivalent existential real sentence for all input dimensions and degrees. The source leaves Zariski adherence open, and the known Euclidean result does not settle this target; a complete Lean-checked answer is required.
 
-[Read in atlas](index.html#TCS-1069) · [The Existential Theory of the Reals as a Complexity Class: A Compendium](https://arxiv.org/abs/2407.18006)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1544 — Complexity classification of finite-semigroup membership
-
-The semigroup membership problem asks whether a target element can be produced by composing a supplied set of generators. This project seeks a classification of finite-semigroup varieties according to the complexity of that problem. Algebraic restrictions on multiplication can drastically change the available algorithms and lower-bound constructions. The source's analysis of inverse semigroups provides a starting point, while arbitrary semigroups introduce substantially more structural possibilities. A complete classification would connect algebraic identities with the computational cost of reasoning about generated transformations.
-
-[Read in atlas](index.html#TCS-1544) · [Membership and Conjugacy in Inverse Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2025.156)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1069) · [The Existential Theory of the Reals as a Complexity Class: A Compendium](https://arxiv.org/abs/2407.18006v1) · [Exotic quantifiers, complexity classes, and complete problems](https://eccc.weizmann.ac.il/report/2005/138/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-2077 — Deterministic divisibility testing by a constant-degree polynomial
 
@@ -3123,13 +3130,6 @@ The input gives both a graph group and a compact straight-line program represent
 
 [Read in atlas](index.html#TCS-4350) · [Knapsack in Graph Groups, HNN-Extensions and Amalgamated Products](https://doi.org/10.4230/LIPIcs.STACS.2016.50) · [Knapsack in Graph Groups](https://doi.org/10.1007/s00224-017-9808-3) · [The Power Word Problem in Graph Products](https://doi.org/10.1007/s00224-024-10173-z)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5240 — Transferring arithmetic hardness to constantly many variables
-
-Arithmetic circuit lower bounds measure how difficult it is to compute polynomial families. The source asks whether lower bounds for many-variable polynomials imply lower bounds in a constant number of variables. Packing information into fewer variables can increase degrees and alter how efficiently circuits represent the polynomial. A transfer would strengthen hardness-versus-randomness methods that require hard polynomials with restricted variable count. The cited work emphasizes low characteristic, and the saved sentence does not state the degree or size tradeoff, so a formal variable substitution alone does not establish the requested implication.
-
-[Read in atlas](index.html#TCS-5240) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5739 — Collapse of rational recurrence systems to single recurrences
 
