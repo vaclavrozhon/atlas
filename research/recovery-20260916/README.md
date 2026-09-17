@@ -582,3 +582,32 @@ commit. Other-thread changes remain in the shared worktree, including the
 byte-preserving archive-path reconciliation for TCS-6575. Source checkpoint
 f3414c56 and deployment 8550d7254e86da076331a62278737c62820311f0 cover the
 first 110 dispositions.
+
+After one hundred and twenty recovery dispositions, the shared queue contains
+765 completed records, 149 pending records and one outside active scope.
+This batch completes TCS-7266 (constant-factor uniform sparsest cut), TCS-7268
+(the sliding-scale PCP endpoint), TCS-7252 (Tuza's exact factor-two conjecture),
+TCS-7313 (the deterministic ETH-to-Gap-ETH implication), and TCS-6500
+(Erdős's girth conjecture for every fixed parameter).
+
+Tuza's card follows the 17 September MANIFEST/RULES preference for exact sharp
+conjectures. The September preprint's stated factor 165/59 is progress toward
+two, not a resolution; its advertised Lean formalization was not executed.
+The other reviews distinguish polynomially many PCP alphabet symbols from
+constant bit queries, the positive exponential rate from weaker PCP
+consequences, and all short cycles from one forbidden cycle length.
+All eighteen saved user selections remain applied.
+
+The five new output hashes match their queue records; the shared ledger has
+942 valid entries at this checkpoint. Other-thread edits to ten previously
+completed cards remain outside this batch and are not globally reconciled by
+this review. The offline check passes through disposition 120, the math check
+passes on 35,359 expressions across 1,007 active cards, and desktop/mobile
+reader checks pass on publication 27c9a62ef400ed4bc35a. The publisher has 912
+detailed records. A display-math spacing correction for TCS-7313 has its own
+ledger entry and is included with the batch.
+
+Only these five reviews, their authoring scripts and their own queue, ledger
+and inventory changes enter the source commit. Other-thread work remains in
+the shared worktree. Source checkpoint a3ee6ddb and deployment
+c949398d709c114bee76104d418ec3f50b522572 cover the first 115 dispositions.
