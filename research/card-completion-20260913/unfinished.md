@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **206**.
+Pending active reviews: **202**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -48,7 +48,6 @@ Pending active reviews: **206**.
 | [TCS-6974](../../data/cards/TCS-6974.json) | Formula-SAT below exhaustive search | Parameterized and exact algorithms | pool |
 | [TCS-0088](../../data/cards/TCS-0088.json) | Optimal approximation of Max Di-Cut | Approximation algorithms and hardness of approximation | pool |
 | [TCS-6309](../../data/cards/TCS-6309.json) | Constant-factor approximation for capacitated k-Median | Approximation algorithms and hardness of approximation | pool |
-| [TCS-0935](../../data/cards/TCS-0935.json) | Unit-job precedence scheduling complexity | Online algorithms | pool |
 | [TCS-0711](../../data/cards/TCS-0711.json) | Model Selection for Contextual Bandits | Online algorithms | pool |
 | [TCS-0922](../../data/cards/TCS-0922.json) | Generalized assignment | Online algorithms | pool |
 | [TCS-0715](../../data/cards/TCS-0715.json) | Efficient Online Sparse Regression | Online algorithms | pool |
@@ -165,10 +164,7 @@ Pending active reviews: **206**.
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |
-| [TCS-7249](../../data/cards/TCS-7249.json) | Berge–Fulkerson conjecture | Structural graph theory | existing_detailed_audit |
-| [TCS-7250](../../data/cards/TCS-7250.json) | Barnette’s conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7252](../../data/cards/TCS-7252.json) | Triangle covering-to-packing ratio | Structural graph theory | existing_detailed_audit |
-| [TCS-7253](../../data/cards/TCS-7253.json) | Seymour’s second-neighborhood conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7254](../../data/cards/TCS-7254.json) | Neumann–Lara conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
 | [TCS-7264](../../data/cards/TCS-7264.json) | Single-exponential dependence on dimension for integer programming | Optimization and numerics | existing_detailed_audit |

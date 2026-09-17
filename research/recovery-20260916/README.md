@@ -320,3 +320,21 @@ page checks pass through disposition sixty-four. Seventeen source-scope
 choices remain pending. Publication is 7918bf8c84d8a0313660.
 Source checkpoint e2371c78 and deployment
 2ea3c9b4ef05af10826bc0e432f26a2251fa3a96 cover the first sixty dispositions.
+
+After sixty-eight dispositions the queue contains 712 completed records,
+202 pending records and one outside active scope. Of 1,011 active cards,
+809 have completed this individual completion standard. TCS-0935 preserves
+polynomial-time unit-job scheduling for every fixed machine count; TCS-7250
+retains the full Barnette conjecture; TCS-7249 fixes the exact repeated
+six-matching multigraph cover; and TCS-7253 preserves uncertain status for
+the unverified full-proof claim about second neighborhoods. Its stronger
+matching variant has a separate counterexample and is not the card's target.
+
+All completed hashes match, all 873 ledger entries parse, and the formula
+check passes on 34,174 expressions. The full offline and desktop/mobile
+checks last passed at disposition sixty-four. Eighteen source-scope choices
+are now pending; review_positional_scope.md records why the 2026 randomized
+equilibrium theorem does not settle TCS-0571's original pure-strategy question.
+Publication is 6b5ac04f34e87e46eaed.
+Source checkpoint 31c86cbb and deployment
+e360eeb75e1f35fb1550bbcd013ce5479a8a722c cover the first sixty-four dispositions.
