@@ -622,10 +622,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7347 — Directed unweighted APSP below \(n^{5/2}\)
 
-Directed unweighted all-pairs shortest paths asks for every ordered-pair distance when each arc has length one. The full distance matrix must be output explicitly. The question asks for a fixed exponent improvement below \(n^{5/2}\) with bounded-error randomization. The target makes no assumption about matrix multiplication or additive combinatorics. Recent conditional equivalences connect this barrier to other APSP hypotheses without resolving it.
+Every arc of the input directed graph has length one. The required output gives the exact distance for every ordered pair, including unreachable pairs. The target is any fixed positive saving in the exponent below five-halves. The algorithm may use randomness, but its full matrix must be jointly correct with probability at least two thirds. A complete Lean-checked answer must be unconditional; the recent APSP equivalences retain their stated assumptions.
 
-[Read in atlas](index.html#TCS-7347) · [Algorithms, Reductions and Equivalences for Small Weight Variants of All-Pairs Shortest Paths](https://arxiv.org/abs/2102.06181) · [Universe Reduction for APSP: Equivalence of Three Fine-Grained Hypotheses](https://arxiv.org/abs/2603.27736)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7347) · [Algorithms, Reductions and Equivalences for Small Weight Variants of All-Pairs Shortest Paths](https://arxiv.org/abs/2102.06181v1) · [Universe Reduction for APSP: Equivalence of Three Fine-Grained Hypotheses](https://arxiv.org/abs/2603.27736v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7373 — Balanced dense NFA Acceptance Hypothesis
 
@@ -1391,10 +1391,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7353 — Optimal polynomial-time approximation ratio for Euclidean k-means
 
-Euclidean k-means chooses k arbitrary centers to minimize the sum of squared distances. The dimension and cluster count are both part of the input. The target is the best ratio achievable by any uniform randomized polynomial-time algorithm. Recent 2026 algorithms improve the upper bound without determining that infimum. A certified value within 0.01 requires control of both the achievable ratios and the lower bound.
+Euclidean k-means chooses k arbitrary centers to minimize the sum of squared distances from the input points. The dimension, number of clusters and rational coordinate lengths are all part of the input. The target is the infimum of expected ratios achievable by uniform randomized polynomial-time algorithms. The latest reviewed upper-bound improvement does not determine that unrestricted infimum. An accepted answer needs a complete Lean-checked value within 0.01, without silently assuming an unproved hardness hypothesis.
 
-[Read in atlas](index.html#TCS-7353) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654) · [A (4 + epsilon)-Approximation for Euclidean k-Means via Non-Monotone Dual-Fitting](https://doi.org/10.1145/3798129.3800894)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7353) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654v1) · [A (4 + epsilon)-Approximation for Euclidean k-Means via Non-Monotone Dual-Fitting](https://people.idsia.ch/~grandoni/Pubblicazioni/CCGGLW26stoc.pdf) · [Near-Optimal Bounds for Parameterized Euclidean k-Means](https://doi.org/10.4230/LIPIcs.SoCG.2026.33)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-5407 — Optimal approximation for nonmonotone submodular maximization over a matroid
 
@@ -2171,10 +2171,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7343 — Deterministic almost-linear vertex connectivity
 
-Vertex connectivity is the smallest number of vertices whose removal disconnects a graph or leaves at most one vertex. The task is to find this number and an attaining separator in an unweighted undirected graph. The question asks for deterministic almost-linear worst-case time. Randomized almost-linear algorithms are known, while the reviewed deterministic bound still depends on the connectivity. The target tests the role of randomness in exact network robustness computation.
+Vertex connectivity is the smallest number of vertices whose deletion disconnects a graph or leaves at most one vertex. The input is an explicit unweighted undirected graph, including all isolated vertices. The task is to output the exact value and an attaining set in deterministic almost-linear worst-case time. Randomized almost-linear time is known, while the reviewed deterministic bound retains a connectivity factor. A complete Lean-checked answer must cover every connectivity value with the same algorithm and time bound.
 
-[Read in atlas](index.html#TCS-7343) · [Deterministic Vertex Connectivity via Common-Neighborhood Clustering and Pseudorandomness](https://arxiv.org/abs/2503.20985) · [Vertex Connectivity in Poly-logarithmic Max-flows](https://arxiv.org/abs/2104.00104) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7343) · [Deterministic Vertex Connectivity via Common-Neighborhood Clustering and Pseudorandomness](https://arxiv.org/abs/2503.20985v1) · [Vertex Connectivity in Poly-logarithmic Max-flows](https://arxiv.org/abs/2104.00104v2) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671v2) · [Approximating Directed Connectivity in Almost-Linear Time](https://arxiv.org/abs/2512.00176v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7245 — Constant-factor treewidth preservation by subcubic subgraphs
 
@@ -2490,10 +2490,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7332 — Logarithmic Las Vegas dynamic connectivity
 
-An undirected graph changes one edge at a time. A query asks whether two vertices remain connected. The target is logarithmic amortized expected update time with always-correct answers. Known Las Vegas bounds retain an iterated-logarithm overhead. The related deterministic worst-case problem asks for different guarantees.
+An undirected graph changes by single-edge insertions and deletions. Connectivity queries must always return the exact answer. The target is logarithmic amortized expected update time and logarithmic worst-case query time. Known guarantees either retain an iterated-logarithm update overhead or use a larger polylogarithmic bound. A complete Lean-checked answer must respect online access, the fixed-sequence adversary and near-linear current-graph space.
 
-[Read in atlas](index.html#TCS-7332) · [Fully Dynamic Connectivity in \(O(\log n(\log\log n)^2)\) Amortized Expected Time](https://theoretics.episciences.org/10791/pdf) · [Dynamic Connectivity with Expected Polylogarithmic Worst-Case Update Time](https://arxiv.org/abs/2510.08297)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7332) · [Fully Dynamic Connectivity in \(O(\log n(\log\log n)^2)\) Amortized Expected Time](https://theoretics.episciences.org/10791/pdf) · [Logarithmic Lower Bounds in the Cell-Probe Model](https://erikdemaine.org/papers/DynamicConnectivity_SICOMP/) · [Dynamic Connectivity with Expected Polylogarithmic Worst-Case Update Time](https://arxiv.org/abs/2510.08297v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0478 — Dynamic APSP with edge-linear updates
 
@@ -2597,10 +2597,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7371 — Almost-linear constant-factor approximation of LCS
 
-Longest common subsequence compares strings while allowing deletions. The alphabet may grow with the input. The requested approximation factor is one universal constant. One randomized algorithm must have almost-linear worst-case running time. Constant-alphabet approximations and slower high-accuracy schemes do not satisfy the combined target.
+LCS is the longest sequence obtainable by deleting symbols from each input while preserving their order. The card asks for an explicit common subsequence within one absolute constant factor of optimum. One randomized algorithm must work on every growing-alphabet input in almost-linear worst-case time. Known guarantees with a growing factor or a much larger time bound do not settle this endpoint. A complete Lean-checked answer must prove the precise existence claim or its unconditional negation.
 
-[Read in atlas](index.html#TCS-7371) · [Exploring the Gap Between LCS and LCStr](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.27) · [Deterministic Longest Common Subsequence Approximation in Near-Linear Time](https://arxiv.org/abs/2507.22486) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7371) · [Exploring the Gap Between LCS and LCStr](https://doi.org/10.4230/LIPIcs.CPM.2026.27) · [Approximating the Longest Common Subsequence problem within a sub-polynomial factor in linear time](https://arxiv.org/abs/2112.08454v1) · [Deterministic Longest Common Subsequence Approximation in Near-Linear Time](https://arxiv.org/abs/2507.22486v1) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7367 — Text-to-pattern Hamming distances below the square-root barrier
 
