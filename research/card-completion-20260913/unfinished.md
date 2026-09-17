@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **160**.
+Pending active reviews: **155**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -119,7 +119,6 @@ Pending active reviews: **160**.
 | [TCS-6454](../../data/cards/TCS-6454.json) | Low-noise LPN hardness from Nearest Codeword hardness | Cryptography | existing_detailed_audit |
 | [TCS-6499](../../data/cards/TCS-6499.json) | Sublogarithmic distributed MIS | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6500](../../data/cards/TCS-6500.json) | Erdős girth conjecture | Structural graph theory | existing_detailed_audit |
-| [TCS-6503](../../data/cards/TCS-6503.json) | Online matrix–vector multiplication conjecture | Fine-grained complexity | existing_detailed_audit |
 | [TCS-6505](../../data/cards/TCS-6505.json) | One-cycle versus two-cycles conjecture | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6508](../../data/cards/TCS-6508.json) | Deque conjecture | Data structures | existing_detailed_audit |
@@ -127,16 +126,13 @@ Pending active reviews: **160**.
 | [TCS-6513](../../data/cards/TCS-6513.json) | Constant-factor approximation of the smallest grammar | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7223](../../data/cards/TCS-7223.json) | Linear-size circuits for integer multiplication | Algebraic computation | existing_detailed_audit |
 | [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
-| [TCS-7241](../../data/cards/TCS-7241.json) | FPT approximation of twin-width | Parameterized and exact algorithms | existing_detailed_audit |
 | [TCS-7252](../../data/cards/TCS-7252.json) | Triangle covering-to-packing ratio | Structural graph theory | existing_detailed_audit |
 | [TCS-7254](../../data/cards/TCS-7254.json) | Neumann–Lara conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
-| [TCS-7264](../../data/cards/TCS-7264.json) | Single-exponential dependence on dimension for integer programming | Optimization and numerics | existing_detailed_audit |
 | [TCS-7266](../../data/cards/TCS-7266.json) | Constant-factor approximation for uniform Sparsest Cut | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7268](../../data/cards/TCS-7268.json) | Sliding-scale PCP conjecture | Computational complexity | existing_detailed_audit |
 | [TCS-7269](../../data/cards/TCS-7269.json) | Optimal multilinear-formula size of the permanent | Algebraic computation | existing_detailed_audit |
 | [TCS-7270](../../data/cards/TCS-7270.json) | Linear-size Circuit-SAT below exhaustive search | Fine-grained complexity | existing_detailed_audit |
-| [TCS-7281](../../data/cards/TCS-7281.json) | Unconditional NP-hardness at the Goemans–Williamson Max-Cut threshold | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7287](../../data/cards/TCS-7287.json) | Square-root logarithmic approximation for metric labeling | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7290](../../data/cards/TCS-7290.json) | Extremal size of sunflower-free set families | Miscellaneous | existing_detailed_audit |
 | [TCS-7313](../../data/cards/TCS-7313.json) | ETH versus Gap-ETH | Fine-grained complexity | existing_detailed_audit |
@@ -144,7 +140,6 @@ Pending active reviews: **160**.
 | [TCS-7322](../../data/cards/TCS-7322.json) | Optimal approximation ratio for shortest common superstring | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7326](../../data/cards/TCS-7326.json) | Worst-case logarithmic dynamic planar convex hulls | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7328](../../data/cards/TCS-7328.json) | Amortized decrease-key complexity of standard pairing heaps | Data structures | existing_detailed_audit |
-| [TCS-7331](../../data/cards/TCS-7331.json) | Constant-time deterministic dynamic dictionaries | Data structures | existing_detailed_audit |
 | [TCS-7332](../../data/cards/TCS-7332.json) | Logarithmic Las Vegas dynamic connectivity | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7333](../../data/cards/TCS-7333.json) | Space-query exponent curve of 3SUM indexing | Data structures | existing_detailed_audit |
 | [TCS-7339](../../data/cards/TCS-7339.json) | Near-linear incremental topological ordering | Dynamic graph algorithms | existing_detailed_audit |

@@ -553,3 +553,32 @@ Only these five reviews, their authoring scripts and their own queue, ledger
 and inventory changes enter the source commit. Other-thread changes remain
 in the shared worktree. Source checkpoint 5fd484df and deployment
 f9e8e8379abbd1e35e69554dfa0dc0cde5664f13 cover the first 105 dispositions.
+
+After one hundred and fifteen recovery dispositions, the shared queue contains
+760 completed records, 154 pending records and one outside active scope.
+This batch completes TCS-7331 (uniform deterministic dynamic dictionaries),
+TCS-7281 (unconditional Max-Cut hardness at the Goemans–Williamson threshold),
+TCS-6503 (online Boolean matrix–vector multiplication), TCS-7241 (FPT
+approximation of twin-width), and TCS-7264 (deterministic single-exponential
+integer-programming feasibility).
+
+The source checks distinguish randomized from deterministic integer-programming
+bounds and retain the determinant factor in the September 2026 preprint.
+Special graph classes, stronger structural parameters, and cell-probe models
+with free computation are not treated as solutions to the unrestricted targets.
+All eighteen saved user selections remain applied.
+
+All completed output hashes match, and the ledger has 936 valid entries.
+The offline check passes through disposition 115, the math check passes on
+35,282 expressions across 1,009 active cards, and desktop/mobile reader checks
+pass on publication a2c71b0ba4d1d2d31a0a. The publisher has 914 detailed records.
+The reader test now selects its sample card from the current Top 100 export;
+its old hardcoded card was archived in another thread. This preserves the
+direct-link, contribution-draft and publication-deletion checks after archives.
+
+Only these five reviews, their authoring scripts, their own queue, ledger and
+inventory changes, and the small reader-test fixture repair enter the source
+commit. Other-thread changes remain in the shared worktree, including the
+byte-preserving archive-path reconciliation for TCS-6575. Source checkpoint
+f3414c56 and deployment 8550d7254e86da076331a62278737c62820311f0 cover the
+first 110 dispositions.

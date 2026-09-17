@@ -1,0 +1,78 @@
+"""Complete general FPT approximation of twin-width without a supplied sequence."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-7241';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Retained arbitrary total computable running-time and width-loss functions, with one uniform deterministic algorithm and a polynomial exponent independent of the parameter.',
+ 'Expanded the partition-based definition of mixed adjacency, allowed merging nonadjacent parts and specified a complete finite output encoding.',
+ 'Made both output alternatives valid on all inputs: rejection must be true, and any returned sequence must satisfy its width bound even when the input has twin-width above k.',
+ 'Counted the binary parameter input, all computation and output in a bit-Turing model, without supplied orders or decompositions.',
+ 'Read the current project question and the 2025 special-case paper; checked the February 2026 proceedings result and June full version, whose running-time parameters differ from twin-width.',
+ 'Preserved importance 94 and category, and required a complete Lean-checked construction or unconditional negation rather than exact-recognition hardness alone.',
+]
+sources=[
+ f'Read Bonnet’s TWIN-WIDTH ANR JCJC project open-questions page on {DATE}, first question and its formal rejection-or-g(k)-sequence statement. It explicitly distinguishes ordered graphs and notes NP-completeness of exact small-width recognition. The page has no publication timestamp establishing 2026 as the origin year; the card year remains its existing source-access/admission convention.',
+ 'Read Ahn–Jacob–Köhler–Paul–Reinald–Wiederrecht, arXiv:2501.00991v1 of 2 January 2025 (STACS 2025), introduction pp. 1–3. It defines contraction sequences, explicitly leaves general XP and FPT approximation open, and states linear-time recognition with a sequence at twin-width one.',
+ 'Read Ganian–Rocton, STACS 2026 Article 42, publisher page dated 25 February 2026, primary abstract. Then read its full version arXiv:2606.20331v1 of 18 June 2026: introduction PDF pp. 2–3, Theorem 20 PDF p. 14 and Theorem 34 PDF p. 20. Approximation is parameterized by treedepth; exact computation is parameterized by vertex integrity. Both are deterministic and constructive, but neither has the required general running-time dependence on twin-width alone. Full proofs not independently audited.',
+ f'Bounded primary-source searches through {DATE} found no verified general algorithm or unconditional impossibility theorem for this target. The nearby clique-width and parameterized logical-tractability questions do not duplicate the requested certificate-construction problem.',
+]
+complete(identifier,dict(
+ criterion='resources',question_type='yes_no',
+ formal=r'''Do there exist total computable functions \(f:\mathbb N\to\mathbb N_{\ge1}\) and \(g:\mathbb N\to\mathbb N\), an integer constant \(c\ge1\), and one deterministic Turing machine \(A\) such that, for every nonempty finite simple undirected graph \(G\) on \(n\) vertices and every integer \(k\ge0\), the machine halts within
+\[
+ f(k)(n+1)^c
+\]
+bit operations and either correctly reports \(\operatorname{tww}(G)>k\), or outputs a contraction sequence of \(G\) of width at most \(g(k)\)? Only the graph and \(k\) are supplied, with no helpful vertex order, decomposition or contraction sequence.''',
+ definitions=r'''Here \(\mathbb N=\{0,1,2,\ldots\}\). The graph has vertex set \(V=\{1,\ldots,n\}\), with \(n\ge1\), and is given by its symmetric \(n\times n\) Boolean adjacency matrix with zero diagonal. The input also includes \(n\) and \(k\) in binary. Arbitrary disconnected graphs and isolated vertices are allowed. Vertex labels are just part of the explicit representation and carry no promise about a useful ordering.
+
+A partition of \(V\) is a collection of pairwise disjoint nonempty subsets, called parts, whose union is \(V\). Two distinct parts \(X,Y\) form a mixed pair if there exist \(x,x'\in X\) and \(y,y'\in Y\) such that \(\{x,y\}\) is an edge of the original graph and \(\{x',y'\}\) is not. The two witness pairs need not have distinct endpoints within each part. A pair is not mixed when all possible cross pairs are edges, or when none are edges. Relations are always evaluated in the original graph.
+
+For a partition \(\mathcal P\) and part \(X\in\mathcal P\), its red degree is
+\[
+ r_{\mathcal P}(X)=
+ |\{Y\in\mathcal P\setminus\{X\}:(X,Y)\text{ is mixed}\}|.
+\]
+This counts mixed neighboring parts, not individual edges or vertices. Adjacency inside a part does not contribute to its red degree.
+
+A contraction sequence is a list of partitions \(\mathcal P_n,\mathcal P_{n-1},\ldots,\mathcal P_1\). The first partition consists of all singleton vertices and the last is \(\{V\}\). Each \(\mathcal P_{j-1}\) is obtained from \(\mathcal P_j\) by merging exactly two distinct parts and leaving the others unchanged. The merged parts need not be adjacent. The width of a sequence is
+\[
+ \max_{1\le j\le n}\ \max_{X\in\mathcal P_j} r_{\mathcal P_j}(X).
+\]
+The twin-width \(\operatorname{tww}(G)\) is the minimum width over all such sequences. In particular, a one-vertex graph has width zero and its sequence has no merge steps.
+
+The output encodes the \(n-1\) merges explicitly. Initially labels \(1,\ldots,n\) refer to singleton parts. At step \(t\), two distinct currently active labels are listed, their parts are replaced by their union, and the new part receives label \(n+t\). This list determines every partition and is a complete certificate, not just an upper-bound number or a promise that a sequence exists.
+
+The two permitted outputs have the following meaning on every input. If the output is the rejection symbol, then \(\operatorname{tww}(G)>k\) must be true. If the output is a merge list, that list must always be a valid complete sequence of width at most \(g(k)\). Consequently, when \(\operatorname{tww}(G)\le k\) the machine must return a bounded-width sequence. When \(\operatorname{tww}(G)>k\), either output is allowed if its respective guarantee is true. There is no input promise that the parameter is an actual upper bound.
+
+The deterministic machine has one finite program independent of \(k,n,G\), no advice and no oracle. The running time counts all bit-level computation, reading the binary parameter and the graph, constructing auxiliary information, and writing the output. The functions \(f\) and \(g\) are fixed total computable functions; their growth is unrestricted and may absorb the cost of reading the parameter. They depend only on \(k\), while the exponent \(c\) is a single constant independent of \(k\). No separate efficient evaluation bound on these functions is imposed, but any evaluation performed by \(A\) must fit the total running-time bound.
+
+This is a fixed-parameter approximation with arbitrary computable width loss, not a specified multiplicative approximation ratio. A bound with a polynomial exponent depending on \(k\), such as \(n^{h(k)}\), is not the required fixed-parameter running time. Dependence on another graph parameter is insufficient unless it is bounded by a function of the supplied \(k\) on the inputs in question.''',
+ answer_criterion=r'''Give a complete Lean-checked proof that such \(A,f,g,c\) exist, including total computability of the functions, all-input termination, the running-time bound and both output guarantees, or a complete Lean-checked proof of the logical negation.
+
+A negative answer must exclude all total computable width-loss functions and all fixed-parameter running-time bounds in the stated deterministic model. NP-hardness of exact recognition at a fixed twin-width, or a lower bound for a fixed approximation ratio, is not by itself such a negation: the card permits arbitrarily large computable \(g(k)\). A conditional result under \(\mathrm P\ne\mathrm{NP}\), ETH or another unproved assumption does not unconditionally decide the target.
+
+An algorithm receiving a helpful ordering or a contraction sequence, restricted to one fixed width or a special graph class, or running in fixed-parameter time for a different unbounded structural parameter does not settle the whole statement without a proved extension.''',
+ source_formulation=dict(text='The first project question asks for an algorithm which, given a graph and k, runs in fixed-parameter time, correctly declares twin-width greater than k, or constructs a sequence whose width depends only on k. The card makes computability, input representation and the contraction certificate explicit.',caption='Paraphrase of Édouard Bonnet’s TWIN-WIDTH project, first open question, accessed 17 September 2026.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Open problems in twin-width','Édouard Bonnet',2026,'https://perso.ens-lyon.fr/edouard.bonnet/openQuestions.html','First question and formal algorithmic statement; accessed 17 September 2026; webpage publication date unspecified'),
+ ref('one','Twin-width one','Jungho Ahn; Hugo Jacob; Noleen Köhler; Christophe Paul; Amadeus Reinald; Sebastian Wiederrecht',2025,'https://arxiv.org/abs/2501.00991v1','2 January 2025, STACS 2025; introduction pp. 1–3, open general approximation problem and constructive twin-width-one recognition'),
+ ref('parameters','Computing Twin-Width via Treedepth and Vertex Integrity','Robert Ganian; Mathis Rocton',2026,'https://arxiv.org/abs/2606.20331v1','18 June 2026 full version; introduction PDF pp. 2–3, Theorem 20 p. 14 and Theorem 34 p. 20; STACS 2026 Article 42 published 25 February 2026'),
+ ],
+ why='Many algorithms exploiting twin-width need a low-width contraction sequence as part of their input. Finding such a certificate from an ordinary graph would make these methods applicable without requiring the structural witness in advance.',
+ context_blocks=[
+ block('The project question permits any computable loss in output width. The challenge is already to obtain a bounded-width certificate with the required parameter dependence, before optimizing a numerical approximation ratio.'),
+ block('Twin-width-one recognition can construct the needed sequence in linear time under the source representation. This establishes a special case while the same paper explicitly leaves general approximation open.','one'),
+ block('Exact recognition is NP-hard already at a small fixed width. That fact obstructs exact algorithms under the usual complexity assumption but does not rule out the arbitrarily large width loss allowed here.','one'),
+ block('The 2026 work obtains approximation in time parameterized by treedepth and exact computation in time parameterized by vertex integrity. Its introduction still identifies approximation parameterized by twin-width itself as open; the theorem statements retain the stronger structural runtime parameters.','parameters'),
+ ],
+ progress=[progress('2025-01-02','The twin-width-one paper gives a constructive recognition algorithm and records general approximation as open.','one'),progress('2026-02-25','STACS publishes algorithms whose running-time parameters are treedepth and vertex integrity.','parameters'),progress('2026-06-18','The full version gives explicit constructive statements while retaining the general twin-width-parameterized question.','parameters'),progress(DATE,'The project page still lists the general rejection-or-sequence FPT approximation question.')],
+),notes,sources,'The project page checked on 17 September 2026 and the June 2026 full version of the STACS result both retain general FPT approximation parameterized by twin-width as open. The known special-width and stronger-parameter algorithms do not cover the selected all-graph target. The source search is bounded, and the full proofs of the 2026 results were not independently audited.',summary=[
+ 'Twin-width measures how many mixed adjacency relations arise while vertex groups are merged.',
+ 'The desired algorithm receives a graph and a proposed width bound without an accompanying structural certificate.',
+ 'It must either reject that bound correctly or return a complete merge sequence whose width is bounded by a computable function of the parameter.',
+ 'Its running time may depend arbitrarily on the parameter but has one fixed polynomial exponent in the graph size.',
+ 'A complete Lean-checked resolution would settle whether these structural certificates are accessible in general fixed-parameter time.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
