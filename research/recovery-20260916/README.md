@@ -665,3 +665,33 @@ Only these five reviews, their authoring scripts and their own queue, ledger
 and inventory changes enter the source commit. Other-thread work remains
 in the shared worktree. Source checkpoint 32e231f4 and deployment
 8fe0f1182fd94153d40e6e924a5b62ed0275657d cover the first 125 dispositions.
+
+After one hundred and thirty-five recovery dispositions, the raw shared queue
+contains 780 completed records, 134 pending records and one outside its original
+active scope. Concurrent category pruning has since archived seven still-pending
+rows: the live queue tool reports 127 pending active reviews, 702 completed active
+queue records and 152 active records outside the queue, for 981 active cards.
+These are different counters; neither publisher detail nor prior completion
+implies that a record remains active.
+
+This batch completes TCS-7342 (Steiner shortcuts with unrestricted auxiliary
+vertices), TCS-7348 (single-exponential exact cut mimicking networks), TCS-7354
+(the metric k-means approximation infimum), TCS-1012 (explicit binary
+list-decoding capacity), and TCS-7362 (compact optimal top-k document retrieval).
+The coding review explicitly corrects the source's reversed capacity inequality
+and the inherited title. The indexing review distinguishes full query guarantees
+from CSA-relative, long-pattern and unsorted-output results. The metric clustering
+card preserves its full numerical target and exact center budget.
+
+The five output hashes match their queue records; the ledger has 957 valid
+entries. Other-thread changes and archival decisions remain outside this source
+batch. The offline check passes, the math check passes on 34,828 expressions
+across 981 active cards, and desktop/mobile reader checks pass on publication
+ddb9838382f431eaf37a. The publisher has 895 detailed records. The changed active
+and detailed totals reflect concurrent pruning, not lost completed reviews.
+
+Only these five reviews, their authoring scripts and their own queue, ledger
+and inventory changes enter the source commit. Source checkpoint 0eb905ed and
+deployment 7ef629b6248d5b2d0d18ff7a537755e3e485d39f cover the first 130
+dispositions. Unrelated category, website and archival edits remain in the shared
+worktree.

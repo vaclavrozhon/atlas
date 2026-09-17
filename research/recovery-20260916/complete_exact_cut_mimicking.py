@@ -1,0 +1,72 @@
+"""Complete arbitrary exact terminal-cut networks of size 2^(O(k))."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-7348';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Preserved the precise linear-exponent 2^(Ck) endpoint for arbitrary replacement graphs, without a contraction restriction.',
+ 'Expanded the terminal-bipartition cut function, exact simultaneous equality and finite nonnegative real weights.',
+ 'Specified vertex-count size including terminals, arbitrary new nonterminals, zero cut values and the absence of any construction-time or weight-bit bound.',
+ 'Distinguished pairwise cuts, approximate sparsifiers, multicommodity-flow preservation and special graph classes.',
+ 'Checked the primary 2012 construction and 2025 general-gap discussion, with a bounded 2026 later-work check.',
+ 'Preserved importance 90 and category and required a complete Lean proof of the common bound or its negation.',
+]
+sources=[
+ 'Read Chen–Tan, ICALP 2025 Article 53, Introduction pp. 53:1–4, Table 1, Theorems 1–4 and Section 2 definitions. It explicitly retains the general exact-cut size gap between 2^Omega(k) and 2^(2^O(k)), distinguishes doubly exponential contraction-based lower bounds, gives 2^O(k) for planar graphs through prior work, and gives 2^O(k^2 log k) for exact quasi-bipartite sparsifiers. The latter is not the linear-exponent target on all graphs.',
+ 'Read Khan–Raghavendra–Tetali–Vegh, arXiv:1207.6371v1, 26 July 2012: abstract, definition in the Introduction and Theorems 1.1–1.3 pp. 3–4. Its general upper bound uses a Dedekind number and is doubly exponential in terminal count; its general lower bound is exponential. The historical phrase single-exponential gap does not mean a single-exponential upper bound.',
+ 'Checked the live version histories: the general 2012 preprint remains v1, and the full version of Chen–Tan, arXiv:2407.10852, remains v2 of 17 October 2024. The final ICALP 2025 paper was the directly read version of the latter result.',
+ 'Read the primary abstract and history of Chen–Tan–Yang, arXiv:2602.12645v1, 13 February 2026, Lower Bounds on Flow Sparsifiers with Steiner Nodes. The new lower bound is for contraction-based multicommodity-flow sparsifiers with a different size/quality regime; it does not refute arbitrary exact cut replacement graphs.',
+ 'A search surfaced a May 2026 retraction notice on Robert Krauthgamer’s primary webpage. Direct inspection places that notice on Sharon Stein’s thesis about separating decompositions in high-dimensional Euclidean spaces, not on the cut-mimicking results used here. No status claim was inferred from the ambiguous search snippet.',
+ f'Bounded primary-source searches through {DATE} found no verified resolution of the all-graphs 2^(Ck) exact-cut target. Full cited proofs were not independently audited.',
+]
+complete(identifier,dict(
+ title='Single-exponential exact cut mimicking networks',criterion='construction',question_type='yes_no',
+ formal=r'''Does there exist an absolute real constant \(C>0\) such that, for every finite simple undirected graph \(G=(V,E,w)\) with finite nonnegative real edge weights and every specified terminal set \(T\subseteq V\) of size \(k\ge2\), there is a finite simple undirected graph \(H=(V_H,E_H,w_H)\) with nonnegative real edge weights such that
+\[
+ T\subseteq V_H,\qquad |V_H|\le2^{Ck},\qquad
+ \forall\,\varnothing\ne A\subsetneq T,\quad
+ \lambda_{H,T}(A)=\lambda_{G,T}(A)?
+\]
+Here the terminal cut value is
+\[
+ \lambda_{G,T}(A)=
+ \min_{\substack{S\subseteq V\\ S\cap T=A}}
+ \sum_{e\in\delta_G(S)}w(e),
+\]
+and the analogous formula defines \(\lambda_{H,T}\). The replacement graph is arbitrary and need not be a contraction, minor or subgraph of \(G\).''',
+ definitions=r'''A simple undirected graph has edges that are unordered pairs of distinct vertices, with no loops or parallel edges. For \(S\subseteq V\), the set \(\delta_G(S)\) contains exactly the edges with one endpoint in \(S\) and the other in \(V\setminus S\). Its cut value is the sum of their weights. Every weight is a finite element of \(\mathbb R_{\ge0}\); zero weights, disconnected graphs and isolated vertices are allowed. There are no infinite or negative capacities.
+
+The elements of \(T\) are distinct labelled terminals. In the minimization defining \(\lambda_{G,T}(A)\), all terminals of \(A\) must lie on one side and all terminals of \(T\setminus A\) on the other; nonterminals may be placed on either side to minimize the total. The feasible family of sides is finite and nonempty, so the minimum exists. In an undirected graph the values for \(A\) and \(T\setminus A\) coincide. Zero values must be preserved exactly as well.
+
+The graph \(H\) contains the same labelled terminals, without merging any two of them. Its other vertices and all its weights may be chosen freely as functions of \(G,w,T\). There is no required map from original nonterminals to replacement vertices and no requirement to retain original edges. Parallel edges in an alternative representation can be combined by adding their weights, and loops can be removed, so restricting the representation to simple graphs does not change these cut values.
+
+Preservation is simultaneous: one graph \(H\) must satisfy the equality for every nonempty proper terminal subset. It preserves the minimum cut values, not the identities of individual minimum cuts or a correspondence between all graph cuts. Preserving only a minimum cut between each terminal pair is a weaker requirement, since other terminals are then free to move to either side. Preserving all multicommodity flow demands is a different, stronger request not imposed here.
+
+Size means the number of vertices of \(H\), including all \(k\) terminals. No independent edge-count or bit-length bound is requested, and real weights need not be rational or have an effective finite encoding. This is an existence question, with no algorithmic or construction-time requirement. The constant \(C\) precedes all graphs, weights and terminal counts; it cannot vary with an instance. The requested bound is \(2^{O(k)}\) with a linear exponent, not merely \(2^{\operatorname{poly}(k)}\).''',
+ answer_criterion=r'''Give a complete Lean-checked proof of the existence of such a common constant \(C\) and exact replacement graphs, or a complete Lean-checked proof of the logical negation.
+
+A positive proof must cover all finite nonnegatively real-weighted undirected graphs and all terminal bipartitions using a single replacement graph for each instance. A negative proof must defeat every proposed \(C\), allowing arbitrary new vertices and arbitrary nonnegative real weights. Lower bounds confined to contractions, approximations, pairwise cuts or a prescribed class of replacement graphs do not refute this statement. A bound with a superlinear polynomial exponent does not establish the requested upper bound. No numerical tolerance or unproved computational assumption is part of acceptance.''',
+ source_formulation=dict(text='General exact terminal-cut sparsifiers have an exponential size lower bound and a doubly exponential upper bound in the number of terminals. The card isolates the endpoint that a linear exponent suffices when arbitrary replacement graphs are permitted.',caption='Editorial 2^(O(k)) endpoint of the general-gap discussion and Table 1 in Chen–Tan, ICALP 2025, Article 53.',citation='primary',format='editorial_paraphrase'),
+ why='Determine how compactly a network can encode every exact terminal separation cost. The question isolates the structural power of arbitrary replacement graphs beyond contractions and beyond preserving only pairwise cuts.',
+ references=[
+ ref('primary','Cut-Preserving Vertex Sparsifiers for Planar and Quasi-Bipartite Graphs','Yu Chen; Zihan Tan',2025,'https://doi.org/10.4230/LIPIcs.ICALP.2025.53','Introduction pp. 53:1–4, Table 1, Theorems 1–4 and Section 2'),
+ ref('construction','On Mimicking Networks Representing Minimum Terminal Cuts','Arindam Khan; Prasad Raghavendra; Prasad Tetali; László A. Végh',2012,'https://arxiv.org/abs/1207.6371v1','26 July 2012; Introduction and Theorems 1.1–1.3 pp. 3–4, general upper/lower bounds and contraction distinction'),
+ ref('flow','Lower Bounds on Flow Sparsifiers with Steiner Nodes','Yu Chen; Zihan Tan; Mingyang Yang',2026,'https://arxiv.org/abs/2602.12645v1','13 February 2026; primary abstract, contraction-based multicommodity-flow scope'),
+ ],
+ context_blocks=[
+ block('The terminal cut function records the cheapest separation of each chosen group of terminals from all the others. One exact mimicking network stores all these values through its graph structure.'),
+ block(r'The general known size gap is \(2^{\Omega(k)}\) versus \(2^{2^{O(k)}}\). The older construction improves the doubly exponential bound without reducing it to a linear exponent.','construction'),
+ block('Contraction-based replacements can require doubly exponentially many vertices. This does not rule out a smaller arbitrary graph with newly chosen weights, which is why the representation freedom matters.'),
+ block(r'Planar graphs admit \(2^{O(k)}\) exact representations. The 2025 quasi-bipartite result has a \(2^{O(k^2\log k)}\) bound; neither special-class result supplies the requested bound for all graphs.'),
+ block('The 2026 lower bound concerns contraction-based preservation of multicommodity flows. It is not a lower bound against all exact cut-mimicking networks in this card’s model.','flow'),
+ ],
+ progress=[progress('2012-07-26','General constructions and lower bounds leave a doubly exponential versus exponential size gap.','construction'),progress('2025','The ICALP paper retains the general gap while improving exact and approximate bounds for special graph classes.'),progress('2026-02-13','New contraction-based multicommodity-flow lower bounds address a different preservation requirement.','flow')],
+),notes,sources,'The 2025 primary paper explicitly retains the general exponential-versus-doubly-exponential gap, and the 2026 flow lower bound has a different preservation and representation model. Bounded primary-source checks through 17 September 2026 found no verified resolution of the unrestricted 2^(Ck) exact-cut question. Full proofs were not independently audited.',summary=[
+ 'A terminal cut separates any selected group of labelled terminals from all the other terminals.',
+ 'One replacement graph must preserve the minimum cost of every such separation exactly.',
+ 'The question asks for at most 2^(Ck) vertices with a single absolute constant C.',
+ 'The replacement may use arbitrary new nonterminals and weights, so contraction lower bounds alone do not answer it.',
+ 'A complete Lean-checked proof must establish or refute this structural existence claim for all nonnegatively weighted undirected graphs.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])

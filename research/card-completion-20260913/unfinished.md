@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **140**.
+Pending active reviews: **135**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -87,7 +87,6 @@ Pending active reviews: **140**.
 | [TCS-6861](../../data/cards/TCS-6861.json) | Classical reductions matching quantum LWE hardness | Lattices and computational number theory | pool |
 | [TCS-6864](../../data/cards/TCS-6864.json) | Classical worst-case reductions for ring-LWE | Lattices and computational number theory | pool |
 | [TCS-6868](../../data/cards/TCS-6868.json) | Worst-case and search-to-decision reductions for NTRU | Lattices and computational number theory | pool |
-| [TCS-1012](../../data/cards/TCS-1012.json) | Explicit efficiently decoded binary codes beyond Gilbert–Varshamov | Coding and information theory | pool |
 | [TCS-0178](../../data/cards/TCS-0178.json) | Bounded-alphabet approximation of entropy-region faces | Coding and information theory | pool |
 | [TCS-0187](../../data/cards/TCS-0187.json) | Field dependence of linear-rank inequalities | Coding and information theory | pool |
 | [TCS-0205](../../data/cards/TCS-0205.json) | Infimum of the Ingleton score | Coding and information theory | pool |
@@ -134,12 +133,8 @@ Pending active reviews: **140**.
 | [TCS-7333](../../data/cards/TCS-7333.json) | Space-query exponent curve of 3SUM indexing | Data structures | existing_detailed_audit |
 | [TCS-7339](../../data/cards/TCS-7339.json) | Near-linear incremental topological ordering | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7340](../../data/cards/TCS-7340.json) | Optimal randomized memory-reallocation overhead | Data structures | existing_detailed_audit |
-| [TCS-7342](../../data/cards/TCS-7342.json) | Steiner Shortcut Conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7344](../../data/cards/TCS-7344.json) | Almost-linear exact directed global minimum cut | Structural graph theory | existing_detailed_audit |
 | [TCS-7345](../../data/cards/TCS-7345.json) | Almost-linear directed vertex connectivity | Structural graph theory | existing_detailed_audit |
-| [TCS-7348](../../data/cards/TCS-7348.json) | Single-exponential exact cut mimicking networks | Structural graph theory | existing_detailed_audit |
-| [TCS-7354](../../data/cards/TCS-7354.json) | Optimal polynomial-time approximation ratio for metric k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
-| [TCS-7362](../../data/cards/TCS-7362.json) | Optimal top-k document retrieval in compact space | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7364](../../data/cards/TCS-7364.json) | Preprocessing exponent of binary jumbled indexing | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7366](../../data/cards/TCS-7366.json) | Linear-space k-mismatch text indexing | String algorithms and bioinformatics | existing_detailed_audit |
 | [TCS-7367](../../data/cards/TCS-7367.json) | Text-to-pattern Hamming distances below the square-root barrier | String algorithms and bioinformatics | existing_detailed_audit |

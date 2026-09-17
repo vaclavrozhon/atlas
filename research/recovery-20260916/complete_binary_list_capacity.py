@@ -1,0 +1,75 @@
+"""Correct the inherited label and complete Vadhan's binary list-decoding question."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-1012';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Corrected the inherited beyond-Gilbert–Varshamov label to the source-intended explicit binary list-decoding-capacity problem.',
+ 'Documented the reversed printed rate inequality in Open Problem 5.26 rather than silently quoting it as a valid target.',
+ 'Specified deterministic uniform encoding and exact polynomial-time list output, all message lengths and all received words.',
+ 'Kept the alphabet binary independently of the capacity gap and allowed polynomial, rather than unnecessarily constant, list size.',
+ 'Separated fixed-parameter polynomial time from a uniform polynomial in inverse slack and separated adversarial decoding from random-channel capacity.',
+ 'Preserved importance 90 with a corrected individual rationale and required a complete Lean-checked binary answer.',
+]
+sources=[
+ 'Read Vadhan, Pseudorandomness, published December 2012 PDF, Open Problem 5.26, printed p. 151/PDF p. 154 and preceding discussion. The displayed rate inequality points above 1-H_2(delta), contrary to the immediately preceding fixed-alphabet capacity discussion. The earlier saved textbook annotation already flagged this. This review explicitly interprets the intended strict inequality as R<1-H_2(delta); it does not present the correction as a verbatim quotation.',
+ 'Read Kumar–Ron-Zewi, Advances in List Decoding of Polynomial Codes, ECCC TR26-032, published 28 February 2026: closing open questions, item 2, printed p. 85. It explicitly identifies construction and efficient list decoding at capacity over a fixed alphabet independent of the gap, including binary, as open. The entropy formula confirms the corrected rate/radius relation. This was a targeted reading, not a full survey-proof audit.',
+ 'Read Fathollahi–Ron-Zewi–Wootters, arXiv:2608.15937v1, 16 August 2026: abstract, introductory scope, Theorem 1.2 and Corollary 6.9. The result permits a constant alphabet depending on the fixed parameters, gives radius 1-R-tau and does not give the fixed binary alphabet requested here. The live history lists only v1.',
+ 'Read the primary abstract of Granha Jeronimo, Algorithmic List Decoding at Capacity and Optimal Proximity Gaps for Reed--Solomon Codes, ECCC TR26-169, published 6 September 2026. Its alphabet is a prime field of size at least the block length. This announced Reed–Solomon result does not settle fixed binary capacity. The proof was not independently checked.',
+ 'Bounded primary-source later-work searches through 17 September 2026 located no verified deterministic explicit binary family meeting every rate below the binary list-decoding capacity with polynomial-time list decoding.',
+]
+complete(identifier,dict(
+ title='Explicit binary codes with efficient list decoding up to capacity',criterion='construction',question_type='yes_no',
+ formal=r'''Is the following proposition true? For every pair of rational constants \(\delta,R\) satisfying
+\[
+ 0<\delta<\frac12,\qquad 0<R<1-H_2(\delta),
+ \qquad H_2(t)=-t\log_2t-(1-t)\log_2(1-t),
+\]
+there are uniform deterministic polynomial-time encoding and list-decoding algorithms for binary codes
+\[
+ E_m:\{0,1\}^{m}\longrightarrow\{0,1\}^{N(m)}
+ \quad(m\ge1),\qquad \frac{m}{N(m)}\ge R,
+\]
+such that every \(E_m\) is injective and the decoder, on every received word \(y\in\{0,1\}^{N(m)}\), outputs exactly
+\[
+ \{x\in\{0,1\}^{m}:d_H(E_m(x),y)\le\lfloor\delta N(m)\rfloor\}?
+\]
+The binary alphabet is fixed even as the gap to capacity tends to zero. The algorithms may depend on the two fixed constants but must handle all message lengths.''',
+ definitions=r'''A binary word is a finite sequence of zeros and ones. Hamming distance \(d_H(u,v)\) counts the coordinates at which equal-length words differ. A code here is an injective encoding of every \(m\)-bit message into a word of a common length \(N(m)\ge m\); it need not be linear or systematic. Its rate is the number of message bits divided by the number of encoded bits.
+
+For each fixed admissible pair \((\delta,R)\), the claimed construction consists of finite deterministic classical multitape Turing programs for an encoder and decoder, constants \(K>0\) and integer \(b\ge1\), and an integer length function \(N(m)\). On an input message \(x\) of length \(m\), the encoder outputs \(E_m(x)\) in at most \(K(m+1)^b\) steps; the output length depends only on \(m\). Thus the length and code construction are effective. On input \((1^m,y)\), where \(y\) has length \(N(m)\), the decoder halts in at most \(K(N(m)+1)^b\) steps. It explicitly lists all qualifying messages, once each, and no others; an empty list is allowed. All reading, code construction, arithmetic, auxiliary computation and output are charged. There is no nonuniform advice, free block-length-dependent code table, external oracle or uncharged preprocessing.
+
+The polynomial output-time bound also bounds the list size polynomially in the block length. No constant list-size bound is imposed. Requiring an exact list is equivalent to allowing additional candidates that can be removed within polynomial time using the encoder and a distance check, provided every qualifying message is included.
+
+The decoder must work for every received word, so the errors may be adversarial. The task is global list decoding, not unique decoding, local decoding, erasure correction or reliable communication only under a random-noise distribution. The code must be binary; a larger alphabet whose size grows as the capacity gap shrinks is insufficient.
+
+The constants, programs and polynomial exponent may depend arbitrarily on the fixed pair \((\delta,R)\). No polynomial dependence on the inverse capacity gap and no single algorithm taking these constants as variable input is requested. Rational constants give a precise countable formulation without changing the strict-slack capacity target: any real pair strictly inside the region is dominated by rational parameters with a slightly larger permitted error fraction and a slightly larger rate. A family is supplied for every message length; it need not attain every possible block length.''',
+ answer_criterion=r'''Give a complete mathematically correct proof checked in Lean of the displayed proposition or its logical negation. A positive answer must supply the uniform algorithms, encoding injectivity, rate bound, exhaustive decoding correctness and polynomial running-time bounds for every fixed admissible parameter pair. A negative answer must refute this quantified existence assertion; an unproved hardness assumption establishes only a conditional obstruction.
+
+A randomized code construction, inefficient exhaustive decoding, capacity over a variable alphabet, success only on randomly corrupted words, or a construction for only one rate/radius pair does not meet the target. The goal approaches the binary capacity from below; it does not ask to exceed that information-theoretic limit. No numerical tolerance is applied to this existence question.''',
+ source_formulation=dict(text='Construct explicit binary code families with polynomial-time list decoding at every fixed rate strictly below 1 minus the binary entropy of the error fraction. The printed Open Problem 5.26 reverses this rate inequality. The corrected direction here is an editorial interpretation supported by its preceding capacity discussion and the 2026 survey, not a literal quotation.',caption='Vadhan, Open Problem 5.26, printed p. 151/PDF p. 154; explicit correction of the printed inequality.',citation='primary',format='editorial_paraphrase'),
+ why='Explicit binary codes with efficient adversarial list decoding throughout the capacity region would close a central gap between information-theoretic existence and deterministic usable constructions. Fixing the smallest alphabet prevents larger-symbol constructions from bypassing the main difficulty.',
+ importance=dict(score=90,method='editorial',assessed_on=DATE,reason='A central constructive coding question: attain the full binary adversarial list-decoding capacity with deterministic explicit encoding and efficient decoding. The inherited score is retained while correcting its obsolete beyond-Gilbert–Varshamov rationale.'),
+ references=[
+ ref('primary','Pseudorandomness','Salil P. Vadhan',2012,'https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf#page=154','Open Problem 5.26, printed p. 151/PDF p. 154; preceding fixed-alphabet capacity discussion and printed inequality caveat'),
+ ref('survey','Advances in List Decoding of Polynomial Codes','Mrinal Kumar; Noga Ron-Zewi',2026,'https://eccc.weizmann.ac.il/report/2026/032/','28 February 2026; closing open questions, item 2, printed p. 85'),
+ ref('space','Time- and Space-Efficient List Decoding up to Capacity','Dorsa Fathollahi; Noga Ron-Zewi; Mary Wootters',2026,'https://arxiv.org/abs/2608.15937v1','16 August 2026; Theorem 1.2 and Corollary 6.9, alphabet and radius parameters'),
+ ref('reed_solomon','Algorithmic List Decoding at Capacity and Optimal Proximity Gaps for Reed--Solomon Codes','Fernando Granha Jeronimo',2026,'https://eccc.weizmann.ac.il/report/2026/169/','6 September 2026; primary abstract, prime field size at least the block length'),
+ ],
+ context_blocks=[
+ block('List decoding permits multiple plausible messages. Its achievable rate versus error fraction is different from the unique-decoding rate versus minimum-distance problem; the old beyond-Gilbert–Varshamov title conflated those targets.'),
+ block('The entropy expression is the binary list-decoding capacity. The intended construction stays strictly inside that region for each fixed pair of constants; the printed reversed inequality is explicitly corrected.'),
+ block('The February 2026 survey still singles out fixed-alphabet capacity, including binary capacity, as a major construction and efficient-decoding problem. Allowing the alphabet to depend on the gap gives a different target.','survey'),
+ block('The August 2026 paper improves time and space for capacity-approaching codes over a parameter-dependent constant alphabet. Its theorem does not specialize to the fixed binary guarantee on this card.','space'),
+ block('The September 2026 Reed–Solomon announcement uses fields at least as large as the block length. Even if its stated result is accepted, that alphabet regime does not resolve this question.','reed_solomon'),
+ ],
+ progress=[progress('2026-02-28','A new survey explicitly retains efficient explicit list decoding at capacity over a fixed alphabet, including binary, among its open questions.','survey'),progress('2026-08-16','Time- and space-efficient list decoding up to capacity is obtained with a constant alphabet allowed to depend on the fixed parameters.','space')],
+),notes,sources,'The February 2026 primary survey explicitly lists the fixed-alphabet capacity question as open. Bounded later-work checks through 17 September 2026 found no verified resolution of the deterministic binary target. The August time/space result and September Reed–Solomon announcement have different alphabet guarantees. The correction to Vadhan’s printed inequality is editorially documented, and recent complete proofs were not independently certified.',summary=[
+ 'The question asks for explicit binary codes with efficient list decoding throughout the binary capacity region.',
+ 'For each fixed error fraction and strictly smaller admissible rate, one deterministic pair of programs must work for every message length.',
+ 'The decoder must list all messages consistent with any adversarially corrupted received word in polynomial time.',
+ 'The inherited title and reversed printed rate inequality are corrected explicitly rather than interpreted as a request to exceed capacity.',
+ 'A complete Lean-checked proof must establish the full construction proposition or its logical negation.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
