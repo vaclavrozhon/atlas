@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **90**.
+Pending active reviews: **85**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -50,14 +50,9 @@ Pending active reviews: **90**.
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-1103](../../data/cards/TCS-1103.json) | Containment of border VP in VNP over arbitrary fields | Algebraic computation | pool |
-| [TCS-0046](../../data/cards/TCS-0046.json) | Complexity of solving tropical or min-plus linear systems | Algebraic computation | pool |
-| [TCS-0047](../../data/cards/TCS-0047.json) | Complexity of testing membership to Kronecker polytopes | Algebraic computation | pool |
 | [TCS-1069](../../data/cards/TCS-1069.json) | Complexity of testing Zariski-closure membership | Algebraic computation | pool |
 | [TCS-1544](../../data/cards/TCS-1544.json) | Complexity classification of finite-semigroup membership | Algebraic computation | pool |
-| [TCS-4490](../../data/cards/TCS-4490.json) | Complexity of positive matrix powers | Algebraic computation | pool |
 | [TCS-5240](../../data/cards/TCS-5240.json) | Transferring arithmetic hardness to constantly many variables | Algebraic computation | pool |
-| [TCS-5921](../../data/cards/TCS-5921.json) | Membership in \(2\times 2\) integer matrix semigroups | Algebraic computation | pool |
 | [TCS-0659](../../data/cards/TCS-0659.json) | Stronger worst-case reductions to SIS and LWE | Lattices and computational number theory | pool |
 | [TCS-0656](../../data/cards/TCS-0656.json) | Reducing factoring or discrete logarithms to approximate SVP | Lattices and computational number theory | pool |
 | [TCS-0655](../../data/cards/TCS-0655.json) | Polynomial-factor SVP hardness from standard assumptions | Lattices and computational number theory | pool |

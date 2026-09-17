@@ -986,3 +986,35 @@ Only these five reviews, their authoring scripts, this log, and their own queue,
 ledger and inventory changes enter the checkpoint. Source checkpoint cb1e039a
 and deployment 83bfd61f4b7d7b96107d10283c9b28818f0e9802 cover the first 175
 dispositions. Unrelated shared-worktree changes remain unstaged.
+
+
+After one hundred and eighty-five recovery dispositions, the raw shared queue
+contains 830 completed records, 84 pending records and one outside its original
+scope. The live queue has 77 pending active reviews, 748 completed active queue
+records and 152 active records outside the queue, for 977 active cards.
+
+This batch completes TCS-5921 (arbitrary integer 2 by 2 matrix semigroups),
+TCS-4490 (binary-input matrix-power signs in every fixed dimension), TCS-1103
+(presentable border VP in VNP), TCS-0046 (integer min-plus feasibility), and
+TCS-0047 (exact Kronecker-polytope membership). The optional matrix-dimension
+choice received no reply during independent work; its recommended per-dimension
+polynomial-time interpretation was announced and applied as an editorial default.
+
+The original 2025 Question 8 and its June 2026 revision both concern presentable
+VP epsilon. TCS-1103's inherited ordinary-border label was therefore corrected,
+with coefficient-generation cost and the defining paper's main-variable degree
+bound made explicit. Matrix-power context retains the unary-matrix condition of
+the dimension-three theorem. The semigroup card permits arbitrary mixtures of
+singular and nonsingular integer generators; the 2024 structured-set theorems
+do not resolve it. The two feasibility cards distinguish binary input length
+from coefficient magnitude and inverse numerical tolerance, respectively.
+
+All five hashes match their queue records; the shared review ledger has 1012
+valid entries. The full offline check passes. Mathematical rendering passes on
+35,932 expressions across 977 cards, and desktop/mobile reader checks pass on
+publication 192e29ea925dd2ab317f, with 916 detailed records.
+
+Only these five reviews, their authoring scripts, this log, and their own queue,
+ledger and inventory changes enter the checkpoint. Source checkpoint a9375cb1
+and deployment 4b847734ccb08339c959d0954a7a557bb127f669 cover the first 180
+dispositions. Concurrent unrelated changes are left in the shared worktree.
