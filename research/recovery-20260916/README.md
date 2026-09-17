@@ -527,3 +527,29 @@ update and their own queue/ledger/inventory changes enter the source commit.
 Other-thread completions, archives, additions and reader/service changes
 remain in the shared worktree. Source checkpoint 50301dbd and deployment
 1aac8ce538948e9605fc75004ac46ffb6df53bc5 cover the first one hundred dispositions.
+
+After one hundred and ten recovery dispositions, the shared queue contains
+755 completed records, 159 pending records and one outside active scope.
+This batch completes TCS-6453 (the classical Pessiland implication to
+infinitely-often one-way functions), TCS-7346 (strongly polynomial sub-mn
+maximum flow), TCS-7349 (almost-linear-work, subpolynomial-depth exact parallel
+maximum flow), TCS-7341 (near-linear signed-real single-source shortest paths),
+and TCS-7338 (the charged word-RAM multiphase conjecture).
+
+The source reviews distinguish the revised June 2026 Pessiland statements,
+the numerical dependence retained in the September 2026 integer-weight
+shortest-path preprint, and the predicate and asymptotic scope of recent
+multiphase Inner Product results. None of these checks is recorded as an
+independent audit of the entire new proof. All eighteen saved user selections
+remain applied, and the accidental TCS-6624 paste remains withdrawn.
+
+All completed output hashes match, and the ledger has 930 valid entries.
+The offline check passes through disposition 110, the math check passes on
+35,231 expressions across 1,010 active cards, and desktop/mobile reader checks
+pass on publication c66723d83af65f4597f4. The publisher's 915 detailed records
+are separate from the individual-completion count.
+
+Only these five reviews, their authoring scripts and their own queue, ledger
+and inventory changes enter the source commit. Other-thread changes remain
+in the shared worktree. Source checkpoint 5fd484df and deployment
+f9e8e8379abbd1e35e69554dfa0dc0cde5664f13 cover the first 105 dispositions.

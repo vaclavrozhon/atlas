@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **165**.
+Pending active reviews: **160**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -116,7 +116,6 @@ Pending active reviews: **165**.
 | [TCS-0524](../../data/cards/TCS-0524.json) | LOCAL coloring below square-root degree dependence | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-0611](../../data/cards/TCS-0611.json) | Bipartite Exact Matching: deterministic polynomial time | Structural graph theory | existing_detailed_audit |
 | [TCS-2997](../../data/cards/TCS-2997.json) | Triangle detection in CONGEST | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-6453](../../data/cards/TCS-6453.json) | Infinitely-often one-way functions from average-case NP hardness | Beyond worst-case and average-case analysis | existing_detailed_audit |
 | [TCS-6454](../../data/cards/TCS-6454.json) | Low-noise LPN hardness from Nearest Codeword hardness | Cryptography | existing_detailed_audit |
 | [TCS-6499](../../data/cards/TCS-6499.json) | Sublogarithmic distributed MIS | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-6500](../../data/cards/TCS-6500.json) | Erdős girth conjecture | Structural graph theory | existing_detailed_audit |
@@ -148,18 +147,14 @@ Pending active reviews: **165**.
 | [TCS-7331](../../data/cards/TCS-7331.json) | Constant-time deterministic dynamic dictionaries | Data structures | existing_detailed_audit |
 | [TCS-7332](../../data/cards/TCS-7332.json) | Logarithmic Las Vegas dynamic connectivity | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7333](../../data/cards/TCS-7333.json) | Space-query exponent curve of 3SUM indexing | Data structures | existing_detailed_audit |
-| [TCS-7338](../../data/cards/TCS-7338.json) | Multiphase conjecture | Data structures | existing_detailed_audit |
 | [TCS-7339](../../data/cards/TCS-7339.json) | Near-linear incremental topological ordering | Dynamic graph algorithms | existing_detailed_audit |
 | [TCS-7340](../../data/cards/TCS-7340.json) | Optimal randomized memory-reallocation overhead | Data structures | existing_detailed_audit |
-| [TCS-7341](../../data/cards/TCS-7341.json) | Strongly polynomial near-linear negative-weight shortest paths | Structural graph theory | existing_detailed_audit |
 | [TCS-7342](../../data/cards/TCS-7342.json) | Steiner Shortcut Conjecture | Structural graph theory | existing_detailed_audit |
 | [TCS-7343](../../data/cards/TCS-7343.json) | Deterministic almost-linear vertex connectivity | Structural graph theory | existing_detailed_audit |
 | [TCS-7344](../../data/cards/TCS-7344.json) | Almost-linear exact directed global minimum cut | Structural graph theory | existing_detailed_audit |
 | [TCS-7345](../../data/cards/TCS-7345.json) | Almost-linear directed vertex connectivity | Structural graph theory | existing_detailed_audit |
-| [TCS-7346](../../data/cards/TCS-7346.json) | Strongly polynomial maximum flow below the \(mn\) barrier | Structural graph theory | existing_detailed_audit |
 | [TCS-7347](../../data/cards/TCS-7347.json) | Directed unweighted APSP below \(n^{5/2}\) | Fine-grained complexity | existing_detailed_audit |
 | [TCS-7348](../../data/cards/TCS-7348.json) | Single-exponential exact cut mimicking networks | Structural graph theory | existing_detailed_audit |
-| [TCS-7349](../../data/cards/TCS-7349.json) | Almost-linear-work parallel exact maximum flow | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
 | [TCS-7353](../../data/cards/TCS-7353.json) | Optimal polynomial-time approximation ratio for Euclidean k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7354](../../data/cards/TCS-7354.json) | Optimal polynomial-time approximation ratio for metric k-means | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7359](../../data/cards/TCS-7359.json) | Public-key quantum money from LWE alone | Cryptography | existing_detailed_audit |

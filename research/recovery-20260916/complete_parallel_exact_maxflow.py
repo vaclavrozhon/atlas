@@ -1,0 +1,83 @@
+"""Complete almost-linear work and subpolynomial depth for exact directed flow."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-7349';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Preserved almost-linear work with subpolynomial depth, bounded integer capacities and one uniform randomized algorithm for each fixed capacity exponent.',
+ 'Made the full integral flow output and the simultaneous worst-case work/depth requirements explicit, including isolated vertices and zero-capacity arcs.',
+ 'Specified the priority CRCW word PRAM, random-word costs, finite programs, processor activation and charged preprocessing/output.',
+ 'Expanded the common subpolynomial overhead into a limit definition and clarified that one program must satisfy every asymptotic exponent, rather than choosing a new program for each desired exponent.',
+ 'Read the DAG-projection reduction and graph conventions, and checked the latest August revision of the dense-instance flow algorithm and the August strongly polynomial parallel theorem.',
+ 'Preserved importance 94 and the category; kept this task distinct from approximate undirected flow and from the sequential or arbitrary-rational capacity cards.',
+]
+sources=[
+ 'Read Haeupler–Jiang–Saranurak, arXiv:2604.04752v1 of 6 April 2026, abstract; §1.1 Theorem 1.3 and §1.2 p. 3, Figure 1 p. 4; §3 graph conventions p. 11; §4.5 Lemma 4.18 p. 20. The source fixes polynomially bounded integral capacities and calls the near-optimal parallel exact-flow endpoint a major open problem. Checked its STOC 2026 official proceedings abstract.',
+ 'Read van den Brand–Gholizadeh–Jiang–de Vos, arXiv:2503.13274v3 of 19 August 2026, primary abstract and revision metadata. The minimum-cost-flow theorem gives soft-O(m+n^{1.5}) work and soft-O(sqrt(n)) depth for polynomially bounded integral data, also applying to maximum flow. The updated theorem still has polynomial rather than subpolynomial depth. The ACM journal page was inaccessible (403); no claim of reading it or independently auditing the full proof is made.',
+ 'Read Karczmarz–Pilarski, ESA 2026 Article 147, published 25 August, primary abstract; also arXiv:2608.12171v1 of 12 August. Its arbitrary-real-capacity theorem gives soft-O(mn) work and soft-O(m) depth, not this bounded-integer endpoint. No full proof audit was undertaken.',
+ 'Checked the primary ICALP 2026 Article 136 abstract for Kyng–Sulser: its approximate bicriteria theorem is restricted to undirected unit-capacity, unit-length expanders. It is not exact flow on all directed graphs.',
+ f'Bounded primary-source searches through {DATE} found no verified simultaneous almost-linear-work/subpolynomial-depth exact directed-flow algorithm. Related active cards TCS-4763, TCS-6507, TCS-7228 and TCS-7346 ask different output, resource or numerical-model questions.',
+]
+complete(identifier,dict(
+ criterion='resources',question_type='yes_no',
+ formal=r'''For every fixed integer \(a\ge1\), do there exist one uniform randomized priority-CRCW PRAM algorithm \(A_a\), constants \(C_a\ge1\) and \(B_a\in\mathbb Z_{\ge a+3}\), and a function \(h_a:\mathbb Z_{\ge2}\to[1,\infty)\) with
+\[
+ \lim_{N\to\infty}\frac{\log h_a(N)}{\log N}=0,
+\]
+such that the following holds? On every explicitly given directed graph with \(n\ge2\) vertices, \(m\) arcs, distinct terminals \(s,t\), and integral capacities \(0\le u_e\le n^a\), the algorithm outputs an exact integral maximum flow with probability at least \(2/3\), and every execution satisfies
+\[
+ W\le C_a(m+n)h_a(m+n),\qquad
+ D\le C_a h_a(m+n).
+\]
+Here \(W\) is total work and \(D\) is parallel depth in the word model below. In asymptotic notation the requested simultaneous bounds are \((m+n)^{1+o(1)}\) work and \((m+n)^{o(1)}\) depth.''',
+ definitions=r'''The vertex set is \(V=\{1,\ldots,n\}\). Input memory contains \(n,m,s,t\) and an explicit ordered array of arcs \(E\), each with its two endpoint labels and integer capacity. There are no loops and at most one arc per ordered pair; opposite arcs are allowed. The range is \(0\le m\le n(n-1)\), and isolated vertices, disconnected graphs and zero capacities are permitted. No planarity, acyclicity, density or expansion promise is assumed. The fixed integer \(a\) specifies the admitted capacity regime and may be built into the program.
+
+A feasible output is an integer \(f_e\) for every original arc, in input order, such that \(0\le f_e\le u_e\) and
+\[
+ \sum_{(v,z)\in E}f_{(v,z)}=
+ \sum_{(z,v)\in E}f_{(z,v)}
+ \quad(v\in V\setminus\{s,t\}).
+\]
+Its value is outgoing flow minus incoming flow at \(s\). It must maximize that value over all feasible flows. Integral capacities admit an integral maximum flow. Any maximizing flow is acceptable, but the entire arc vector must be output explicitly. A maximum-flow value, a cut or an implicit flow alone is not the required output. If no positive flow is possible, the exact optimum is zero.
+
+The computational model is a synchronous parallel random-access machine with shared memory and priority concurrent reads and writes (priority CRCW PRAM). Simultaneous reads of one cell are allowed. If multiple processors try to write one cell in a round, the lowest-index writer succeeds. Each active processor executes at most one word-RAM instruction per round, using its own local registers and the shared memory. Processor identifiers and memory addresses are word values. Processors follow one finite program with their identifiers available; there is no input-length advice or precomputed table. Processor activation and all program-controlled initialization count as work; a hidden computation cannot be assigned to an uncharged processor. Initially only the explicit input and fixed machine constants are present, and unused memory and registers are zero.
+
+Words have length
+\[
+ w=B_a\lceil\log_2(n+2)\rceil.
+\]
+Unit-cost instructions are reads and writes, copying, comparisons, branches, bitwise Boolean operations, logical shifts, addition, subtraction and multiplication modulo \(2^w\), and unsigned integer quotient and remainder with nonzero divisor. A shift by at least \(w\) positions returns zero. Each processor may generate a fresh independent uniform \(w\)-bit word in one instruction; all such random words are mutually independent. Operations on longer integers are implemented by multiple charged instructions. There are no unit-cost arbitrary-precision arithmetic operations or real-number oracles. The chosen \(B_a\) must accommodate every processor identifier and address used by the algorithm.
+
+Work \(W\) is the sum of all executed processor instructions, including activation, input access, preprocessing, random generation and output writes. Depth \(D\) is the number of synchronous rounds until the complete output is available. Both resource bounds must hold on every execution, including executions returning an incorrect answer. Correctness means that the whole vector is feasible and exactly optimal, with probability at least \(2/3\) over the machine's coins for each fixed input. The success probability is not averaged over graphs, and resources are not merely bounded in expectation. Deterministic algorithms are allowed as a special case.
+
+The program, word constant, multiplicative constant and overhead function may depend on \(a\), but not on the graph, its input ordering or its capacities. One algorithm for the fixed \(a\) must achieve the asymptotic bounds over all sizes. In particular, for every \(\delta>0\), its work is eventually at most \((m+n)^{1+\delta}\) and its depth at most \((m+n)^\delta\), after increasing a size threshold depending only on \(a,\delta\). Allowing a different algorithm for each \(\delta\) would be a different claim. The overhead function is an analytic bound, not advice supplied to the machine.
+
+Subpolynomial depth is the requested target; polylogarithmic depth would suffice but is not required. The same computation must have almost-linear total work. An algorithm with small depth and polynomially more work, or with almost-linear work and a fixed positive power of \(n\) in its depth, does not meet the simultaneous endpoint. Using \(m+n\) accounts explicitly for the vertex set even when the graph contains few arcs.''',
+ answer_criterion=r'''Give a complete Lean-checked proof of the stated existence claim or its logical negation.
+
+A positive answer must cover every fixed capacity exponent \(a\), with a uniform algorithm for that exponent, the simultaneous worst-case work and depth bounds, and the per-input probability of an exact explicit integral maximum flow. A result with stronger bounds also qualifies if it supplies this full output and model guarantee.
+
+A negative answer must prove that for at least one fixed \(a\) no admissible algorithm and constants satisfy the target. A conditional obstruction, a lower bound for one algorithmic framework, or a difficulty confined to a more demanding capacity model does not establish the unconditional negation. An approximation algorithm, a restricted graph-family result, or a reduction to another task alone is insufficient unless the remaining task is also solved with the required resources.''',
+ source_formulation=dict(text='The source explicitly identifies almost-optimal parallel algorithms for exact directed maximum flow as a major open target, where almost-optimal means almost-linear work and subpolynomial depth. Its graph conventions use polynomially bounded integer capacities. This card retains that endpoint and its previously fixed uniform priority-CRCW word model.',caption='Paraphrase of Haeupler–Jiang–Saranurak, arXiv:2604.04752v1, §1.1–1.2 p. 3, Figure 1 p. 4, §3 graph conventions and §4.5 Lemma 4.18.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','DAG Projections: Reducing Distance and Flow Problems to DAGs','Bernhard Haeupler; Yonggang Jiang; Thatchaphol Saranurak',2026,'https://arxiv.org/abs/2604.04752v1','6 April 2026; STOC 2026. §1.1 Theorem 1.3 and §1.2 p. 3; Figure 1 p. 4; §3 graph conventions p. 11; §4.5 Lemma 4.18 p. 20'),
+ ref('dense','Parallel Minimum Cost Flow in Near-Linear Work and Square Root Depth for Dense Instances','Jan van den Brand; Hossein Gholizadeh; Yonggang Jiang; Tijn de Vos',2026,'https://arxiv.org/abs/2503.13274v3','Version 3, 19 August 2026, updating the SPAA 2025 paper; primary abstract and metadata, square-root depth and work bound for polynomially bounded integral data'),
+ ref('strong','Strongly Polynomial Parallel Maximum Flow Revisited','Adam Karczmarz; Paweł Pilarski',2026,'https://doi.org/10.4230/LIPIcs.ESA.2026.147','Published 25 August 2026; primary abstract, near-mn work and near-m depth for arbitrary real capacities; full proof not independently audited'),
+ ],
+ context_blocks=[
+ block('Sequential almost-linear-time algorithms do not guarantee few dependent computation stages. This question asks whether exact directed flow can retain almost-linear total work while reducing those stages to subpolynomial depth.'),
+ block('The DAG-projection result gives efficient parallel reductions between exact directed flow and suitable approximation tasks on directed acyclic graphs. A reduction transfers a future algorithm; it does not itself supply the missing endpoint.'),
+ block(r'The August 2026 revision of the dense-instance result gives \(\widetilde O(m+n^{3/2})\) work and \(\widetilde O(\sqrt n)\) depth. Its work is near-linear on sufficiently dense inputs, but its depth is still polynomial in graph size.','dense'),
+ block(r'The separate strongly polynomial parallel result supports arbitrary real capacities with \(\widetilde O(mn)\) work and \(\widetilde O(m)\) depth. Neither bound supplies the almost-linear-work and subpolynomial-depth combination asked for here.','strong'),
+ block('Approximate flow in undirected graphs is a different regime in the source’s classification. Exactness, direction and the simultaneous resource limits are essential parts of this card.'),
+ ],
+ progress=[progress('2026-04-06','DAG projections relate the open exact directed-flow endpoint to approximation on DAGs.'),progress('2026-08-19','The revised dense-instance algorithm retains near-linear work in the dense regime and square-root depth.','dense'),progress('2026-08-25','A strongly polynomial parallel algorithm improves the work/depth tradeoff for arbitrary real capacities.','strong')],
+),notes,sources,'The April 2026 source explicitly poses the almost-optimal parallel exact-flow endpoint. The checked August 2026 revision of the dense-instance algorithm and the strongly polynomial parallel theorem still have polynomial depth or superlinear work relative to this target. Bounded primary-source searches through 17 September 2026 found no verified resolution. The review does not independently certify the complete proofs or exhaust all later literature.',summary=[
+ 'The task is exact maximum flow in an arbitrary directed graph with polynomially bounded integer capacities.',
+ 'Every arc must receive an explicit integral flow value, and the entire output must be correct with probability at least two thirds.',
+ 'The desired uniform parallel algorithm has almost-linear total work and subpolynomial depth on every execution.',
+ 'Recent DAG reductions and dense-instance algorithms clarify the problem without supplying this simultaneous endpoint.',
+ 'A complete Lean-checked answer must meet both resource bounds for every fixed polynomial capacity range, without restricting the graph family.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])

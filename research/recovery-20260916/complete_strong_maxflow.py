@@ -1,0 +1,88 @@
+"""Complete the fixed exponent saving for strongly polynomial directed flow."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-7346';claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Preserved the explicit fixed exponent-saving target over mn, arbitrary finite rational capacities, randomized bounded error and worst-case arithmetic cost.',
+ 'Expanded the graph, exact full-flow output, flow-conservation equations and uniform all-density quantifiers.',
+ 'Separated rational arithmetic cells from logarithmic control words and made the polynomial encoding-space condition apply to every execution.',
+ 'Read the source’s definition of strong polynomiality and its rational-size lemma; distinguished general networks from its structured-network speedups.',
+ 'Checked the August 2026 parallel theorem: near-mn work with improved depth is not a polynomial reduction in sequential arithmetic operations.',
+ 'Preserved importance 94 and the category, replaced a broad background reference by directly checked algorithmic sources, and retained a complete Lean proof requirement.',
+]
+sources=[
+ 'Read Dadush–Orlin–Sidford–Végh, arXiv:2510.20368v1 of 23 October 2025 (PDF header 24 October), §1 printed p. 1: arithmetic-operation and space definition, general O(mn) bound, and explicit O((mn)^{1-epsilon}) open question. Read §1.1 Theorem 1.1, Corollary 1.2 and Theorem 1.4 pp. 3–4, and §6.9 Lemma 6.13 pp. 39–40 concerning rational encoding lengths.',
+ 'Checked the primary SODA 2026 publication, DOI 10.1137/1.9781611978971.7, pp. 150–163, abstract. The live arXiv page still lists only version 1 as of 17 September 2026.',
+ 'Read Orlin, Max flows in O(nm) time, or better, the primary manuscript hosted by Northwestern, revised 25 July 2012, abstract and introduction pp. 1–2. It explains the combination with King–Rao–Tarjan for all densities. The manuscript has additional capacity-ratio-dependent and logarithmic improvements, not a universal fixed exponent saving. The corresponding STOC 2013 metadata is corroborated by the 2026 source.',
+ 'Read Karczmarz–Pilarski, arXiv:2608.12171v1, 12 August 2026, primary abstract, and the ESA 2026 Article 147 abstract and publication metadata dated 25 August. It gives soft-O(mn) work and soft-O(m) depth for arbitrary real capacities; this is parallel progress, not the requested sub-mn exponent. Its proof was not independently audited.',
+ f'Bounded searches through {DATE} found no verified general strongly polynomial exponent-saving result. Checked related active cards TCS-7228, TCS-0809 and TCS-7349: bounded-integer sequential time, planar minimum-cost flow and parallel exact flow are different targets.',
+]
+complete(identifier,dict(
+ criterion='resources',question_type='yes_no',
+ formal=r'''Do there exist constants \(0<\varepsilon<1/2\), \(K>0\), an integer word-size constant \(B\ge3\), a polynomial \(p\), and one uniform classical randomized algorithm \(A\) such that, for every directed network in the domain below, every execution of \(A\) uses at most
+\[
+ K(mn)^{1-\varepsilon}
+\]
+arithmetic-RAM instructions, uses at most \(p(L)\) bits of space, and outputs an exact maximum flow with probability at least \(2/3\)? Here \(n\) and \(m\) count vertices and arcs, \(L\) is the full binary input length, and capacities are arbitrary nonnegative finite rationals. The constants, program and space polynomial must be the same for every network, every allowed density and every capacity encoding length.''',
+ definitions=r'''An input consists of an integer \(n\ge2\), the labeled vertex set \(V=\{1,\ldots,n\}\), two distinct specified terminals \(s,t\in V\), and an explicit ordered list \(E\) of \(m\) directed arcs, where
+\[
+ n-1\le m\le n(n-1).
+\]
+There are no loops and at most one arc per ordered pair; both opposite arcs may be present. No connectivity, planarity or other graph promise is imposed. Every listed arc \(e\) has a capacity \(u_e\in\mathbb Q_{\ge0}\), including possibly zero. Infinite capacities are not part of this domain. Vertices, endpoints, numerators and positive denominators have explicit binary encodings whose total length is \(L\).
+
+A feasible flow is a rational vector \(f\in\mathbb Q^E\) with \(0\le f_e\le u_e\) for every arc and
+\[
+ \sum_{(v,z)\in E}f_{(v,z)}=
+ \sum_{(z,v)\in E}f_{(z,v)}
+ \qquad(v\in V\setminus\{s,t\}).
+\]
+Its value is
+\[
+ \operatorname{val}(f)=
+ \sum_{(s,z)\in E}f_{(s,z)}-
+ \sum_{(z,s)\in E}f_{(z,s)}.
+\]
+The output must give a value for every original arc, in input order, and maximize this expression over all feasible flows. Any maximizing flow is acceptable. The finite rational instance admits a rational optimum. Returning only the optimum value, only a cut, an implicit representation needing additional uncharged computation, or an approximate flow does not meet the output requirement.
+
+The machine has exact rational cells and unsigned control/address words of length
+\[
+ w=B\lceil\log_2(n+m+2)\rceil.
+\]
+The input initially occupies explicit cells, with one rational cell per capacity and word cells for graph data. Unused memory initially contains zero. The algorithm is one finite program with finitely many fixed rational constants; there is no nonuniform advice, free preprocessing or precomputed table depending on input size.
+
+Unit-cost rational instructions are reading, writing and copying one rational, addition, subtraction, multiplication, division by a nonzero rational, and exact comparison. Control-word instructions are reading, writing, copying, comparison, branching, bitwise Boolean operations, logical shifts, addition, subtraction and multiplication modulo \(2^w\), and unsigned integer quotient and remainder with nonzero divisor. A shift of at least \(w\) positions returns zero. A word can be converted to its exact nonnegative rational value. Rational cells cannot be used as addresses, inspected as binary encodings, or subjected to floor or bit operations; comparison can produce a control bit. Multiword computation costs its individual instructions. One fresh independent uniform \(w\)-bit random word costs one instruction. These are the available operations; an arbitrary computation on a real or rational is not one step.
+
+Charge all memory accesses, arithmetic, control, random generation, initialization after the supplied input, preprocessing and output writes. Each rational input or output is one cell for this arithmetic operation count. The bound \(K(mn)^{1-\varepsilon}\) holds on every execution, including executions with an incorrect output, and is completely independent of capacity magnitudes and binary lengths.
+
+Separately, every stored rational must have a numerator and positive denominator, in reduced binary form, of length at most \(p(L)\), and the total simultaneously used bit space, including all rational cells and words, must be at most \(p(L)\). These bounds apply on every execution. This is the encoding condition in strong polynomiality: the unit-cost arithmetic convention does not permit intermediate quantities with superpolynomial bit descriptions. It does not require the bit-level cost of a rational operation to be independent of its operand lengths.
+
+The probability of correctness is over the algorithm's independent random words, for each fixed input. On the success event the entire reported vector must be feasible and exactly optimal. Deterministic algorithms qualify as a special case. The question asks for one fixed positive exponent saving across all admitted networks. A logarithmic improvement over \(mn\), a speedup only on a graph subclass, or an operation bound depending on capacity bit length is a different guarantee.''',
+ answer_criterion=r'''Provide a complete Lean-checked proof of the stated existence claim or of its logical negation.
+
+A positive answer must establish the uniform algorithm, a fixed \(\varepsilon>0\), the worst-case operation bound, the polynomial encoding-space bounds and the per-input probability of an exact full-flow output for arbitrary rational capacities. A deterministic algorithm meeting these conditions also suffices.
+
+A negative answer must exclude every choice of the constants and every admissible uniform algorithm in this model. A failure of one known flow framework, a lower bound for a restricted subroutine, or a conditional bound under an unproved conjecture does not establish the unconditional negation. A parallel depth improvement without the required reduction in total work does not meet the sequential arithmetic target.''',
+ source_formulation=dict(text='The source explicitly asks for a strongly polynomial maximum-flow algorithm with O((mn)^(1−epsilon)) running time for some fixed positive epsilon. This card retains its earlier precise version with finite rational capacities, bounded-error randomization, worst-case arithmetic cost and polynomial encoding space.',caption='Paraphrase of Dadush–Orlin–Sidford–Végh, arXiv:2510.20368v1, §1 printed p. 1; rational-size condition also discussed in §6.9.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','From Incremental Transitive Cover to Strongly Polynomial Maximum Flow','Daniel Dadush; James B. Orlin; Aaron Sidford; László A. Végh',2026,'https://arxiv.org/abs/2510.20368v1','23 October 2025 preprint; SODA 2026 pp. 150–163. Full version §1 p. 1; §1.1 pp. 3–4; §6.9 Lemma 6.13 pp. 39–40'),
+ ref('orlin',r'Max flows in \(O(nm)\) time, or better','James B. Orlin',2013,'https://www.eecs.northwestern.edu/~haizhou/457/O%28nm%29MaxFlow.pdf','Checked manuscript revised 25 July 2012, abstract and introduction pp. 1–2; published in STOC 2013 pp. 765–774'),
+ ref('parallel','Strongly Polynomial Parallel Maximum Flow Revisited','Adam Karczmarz; Paweł Pilarski',2026,'https://doi.org/10.4230/LIPIcs.ESA.2026.147','ESA 2026 Article 147, published 25 August 2026; primary abstract. Also arXiv:2608.12171v1, 12 August 2026; full proof not independently audited'),
+ ],
+ context_blocks=[
+ block(r'The general strongly polynomial bound is \(O(mn)\). The 2013 result combines with the earlier dense-network algorithm to cover all densities; logarithmic improvements in some regimes do not provide the fixed exponent saving asked for here.','orlin'),
+ block('Strong polynomiality separates network size from the numerical scale of capacities. Counting arithmetic operations independently of capacity encodings is paired with a polynomial bound on intermediate encoding space.'),
+ block('The SODA 2026 work improves structured networks, including those with few finitely capacitated arcs and those with suitable small-width decompositions. It explicitly retains the general exponent-saving question.'),
+ block(r'Almost-linear algorithms for bounded integral capacities have numerical dependence that does not establish this arithmetic bound for arbitrary rationals. TCS-7228 instead asks for a near-linear word-operation bound in the bounded-integer regime.'),
+ block(r'The August 2026 parallel result gives \(\widetilde O(mn)\) total work and \(\widetilde O(m)\) depth. Its reduction in dependent stages does not reduce total work to \(O((mn)^{1-\varepsilon})\).','parallel'),
+ ],
+ progress=[progress('2013','The general strongly polynomial arithmetic bound reaches O(mn) across all graph densities.','orlin'),progress('2026','Faster strongly polynomial bounds are obtained for structured networks while the general fixed exponent saving remains an explicit open question.'),progress('2026-08-25','The parallel theorem improves depth while retaining near-mn total work.','parallel')],
+),notes,sources,'The SODA 2026 source explicitly leaves the general fixed exponent improvement open. Its structured-network results and the checked August 2026 parallel theorem do not establish the requested all-density arithmetic bound. Bounded primary-source checks through 17 September 2026 found no verified resolution for the retained rational-capacity model; no exhaustive openness certification or independent full proof audit is claimed.',summary=[
+ 'The task is to output an exact maximum flow on every arc of an arbitrary directed rational-capacity network.',
+ 'The question asks for one fixed polynomial improvement over the general mn arithmetic-operation bound.',
+ 'The operation count must be independent of capacity magnitudes and encoding lengths, while intermediate bit space remains polynomial.',
+ 'Randomization is allowed, but every execution must obey the resource bounds and each input must have success probability at least two thirds.',
+ 'A complete Lean-checked resolution must cover all graph densities; bounded-integer, structured-network and parallel-depth improvements alone do not settle it.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
