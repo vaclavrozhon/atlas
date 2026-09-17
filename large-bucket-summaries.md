@@ -3,7 +3,7 @@
 398 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (68)
+## Computational complexity (71)
 
 ### TCS-0001 — P versus NP
 
@@ -180,6 +180,13 @@ P versus NP asks whether efficiently verifiable decisions can always be made eff
 [Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-7382 — Range avoidance in FP with an NP oracle
+
+A Boolean circuit that maps n bits to n plus one bits must miss some output strings. Range avoidance asks an algorithm to produce one of those missing strings. The question here allows deterministic polynomial time and access to a SAT oracle. The circuit is explicit and unrestricted, and time is measured in its full description length. This algorithmic boundary is connected to exponential circuit lower bounds and explicit constructions.
+
+[Read in atlas](index.html#TCS-7382) · [Downward self-reducibility in the total function polynomial hierarchy](https://arxiv.org/abs/2507.19108) · [Range Avoidance and Remote Point: New Algorithms and Hardness](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.79)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-1056 — Majority outside constant-depth modular circuits
 
 Majority returns one when at least half of its input bits are one. ACC⁰ circuits combine Boolean operations and modular-counting gates using constant depth and polynomial size. The question asks whether every fixed choice of modulus and depth fails to compute majority within polynomial size. Known results for prime moduli or additional circuit restrictions do not settle the full composite-modulus question. A separation would show that this shallow modular model cannot express a basic threshold operation efficiently.
@@ -200,6 +207,20 @@ The problem asks for directed reachability to be decided simultaneously in polyn
 
 [Read in atlas](index.html#TCS-6817) · [Computational Complexity: A Modern Approach (web draft)](https://theory.cs.princeton.edu/complexity/book.pdf) · [A Sublinear Space, Polynomial Time Algorithm for Directed s-t Connectivity](https://doi.org/10.1137/S0097539793283151) · [Directed st-Connectivity with Few Paths Is in Quantum Logspace](https://doi.org/10.4230/LIPIcs.CCC.2025.18) · [A Space-space Trade-off for Directed st-Connectivity](https://arxiv.org/abs/2602.21088v1)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7378 — Catalytic logspace in polynomial time
+
+A catalytic machine has a little empty memory and a much larger memory region containing arbitrary data. It may use the larger region but must restore every bit before halting. The question is whether every language decidable with logarithmic clean space and polynomial catalytic space is also decidable in deterministic polynomial time. Known catalytic derandomization and nondeterminism collapses do not settle this time containment. The result would determine a basic limit on the computational power of reusable full memory.
+
+[Read in atlas](index.html#TCS-7378) · [The Structure of Catalytic Space: Capturing Randomness and Time via Compression](https://iuuk.mff.cuni.cz/~iwmertz/papers/clmp25.structure_of_catalytic_space.pdf) · [Collapsing Catalytic Classes](https://iuuk.mff.cuni.cz/~iwmertz/papers/kmps25.collapsing_catalytic_classes.pdf)
+Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-7381 — Time simulation below square-root space
+
+Williams showed that a time-bounded multitape computation can be simulated using roughly the square root of its time as ordinary workspace. The question asks whether one fixed positive saving in the square-root exponent is always possible. The saving must apply to every time bound at least as large as the input length. The simulator may take more time but receives no random bits, advice or catalytic tape. An answer would clarify a basic time-versus-space boundary and its consequences for lower bounds.
+
+[Read in atlas](index.html#TCS-7381) · [Simulating Time With Square-Root Space](https://people.csail.mit.edu/rrw/time-vs-space.pdf)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0018 — P versus NP intersect coNP
 
@@ -1159,7 +1180,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (54)
+## Distributed, parallel and sublinear algorithms (51)
 
 ### TCS-6553 — P versus NC
 
@@ -1371,13 +1392,6 @@ A prover gives each vertex a binary certificate, and each vertex checks only its
 [Read in atlas](index.html#TCS-2233) · [Local Certification of Geometric Graph Classes](https://doi.org/10.4230/LIPIcs.MFCS.2024.48) · [Local certification of geometric graph classes](https://arxiv.org/abs/2311.16953)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-6125 — Linear CONGEST lower bound with logarithmic LOCAL complexity
-
-An LCL specifies legal output labels by a finite list of constant-radius neighborhoods. The question asks for one problem that is solvable in logarithmic deterministic LOCAL time but needs linear randomized CONGEST time. Both models communicate along the same bounded-degree graph, while CONGEST restricts each message to logarithmically many bits. Such a result would isolate an extreme cost of bandwidth despite local verifiability of solutions. The card requires all connected inputs without additional promises and states the identifiers, private randomness and global error convention explicitly.
-
-[Read in atlas](index.html#TCS-6125) · [Locally Checkable Labelings with Small Messages](https://drops.dagstuhl.de/doi/10.4230/LIPIcs.DISC.2021.8) · [Locally Checkable Labelings with Small Messages](https://jukkasuomela.fi/doc/lcl-congest.pdf) · [It does not matter how you define locally checkable labelings](https://arxiv.org/abs/2602.18188) · [It does not matter how you define locally checkable labelings](https://jukkasuomela.fi/lcl-definitions/)
-Existing status: `source_open` · Summary written: 2026-09-15
-
 ### TCS-0940 — Lifting CSP sketching resistance to sublinear streaming resistance
 
 Each fixed predicate family defines a maximum constraint-satisfaction problem. A nontrivial approximation beats the best constant lower bound on the optimum by a fixed amount. The conjecture lifts resistance to small mergeable sketches into resistance to all sublinear-space streaming algorithms. Both the algorithm model and the space threshold change in the implication. The 2026 LP-gap lower bounds are recorded without claiming a verified resolution of this exact lifting statement.
@@ -1390,13 +1404,6 @@ Existing status: `uncertain` · Summary written: 2026-09-13
 The input is a planar graph with at least one perfect matching, and the desired output is an almost uniform random perfect matching. The sampler must use polynomially many Boolean gates and polylogarithmic depth, with explicit dependence on the requested total-variation error. Failure probability counts toward the error and the circuit uses only independent fair random bits. Parallel counting and finding one matching do not themselves produce this distribution, while known faster samplers still have non-polylogarithmic parallel bounds. The problem tests a central boundary between counting and sampling under parallel resource constraints.
 
 [Read in atlas](index.html#TCS-3075) · [Sampling Arborescences in Parallel](https://doi.org/10.4230/LIPIcs.ITCS.2021.83) · [Quadratic Speedups in Parallel Sampling from Determinantal Distributions](https://arxiv.org/abs/2203.11190) · [Fast parallel sampling under isoperimetry](https://proceedings.mlr.press/v247/anari24a.html) · [Parallel Sampling via Autospeculation](https://arxiv.org/abs/2511.07869) · [Planar Perfect Matching Counting is as Hard as Determinants](https://arxiv.org/abs/2606.03975v1)
-Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-4193 — LOCAL lower bounds for 2-ruling sets
-
-A 2-ruling set is independent and covers every graph vertex within distance two. The question asks whether every highly reliable randomized LOCAL algorithm needs a square-root-logarithmic number of rounds in the worst case. Messages and local computation are unrestricted, and success means that the entire output set is correct with probability at least one minus one over the number of vertices. Deterministic lower bounds and faster algorithms for sparse graph classes do not by themselves settle the selected randomized bound on general graphs. A resolution would clarify how a small relaxation of maximal independence changes distributed symmetry-breaking complexity.
-
-[Read in atlas](index.html#TCS-4193) · [Symmetry Breaking in the Congest Model: Time- and Message-Efficient Algorithms for Ruling Sets](https://doi.org/10.4230/LIPIcs.DISC.2017.38) · [Distributed Lower Bounds for Ruling Sets](https://arxiv.org/abs/2004.08282v4) · [Near-Optimal Distributed 2-Ruling Sets on Graphs with Low Arboricity](https://arxiv.org/abs/2606.11974v3)
 Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4763 — Work-efficient parallel approximate flow
@@ -1510,13 +1517,6 @@ A graph’s cumulative degree histogram counts vertices above each degree thresh
 
 [Read in atlas](index.html#TCS-0834) · [Problem 98: Estimating a Graph's Degree Distribution](https://sublinear.info/index.php?title=Open_Problems:98) · [Provable and Practical Approximations for the Degree Distribution using Sublinear Graph Samples](https://arxiv.org/abs/1710.08607v3) · [Towards Tight Bounds for Estimating Degree Distribution in Streaming and Query Models](https://arxiv.org/abs/2507.21784v1)
 Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-2470 — Breaking the quadratic color bound for bounded outdegree
-
-The network comes with an orientation having at most \(\beta\) outgoing edges at every vertex. A deterministic distributed algorithm can already color it with \(O(\beta ^{2})\) colors in \(O(\log * n)\) rounds. The question is whether \(\beta ^{2}\) can be replaced by \(\beta ^{2- \varepsilon}\) for one fixed \(\varepsilon >0\). Additional time may depend arbitrarily on \(\beta\), but the dependence on n must remain additive \(O(\log * n)\). New results for list and defective colorings have not supplied this proper-coloring guarantee.
-
-[Read in atlas](index.html#TCS-2470) · [List Defective Colorings: Distributed Algorithms and Applications](https://doi.org/10.4230/LIPIcs.DISC.2023.22) · [Greedy-Like Defective Coloring: Distributed Algorithms and Applications](https://arxiv.org/abs/2608.02386)
-Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3416 — Wait-free exact FIFO queues in Common\(_{2}\)
 

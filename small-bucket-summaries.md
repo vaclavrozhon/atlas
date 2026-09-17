@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-603 five-sentence working summaries, based on saved source material.
+605 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -315,7 +315,7 @@ The input is a CNF formula and a proof-length budget written in unary. The algor
 [Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1) · [Regular resolution effectively simulates resolution](https://doi.org/10.1016/j.ipl.2024.106489) · [Automating Resolution is NP-Hard](https://arxiv.org/abs/1904.02991) · [The Proof Analysis Problem](https://arxiv.org/abs/2506.16956)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Communication complexity and Boolean function analysis (31)
+## Communication complexity and Boolean function analysis (30)
 
 ### TCS-6603 — Log-rank conjecture
 
@@ -358,13 +358,6 @@ An algorithm learns an unknown graph by asking whether individual pairs of verti
 
 [Read in atlas](index.html#TCS-7219) · [A topological approach to evasiveness](https://doi.org/10.1007/BF02579140) · [Elusive properties of countably infinite graphs](https://arxiv.org/abs/2503.11798v3) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629v1) · [The topological evasiveness conjecture — CATA IV talk abstract](https://indico.sns.it/event/134/timetable/?print=1&view=standard_numbered) · [Publications — On the Topological Evasiveness Conjecture](https://www.math.miami.edu/~bruno/publications.html)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7352 — Real Grothendieck constant
-
-The real Grothendieck constant compares the best vector assignment with the best sign assignment for a bilinear objective. The supremum ranges over every finite real matrix, so fixed-dimensional constants are different targets. The 2011 breakthrough disproved the proposed optimality of Krivine’s bound. A 2026 preprint reports further improvements while leaving a substantial interval. The benchmark requires a certified numerical estimate within absolute error 0.01.
-
-[Read in atlas](index.html#TCS-7352) · [The Grothendieck constant is strictly smaller than Krivine’s bound](https://arxiv.org/abs/1103.6161) · [New Lower and Upper Bounds for the Grothendieck Constant](https://arxiv.org/abs/2608.11158)
-Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-5326 — Interactive compression with logarithmic input-length overhead
 
@@ -1014,7 +1007,7 @@ Given a length in unary, generate a prime with exactly that many binary digits i
 [Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Parameterized complexity and algorithms (40)
+## Parameterized complexity and algorithms (39)
 
 ### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
@@ -1170,19 +1163,12 @@ The seminar asks for stronger fixed-parameter inapproximability results that rem
 [Read in atlas](index.html#TCS-0734) · [Parameterized Approximation: Algorithms and Hardness](https://doi.org/10.4230/DagRep.13.7.96)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0784 — Polynomial kernels for Edge-Disjoint Paths
-
-Edge-Disjoint Paths asks whether specified terminal pairs can be connected by paths that share no edges. The source question asks whether the problem admits a polynomial kernel under its intended parameterization. A kernel would compress a large routing instance while retaining precisely whether all requested connections can coexist. That would expose whether small routing requirements imply a compact representation of the relevant network interactions. The inherited label does not identify the parameter or graph restrictions, and these cannot be supplied by assuming the most familiar variant of the problem.
-
-[Read in atlas](index.html#TCS-0784) · [Graph Modification Problems](https://doi.org/10.4230/DagRep.4.2.38)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0801 — Directed Hamiltonicity
 
-Directed Hamiltonicity asks whether a directed graph contains a cycle visiting every vertex exactly once. Orientation makes the order of traversal essential and prevents freely reversing a candidate connection. The saved entry places this exact search problem among questions about exponential and parameterized algorithms. A meaningful improvement would reduce the work needed to coordinate a single globally consistent cycle through all vertices. The inherited title supplies no parameter, graph promise, or target exponential base, so this draft identifies the task without inventing a particular conjectured bound.
+The question asks for a randomized test for a Hamiltonian cycle in every finite loopless directed graph. Its running time must be O(c^n) for one fixed c below two, as explicitly selected by the user. Success must be at least two thirds on each input, and the stated RAM time bound must hold on every random tape. The 2026 exact-counting improvement saves only a sublinear term in the exponent, while the September fixed-base improvement concerns parity alone. A complete Lean-checked solution must establish the full unrestricted detection guarantee or refute it; restricted graphs and modular counts do not finish the target.
 
-[Read in atlas](index.html#TCS-0801) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0801) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time — Directed Hamiltonicity](https://doi.org/10.4230/DagRep.3.8.40) · [Directed Hamiltonicity and Out-Branchings via Generalized Laplacians](https://arxiv.org/abs/1607.04002v2) · [Counting Perfect Matchings and Hamiltonian Cycles Faster](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.138) · [A Deterministic \(O^*((3/2)^n)\) Algorithm for the Parity of Directed Hamiltonian Cycles](https://arxiv.org/abs/2609.11982v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0816 — Shortest common superstring in \(O^*(1.99^n)\) time
 
@@ -1296,7 +1282,7 @@ Boolean formula satisfiability asks whether some assignment makes a formula true
 [Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (26)
+## Approximation algorithms and inapproximability (27)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1381,6 +1367,13 @@ An asymmetric metric TSP instance specifies positive rational directed distances
 
 [Read in atlas](index.html#TCS-7357) · [Better approximation guarantee for Asymmetric TSP](https://arxiv.org/abs/2603.14334v1) · [A Constant-Factor Approximation Algorithm for the Asymmetric Traveling Salesman Problem](https://arxiv.org/abs/1708.04215v4) · [New Inapproximability Bounds for TSP](https://www.lamsade.dauphine.fr/~mlampis/papers/TSP-ISAACj.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7380 — Better-than-two approximation for weighted 2ECSS
+
+The task is to buy a minimum-cost spanning network that survives deletion of any single edge. Costs are arbitrary nonnegative rational numbers, and each input edge may be selected only once. The question asks for a deterministic polynomial-time approximation beating factor two by one fixed constant. Better unweighted and connectivity-augmentation guarantees concern different instance models. A solution would break a central barrier in approximation algorithms for survivable networks.
+
+[Read in atlas](index.html#TCS-7380) · [A Better-Than-5/4-Approximation for Two-Edge Connectivity](https://arxiv.org/abs/2509.19655) · [A \((1.5+\varepsilon)\)-Approximation Algorithm for Weighted Connectivity Augmentation](https://arxiv.org/abs/2209.07860)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7353 — Optimal polynomial-time approximation ratio for Euclidean k-means
 
@@ -1505,10 +1498,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6640 — Constant additive error for one-dimensional bin packing
 
-One-dimensional bin packing places indivisible numerical items into unit-capacity bins using as few bins as possible. The reviewed question asks for randomized polynomial time with at most a universal constant of extra bins above optimum. This is an additive guarantee, so the allowed excess does not grow with the size of the instance. It would strengthen approximation schemes whose small proportional errors can still yield many extra bins. The saved review notes that ordinary exact-optimization hardness and a multiplicative scheme do not automatically resolve this stronger additive target.
+The input explicitly lists rational item sizes, and each item must be assigned whole to a unit-capacity bin. The question asks for a polynomial-time algorithm using at most a fixed constant more bins than the optimal integral packing. Randomization is allowed, but every output must be feasible and the quality guarantee must hold with probability at least two thirds on every input. All computation uses counted bit operations, and repeated items are listed rather than encoded by compressed multiplicities. A complete Lean-checked proof must establish the uniform algorithmic guarantee or rule it out; logarithmic losses and compressed-input lower bounds do not settle it.
 
-[Read in atlas](index.html#TCS-6640) · [New Developments in Iterated Rounding (Invited Talk)](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2014.1) · [A Logarithmic Additive Integrality Gap for Bin Packing](https://arxiv.org/abs/1503.08796) · [Bin Packing via Discrepancy of Permutations](https://arxiv.org/abs/1007.2170) · [A counterexample to Beck’s conjecture on the discrepancy of three permutations](https://arxiv.org/abs/1104.2922) · [The Support of Bin Packing Is Exponential](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2025.48) · [A Tight Double-Exponential Lower Bound for High-Multiplicity Bin Packing](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.116)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6640) · [New Developments in Iterated Rounding (Invited Talk)](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2014.1) · [A Logarithmic Additive Integrality Gap for Bin Packing](https://arxiv.org/abs/1503.08796v1) · [The Support of Bin Packing Is Exponential](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2025.48) · [A Tight Double-Exponential Lower Bound for High-Multiplicity Bin Packing](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.116)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6576 — Optimal competitive ratio for convex body chasing
 
@@ -1964,7 +1957,7 @@ The source asks to separate both polynomial-delay and incremental-polynomial enu
 [Read in atlas](index.html#TCS-7084) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [Space Complexity of Enumeration](https://yann-strozecki.github.io/space_complexity.pdf) · [From amortized to worst case delay in enumeration algorithms](https://doi.org/10.1007/s00037-026-00287-w)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-## Structural graph theory and graph algorithms (52)
+## Structural graph theory and graph algorithms (53)
 
 ### TCS-6651 — Hadwiger’s conjecture
 
@@ -2105,6 +2098,13 @@ Maximum flow asks for the greatest feasible transfer between a specified source 
 
 [Read in atlas](index.html#TCS-7346) · [From Incremental Transitive Cover to Strongly Polynomial Maximum Flow](https://arxiv.org/abs/2510.20368)
 Existing status: `source_open` · Summary written: 2026-09-13
+
+### TCS-7377 — Strong thin tree conjecture
+
+The conjecture asks for a spanning tree that occupies only a constant divided by the edge connectivity fraction of every cut. One tree must satisfy all cut inequalities simultaneously. The constant must work for all graph sizes, and parallel edges are counted separately. Known general bounds still depend on graph size, while a 2026 result handles only near-minimum cuts. A solution would settle a central structural rounding question connecting connectivity and network design.
+
+[Read in atlas](index.html#TCS-7377) · [Effective-Resistance-Reducing Flows, Spectrally Thin Trees, and Asymmetric TSP](https://arxiv.org/abs/1411.4613) · [Thin Trees for Near Minimum Cuts](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.129)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6500 — Erdős girth conjecture
 
@@ -2469,10 +2469,10 @@ Existing status: `uncertain` · Summary written: 2026-09-15
 
 ### TCS-6627 — Fully dynamic near-optimal matching with polylogarithmic updates
 
-A matching selects graph edges without shared endpoints. The reviewed question asks to maintain an explicit matching within a factor of one plus \(\varepsilon\) of maximum using polylogarithmic expected amortized update time. Although the optimum changes little after one update, repairing a particular matching may involve a long alternating path. A solution would combine nearly optimal allocation quality with efficient response to both insertions and deletions. The saved record requires actual partner information and distinguishes this task from estimating matching size or maintaining the weaker guarantee of maximality.
+The graph undergoes online edge insertions and deletions, and the algorithm must maintain the actual edges of a near-maximum matching. For every fixed accuracy it must have polylogarithmic expected amortized update time, including linear initialization in the total cost. The sequence is fixed independently of the algorithm’s randomness, and one high-probability event must guarantee correctness throughout each polynomial-length sequence. The matching is stored explicitly with constant-time mate and cardinality access, and every change to that representation is charged. A complete Lean-checked solution must establish all these guarantees or refute them; size estimation and maximal matching solve different tasks.
 
-[Read in atlas](index.html#TCS-6627) · [Sixteenth Biennial Scientific Report: March 2021–March 2023](https://pure.mpg.de/pubman/item/item_3527212_4/component/file_3527885/biennial-report-2023.pdf) · [Fully Dynamic Matching: \((2- \sqrt{2})\)-Approximation in Polylog Update Time](https://epubs.siam.org/doi/10.1137/1.9781611977912.109) · [Improved Bounds for Fully Dynamic Matching via Ordered Ruzsa-Szemeredi Graphs](https://arxiv.org/abs/2406.13573) · [A note on Ordered Ruzsa-Szemerédi graphs](https://arxiv.org/abs/2502.02455) · [On Approximate Fully-Dynamic Matching and Online Matrix-Vector Multiplication](https://arxiv.org/abs/2403.02582) · [A Faster Deterministic Algorithm for Fully Dynamic Maximal Matching](https://arxiv.org/abs/2605.00797)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6627) · [Sixteenth Biennial Scientific Report: March 2021–March 2023](https://pure.mpg.de/rest/items/item_3527212_4/component/file_3527885/content) · [Fully Dynamic Matching: \((2-\sqrt2)\)-Approximation in Polylog Update Time](https://epubs.siam.org/doi/10.1137/1.9781611977912.109) · [Improved Bounds for Fully Dynamic Matching via Ordered Ruzsa-Szemerédi Graphs](https://arxiv.org/abs/2406.13573v2) · [On Approximate Fully-Dynamic Matching and Online Matrix-Vector Multiplication](https://arxiv.org/abs/2403.02582v1) · [A note on Ordered Ruzsa-Szemerédi graphs](https://arxiv.org/abs/2502.02455v1) · [A Faster Deterministic Algorithm for Fully Dynamic Maximal Matching](https://arxiv.org/abs/2605.00797v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6626 — Polylogarithmic worst-case updates for exact dynamic minimum spanning forests
 
@@ -2749,7 +2749,7 @@ A string attractor is a set of positions intersecting an occurrence of every dis
 [Read in atlas](index.html#TCS-6928) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (22)
+## Game theory, social choice and fair division (24)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -2793,6 +2793,13 @@ What is the smallest universal expected metric distortion achievable from full v
 [Read in atlas](index.html#TCS-6634) · [Metric Distortion for Tournament Voting and Beyond](https://arxiv.org/abs/2505.13630) · [Metric Distortion Bounds for Randomized Social Choice](https://arxiv.org/abs/2111.03694) · [An improved bound for the randomized metric distortion problem](https://arxiv.org/abs/2608.17863) · [Improving Randomized Metric Distortion to 2.1441](https://arxiv.org/abs/2608.29308v2) · [Stable Voting Rules on the Edge of Optimal Metric Distortion](https://arxiv.org/abs/2609.08259v1)
 Existing status: `open` · Summary written: 2026-09-12
 
+### TCS-7379 — Nonemptiness of the approval core
+
+Each voter approves some candidates, and exactly a prescribed number of candidates must be selected. A voter coalition blocks the selection if its proportional share of seats can buy a committee that every member strictly prefers. The question is whether an unblocked committee always exists. Candidates are indivisible, have unit cost and cannot be selected more than once. A positive answer would establish universal feasibility of proportional coalition stability in approval voting.
+
+[Read in atlas](index.html#TCS-7379) · [Nash Core in Multiwinner Election](https://arxiv.org/abs/2609.00486)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-7196 — Polynomial-time EFX for three additive agents
 
 Three agents must receive all indivisible goods under nonnegative additive valuations. An allocation is EFX when removing any one good from another agent’s bundle would eliminate the first agent’s envy. Such allocations are known to exist for three agents, including when values are zero or tied. The question asks for a deterministic algorithm polynomial in the binary valuation table’s length. Pseudopolynomial constructions and polynomial algorithms for weaker fairness guarantees do not settle this target.
@@ -2827,6 +2834,13 @@ The cake is a divisible interval valued differently by each agent. The desired d
 
 [Read in atlas](index.html#TCS-7203) · [Waste Makes Haste: Bounded Time Protocols for Envy-Free Cake Cutting with Free Disposal](https://arxiv.org/abs/1511.02599) · [A Discrete and Bounded Envy-Free Cake Cutting Protocol for Any Number of Agents](https://arxiv.org/abs/1604.03655) · [Envy-Free Cake Divisions Cannot Be Found by Finite Protocols](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfree.pdf) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7383 — Universal Condorcet dimension
+
+A Condorcet winning set is a committee that a strict majority prefers to any single outsider. Each voter may prefer a different committee member when making that comparison. The question asks for the smallest committee size that is sufficient for every finite ranked election. The checked bounds are three and five, improving on the six-candidate result presented at TCS+. An accepted answer supplies a Lean-certified numerical estimate within 0.01 candidates of the universal minimum.
+
+[Read in atlas](index.html#TCS-7383) · [Six Candidates Suffice to Win a Voter Majority](https://arxiv.org/abs/2411.03390) · [A few good choices](https://arxiv.org/abs/2506.22133) · [Is Four Enough? Automated Reasoning Approaches and Dual Bounds for Condorcet Dimensions of Elections](https://arxiv.org/abs/2604.19851)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0056 — Universal maximin-share approximation for additive goods
 
@@ -2863,12 +2877,12 @@ Each player uses one action across several pairwise interactions in a graph. The
 [Read in atlas](index.html#TCS-0073) · [Equilibrium Computation](https://drops.dagstuhl.de/entities/document/10.4230/DagRep.4.8.73) · [On Minmax Theorems for Multiplayer Games](https://people.csail.mit.edu/costis/network2.pdf) · [The Complexity of Two-Team Polymatrix Games with Independent Adversaries](https://arxiv.org/abs/2409.07398)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0571 — Positional Nash Equilibria
+### TCS-0571 — Pure positional Nash equilibria in reachability games
 
-A Nash equilibrium is a profile of strategies from which no single player can profitably deviate. The project asks whether multiplayer reachability, Büchi and parity games always admit such a profile using only positional strategies. Positional choices depend on the current vertex and carry no separate memory of the play. General existence arguments may rely on remembered deviations and punishments, so they do not establish the stronger claim. A proof or counterexample would show whether simple infinite-duration objectives can always support rational behavior without historical bookkeeping.
+Every player in a finite deterministic turn-based game wants to visit their own target set at least once. The question asks for a Nash equilibrium in which each player always makes the same choice at the same vertex. A player testing a unilateral improvement may remember the entire play history while all other players keep their original choices. Equilibrium is required from one designated start, targets need not be absorbing, and neither a particular winning vector nor randomized strategies are allowed. A complete Lean-checked solution must prove universal existence or verify a counterexample; the 2026 randomized theorem leaves this pure all-reachability target open.
 
-[Read in atlas](index.html#TCS-0571) · [Automata Exchange](https://automata.exchange/24.02-positional-nash-equilibria/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0571) · [24.2 Positional Nash Equilibria](https://automata.exchange/24.02-positional-nash-equilibria/) · [Simple Nash Equilibria for Qualitative Multiplayer Games](https://arxiv.org/abs/2607.07151v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1714 — Polynomial-time stable matching in unimodular hypergraphs
 
@@ -3373,10 +3387,10 @@ Existing status: `uncertain` · Summary written: 2026-09-14
 
 ### TCS-6619 — Exact Euclidean SVP in single-exponential time and polynomial space
 
-Exact Euclidean SVP asks for a shortest nonzero vector in a lattice given by a rational basis. The question seeks single-exponential time in the rank together with polynomial working space. Known fast approaches retain exponentially much geometric information, while small-memory enumeration has a larger worst-case time scale. Combining both resources would clarify whether memory is essential to the strongest exact lattice algorithms. The saved review requires every stored bit and all recomputation to count, and does not treat heuristic memory reductions or unverified framework proposals as a proof of the universal guarantee.
+An input basis generates a lattice by taking all integer combinations of its rational columns. The algorithm must output coordinates of an exactly shortest nonzero Euclidean lattice vector, with success probability at least two thirds. One uniform algorithm must use single-exponential time in the lattice rank and polynomial working space in the full input length simultaneously. Both resource bounds include preprocessing, arithmetic precision and unsuccessful random executions. A complete Lean-checked proof must establish those guarantees or their impossibility; exponential storage, approximation and heuristic memory savings do not meet the target.
 
-[Read in atlas](index.html#TCS-6619) · [A Deterministic Single Exponential Time Algorithm for Most Lattice Problems based on Voronoi Cell Computations](https://eccc.weizmann.ac.il/report/2010/014/) · [Shortest Vector Problem (SVP) — Lattice Links](https://cseweb.ucsd.edu/~daniele/LatticeLinks/SVP.html) · [Lattice Enumeration Algorithms](https://cseweb.ucsd.edu/~daniele/LatticeLinks/Enum.html) · [A Sheaf-Theoretic and Etalé Space Approach to the Shortest Vector Problem: Orthogonalization, Coboundary Maps, and Memory-Efficient Sieving](https://pphmjopenaccess.com/jpjgt/article/download/3968/1901/11504) · [Hardness of hinted ISIS from the space-time hardness of lattice problems](https://eprint.iacr.org/2026/187)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6619) · [A Deterministic Single Exponential Time Algorithm for Most Lattice Problems based on Voronoi Cell Computations](https://eccc.weizmann.ac.il/report/2010/014/revision/1/) · [Shortest Vector Problem (SVP) — Lattice Links](https://cseweb.ucsd.edu/~daniele/LatticeLinks/SVP.html) · [Lattice Enumeration Algorithms](https://cseweb.ucsd.edu/~daniele/LatticeLinks/Enum.html) · [A Sheaf-Theoretic and Etalé Space Approach to the Shortest Vector Problem: Orthogonalization, Coboundary Maps, and Memory-Efficient Sieving](https://pphmjopenaccess.com/jpjgt/article/download/3968/1901/11504) · [Hardness of hinted ISIS from the space-time hardness of lattice problems](https://eprint.iacr.org/2026/187)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6620 — Vinogradov’s least quadratic nonresidue conjecture
 
@@ -4120,10 +4134,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6645 — Constant-delay conjunctive-query classification
 
-A conjunctive query joins relations and projects the resulting assignments to its output variables. The question asks for a terminating classifier deciding which queries allow linear preprocessing followed by constant-delay enumeration of distinct answers. Self-joins are allowed, so repeated uses of one relation can create symmetries and dependencies absent from simpler classifications. A complete answer would identify the exact boundary for efficiently generating query results in this basic language. The reviewed formulation fixes the RAM and termination conventions, and the classifier itself need not run quickly or output the enumeration algorithm.
+The input to the proposed classifier is any finite conjunctive query, allowing repeated relation symbols and existentially hidden variables. It must decide whether the query has a deterministic enumerator with linear preprocessing and constant worst-case delay on every database. Answers use set semantics, are printed without repetition, and the delay includes the first answer and final termination. The specified RAM permits polynomial address space without a separate linear-memory restriction, and all enumeration constants may depend on the fixed query. A complete Lean-checked answer must establish a total classifier or prove that none exists; partial or conditional classifications do not finish the target.
 
-[Read in atlas](index.html#TCS-6645) · [Conjunctive Queries With Self-Joins, Towards a Fine-Grained Enumeration Complexity Analysis](https://arxiv.org/abs/2206.04988) · [On Acyclic Conjunctive Queries and Constant Delay Enumeration](https://webusers.imj-prg.fr/~arnaud.durand/papers/BDGcsl07.pdf) · [Enumerating answers of acyclic conjunctive queries with self-joins (Report)](https://www.normalesup.org/~rouvroy/papers/Report_M1S1.pdf) · [The Role of Semirings in Incremental View Maintenance](https://arxiv.org/abs/2606.07795)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6645) · [Conjunctive Queries With Self-Joins, Towards a Fine-Grained Enumeration Complexity Analysis](https://www.di.ens.fr/~segoufin/Papers/Mypapers/enum-cq-selfjoin.pdf) · [Enumerating answers of acyclic conjunctive queries with self-joins (Report)](https://www.normalesup.org/~rouvroy/papers/Report_M1S1.pdf) · [Research page: Constant-Delay Enumeration of Conjunctive Queries with Self-Joins and Projections](https://www.normalesup.org/~rouvroy/research/index.html)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7195 — A logic capturing polynomial time
 

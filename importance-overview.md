@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-943 records have an editorial importance assessment; 68 remain provisional.
+945 records have an editorial importance assessment; 68 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 69; importance assessed: 69; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 72; importance assessed: 72; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance 
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 54; importance assessed: 54; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 51; importance assessed: 51; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 31; importance assessed: 29; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 28; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -222,10 +222,10 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 31; importance 
 | 4 | [Mansour’s conjecture](index.html#TCS-6581) | 95 |
 | 5 | [Maximum influence of polynomial threshold functions](index.html#TCS-6664) | 95 |
 | 6 | [Aanderaa–Karp–Rosenberg conjecture](index.html#TCS-7219) | 94 |
-| 7 | [Real Grothendieck constant](index.html#TCS-7352) | 94 |
-| 8 | [Interactive compression with logarithmic input-length overhead](index.html#TCS-5326) | 91 |
-| 9 | [Polynomial relation between classical and quantum communication](index.html#TCS-6450) | 91 |
-| 10 | [Fourier Min-Entropy–Influence conjecture](index.html#TCS-6708) | 88 |
+| 7 | [Interactive compression with logarithmic input-length overhead](index.html#TCS-5326) | 91 |
+| 8 | [Polynomial relation between classical and quantum communication](index.html#TCS-6450) | 91 |
+| 9 | [Fourier Min-Entropy–Influence conjecture](index.html#TCS-6708) | 88 |
+| 10 | [Number-on-forehead disjointness complexity](index.html#TCS-6710) | 88 |
 
 ## 4. Fine-grained complexity (small)
 
@@ -263,7 +263,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance 
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 40; importance assessed: 34; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 39; importance assessed: 33; provisional: 6.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 40; importance 
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 28; provisional: 1.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 29; provisional: 1.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -364,7 +364,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 
 ## 12. Structural graph theory and graph algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 52; importance assessed: 46; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 53; importance assessed: 47; provisional: 6.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -432,7 +432,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance 
 
 ## 16. Game theory, social choice and fair division (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 22; importance assessed: 19; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 24; importance assessed: 21; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -442,10 +442,10 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 22; importance 
 | 4 | [Randomized truthful unrelated-machine scheduling](index.html#TCS-6674) | 96 |
 | 5 | [Polynomial query complexity of exact envy-free cake cutting](index.html#TCS-6633) | 95 |
 | 6 | [Randomized metric distortion in social choice](index.html#TCS-6634) | 94 |
-| 7 | [Polynomial-time EFX for three additive agents](index.html#TCS-7196) | 91 |
-| 8 | [Polynomial-time approximation of EFX](index.html#TCS-7197) | 91 |
-| 9 | [Multiplicative MMS guarantee for chores](index.html#TCS-7200) | 89 |
-| 10 | [Optimal universal approximation factor for EFX](index.html#TCS-1116) | 87 |
+| 7 | [Nonemptiness of the approval core](index.html#TCS-7379) | 92 |
+| 8 | [Polynomial-time EFX for three additive agents](index.html#TCS-7196) | 91 |
+| 9 | [Polynomial-time approximation of EFX](index.html#TCS-7197) | 91 |
+| 10 | [Multiplicative MMS guarantee for chores](index.html#TCS-7200) | 89 |
 
 ## 17. Algebraic computation (small)
 
