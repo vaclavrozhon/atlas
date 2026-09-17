@@ -2970,12 +2970,12 @@ A homogeneous polynomial has all its nonzero monomials at one ordinary total deg
 [Read in atlas](index.html#TCS-6882) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf) · [On the Power of Homogeneous Algebraic Formulas](https://eccc.weizmann.ac.il/report/2023/191/) · [On Approximate Symmetric Polynomials and Tightness of Homogenization Results](https://doi.org/10.1007/s00037-026-00286-x)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-1103 — Containment of border VP in VNP over arbitrary fields
+### TCS-1103 — Containment of presentable border VP in VNP over every field
 
-Border VP allows polynomial families obtained through algebraic limits of small arithmetic circuits. The question asks whether these limiting families always belong to VNP over arbitrary fields. Its computational content is whether an approximation-style representation can be replaced by an exact algebraic witness-sum description of controlled size. The arbitrary-field requirement makes the field assumptions part of the challenge rather than a harmless choice of notation. The saved record points to Question 8 of the factoring survey, whose precise definition of border complexity and parameter bounds must be retained in a full formulation.
+The target asks whether presentable border VP is contained in VNP over every field. A small approximation circuit must generate its parameter-dependent coefficients using counted arithmetic gates. Its degree in the original variables is polynomial, while the degree in the approximation parameter may be much larger. The required exact representation is a Boolean-cube sum of a polynomial-size, polynomial-degree verifier over the same field. Finite fields are covered by a known theorem; the universal extension requires a complete Lean-checked proof or counterexample.
 
-[Read in atlas](index.html#TCS-1103) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1103) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/) · [Learning the coefficients: A presentable version of border complexity and applications to circuit factoring](https://www.cse.iitk.ac.in/users/nitin/papers/PresentableVNP.pdf)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-5260 — Explicit rigid matrices over low-degree number fields
 
@@ -3005,6 +3005,13 @@ For each fixed prime p, the question compares the circuit sizes of g and its p-t
 [Read in atlas](index.html#TCS-3318) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37) · [Factorization of Polynomials Given by Arithmetic Branching Programs](https://image.informatik.htw-aalen.de/~thierauf/Papers/ABP-factors.pdf) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-5921 — Membership in \(2\times 2\) integer matrix semigroups
+
+The input is a finite list of integer matrices of size two by two and a target matrix of the same size. The question asks whether any nonempty finite product of the listed matrices equals the target exactly. Generators may repeat and may include both singular and nonsingular matrices with arbitrary determinants. The desired algorithm must terminate on every input, without any prescribed running-time bound. A complete Lean-checked decision procedure or undecidability proof must cover the unrestricted input class.
+
+[Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44) · [Decidability of Membership Problems for Flat Rational Subsets of GL(2, Q) and Singular Matrices](https://doi.org/10.1137/22M1512612)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-4523 — Polynomial-time dimension expansion over finite fields
 
 Dimension expansion measures how much a collection of linear maps enlarges every subspace of dimension at most half the ambient dimension. This card asks for exact evaluation on arbitrary matrices over an explicitly represented finite field. The desired algorithm must use polynomial time in the complete input bit length, including the field representation. The output is the minimum ratio of image-span dimension to original dimension over all eligible nonzero subspaces. Explicit constructions and spectral expansion tests remain distinct from a general exact evaluator.
@@ -3026,12 +3033,12 @@ The input specifies a linear differential equation with constant coefficients, i
 [Read in atlas](index.html#TCS-1151) · [On Positivity of Exponential-Trigonometric Polynomials and Irrationality Exponents](https://doi.org/10.4230/LIPIcs.MFCS.2026.65) · [On the Zeros of Exponential Polynomials](https://doi.org/10.1145/3603543)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-0046 — Complexity of solving tropical or min-plus linear systems
+### TCS-0046 — Polynomial-time feasibility of integer min-plus linear systems
 
-A min-plus linear equation equates two minima of affine expressions formed by adding coefficients to individual unknowns. Systems of these equations replace ordinary addition and multiplication with the operations of tropical arithmetic. The source asks for the computational complexity of deciding and solving such systems. Their piecewise-linear form does not immediately put them within ordinary linear programming, because the minimizing terms can change with the solution. A classification would explain which aspects of tropical linear algebra retain efficient linear-system behavior and which introduce a separate combinatorial search problem.
+Each input row equates two minima of integer coefficients plus unknown integer coordinates. The question asks whether a single deterministic algorithm can decide feasibility in polynomial time. Time is measured in the full binary input length, with both matrix dimensions allowed to grow. The problem is polynomial-time equivalent to mean-payoff games, while known pseudopolynomial bounds depend on coefficient magnitudes. An answer must include a complete Lean-checked polynomial-bit-time decider or a proof that none exists.
 
-[Read in atlas](index.html#TCS-0046) · [Complexity of Symbolic and Numerical Problems](https://doi.org/10.4230/DagRep.5.6.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0046) · [Complexity of Symbolic and Numerical Problems: Complexity of solving tropical or min-plus linear systems](https://doi.org/10.4230/DagRep.5.6.28) · [Complexity of tropical and min-plus linear prevarieties](https://arxiv.org/abs/1204.4578) · [Set-defined graph classes: χ-boundedness meets tropical algebra](https://arxiv.org/abs/2607.23754)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1101 — VP factor closure in positive characteristic
 
@@ -3047,12 +3054,19 @@ The question asks whether taking any factor preserves polynomial-size commutativ
 [Read in atlas](index.html#TCS-1102) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/) · [Factorization of Polynomials Given by Arithmetic Branching Programs](https://image.informatik.htw-aalen.de/~thierauf/Papers/ABP-factors.pdf) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-0047 — Complexity of testing membership to Kronecker polytopes
+### TCS-4490 — Polynomial-time sign testing of matrix powers in every fixed dimension
 
-Kronecker coefficients describe multiplicities in representations associated with tensor spaces. Normalizing the triples of partitions with positive coefficients and taking their closure produces a convex Kronecker polytope. The question asks for the complexity of testing whether a given normalized triple belongs to this polytope, with the number of parts included in the input. The partitions are encoded in binary, making dependence on their numerical size part of the computational issue. An efficient membership method would strengthen the algorithmic tools available for representation-theoretic approaches to tensor complexity and algebraic lower bounds.
+The input specifies an integer matrix, an integer linear functional and a nonnegative binary exponent. The task is to decide whether applying the functional to that matrix power gives a nonnegative integer. The question asks for deterministic polynomial bit time separately in every fixed matrix dimension. The polynomial bound may depend on the dimension, while all matrix and functional entries remain part of the binary input. A complete Lean-checked affirmative algorithmic proof or a fixed-dimensional impossibility proof is required.
 
-[Read in atlas](index.html#TCS-0047) · [Complexity of Symbolic and Numerical Problems](https://doi.org/10.4230/DagRep.5.6.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4490) · [On Matrix Powering in Low Dimensions](https://doi.org/10.4230/LIPIcs.STACS.2015.329) · [Counting Problems for Parikh Images](https://doi.org/10.4230/LIPIcs.MFCS.2017.12)
+Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-0047 — Exact Kronecker-polytope membership in polynomial time
+
+The input consists of three integer partitions of the same size, written as binary lists whose length may grow. The task is to decide exact membership of their normalized triple in the Kronecker polytope. Equivalently, the three lists must occur as spectra of the reduced matrices of some unit complex three-dimensional array. The desired algorithm is deterministic and polynomial in the full bit length, including arbitrarily close boundary cases. A complete Lean-checked complexity proof must go beyond known certificates and algorithms whose time depends polynomially on inverse approximation error.
+
+[Read in atlas](index.html#TCS-0047) · [Complexity of Symbolic and Numerical Problems: Complexity of testing membership to Kronecker polytopes](https://doi.org/10.4230/DagRep.5.6.28) · [Membership in moment polytopes is in NP and coNP](https://arxiv.org/abs/1511.03675) · [Computing moment polytopes — with a focus on tensors, entanglement and matrix multiplication](https://arxiv.org/abs/2510.08336)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-0095 — Efficient LRS evaluation
 
@@ -3110,13 +3124,6 @@ The input gives both a graph group and a compact straight-line program represent
 [Read in atlas](index.html#TCS-4350) · [Knapsack in Graph Groups, HNN-Extensions and Amalgamated Products](https://doi.org/10.4230/LIPIcs.STACS.2016.50) · [Knapsack in Graph Groups](https://doi.org/10.1007/s00224-017-9808-3) · [The Power Word Problem in Graph Products](https://doi.org/10.1007/s00224-024-10173-z)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4490 — Complexity of positive matrix powers
-
-Matrix powering studies properties of repeated products of a fixed matrix, where a concise input describes an infinite sequence. The source asks about the complexity of its positivity problem PosMatPow in higher dimensions. The dimension restriction is central because increasing the number of coordinates can introduce substantially more complicated spectral behavior. Determining the complexity would clarify how far low-dimensional decision methods extend to general matrix dynamics. The saved title and excerpt do not define which positivity condition or power quantifier PosMatPow uses, so those conventions must be recovered before stating the decision task more narrowly.
-
-[Read in atlas](index.html#TCS-4490) · [On Matrix Powering in Low Dimensions](https://doi.org/10.4230/LIPIcs.STACS.2015.329)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5240 — Transferring arithmetic hardness to constantly many variables
 
 Arithmetic circuit lower bounds measure how difficult it is to compute polynomial families. The source asks whether lower bounds for many-variable polynomials imply lower bounds in a constant number of variables. Packing information into fewer variables can increase degrees and alter how efficiently circuits represent the polynomial. A transfer would strengthen hardness-versus-randomness methods that require hard polynomials with restricted variable count. The cited work emphasizes low characteristic, and the saved sentence does not state the degree or size tradeoff, so a formal variable substitution alone does not establish the requested implication.
@@ -3130,13 +3137,6 @@ A rationally recursive sequence is one coordinate of a finite system whose next 
 
 [Read in atlas](index.html#TCS-5739) · [On Rational Recursive Sequences](https://doi.org/10.4230/LIPIcs.STACS.2023.24) · [On Rational Recursive Sequences — full author version](https://arxiv.org/abs/2210.01635)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-5921 — Membership in \(2\times 2\) integer matrix semigroups
-
-Given finitely many integer matrices, semigroup membership asks whether a target matrix equals some nonempty product of the generators. This project concerns arbitrary two-by-two integer matrices and asks whether the problem is decidable. Products may use generators repeatedly but cannot freely introduce inverses as a group-membership problem would. The source proves positive results for other structured low-dimensional matrix classes without settling this unrestricted two-dimensional case. A resolution would locate a basic boundary for exact reachability in small-dimensional linear transformation systems.
-
-[Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Lattices and computational number theory (28)
 
