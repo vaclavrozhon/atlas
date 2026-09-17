@@ -1587,6 +1587,13 @@ An online list serves each request before seeing the next, and access costs the 
 [Read in atlas](index.html#TCS-7335) · [List Update with Prediction](https://ojs.aaai.org/index.php/AAAI/article/download/33694/35849) · [A New Lower Bound for the List Update Problem in the Partial Cost Model](https://people.inf.ethz.ch/gaertner/subdir/texts/own_work/lowerb.pdf)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-6078 — Pinwheel Packing in NP
+
+Pinwheel packing asks one machine to execute every recurring task often enough to meet all of its sliding-window deadlines. The input is an explicit list of positive recurrence limits written in binary, while the schedule extends indefinitely. The question is whether every feasible instance has a polynomial-length certificate checkable in polynomial time. A polynomial-space algorithm and finite periodic schedules are known, but the available period bound can be exponential in the input length. An April 2026 preprint proves NP-hardness, while the checked literature leaves membership in NP unresolved.
+
+[Read in atlas](index.html#TCS-6078) · [Hardness and Fixed Parameter Tractability for Pinwheel Scheduling Problems](https://doi.org/10.4230/LIPIcs.ISAAC.2025.47) · [NP-Hardness and a PTAS for the Pinwheel Problem](https://arxiv.org/abs/2604.13974v1) · [Finite Pinwheel Covering](https://arxiv.org/abs/2607.28574v2)
+Existing status: `source_open` · Summary written: 2026-09-17
+
 ### TCS-6836 — Adaptive regret in misspecified linear bandits
 
 The question asks for one bandit policy that adapts to unknown error in a linear reward model. It must exploit accurate features while simultaneously obeying a uniform fallback bound when those features fit poorly. The model has finitely many indexed arms, independent Gaussian observation noise and a known feature matrix of arbitrary geometry. The displayed tradeoff comes from an explicit speculation in Bandit Algorithms, while later papers prove closely related partial guarantees. The formulation is now precise, but the current openness of the complete simultaneous bound remains uncertain.
@@ -1656,13 +1663,6 @@ Bandit combinatorial optimization chooses structured subsets and observes only t
 
 [Read in atlas](index.html#TCS-5252) · [Tight Bounds for Bandit Combinatorial Optimization](https://proceedings.mlr.press/v65/cohen17a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6078 — Pinwheel Packing in NP
-
-Pinwheel scheduling requires tasks to receive service repeatedly within prescribed recurrence limits. The cited source studies a packing version of this perpetual scheduling problem. The saved question asks whether Pinwheel Packing belongs to NP, while recording a PSPACE upper bound from earlier work. Membership would require polynomially checkable finite evidence despite the potentially infinite schedule being described. The excerpt does not define the packing rules or certificate format, and its historical upper bound is retained as source context rather than independently verified current status.
-
-[Read in atlas](index.html#TCS-6078) · [Hardness and Fixed Parameter Tractability for Pinwheel Scheduling Problems](https://doi.org/10.4230/LIPIcs.ISAAC.2025.47)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6721 — Additive-one approximation for bin packing
 
@@ -2059,10 +2059,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6655 — Cereceda’s conjecture
 
-A recoloring step changes one vertex's color while keeping the graph properly colored. The saved Cereceda question asks whether every pair of proper \((d+2)\)-colorings of an n-vertex d-degenerate graph can be connected in \(O_{d}(n^{2})\) steps. Degeneracy ensures that every subgraph contains a vertex of degree at most d, providing a natural elimination structure. The challenge is using that structure without forcing an excessively long cascade of recolorings. A quadratic bound would make the reconfiguration space quantitatively navigable, while the saved proposal still requires a fuller source and progress review before becoming a completed card.
+A proper graph coloring can be changed one vertex at a time while remaining proper after every step. Cereceda’s conjecture asks whether any two colorings of a d-degenerate n-vertex graph can be connected in at most C_d n squared steps using d+2 available colors. The constant may depend on d, but not on the graph, its size or the chosen colorings. A general polynomial bound is known, but its exponent can exceed two. Recent linear bounds use special graph classes or more colors and do not settle this threshold-palette target.
 
-[Read in atlas](index.html#TCS-6655) · [Research reference · www.sciencedirect.com](https://www.sciencedirect.com/science/article/abs/pii/S0012365X26000798)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6655) · [Linear recoloring diameter of degenerate chordal graphs and bounded treewidth graphs](https://doi.org/10.1016/j.disc.2026.115055) · [A polynomial version of Cereceda’s conjecture](https://doi.org/10.1016/j.jctb.2022.01.006)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7216 — Vertex reconstruction conjecture
 
@@ -2837,10 +2837,10 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-1115 — Polynomial-time EF1 and Pareto-optimal goods allocation
 
-EF1 allows an agent's envy to disappear after removing one suitable good from the envied bundle. The survey asks for a polynomial-time allocation satisfying both EF1 and Pareto optimality. Pareto optimality prevents improving one person's value without reducing somebody else's value. Combining the two conditions would make an allocation both approximately fair and resistant to obvious welfare improvements. The saved note does not state valuation access or numeric encoding, so existence alone or an algorithm whose runtime depends on value magnitudes would not automatically meet the intended polynomial-time target.
+The task is to divide indivisible goods among agents whose nonnegative values add across goods. EF1 allows each agent’s envy of another bundle to disappear after the hypothetical removal of at most one good. Pareto optimality forbids any reassignment that improves one agent without hurting another. Allocations satisfying both properties exist, but the card asks for one polynomial-time algorithm on explicitly encoded rational values and arbitrary numbers of agents. Known pseudo-polynomial and fixed-agent algorithms do not settle this general bit-time requirement.
 
-[Read in atlas](index.html#TCS-1115) · [Fair Division of Indivisible Goods: A Survey](https://www.cs.toronto.edu/~nisarg/teaching/2556s22/papers/fair-division-survey.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1115) · [Fair Division of Indivisible Goods: A Survey](https://arxiv.org/abs/2202.07551v2) · [A Polynomial-Time Algorithm for Fair and Efficient Allocation with a Fixed Number of Agents](https://doi.org/10.1007/978-3-032-18660-7_22) · [Fair and Efficient Balanced Allocation for Indivisible Goods](https://arxiv.org/abs/2603.05956v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1109 — EF1 and Pareto optimality for additive mixed items
 
@@ -3007,10 +3007,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6615 — Polynomial-time finite-group isomorphism in the Cayley-table model
 
-Two finite groups are supplied by complete tables describing their multiplication operations. The question asks for a deterministic polynomial-time algorithm deciding whether a bijection preserves those operations. Using full tables makes the representation explicit, so the running-time target is measured against table-sized input rather than a succinct group description. Group isomorphism tests whether apparently different multiplication systems encode the same algebraic structure, making it a fundamental classification problem. The saved formulation does not impose a structural promise on the groups, and algorithms for particular group families therefore address only restricted cases.
+Two finite groups are isomorphic when one bijection of their elements preserves every product. The input supplies both complete multiplication tables, and the target is deterministic polynomial-time decision in their explicit bit length. The algorithm must cover all finite groups without additional structural information. Recent algorithms for restricted families and lower bounds for shallow circuits do not settle this general target. A separate claimed general solution remains unverified in this review, so the card stays active with uncertain resolution status.
 
-[Read in atlas](index.html#TCS-6615) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2024.4)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6615) · [The Parallel Dynamic Complexity of the Abelian Cayley Group Membership Problem](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2024.4) · [Polynomial-time isomorphism test for k-generated extensions of abelian groups](https://arxiv.org/abs/2602.15497v2) · [Group Isomorphism and the Polylogarithmic-Time Hierarchy: Depth-\(2\frac12\) Circuits and Lower Bounds](https://arxiv.org/abs/2608.26257v1) · [Polynomial-time isomorphism test for solvable groups with abelian Sylow subgroups](https://arxiv.org/abs/2605.26748v2) · [Polynomial-Time Algorithms for 0-1 Matrix Isomorphism, Graph Isomorphism and Latin Squares](https://www.preprints.org/manuscript/202510.0113/v4)
+Existing status: `uncertain` · Summary written: 2026-09-17
 
 ### TCS-6895 — Explicit three-dimensional tensors of superlinear rank
 
