@@ -1226,10 +1226,10 @@ Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-7349 — Almost-linear-work parallel exact maximum flow
 
-The task is exact maximum flow in a directed graph with polynomially bounded integer capacities. The question asks for almost-linear total parallel work and subpolynomial depth. Bounded-error randomization is allowed in a uniform shared-memory parallel model. Sequential almost-linear algorithms do not provide the requested bound on dependent stages. DAG projection reductions connect several versions of this open parallel flow problem.
+The task is exact maximum flow in an arbitrary directed graph with polynomially bounded integer capacities. Every arc must receive an explicit integral flow value, and the entire output must be correct with probability at least two thirds. The desired uniform parallel algorithm has almost-linear total work and subpolynomial depth on every execution. Recent DAG reductions and dense-instance algorithms clarify the problem without supplying this simultaneous endpoint. A complete Lean-checked answer must meet both resource bounds for every fixed polynomial capacity range, without restricting the graph family.
 
-[Read in atlas](index.html#TCS-7349) · [DAG Projections: Reducing Distance and Flow Problems to DAGs](https://arxiv.org/abs/2604.04752)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7349) · [DAG Projections: Reducing Distance and Flow Problems to DAGs](https://arxiv.org/abs/2604.04752v1) · [Parallel Minimum Cost Flow in Near-Linear Work and Square Root Depth for Dense Instances](https://arxiv.org/abs/2503.13274v3) · [Strongly Polynomial Parallel Maximum Flow Revisited](https://doi.org/10.4230/LIPIcs.ESA.2026.147)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6507 — Work-efficient parallel directed reachability
 
