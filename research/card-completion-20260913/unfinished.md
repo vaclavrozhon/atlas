@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **214**.
+Pending active reviews: **210**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -39,7 +39,6 @@ Pending active reviews: **214**.
 | [TCS-0734](../../data/cards/TCS-0734.json) | FPT Inapproximability Results Beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-0784](../../data/cards/TCS-0784.json) | Polynomial kernels for Edge-Disjoint Paths | Parameterized and exact algorithms | pool |
 | [TCS-0801](../../data/cards/TCS-0801.json) | Directed Hamiltonicity | Parameterized and exact algorithms | pool |
-| [TCS-0800](../../data/cards/TCS-0800.json) | Cutwidth | Parameterized and exact algorithms | pool |
 | [TCS-0597](../../data/cards/TCS-0597.json) | Parameterized coloring of H-free graphs | Parameterized and exact algorithms | pool |
 | [TCS-1945](../../data/cards/TCS-1945.json) | Parameterized Nearest Codeword hardness beyond Gap-ETH | Parameterized and exact algorithms | pool |
 | [TCS-2662](../../data/cards/TCS-2662.json) | Subexponential constant-gap Max-Clique under ETH | Parameterized and exact algorithms | pool |
@@ -47,9 +46,6 @@ Pending active reviews: **214**.
 | [TCS-5374](../../data/cards/TCS-5374.json) | Degeneracy-sensitive classification of homomorphism counting | Parameterized and exact algorithms | pool |
 | [TCS-6814](../../data/cards/TCS-6814.json) | Efficient PTAS for fixed-machine job-shop makespan | Parameterized and exact algorithms | pool |
 | [TCS-6974](../../data/cards/TCS-6974.json) | Formula-SAT below exhaustive search | Parameterized and exact algorithms | pool |
-| [TCS-7027](../../data/cards/TCS-7027.json) | Fixed-parameter tractability of Perfect Deletion | Parameterized and exact algorithms | pool |
-| [TCS-7033](../../data/cards/TCS-7033.json) | Polynomial kernels for directed feedback sets | Parameterized and exact algorithms | pool |
-| [TCS-6591](../../data/cards/TCS-6591.json) | Constant-factor approximation for Directed Feedback Vertex Set | Approximation algorithms and hardness of approximation | pool |
 | [TCS-0088](../../data/cards/TCS-0088.json) | Optimal approximation of Max Di-Cut | Approximation algorithms and hardness of approximation | pool |
 | [TCS-6309](../../data/cards/TCS-6309.json) | Constant-factor approximation for capacitated k-Median | Approximation algorithms and hardness of approximation | pool |
 | [TCS-0935](../../data/cards/TCS-0935.json) | Unit-job precedence scheduling complexity | Online algorithms | pool |

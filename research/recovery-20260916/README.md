@@ -285,3 +285,19 @@ all 859 ledger lines parse, and the formula check passes on 33,760 expressions.
 The complete offline check passed through disposition fifty-five. The final
 source-locator correction gives publication 6563b8c237e4314a5c87.
 
+After sixty dispositions the queue contains 704 completed records,
+210 pending records and one outside active scope. Of 1,011 active cards,
+801 have completed individual reviews. TCS-0800 fixes exact general-graph
+cutwidth below exponential base two; TCS-6591 specifies the weighted
+constant-factor approximation target on arbitrary digraphs; TCS-7033 is
+consolidated into the equivalent existing kernel question TCS-6379; and
+TCS-7027 restores edge deletion in the perfect-graph FPT question.
+The duplicate's original JSON is archived intact. Seventeen source-scope
+choices are pending in further-scope-choices.json.
+
+Source checkpoint f1b4dcb2 and deployment
+f803e547462d2795c27de1b6b9ea094a6348a503 cover the first fifty-six
+dispositions with publication 6563b8c237e4314a5c87.
+The complete offline check passed through disposition fifty-nine, and the
+formula check at that point covered 33,849 expressions.
+Local publication after sixty is a7f79e61e65e9a16b321.
