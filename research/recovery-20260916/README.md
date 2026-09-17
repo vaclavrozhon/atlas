@@ -382,3 +382,31 @@ not the individual-completion count. All completed queue hashes match
 and all 889 ledger lines parse in the shared checkout.
 Source checkpoint 2b41f9f6 and deployment
 7428909a44ba25f43873eb5b43a69a9dfc3572d4 cover the first seventy-two dispositions.
+
+After eighty-five dispositions, the shared queue contains 730 completed
+records, 184 pending records and one outside active scope. Five further
+reviews apply the user's choices: TCS-6949 (NC-SETH), TCS-6942 (the same
+logarithmic-dimension OV and Hitting Set hypotheses as the individual cards),
+TCS-1008 (infinite fully explicit additive-loss expander families), TCS-5202
+(the universal quantitative quantum-extractor bound), and TCS-0540
+(near-linear-bit maximum flow with local outputs). A finite-input address
+correction in TCS-6599 leaves its asymptotic hypothesis unchanged. TCS-5202's
+open-problems locator and summary parentheses were corrected during review.
+
+The other thread completed TCS-7376 independently, accounting for the sixth
+queue completion since the preceding checkpoint. Its card and queue entry,
+the three archival moves, seven new cards and reader changes remain outside
+this source commit. The shared checkout has 1,013 active cards and 909
+detailed publisher records; neither count is the individual-review count.
+All completed queue hashes match, and all 897 ledger lines parse.
+
+Nine of the eighteen scope selections are now applied. TCS-6692 retains the
+chosen quantitative security goal, with one further question pending about
+whether the generator may depend on the requested security/error parameters;
+the source ambiguity and inspected definitions are recorded in
+review_quantitative_prg.md. The other eight selections await application.
+The full offline check passes through disposition eighty-four.
+The formula check passes on 34,641 expressions and desktop/mobile page
+checks pass through disposition eighty-five, publication 734dfd3d3625b0fb8f87.
+Source checkpoint be8bb503 and deployment
+2aab7ced904b07267b66505b9285f0a0356a1a50 cover the first eighty dispositions.

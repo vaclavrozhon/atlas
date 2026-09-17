@@ -1,0 +1,80 @@
+"""Replace the grouped circuit hypotheses by the selected NC-SETH target."""
+import json,sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress,DATE
+from review_queue import read_claims
+identifier='TCS-6949'
+claim=read_claims(ROOT)[identifier]
+notes=[
+ 'Applied the explicit user choice of polynomial-size, polylogarithmic-depth bounded-fan-in circuits, not unrestricted-depth Circuit-SAT.',
+ 'Expanded the exponent quantifiers: for every fixed saving there is a fixed size/depth exponent with no algorithm achieving it; separate machines for fixed exponents are permitted in the negation.',
+ 'Specified the complete circuit syntax, encoding, Boolean semantics, randomized per-instance correctness and worst-case time.',
+ 'Used the inherited survey’s logarithmic-word RAM convention with word size measured in complete input length, making its address universe explicit rather than presuming model-independent exponential rates.',
+ 'Checked the original branching-program source and the SODA 2026 hierarchy, which distinguishes polylogarithmic NC depth from its separate linear-depth hypothesis.',
+ 'Assessed importance individually at 87, removed the grouped placeholders and required a complete Lean-checked proof or refutation.',
+]
+sources=[
+ 'Read Vassilevska Williams, On Some Fine-Grained Questions in Algorithms and Complexity, author ICM 2018 survey: §2.1 p. 4 specifies the word-RAM convention and randomized SETH; §6 pp. 18–19 defines C-SETH and identifies polynomial-size polylogarithmic-depth circuits as NC-SETH.',
+ 'Read Abboud–Hansen–Vassilevska Williams–Williams, arXiv:1511.06022v1, 18 November 2015, abstract and introduction, particularly the NC-SETH definition and branching-program motivation on pp. 2–4. Author PDF obtained from the MIT course-hosted copy. The reduction proofs were not independently certified.',
+ 'Read Lampis, Circuits and Backdoors: Five Shades of the SETH, arXiv:2407.09683v2, revised 13 October 2025: introduction discussion of NC-SETH and numbered hypothesis hierarchy, and circuit definitions in the preliminaries. The text explicitly separates the original polylogarithmic-depth NC-SETH from its new linear-depth LD-C-SETH. Checked SODA 2026 publication, pp. 1945–2001, online 7 January 2026, DOI 10.1137/1.9781611978971.71.',
+ f'Bounded primary-source searches through {DATE} found hierarchy and conditional-reduction results, not a proof or refutation of the selected NC-SETH. The precise exponent and machine conventions below are an explicit rendering of the asymptotic source notation.',
+]
+status='The checked sources continue to use NC-SETH as an unproved hypothesis. The SODA 2026 hierarchy explicitly distinguishes its separate linear-depth circuit hypothesis from the original polynomial-size, polylogarithmic-depth NC formulation. No resolution of this stated randomized logarithmic-word-RAM version was found in the bounded later-work check.'
+complete(identifier,dict(
+ title='NC-SETH for polynomial-size, polylogarithmic-depth circuits',
+ criterion='resources',question_type='yes_no',year=2026,
+ formal=r'''Is the following randomized NC-SETH true?
+
+For every rational \(\varepsilon\in(0,1)\), there exists an integer \(k\ge1\) such that no uniform randomized algorithm can decide satisfiability, with error at most \(1/3\) on every instance, for all \(n\)-input Boolean circuits of size at most \((n+2)^k\) and depth at most \(\lceil\log_2(n+2)\rceil^k\) in time
+\[
+K\,2^{(1-\varepsilon)n}(L+1)^d
+\]
+for any fixed constants \(K\ge1\), integer \(d\ge0\) and word-length constant in the specified RAM model. Here \(n\ge2\) counts inputs, \(L\) is the full encoded circuit length, and the runtime bound is worst-case over random tapes.''',
+ definitions=r'''A circuit is a finite acyclic directed graph of gates with input gates \(x_1,\ldots,x_n\), optional constants zero and one, and AND, OR and NOT gates. AND and OR have two ordered incoming wires, and NOT has one; fan-out is unrestricted. One gate is designated as output. Evaluation under an assignment \(x\in\{0,1\}^n\) uses the usual Boolean operations. The circuit is satisfiable exactly when some assignment makes the output one. Input gates or other gates need not influence the output; gates outside its ancestor set still count in the input size. There is no promise of monotonicity, bounded occurrence or uniform generation of a circuit family.
+
+The size \(s\) is the total number of gates, including inputs and constants. The depth is the maximum number of AND, OR or NOT gates along any directed path in the circuit; inputs and constants have depth zero. Because fan-in is at most two, counting wires as well changes size only by a constant factor. Every positive fixed polynomial size exponent and every positive fixed polylogarithmic depth exponent are covered by increasing the common integer \(k\). The bounds are on the represented circuit itself, not on some smaller equivalent circuit whose existence is promised.
+
+Fix the following full binary encoding. For a nonnegative integer \(a\), let \(b\) be the bit length of \(a+1\), and encode \(a\) as \(1^b0\) followed by the \(b\)-bit binary representation of \(a+1\). First encode \(n,s\) and the output-gate index. The first \(n\) gates are the inputs in order. For each later gate, give a three-bit type code for zero, one, NOT, AND or OR and then its predecessor indices, using the integer encoding above. Predecessors must have smaller positive indices; the output index must lie in \([s]\). Unused type codes, invalid indices or trailing bits are malformed. All gate records are present, with no succinct generator or gate oracle. Let \(L\) be the number of bits of this encoding.
+
+For each fixed \(k\), an admissible decider is one finite randomized word-RAM program uniform over circuit inputs. It rejects malformed encodings and circuits outside the stated size/depth class in polynomial time, and on every valid circuit in that class returns the satisfiability bit with probability at least \(2/3\). Probability is over its private independent random bits, not over a distribution of circuits. It must halt on every random tape. It has no circuit-dependent advice, external oracle or quantum operations.
+
+Use the survey’s logarithmic-word convention: for this program the word length is \(w=B\lceil\log_2(L+2)\rceil\), for a fixed integer \(B\ge1\). Cells have \(w\)-bit addresses and initially hold zero. Word reads and writes, indirect access, comparisons, conditional branches, addition, subtraction and multiplication modulo \(2^w\), quotient and remainder with nonzero divisor, bitwise Boolean operations and shifts each cost one step; shifts by at least \(w\) return zero. A fresh uniform \(w\)-bit random word costs one step. Larger values occupy multiple words with all operations charged. All input access, parsing, preprocessing and output count toward runtime. Untouched cells require no initialization, and no arbitrary-precision operation is unit cost. The address universe is \(2^w\), polynomial in \(L\) with an exponent fixed by the program; a separate convention allowing linear-in-\(n\) address words is not implicitly substituted.
+
+For a proposed saving \(\varepsilon\), the hard exponent \(k\) may depend on \(\varepsilon\) but is fixed independently of \(n\) and of the circuit. Algorithms and constants for a fixed circuit class may depend on \(k\) and \(\varepsilon\). The logical negation is that one positive rational \(\varepsilon\) works for every fixed \(k\), with possibly different algorithms and constants for different \(k\). No effective compiler from \(k\) to its program is required. Thus the hypothesis does not demand one fixed circuit class that defeats every possible saving. Rational savings suffice because a smaller rational saving preserves any faster bound.
+
+The explicit polynomial factor is allowed to depend on the fixed class. Since \(L\) is polynomial in \(n\) for every fixed \(k\), allowing such a factor does not change whether some fixed positive exponential saving exists. This is a hypothesis about classical bounded-error algorithms in the stated model. It does not restrict the input to circuits arising from a uniform NC language, nor does it include arbitrary-depth polynomial-size circuits.''',
+ answer_criterion=r'''Give a complete Lean-checked proof of the quantified nonexistence statement, or a complete Lean-checked refutation. A refutation must exhibit one fixed positive saving and, for every fixed size/depth exponent, admissible algorithms with that saving and proofs of their resource and per-instance correctness guarantees. Proving a speedup for just one small exponent, or a saving that tends to zero as the class exponent grows, does not refute the proposition.
+
+Conditional reductions to other hypotheses must retain their assumptions. Results for unbounded-depth circuits, formulas alone, linear-depth circuits alone or a different machine convention do not automatically settle the selected NC target. Numerical tolerance does not weaken this binary asymptotic hypothesis.''',
+ source_formulation=dict(text='The survey defines C-SETH as resistance to a fixed exponential speedup for a chosen representation class, then names polynomial-size, polylogarithmic-depth circuits as NC-SETH. The user selected that class from the inherited grouped record.',caption='Paraphrase of Vassilevska Williams, ICM 2018 survey, §6 pp. 18–19; circuit class explicitly selected by the user on 17 September 2026.',citation='primary',format='editorial_paraphrase'),
+ importance=dict(score=87,method='editorial',reason='This central circuit-satisfiability hypothesis supports fine-grained lower bounds for basic sequence problems while testing a broader representation class than CNF formulas. A fixed exponential speedup would also connect to major circuit lower-bound questions.',basis='Individual assessment of the selected NC representation class, its quantified exponential barrier and the checked branching-program reductions; no presumed equivalence to unrestricted Circuit-SETH.'),
+ why='A circuit can express much more computation compactly than a bounded-width formula. The question asks whether even this structured parallel-computation representation can be analyzed for satisfiability with a fixed exponential saving, and provides a basis for lower bounds on familiar sequence problems.',
+ references=[
+ ref('primary','On Some Fine-Grained Questions in Algorithms and Complexity','Virginia Vassilevska Williams',2018,'https://people.csail.mit.edu/virgi/eccentri.pdf','Author ICM 2018 survey; §2.1 p. 4 model and randomized SETH; §6 pp. 18–19, C-SETH and NC-SETH'),
+ ref('branching','Simulating Branching Programs with Edit Distance and Friends or: A Polylog Shaved is a Lower Bound Made','Amir Abboud; Thomas Dueholm Hansen; Virginia Vassilevska Williams; Ryan Williams',2015,'https://arxiv.org/abs/1511.06022v1','Version 1, 18 November 2015; introduction pp. 2–4, NC-SETH and branching-program reductions; inspected author PDF at https://people.csail.mit.edu/virgi/6.1420/papers/branch.pdf'),
+ ref('shades','Circuits and Backdoors: Five Shades of the SETH','Michael Lampis',2026,'https://arxiv.org/abs/2407.09683v2','Version 2, 13 October 2025; introduction, numbered hierarchy and circuit preliminaries; SODA 2026, 1945–2001, published online 7 January 2026, DOI 10.1137/1.9781611978971.71'),
+ ],
+ context_blocks=[
+ block('Exhaustive search evaluates the circuit on all assignments. The conjecture concerns whether examining its explicit structure can save a fixed fraction of that exponent throughout every fixed polynomial-size, polylogarithmic-depth regime.'),
+ block('The original branching-program work connects faster algorithms for sequence problems such as edit distance and longest common subsequence to faster satisfiability algorithms for these richer representations. This is a conditional connection, not a proof of NC-SETH.','branching'),
+ block('The two quantifier orders matter: a different small improvement in every fixed circuit class may still shrink to zero as the size or depth exponent grows. Refuting the stated hypothesis requires one positive saving that persists across all fixed exponents.'),
+ block('The SODA 2026 hierarchy studies several distinct relaxations of SETH. It explicitly introduces a separate linear-depth circuit hypothesis, while identifying the original NC-SETH with polylogarithmic depth. The user selected the latter, so those classes are not merged here.','shades'),
+ ],
+ progress=[
+ progress('2015-11-18','The branching-program paper formulates NC-SETH and relates sequence-problem speedups to circuit satisfiability.','branching'),
+ progress('2018','The survey includes NC-SETH among fine-grained hypotheses and distinguishes representation classes.'),
+ progress('2026-01-07','The SODA hierarchy organizes several SETH variants and explicitly separates its linear-depth circuit target from original NC-SETH.','shades'),
+ ],
+),notes,sources,status,summary=[
+ 'NC-SETH concerns satisfiability of bounded-fan-in circuits of polynomial size and polylogarithmic depth.',
+ 'For each fixed proposed exponential saving, the hypothesis requires some fixed size/depth exponent for which that saving is impossible.',
+ 'Algorithms are uniform within each fixed class, use the stated logarithmic-word RAM model and may err with probability at most one third on each input.',
+ 'A refutation needs one saving that works across every fixed class, though the algorithms and polynomial factors may vary with the class.',
+ 'A complete Lean-checked proof or refutation is required; arbitrary-depth and linear-depth circuit hypotheses are distinct targets.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
+p=ROOT/'research/recovery-20260916/further-scope-choices.json'
+choices=json.loads(p.read_text())
+next(r for r in choices if r['id']==identifier).update(state='applied',applied_on=DATE)
+p.write_text(json.dumps(choices,ensure_ascii=False,indent=2)+'\n')

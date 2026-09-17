@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **190**.
+Pending active reviews: **185**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -15,10 +15,8 @@ Pending active reviews: **190**.
 | [TCS-4734](../../data/cards/TCS-4734.json) | Locality-preserving quantum gap amplification | Quantum computation | pool |
 | [TCS-4927](../../data/cards/TCS-4927.json) | Classification of quantum gate sets | Quantum computation | pool |
 | [TCS-4991](../../data/cards/TCS-4991.json) | Reducing shared entanglement in communication protocols | Quantum computation | pool |
-| [TCS-5202](../../data/cards/TCS-5202.json) | Quantum security of general seeded extractors | Quantum computation | pool |
 | [TCS-0240](../../data/cards/TCS-0240.json) | Communication for algorithmic secret-key agreement | Computability and algorithmic information | pool |
 | [TCS-0279](../../data/cards/TCS-0279.json) | Extraction of mutual information about two strings | Computability and algorithmic information | pool |
-| [TCS-0540](../../data/cards/TCS-0540.json) | Communication Complexity of Max-Flow | Communication complexity and Boolean function analysis | pool |
 | [TCS-0053](../../data/cards/TCS-0053.json) | Sign-representation | Communication complexity and Boolean function analysis | pool |
 | [TCS-0218](../../data/cards/TCS-0218.json) | Cryptogenography | Communication complexity and Boolean function analysis | pool |
 | [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
@@ -26,13 +24,10 @@ Pending active reviews: **190**.
 | [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |
 | [TCS-0560](../../data/cards/TCS-0560.json) | Fine-grained reductions from Hitting Set to 3SUM | Fine-grained complexity | pool |
 | [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
-| [TCS-6942](../../data/cards/TCS-6942.json) | Hitting Set hardness from Orthogonal Vectors | Fine-grained complexity | pool |
 | [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
-| [TCS-6949](../../data/cards/TCS-6949.json) | Exhaustive-search lower bounds for Circuit-SAT | Fine-grained complexity | pool |
 | [TCS-6950](../../data/cards/TCS-6950.json) | Disjunction of SETH, APSP and 3SUM hypotheses | Fine-grained complexity | pool |
 | [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
 | [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
-| [TCS-1008](../../data/cards/TCS-1008.json) | Bipartite vertex expanders with constant expansion loss | Pseudorandomness and derandomization | pool |
 | [TCS-2201](../../data/cards/TCS-2201.json) | Non-malleable extractors from standard extractors | Pseudorandomness and derandomization | pool |
 | [TCS-3958](../../data/cards/TCS-3958.json) | Pseudorandom generators for superlinear-size depth-two threshold circuits | Pseudorandomness and derandomization | pool |
 | [TCS-4778](../../data/cards/TCS-4778.json) | Derandomizing amplified relational computation | Pseudorandomness and derandomization | pool |
