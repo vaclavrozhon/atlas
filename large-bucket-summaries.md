@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-399 five-sentence working summaries, based on saved source material.
+398 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (71)
+## Computational complexity (72)
 
 ### TCS-0001 — P versus NP
 
@@ -123,6 +123,13 @@ SAT asks whether an explicitly written Boolean formula has a satisfying assignme
 
 [Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Time-Space Tradeoffs for Counting NP Solutions Modulo Integers](https://eccc.weizmann.ac.il/report/2007/036/) · [Bounded Relativization](https://eccc.weizmann.ac.il/report/2023/070/)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7268 — Sliding-scale PCP conjecture
+
+A PCP verifier checks a fixed proof by inspecting a few selected symbols. The target asks for constant symbol queries, logarithmic randomness, and polynomial proof length and alphabet size. Satisfiable formulas must have a proof accepted on every random string. For an unsatisfiable formula, every proof must be accepted with probability at most a fixed inverse power of the input length. A complete Lean-checked resolution must achieve or rule out all of these guarantees simultaneously for one uniform verifier.
+
+[Read in atlas](index.html#TCS-7268) · [Polynomially Low Error PCPs with polyloglog n Queries via Modular Composition](https://arxiv.org/abs/1505.06362v1) · [Quasi-Linear Size PCPs with Small Soundness from HDX](https://dspace.mit.edu/entities/publication/9bbf3cdb-ea42-4d50-8d98-7b0f2c30432e) · [Ideals, Macaulay Bases, and PCPs](https://arxiv.org/abs/2511.03703v3) · [SVP_p is Deterministically NP-Hard for all p > 2, Even to Approximate Within a Factor of 2^{log^{1−ε} n}](https://eccc.weizmann.ac.il/report/2025/153/revision/1/)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7321 — \(\mathrm P_{\mathbb R}\) versus \(\mathrm{NP}_{\mathbb R}\)
 
@@ -397,12 +404,12 @@ An interactive proof lets a verifier check a computation through a conversation 
 [Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient \(\mathrm{IP}=\mathrm{PSPACE}\)](https://eccc.weizmann.ac.il/report/2026/102/) · [Doubly-Efficient Interactive Arguments for Bounded-Space from One-Way Functions](https://eccc.weizmann.ac.il/report/2026/111/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-7257 — Circuit noise tolerance beyond the formula threshold
+### TCS-7257 — Formula versus circuit noise thresholds
 
-Each gate of a Boolean circuit independently flips its computed output with the same probability. The circuit may reuse noisy intermediate values and may be arbitrarily large. The question asks whether circuits permit reliable computation at some noise probability strictly above the two-input formula threshold \((3-\sqrt7)/4\). Any fixed positive increase qualifies, with a positive correctness advantage uniform over all Boolean functions and input lengths. The separate question of reliability exactly at the formula threshold is retained as context.
+Each gate of a Boolean circuit independently flips its computed output with the same probability. The circuit may reuse noisy intermediate values and may be arbitrarily large. The question asks whether universal reliable computation is possible exactly below the known two-input formula threshold. Reliability requires one positive correctness advantage that works for every Boolean function and input length at the chosen noise level. A resolution would determine whether sharing intermediate computations changes the fundamental tolerance to gate errors.
 
 [Read in atlas](index.html#TCS-7257) · [Noise Threshold for Universality of Two-Input Gates](https://ir.cwi.nl/pub/13657) · [Tight Limits on Nonlocality from Nontrivial Communication Complexity; a.k.a. Reliable Computation with Asymmetric Gate Noise](https://arxiv.org/abs/1809.09748v5) · [Noise Quantification and Control in Circuits via Strong Data-Processing Inequalities](https://arxiv.org/abs/2507.15108v1)
-Existing status: `source_open` · Summary written: 2026-09-17
+Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-7260 — Polynomial-size closure of d-DNNF under negation
 
@@ -912,7 +919,7 @@ Two players build infinite labeled trees and compare their membership in two reg
 [Read in atlas](index.html#TCS-4659) · [The Determinacy of Context-Free Games](https://doi.org/10.4230/LIPIcs.STACS.2012.555) · [The Determinacy of Context-Free Games — journal version](https://doi.org/10.2178/jsl.7804050) · [On the topological complexity of tree languages](https://www.mimuw.edu.pl/~niwinski/Prace/lobo_d.pdf) · [Wadge-Wagner Hierarchy of Regular Tree Languages](https://www.ims.uni-stuttgart.de/events/TTATT2016/proceedings.pdf)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Semantics, logic and verification (38)
+## Semantics, logic and verification (37)
 
 ### TCS-6565 — Positivity problem for linear recurrences
 
@@ -1131,13 +1138,6 @@ An impredicative universe supports quantification over types without the usual i
 [Read in atlas](index.html#TCS-6112) · [Cubical Assemblies, a Univalent and Impredicative Universe and a Failure of Propositional Resizing](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.TYPES.2018.7)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0640 — Shortest runs in 3-D VASS
-
-A three-dimensional VASS is a finite-state system with three nonnegative integer counters. The source asks whether some reachable instances require shortest runs longer than every single-exponential bound in their binary input length. Encoding a large initial counter in binary already permits exponentially many necessary steps, so a stronger growth rate is required. A July 2026 preprint states a doubly-exponential upper bound, improving the triple-exponential bound from 2025. The remaining threshold question measures how much reachability-witness complexity three counters can force.
-
-[Read in atlas](index.html#TCS-0640) · [Shortest runs in 3-D VASS](https://automata.exchange/19.11-shortest-runs-in-3-d-vass/) · [Reachability in 3-VASS is Elementary](https://arxiv.org/abs/2502.13916) · [3-VASS Reachability is in EXPSPACE](https://arxiv.org/abs/2607.14983)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-4017 — Relative completeness of Kleene induction for the positive calculus of relations
 
 Expressions denote binary relations using positive operations, converse and finite-path closure. The target asks whether every relationally valid equation follows from a specified proof system. That system contains all valid closure-free equations and ordinary left and right Kleene induction. The closure-free base is an explicit editorial choice that fixes interactions among the operations. The later EXPSPACE validity algorithm and completeness of smaller fragments do not prove this relative-completeness claim.
@@ -1180,7 +1180,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (51)
+## Distributed, parallel and sublinear algorithms (50)
 
 ### TCS-6553 — P versus NC
 
@@ -1517,13 +1517,6 @@ A graph’s cumulative degree histogram counts vertices above each degree thresh
 
 [Read in atlas](index.html#TCS-0834) · [Problem 98: Estimating a Graph's Degree Distribution](https://sublinear.info/index.php?title=Open_Problems:98) · [Provable and Practical Approximations for the Degree Distribution using Sublinear Graph Samples](https://arxiv.org/abs/1710.08607v3) · [Towards Tight Bounds for Estimating Degree Distribution in Streaming and Query Models](https://arxiv.org/abs/2507.21784v1)
 Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-3416 — Wait-free exact FIFO queues in Common\(_{2}\)
-
-The question asks for an exact FIFO queue shared by any fixed finite number of processes. Every process may enqueue and dequeue, and each operation must finish in finitely many of its own steps despite other processes stopping. Only read/write registers and Test&Set bits are supplied. Relaxed queues and algorithms that merely guarantee system-wide progress do not meet this requirement. The checked 2026 impossibility concerns strong linearizability, so the ordinary Common\(_{2}\) question remains open in the cited sources.
-
-[Read in atlas](index.html#TCS-3416) · [Relaxed Queues and Stacks from Read/Write Operations](https://doi.org/10.4230/LIPIcs.OPODIS.2020.13) · [Nontrivial and Universal Helping for Wait-Free Queues and Stacks](https://doi.org/10.4230/LIPIcs.OPODIS.2015.31) · [Set-Linearizable Implementations from Read/Write Operations: Sets, Fetch &Increment, Stacks and Queues with Multiplicity](https://doi.org/10.1007/s00446-022-00440-y) · [Impossibility Results for Strong Linearizability: The Difficulty of Consistent Refereeing](https://doi.org/10.1145/3796701.3815906)
-Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3792 — Deterministic linearizable objects for set agreement
 

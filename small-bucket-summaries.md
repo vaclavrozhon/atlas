@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-602 five-sentence working summaries, based on saved source material.
+604 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -520,7 +520,7 @@ Alice and Bob must jointly compute a total Boolean function of their private inp
 [Read in atlas](index.html#TCS-5892) · [Lifting Theorems for Equality](https://doi.org/10.4230/LIPIcs.STACS.2019.50) · [Efficient Communication Using Partial Information](https://eccc.weizmann.ac.il/report/2010/083/) · [Zero-error information equals amortized communication complexity](https://arxiv.org/abs/2608.04141)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Fine-grained complexity (26)
+## Fine-grained complexity (27)
 
 ### TCS-6595 — Strong Exponential Time Hypothesis
 
@@ -605,6 +605,13 @@ Two lists contain subsets of a logarithmic-size universe. The task is to find wh
 
 [Read in atlas](index.html#TCS-6599) · [The Fine-Grained Complexity of Multi-Dimensional Ordering Properties](https://doi.org/10.4230/LIPIcs.IPEC.2021.3) · [Approximation and Fixed Parameter Subquadratic Algorithms for Radius and Diameter in Sparse Graphs](https://theory.stanford.edu/~virgi/dirRad.pdf)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7313 — ETH versus Gap-ETH
+
+ETH asserts a fixed positive exponential-time lower bound for exact 3-SAT. The selected Gap-ETH asserts such a lower bound for sparse formulas promised to be satisfiable or to leave a fixed fraction of clauses unsatisfied under every assignment. The question asks whether the deterministic exact hypothesis implies this deterministic gap hypothesis. All exponential rates and polynomial input-length factors have explicit quantifiers, and the YES case requires perfect satisfiability. A complete Lean-checked resolution must establish the implication or its actual logical negation, rather than hardness for a different approximation problem.
+
+[Read in atlas](index.html#TCS-7313) · [Dot-Product Proofs and Their Applications](https://eccc.weizmann.ac.il/report/2024/114/revision/2/) · [Parameterized Inapproximability Hypothesis under ETH](https://doi.org/10.1145/3749982) · [Quasi-Linear Size PCPs with Small Soundness from HDX](https://dspace.mit.edu/entities/publication/9bbf3cdb-ea42-4d50-8d98-7b0f2c30432e) · [Mind the Gap? Not for SVP Hardness under ETH!](https://arxiv.org/abs/2504.02695v2)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6944 — Min-Weight k-Clique hypothesis
 
@@ -1275,7 +1282,7 @@ Boolean formula satisfiability asks whether some assignment makes a formula true
 [Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (28)
+## Approximation algorithms and inapproximability (29)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1339,6 +1346,13 @@ Asymmetric TSP finds a cheapest directed Hamiltonian tour in a directed metric. 
 
 [Read in atlas](index.html#TCS-6590) · [An Improved Approximation Algorithm for the Asymmetric Traveling Salesman Problem](https://epubs.siam.org/doi/10.1137/20M1339313) · [Approximation Algorithms for Traveling Salesman Problems](https://www.or.uni-bonn.de/tspbook/book.pdf) · [On the Integrality Gap of Small Asymmetric Traveling Salesman Problems: A Polyhedral and Computational Approach](https://arxiv.org/abs/2506.10671) · [The Cloven Traveling Salesman: Cycle Covers and the Integrality Gap of Small ATSP Instances](https://arxiv.org/abs/2511.05045v2)
 Existing status: `open` · Summary written: 2026-09-12
+
+### TCS-7266 — Constant-factor approximation for uniform Sparsest Cut
+
+Uniform Sparsest Cut minimizes the number of crossing edges divided by the number of separated vertex pairs. The input is an arbitrary explicitly given simple unweighted undirected graph. The question asks for one randomized polynomial-time algorithm returning a cut within an absolute constant factor of optimum. Success is required separately on every graph, including finding a zero-boundary cut with the required probability when the optimum is zero. A complete Lean-checked resolution must settle the all-graph algorithmic target rather than the performance of one relaxation or a special graph class.
+
+[Read in atlas](index.html#TCS-7266) · [Lecture Notes on the ARV Algorithm for Sparsest Cut](https://arxiv.org/abs/1607.00854v1) · [A simpler and parallelizable O(√log n)-approximation algorithm for SPARSEST CUT](https://research-explorer.ista.ac.at/record/21007) · [Sparsest Cut and Eigenvalue Multiplicities on Low Degree Abelian Cayley Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2025.16) · [Integrality Gap Bounds for the Goemans-Linial SDP on Finite Abelian Cayley Graphs](https://arxiv.org/abs/2609.05368v1) · [Optimal Rounding for Sparsest Cut](https://doi.org/10.1145/3717823.3718285)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7281 — Unconditional NP-hardness at the Goemans–Williamson Max-Cut threshold
 
@@ -2101,10 +2115,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-6500 — Erdős girth conjecture
 
-The Erdős girth conjecture seeks graphs with many edges despite the absence of short cycles. For every fixed k, the target is arbitrarily large graphs with order \(n^{1+1/k}\) edges and girth greater than 2k. Such graphs would match the classical density upper bound up to a constant depending on k. They also force every stretch-\((2k- 1)\) spanner to retain all edges, connecting the extremal construction to sharp sparsification limits. The saved review notes that progress for special parameters or fault-tolerant spanner models does not supply the missing high-girth families in general.
+The Erdős girth conjecture asks for graphs with many edges and no short cycles. For each fixed integer k at least two, the graphs must avoid every cycle of length at most 2k. Their number of edges must be at least a positive k-dependent constant times n to the power one plus one over k, at unbounded graph orders. No efficient construction or coverage of every graph order is required. A complete Lean-checked resolution must prove all fixed parameters or refute the density scale eventually for at least one of them.
 
-[Read in atlas](index.html#TCS-6500) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://doi.org/10.4230/LIPIcs.ESA.2026.31) · [On Sparse Spanners of Weighted Graphs](https://doi.org/10.1007/BF02189308)
-Existing status: `open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6500) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.31) · [Extremal Numbers of Cycles Revisited](https://authors.library.caltech.edu/records/8w53p-t0j17)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7218 — List edge-coloring conjecture
 
@@ -2113,12 +2127,12 @@ A proper edge coloring assigns different colors to edges that share an endpoint.
 [Read in atlas](index.html#TCS-7218) · [The list chromatic index of a bipartite multigraph](https://doi.org/10.1006/jctb.1995.1011) · [Asymptotics of the list-chromatic index for multigraphs](https://sites.math.rutgers.edu/~jkahn/LMULTI.pdf) · [The List Edge-Coloring Conjecture for Two New Infinite Families of Complete Graphs](https://arxiv.org/abs/2608.22895v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7252 — Triangle covering-to-packing ratio
+### TCS-7252 — Tuza’s triangle packing–covering conjecture
 
-Triangle covering deletes edges to eliminate every triangle, while triangle packing selects edge-disjoint triangles. The target is the supremum ratio of these two integral optima over finite simple graphs with a triangle. Packed triangles may share vertices but cannot share edges. Tuza’s conjecture predicts that the universal ratio equals two. The numerical benchmark requires a Lean-certified value within absolute error 0.01.
+A triangle packing is a collection of triangles sharing no edges, although they may share vertices. A triangle edge transversal is a set of edges whose deletion destroys every triangle. Tuza’s conjecture says that the minimum transversal has size at most twice the maximum packing in every finite simple undirected graph. The factor two is sharp already for the complete graph on four vertices. The target requires a complete Lean-checked proof or counterexample to this exact inequality, with no numerical tolerance.
 
-[Read in atlas](index.html#TCS-7252) · [Triangle packing versus triangle edge transversal](https://www.openproblemgarden.org/op/triangle_packing_vs_triangle_edge_transversal) · [On Tuza’s conjecture in dense graphs](https://doi.org/10.1016/j.dam.2025.06.049) · [Tuza's conjecture for graphs of maximum degree at most seven](https://arxiv.org/abs/2608.06538)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-7252) · [Triangle-packing vs triangle edge-transversal](https://www.openproblemgarden.org/op/triangle_packing_vs_triangle_edge_transversal) · [On Tuza’s conjecture in dense graphs](https://doi.org/10.1016/j.dam.2025.06.049) · [Tuza's conjecture for graphs of maximum degree at most seven](https://arxiv.org/abs/2608.06538v1) · [A Bound Below 2.8 for Tuza's Conjecture](https://arxiv.org/abs/2609.13831v1)
+Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-1206 — Sparsification conjecture
 
