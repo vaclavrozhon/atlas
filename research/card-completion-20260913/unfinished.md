@@ -5,15 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **60**.
+Pending active reviews: **55**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-0560](../../data/cards/TCS-0560.json) | Fine-grained reductions from Hitting Set to 3SUM | Fine-grained complexity | pool |
-| [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
-| [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
-| [TCS-1024](../../data/cards/TCS-1024.json) | Extracting from low-entropy efficiently samplable sources | Pseudorandomness and derandomization | pool |
-| [TCS-0987](../../data/cards/TCS-0987.json) | Deterministic Heavy-Hitters & Fast Matrix Algorithms | Pseudorandomness and derandomization | pool |
 | [TCS-2201](../../data/cards/TCS-2201.json) | Non-malleable extractors from standard extractors | Pseudorandomness and derandomization | pool |
 | [TCS-3958](../../data/cards/TCS-3958.json) | Pseudorandom generators for superlinear-size depth-two threshold circuits | Pseudorandomness and derandomization | pool |
 | [TCS-4778](../../data/cards/TCS-4778.json) | Derandomizing amplified relational computation | Pseudorandomness and derandomization | pool |

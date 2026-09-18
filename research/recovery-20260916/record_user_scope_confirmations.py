@@ -7,6 +7,9 @@ sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
 from complete_review import CRITERIA,reader_record,validate_record,atomic
 DATE='2026-09-18'
 CHOICES={
+'0560':'Logarithmic-dimension Hitting Set with one source exponent saving common to all fixed dimension constants.',
+'6946':'The randomized integer APSP-to-3SUM direction, transferring any fixed subquadratic saving to a fixed subcubic saving.',
+'6025':'Existence of an unbounded-treewidth class of easier patterns with host-size exponent o(tw(H)), instead of the broad classification request.',
 '6885':'Archive the original constant-overhead second-derivative question with the distinct-output product-polynomial counterexample.',
 '6903':'Deterministic noncommutative PIT with polynomial dependence on circuit size and a supplied degree bound D.',
 '6890':'Some explicit polynomial-degree family with efficiently computable rational word coefficients, against circuits with arbitrary complex constants.',

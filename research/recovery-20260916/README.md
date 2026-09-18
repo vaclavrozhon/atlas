@@ -1190,3 +1190,38 @@ checkpoint. Source checkpoint 71d0a884 and deployment
 Concurrent unrelated work remains unstaged; the committed queue therefore has
 854 completed and 60 pending records, while the live inventory additionally
 reflects concurrent work and retirements.
+
+After two hundred and fifteen recovery dispositions, the raw shared queue contains
+860 completed records, 54 pending records and one outside its original scope.
+The live catalogue has 972 active cards: 47 pending active reviews, 773 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-0560 (logarithmic-dimension Hitting Set to 3SUM),
+TCS-6946 (APSP to 3SUM), TCS-6025 (an easier unbounded-treewidth pattern class),
+TCS-1024 (the conditionally resolved low-entropy samplable-extractor target,
+archived), and TCS-0987 (the weaker RIP milestone, merged into TCS-6662 and
+archived). All five target choices were explicitly confirmed by the user.
+The first three confirmations were recorded after initial authoring and do not
+increase the disposition count. The RIP target retains its stronger formulation.
+
+The reductions count all adaptive oracle queries and preserve one source saving
+across fixed dimension or weight exponents. The treewidth card distinguishes
+uncolored Subgraph Isomorphism from partitioned lower bounds and the core-only
+uncolored corollary. The extractor record states the exact E-versus-Sigma-5
+oracle-circuit assumption and polynomial-error theorem; it does not claim the
+separate negligible-error branch resolved. The June 2026 retraction of ECCC
+2026/089 was checked and that preprint was not used as resolution evidence.
+The RIP merge supplies an explicit rational rescaling showing that the existing
+optimal-row target implies the imported weaker norm and row-count milestone.
+
+The full offline check passes. Mathematical rendering passes for 36,759
+expressions across 972 active cards, and desktop/mobile reader checks pass on
+publication 898ce075bd5f1cbc3f71, with 941 detailed active records. The shared
+ledger has 1080 valid entries. All six owned output hashes match their queue rows.
+
+Only these five dispositions, the RIP target amendment, three confirmation
+updates, their scripts, this log and their shared queue, ledger, inventory and
+archival deltas enter the checkpoint. Source checkpoint 19003e22 and deployment
+4a63ed7fc882bd1f5ca48975dbefea0ee34cc181 cover the first 210 dispositions.
+Concurrent unrelated work remains unstaged; the committed queue therefore has
+859 completed and 55 pending records.
