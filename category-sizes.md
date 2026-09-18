@@ -34,7 +34,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 24 |
 | small 17 | Algebraic computation | 2 | 10 | 20 | 60 |
 | small 18 | Lattices and computational number theory | 2 | 10 | 20 | 27 |
-| small 19 | Coding and information theory | 2 | 10 | 20 | 28 |
+| small 19 | Coding and information theory | 2 | 10 | 20 | 27 |
 | small 20 | Property testing and distribution learning | 2 | 10 | 20 | 16 |
 | small 21 | Differential privacy | 2 | 10 | 20 | 4 |
 | small 22 | Constraint satisfaction | 2 | 10 | 20 | 19 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 21 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 3 |
 
-Candidate pool: 976. Inactive records: 6406 (excluded from active work).
+Candidate pool: 975. Inactive records: 6407 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-575 five-sentence working summaries, based on saved source material.
+574 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -3329,7 +3329,7 @@ The shortest-vector problem asks how short a nonzero lattice vector can be. This
 [Read in atlas](index.html#TCS-1170) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Coding and information theory (28)
+## Coding and information theory (27)
 
 ### TCS-6606 — Capacity of the two-user Gaussian interference channel
 
@@ -3450,12 +3450,26 @@ The question asks for explicit binary codes with efficient list decoding through
 [Read in atlas](index.html#TCS-1012) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf#page=154) · [Advances in List Decoding of Polynomial Codes](https://eccc.weizmann.ac.il/report/2026/032/) · [Time- and Space-Efficient List Decoding up to Capacity](https://arxiv.org/abs/2608.15937v1) · [Algorithmic List Decoding at Capacity and Optimal Proximity Gaps for Reed--Solomon Codes](https://eccc.weizmann.ac.il/report/2026/169/)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-6738 — Linear-length locally testable proofs for CircuitSAT
+
+A locally testable proof can be checked by reading only a constant number of its bits. The question asks for such satisfiability proofs with length at most a constant times the number of circuit nodes. For every fixed distance threshold, the tester must reject proofs far from all valid proofs, including when the circuit is satisfiable. The original source also asked about locally testable codes, whose linear-length existence was resolved in 2021. Known quasi-linear PCP results provide related progress but do not meet the retained linear-length proof-testing requirement.
+
+[Read in atlas](index.html#TCS-6738) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/PDF/pt-v3.pdf) · [Introduction to Property Testing: updates to open problems](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html) · [Locally Testable Codes with constant rate, distance, and locality](https://eccc.weizmann.ac.il/report/2021/151/) · [Quasi-Linear Size PCPs with Small Soundness from HDX](https://arxiv.org/abs/2407.12762v2)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-3513 — Explicit positive-rate codes below the Plotkin point
 
 A fixed adversarial channel restricts the types of transmitted words and noise words and transforms each input symbol through a specified table. The source gives a completely positive distribution criterion ensuring that positive-rate codes with a fixed list bound exist. The question asks whether every channel satisfying that criterion also admits deterministic encoders running in polynomial time in blocklength. The card fixes a finite-description channel model, preserves its alphabet and list bound, and specifies uniformity and the permitted infinite set of blocklengths. A resolution would connect a general information-theoretic feasibility criterion with explicit error-correcting constructions across many adversarial channel models.
 
 [Read in atlas](index.html#TCS-3513) · [Generalized List Decoding](https://doi.org/10.4230/LIPIcs.ITCS.2020.51) · [Tight Bounds on List-Decodable and List-Recoverable Zero-Rate Codes](https://doi.org/10.4230/LIPIcs.ITCS.2025.82) · [Probabilistic Guarantees to Explicit Constructions: Local Properties of Linear Codes](https://arxiv.org/abs/2510.06185v2) · [From Random to Explicit via Subspace Designs With Applications to Local Properties and Matroids](https://arxiv.org/abs/2510.13777v1)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-4968 — Do nonlinear binary codes have a strictly better asymptotic rate?
+
+Binary linear codes are vector subspaces, while arbitrary codes can be any sets of binary words. At each fixed relative minimum distance, compare their largest possible asymptotic information rates. The question asks whether arbitrary codes have a strictly higher rate at even one distance between zero and one half. Any fixed positive rate gap counts, but a finite-block advantage or a comparison with one construction does not. The source motivates the comparison through linear-programming hierarchies, and the checked later bound does not resolve it.
+
+[Read in atlas](index.html#TCS-4968) · [A Complete Linear Programming Hierarchy for Linear Codes](https://doi.org/10.4230/LIPIcs.ITCS.2022.51) · [An Elementary Proof of the First LP Bound on the Rate of Binary Codes](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.48)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-1011 — Full-length Reed–Solomon list decoding beyond Johnson
 
@@ -3471,12 +3485,12 @@ Linear rank inequalities constrain the dimensions of every nonempty sum in a col
 [Read in atlas](index.html#TCS-0196) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Linear rank inequalities on five or more variables](https://arxiv.org/abs/0910.0284v3) · [Interaction between skew-representability, tensor products, extension properties, and rank inequalities](https://arxiv.org/abs/2507.10709v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0178 — Bounded-alphabet approximation of entropy-region faces
+### TCS-0178 — Bounded-alphabet approximation of the β = 0 entropy face
 
-An entropy region collects all joint-entropy vectors realizable by random variables. The recorded question concerns approximating its faces using variables with bounded alphabets. A face can encode equalities or limiting relationships that finite-support approximations may struggle to preserve exactly. A suitable alphabet bound could make otherwise unbounded information-theoretic optimization more accessible to certified computation. The saved title does not state which faces, approximation metric, or alphabet dependence are intended, so it remains essential to distinguish approximating a nearby entropy vector from staying on the prescribed face.
+A symmetric three-dimensional slice of the four-variable almost-entropic region has a distinguished face labeled β = 0. The question asks whether every point of that face is a limit of interior points represented by normalized entropy vectors of bounded-alphabet distributions. One finite bound on the alphabet size must work for the whole face and for every requested accuracy. The source reports small-alphabet points on the face but an apparent gap in numerical exploration of the interior. The card fixes the visualization’s coordinate convention and distinguishes actual entropy realizations from transformed almost-entropic samples.
 
-[Read in atlas](index.html#TCS-0178) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0178) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Visualizing the entropy region](https://github.com/lcsirmaz/entropy-rules/blob/089f64bb/visual/DESCRIPTION.md) · [Entropy region and convolution](https://arxiv.org/abs/1310.5957v1)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0184 — Entropic matroid approximations approaching unit ratio
 
@@ -3485,12 +3499,12 @@ The input is an integer-valued polymatroid exactly represented by the joint entr
 [Read in atlas](index.html#TCS-0184) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [On entropic and almost multilinear representability of matroids](https://arxiv.org/abs/2206.03465v3) · [Partition-Symmetrical Entropy Functions](https://arxiv.org/abs/1407.7405v2) · [On the recognition problem for limits of entropy functions](https://arxiv.org/abs/2509.06302v1) · [Entropy approximations of algebraic matroids over finite fields](https://arxiv.org/abs/2509.15348v1) · [Four-Entropic Matroids Are Quaternary](https://arxiv.org/abs/2608.20553v2)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0187 — Field dependence of linear-rank inequalities
+### TCS-0187 — Are characteristic sets of linear-rank inequalities finite or cofinite?
 
-Linear-rank inequalities describe constraints satisfied by dimensions of subspaces over a field. The source question asks how these inequalities depend on the chosen field. Characteristic can change which linear dependencies are possible even when the abstract pattern of subspaces looks similar. Clarifying that dependence would identify which information constraints are universal and which reflect algebraic restrictions of a code's alphabet. The saved entry does not provide the proposed field comparison or number of variables, so a complete problem must specify whether it concerns characteristic, field size, or an exact equality of cones.
+Fix a rational homogeneous linear inequality in the dimensions of sums of finitely many subspaces. For each prime, test whether that inequality holds for every subspace configuration over its prime field, in every finite dimension. The question is whether the set of primes where it holds must be finite or have finite complement. Known characteristic-dependent constructions realize finite and cofinite sets but do not by themselves classify every inequality. This is an explicit specialization of the source’s broader field-dependence question, and its exact current status remains uncertain.
 
-[Read in atlas](index.html#TCS-0187) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0187) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Characteristic-Dependent Linear Rank Inequalities via Complementary Vector Spaces](https://arxiv.org/abs/1903.11587v2) · [Access structures for finding characteristic-dependent linear rank inequalities](https://doi.org/10.14736/kyb-2023-2-0198)
+Existing status: `uncertain` · Summary written: 2026-09-18
 
 ### TCS-0205 — The infimal normalized Ingleton score
 
@@ -3505,27 +3519,6 @@ Binary two-way codes use interaction between communicating parties to tolerate c
 
 [Read in atlas](index.html#TCS-4802) · [Binary Codes with Resilience Beyond \(1/4\) via Interaction](https://doi.org/10.1109/FOCS54457.2022.00008)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4968 — Linear versus nonlinear code parameters
-
-Linear codes form subspaces, whereas general codes may use arbitrary collections of words. The cited source asks whether optimum codes can be very far from linear codes in their achievable parameters. It motivates the question by contrasting a complete linear-code programming hierarchy with a hierarchy that collapses in a broader setting. A substantial separation would show that linearity sacrifices inherent coding performance rather than only simplifying construction. The saved question does not quantify “very far” or specify the asymptotic regime, so it still needs a concrete rate, distance, or size comparison.
-
-[Read in atlas](index.html#TCS-4968) · [A Complete Linear Programming Hierarchy for Linear Codes](https://doi.org/10.4230/LIPIcs.ITCS.2022.51)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6738 — Linear-length locally testable codes and proofs
-
-Locally testable codes and proofs allow a verifier to inspect a few positions instead of reading the entire representation. The saved 2017 textbook question asks whether they can have length linear in the underlying information size. Linear length would keep redundancy small while retaining the ability to detect a globally incorrect object locally. The question connects economical encoding with the power of sparse verification. The historical note does not reproduce the query and soundness regime, and this drafting pass does not promote its old existence question to a verified claim of present openness.
-
-[Read in atlas](index.html#TCS-6738) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6739 — Locally decodable versus relaxed locally decodable code length
-
-A locally decodable code recovers a requested bit reliably from a corrupted codeword using few queries. A relaxed locally decodable code may sometimes signal failure instead of returning an incorrect bit under its prescribed rules. The textbook asks for a separation in the lengths achievable by these two models. Such a separation would quantify how much redundancy can be saved by allowing carefully controlled abstention. The saved note does not specify the locality and rejection guarantees, so those conditions must match before two constructions can establish the intended asymptotic difference.
-
-[Read in atlas](index.html#TCS-6739) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Property testing and distribution learning (16)
 
