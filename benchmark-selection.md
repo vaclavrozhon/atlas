@@ -4,7 +4,7 @@ Reviewed on 2026-09-12 across 35 categories.
 
 Our primary goal is a benchmark of 500 problems. Top 100 is a priority subset of those same 500, with secondary editorial attention. Both use the same category order and the same ranking within each category. The existing Top 1000 view is not an active benchmark goal.
 
-Individual editorial review of saved titles, importance rationales, problem statements, source notes and working summaries. This is a review of importance and topical diversity, not a fresh verification of open status or completion of draft formulations. Importance scores are preserved.
+Individual category-wide review of every active card, reading its title, formal target and significance, with additional saved context where needed. Scientific importance is primary: foundational scope, breadth of consequences and influence on other questions. Topical diversity distinguishes comparably important candidates in the focus prefix. Every card receives a fresh score assessment and an individual reason; the remaining order follows these scores. Nearby scores are editorial priorities rather than precise measurements. In the live reader, shared vote scores remain primary and the editorial order only breaks ties. This review does not recertify open status or formulation quality.
 
 Top 100 takes the first 5/2 places in each large/small category. Top 500 takes the first 25/10 and the legacy Top 1000 view takes the first 50/20 places from the same order. Top 100 is contained in Top 500, which is contained in Top 1000. Focus places balance scientific importance and topical diversity; remaining places retain score order. None of these subsets certifies current open status.
 
@@ -49,9 +49,9 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 
 ## Computational complexity
 
-Keep the central P versus NP question and major time/space questions, but replace polynomial-hierarchy strictness and NP circuit lower bounds with shallow-circuit separation and the structure of complete sets. This avoids spending all five places on variants of the same NP separation barrier.
+Foundational barriers lead: efficient verification, unrestricted nonuniform lower bounds, polynomial space, logarithmic-space nondeterminism, and metacomplexity. Diversity only separates nearby priorities; related P-versus-NP and circuit questions remain high in the full ranking. General resource simulations and total-search structure precede narrower representation and closure questions.
 
-Previous prefix: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531.
+Previous prefix: TCS-0001, TCS-6530, TCS-6531, TCS-6535, TCS-6534.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
@@ -61,13 +61,13 @@ Previous prefix: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531.
 | 4 | [Nonuniform \(\mathrm{TC}^{0}\) versus \(\mathrm{NC}^{1}\)](index.html#TCS-6535) (TCS-6535) | Shallow threshold circuits | 97 | A flagship unresolved containment between basic circuit classes, with explicit complete problems and connections to arithmetic, algebraic automata theory, and lower-bound amplification. |
 | 5 | [Berman–Hartmanis conjecture](index.html#TCS-6534) (TCS-6534) | Structure of complete problems | 96 | A defining structural-complexity conjecture about the entire NP-complete degree, stronger than P≠NP and supported by substantial restricted-model theorems and oracle barriers. |
 
-Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-6535, TCS-0002, TCS-0015, TCS-0016, TCS-6534, TCS-6533, TCS-0004, TCS-0020, TCS-1056, TCS-0018, TCS-1054, TCS-6681.
+Candidates considered: TCS-0001, TCS-0021, TCS-6530, TCS-0004, TCS-4786, TCS-0002, TCS-0015, TCS-6532, TCS-6531, TCS-6535, TCS-0020, TCS-4988, TCS-6977, TCS-0016, TCS-7158, TCS-0017, TCS-7161, TCS-7286, TCS-7363, TCS-1056, TCS-6534, TCS-6743, TCS-6817, TCS-7321, TCS-0018, TCS-0293, TCS-2333, TCS-6533, TCS-7256, TCS-7268, TCS-1054, TCS-6934, TCS-6979, TCS-7382, TCS-0019, TCS-6747, TCS-7378, TCS-7381, TCS-5593, TCS-6091, TCS-6168, TCS-6455, TCS-7159, TCS-1053, TCS-6714, TCS-7257, TCS-0303, TCS-1052, TCS-6006, TCS-6285, TCS-0297, TCS-0298, TCS-0301, TCS-2681, TCS-4746, TCS-6681, TCS-7243, TCS-1040, TCS-2532, TCS-3886, TCS-2425, TCS-7260, TCS-0305, TCS-2215, TCS-3862, TCS-6139, TCS-1602, TCS-2029, TCS-1035, TCS-1036, TCS-1034, TCS-0310.
 
 ## Algorithms
 
-The focus spans integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and directed reachability distance. These choices balance saved importance and distinct algorithmic tasks without changing statements, evidence or importance scores. The September 11 interest screen removed TCS-0477; replacement focus choices remain unreviewed.
+Lead with basic algorithmic primitives and broad compression principles. Sorting, output-sensitive Subset Sum, hypergraph cuts, additive distances and implicit representations provide distinct high-value directions. Structural classification questions remain ahead of specialized runtime refinements; historical scores of 50 do not discount substantial routing and reconstruction problems.
 
-Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
+Previous prefix: TCS-6537, TCS-0388, TCS-0946, TCS-1141.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
@@ -77,11 +77,11 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | 4 | [Near-linear-time approximation of reachability diameter](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
 | 5 | [Near-linear output-sensitive Subset Sum](index.html#TCS-7350) (TCS-7350) | Needs review | 90 | Unreviewed replacement |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0474, TCS-0771, TCS-0946, TCS-1141.
+Candidates considered: TCS-6537, TCS-7350, TCS-0946, TCS-6783, TCS-5705, TCS-0388, TCS-1338, TCS-6251, TCS-6785, TCS-2018, TCS-4417, TCS-6421, TCS-1617, TCS-5969, TCS-7351, TCS-3263, TCS-3346, TCS-6270, TCS-6784, TCS-7075, TCS-7146, TCS-1141, TCS-7061, TCS-6173, TCS-2822, TCS-0538, TCS-0809.
 
 ## Automata and formal languages
 
-Keep synchronization, succinctness, expression complexity, logical classification and transducer equivalence. Generalized star height and dot depth both concern regular languages but measure different structural questions.
+The principal finite-state and language-expression landmarks lead. Higher-order recursive equivalence joins synchronization, two-way nondeterminism, star height and dot depth in the prefix. Tree transformations, logical definability and unique parsing follow closely; quantitative, timed and cellular models broaden the rest without displacing stronger foundational questions.
 
 Previous prefix: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563.
 
@@ -93,13 +93,13 @@ Previous prefix: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563.
 | 4 | [Decidability of every level of the dot-depth hierarchy](index.html#TCS-6561) (TCS-6561) | Logical language hierarchies | 95 | A longstanding structural decision problem linking finite automata, logical definability and finite monoids; a full solution would explain much more than the known low-level algorithms. |
 | 5 | [Equivalence of deterministic macro tree transducers](index.html#TCS-6563) (TCS-6563) | Tree-transducer equivalence | 95 | A central longstanding transducer-equivalence problem, connecting functional program verification with finite-state methods, algebraic invariants and structural recursion. |
 
-Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0146, TCS-0135, TCS-0167, TCS-0136.
+Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6582, TCS-6563, TCS-6564, TCS-0164, TCS-7261, TCS-5904, TCS-7309, TCS-3863, TCS-0135, TCS-0154, TCS-0167, TCS-6064, TCS-4575, TCS-5959, TCS-0146, TCS-5651, TCS-2243, TCS-0138, TCS-5863, TCS-5738, TCS-0128, TCS-4677, TCS-3378, TCS-0136, TCS-4636, TCS-4659, TCS-0133.
 
 ## Semantics, logic and verification
 
-Retain one recurrence problem and one quantitative-game problem; use the other places for dependent types, denotational models and type-system consistency. Continuous Skolem and mean-payoff games remain highly ranked outside the prefix instead of duplicating its two initial strands.
+Parity games, Skolem decidability, real exponentiation and stochastic games are the broadest algorithmic landmarks. Internal semisimplicial types represents foundational expressiveness among nearby priorities. Positivity and mean-payoff games remain immediately below rather than filling the prefix with related dynamics and game variants; general logical and program-equivalence boundaries precede dimension-specific refinements.
 
-Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
+Previous prefix: TCS-6565, TCS-6567, TCS-6569, TCS-6570, TCS-6583.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
@@ -109,11 +109,11 @@ Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
 | 4 | [Scott-continuous lambda models with theory \(\lambda \beta\)](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
 | 5 | [Barendregt–Geuvers–Klop conjecture](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
 
-Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632.
+Candidates considered: TCS-4245, TCS-5773, TCS-7230, TCS-6567, TCS-6569, TCS-6565, TCS-6568, TCS-7192, TCS-6570, TCS-7157, TCS-6566, TCS-6583, TCS-1649, TCS-7153, TCS-5915, TCS-5682, TCS-5987, TCS-4302, TCS-6245, TCS-3655, TCS-6359, TCS-5817, TCS-7154, TCS-0632, TCS-7310, TCS-6036, TCS-3031, TCS-6112, TCS-5975, TCS-2033, TCS-4017, TCS-0913, TCS-0896, TCS-0901, TCS-1659, TCS-0619, TCS-0092.
 
 ## Distributed, parallel and sublinear algorithms
 
-Keep the existing five: they cover general parallel computation, streaming, deterministic parallel matching, locality and bandwidth. General parallelizability and matching are related, but the derandomization problem has its own central motivation.
+General parallelizability leads, followed by deterministic matching, distributed locality, streaming reachability and unconditional bandwidth lower bounds. Work-efficient reachability and flow remain very high. The full selection also represents MPC, shared-memory synchronization, local computation and sketches; small logarithmic or model-specific refinements follow broader barriers.
 
 Previous prefix: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555.
 
@@ -125,13 +125,13 @@ Previous prefix: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555.
 | 4 | [Distributed Lovász Local Lemma in \(O(\log  \log  n)\) rounds](index.html#TCS-6554) (TCS-6554) | Local distributed symmetry breaking | 94 | A canonical obstacle to resolving local conflicts rapidly, with consequences for many distributed graph algorithms. |
 | 5 | [Optimal exact single-source shortest paths in CONGEST](index.html#TCS-6555) (TCS-6555) | Bandwidth-limited distributed paths | 94 | A basic distributed graph primitive with an unresolved gap between algorithms and communication lower bounds. |
 
-Candidates considered: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555, TCS-6557, TCS-6507, TCS-0522, TCS-6499, TCS-6505, TCS-6506, TCS-0998, TCS-0515.
+Candidates considered: TCS-6553, TCS-6504, TCS-6554, TCS-6556, TCS-6557, TCS-6507, TCS-7349, TCS-6505, TCS-6499, TCS-6555, TCS-7172, TCS-6506, TCS-7336, TCS-0984, TCS-0998, TCS-0515, TCS-0954, TCS-0950, TCS-0969, TCS-4274, TCS-0940, TCS-0986, TCS-7010, TCS-0522, TCS-3792, TCS-5795, TCS-0980, TCS-6501, TCS-5797, TCS-7259, TCS-7337, TCS-0519, TCS-3075, TCS-7376, TCS-0524, TCS-0993, TCS-2233, TCS-6380, TCS-0469, TCS-4763, TCS-1588, TCS-3381, TCS-6080, TCS-6206, TCS-0994, TCS-3384, TCS-0985, TCS-0834, TCS-0849.
 
 ## Optimization and numerical computation
 
-The prefix spans linear programming, exact semidefinite feasibility, integral packing and covering, sparse numerical linear algebra and geometric energy optimization. The k-server conjecture now represents the dedicated online category; the packing versus max-flow min-cut conjecture fills its former place without duplicating the LP algorithm question.
+Strongly polynomial LP, general sparse linear systems, exact SDP, Komlos discrepancy and simplex complexity form the strongest distinct optimization barriers. Broad integer and complementarity primitives follow. Named constructions do not automatically outrank general optimization principles, and refined runtime or oracle tradeoffs are ordered by the scope of their consequences.
 
-Previous prefix: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585.
+Previous prefix: TCS-0008, TCS-6574, TCS-7227, TCS-6585, TCS-6578.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
@@ -141,11 +141,11 @@ Previous prefix: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585.
 | 4 | [Nearly linear-time solution of general sparse linear systems](index.html#TCS-6585) (TCS-6585) | Numerical linear algebra | 97 | A fundamental input-size complexity question for one of the most widely used computational primitives, with meaningful positive results for structured classes and general reductions from apparently special systems. |
 | 5 | [Smale’s seventh problem](index.html#TCS-6578) (TCS-6578) | Geometric energy optimization | 94 | Smale's seventh problem asks for efficient construction of globally near-optimal configurations. |
 
-Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6585, TCS-6576, TCS-6577, TCS-6578, TCS-0491, TCS-0724, TCS-0728, TCS-0722, TCS-7227, TCS-7226.
+Candidates considered: TCS-0008, TCS-6585, TCS-6574, TCS-7314, TCS-6572, TCS-7264, TCS-7231, TCS-7315, TCS-7283, TCS-7227, TCS-6483, TCS-0722, TCS-6578, TCS-7226, TCS-7298, TCS-0724, TCS-7007, TCS-5330, TCS-0491, TCS-0728, TCS-0687, TCS-0725, TCS-0914, TCS-0673.
 
 ## Geometry, topology and metric spaces
 
-The existing leaders cover concentration, embeddings, topology, polytope diameter and planar incidence structure. Keep this mix; the saved claimed-solution caveat on unknot recognition remains visible. The later user-authorized quantitative review restores TCS-0318 to its former focus position because an unknown answer format is not a defect in its defined extremal target.
+The prefix spans convex concentration, metric distortion, polyhedral paths, planar extremal geometry and algorithmic topology. Basic topology decidability questions formerly carrying low scores move near the top. Broad geometric primitives and compression principles precede finer certificate variants and specialized representation targets.
 
 Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 
@@ -157,13 +157,13 @@ Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 | 4 | [Polynomial Hirsch conjecture](index.html#TCS-6573) (TCS-6573) | Polytope geometry | 95 | The surviving fundamental diameter question after the original Hirsch bound failed; it separates geometric existence of short routes from algorithmic navigation and the newly resolved circuit analogue. |
 | 5 | [Planar k-set extremal function](index.html#TCS-0318) (TCS-0318) | Planar extremal geometry | 94 | A defining two-parameter extremal problem underlying levels and geometric selection; its source-defined asymptotic function is admissible under the restored numerical/function policy. |
 
-Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
+Candidates considered: TCS-6523, TCS-6525, TCS-6573, TCS-0318, TCS-6528, TCS-7242, TCS-6199, TCS-6524, TCS-6526, TCS-7292, TCS-6527, TCS-0406, TCS-7184, TCS-0403, TCS-6880, TCS-0973, TCS-7006, TCS-0408, TCS-0410, TCS-0381, TCS-0411, TCS-7182, TCS-0417, TCS-0970, TCS-0382, TCS-0427, TCS-0377, TCS-0416, TCS-0990, TCS-0398, TCS-0419, TCS-0327, TCS-0430, TCS-7189, TCS-0432, TCS-0428, TCS-0340, TCS-4454, TCS-3059, TCS-0409.
 
 ## Learning theory
 
-Retain sample compression, noisy learning, junta learning and the information complexity of VC learning. After source correction and a full review, select distribution-free improper PAC learning of DNF in place of the narrower two-halfspace question: DNF is a foundational general rule-learning target. Its implication for uniform-example junta learning is documented; both remain individually significant. TCS-0023 is a retired, mislabelled junta-source pointer and is not another DNF problem. The September 11 interest screen removed TCS-0679; replacement focus choices remain unreviewed.
+Distribution-free DNF learning, universal sample compression and noisy parity are the defining landmarks. The prefix also includes the learning-to-cryptography bridge and statistically separated Gaussian mixtures; these broaden the leading questions without excluding juntas and halfspaces from the next positions. General computational and statistical principles precede narrower compression conventions or model-specific refinements.
 
-Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
+Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-5358.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
@@ -173,13 +173,13 @@ Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) (TCS-5358) | Distribution-free Boolean rule learning | 97 | A defining improper PAC-learning question for compact Boolean rules under arbitrary input distributions, with broad consequences for decision-tree and junta learning. The general target and its conditional-hardness evidence are now stated precisely. |
 | 5 | [Efficient learning of well-separated Gaussian mixtures](index.html#TCS-3391) (TCS-3391) | Needs review | 92 | Unreviewed replacement |
 
-Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-5358.
+Candidates considered: TCS-5358, TCS-6541, TCS-6542, TCS-5090, TCS-3391, TCS-6543, TCS-7293, TCS-1573, TCS-5088, TCS-2336, TCS-7294, TCS-5119, TCS-6544, TCS-4592, TCS-5847, TCS-2339, TCS-5087, TCS-5902, TCS-3117, TCS-4186, TCS-1539, TCS-5031, TCS-4792, TCS-5434, TCS-0670, TCS-3177, TCS-3691, TCS-0677, TCS-3787, TCS-0664, TCS-0683, TCS-0682, TCS-3689, TCS-0671, TCS-0694, TCS-0689.
 
 ## Cryptography
 
-Balance public-key existence, worst-case foundations, obfuscation, homomorphic computation and perfect secret sharing. Move oblivious transfer and collision resistance below the focus prefix to avoid filling it with neighboring primitive-implication questions. General secret-sharing efficiency contributes a distinct information-theoretic barrier.
+Start with the existence and minimal foundations of cryptography. Public-key encryption from one-wayness, worst-case-to-average-case hardness, obfuscation and oblivious transfer are comparably consequential distinct barriers. Related existence and encryption-strengthening variants remain high; information-theoretic primitives add diversity only after the stronger general assumption questions.
 
-Previous prefix: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547.
+Previous prefix: TCS-6545, TCS-0022, TCS-6550, TCS-6551, TCS-0465.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
@@ -189,13 +189,13 @@ Previous prefix: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547.
 | 4 | [Unleveled fully homomorphic encryption from LWE alone](index.html#TCS-6551) (TCS-6551) | Computation on encrypted data | 95 | A central foundational gap in fully homomorphic encryption, separating established leveled LWE constructions from reusable fixed-depth-independent keys and their extra security assumptions. |
 | 5 | [Sub-square-root share-size exponents in perfect secret sharing](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
 
-Candidates considered: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547, TCS-6546, TCS-6548, TCS-6551, TCS-6552, TCS-0465, TCS-6454, TCS-1138.
+Candidates considered: TCS-7167, TCS-6545, TCS-0022, TCS-6550, TCS-6549, TCS-7168, TCS-7229, TCS-6547, TCS-6551, TCS-6552, TCS-6548, TCS-7277, TCS-6546, TCS-6953, TCS-7359, TCS-7272, TCS-7276, TCS-5793, TCS-6871, TCS-0465, TCS-6692, TCS-7274, TCS-6454, TCS-7225, TCS-3025, TCS-7278, TCS-5013, TCS-2732, TCS-4754, TCS-1138.
 
 ## Quantum computation and information
 
-Keep computational hardness, algorithmic power, many-body structure and verification; use NPT bound entanglement for the fifth place instead of a second local-testability question alongside quantum PCP.
+Quantum computational advantage leads, followed by robust quantum verification, ground-state structure, classical verification and distillability. Quantum coding, witness power and channel computability stay close. The Top 500 prefix spans algorithms, information, proofs, communication and storage; multiple oracle or proof-system variants come after their broader underlying barriers.
 
-Previous prefix: TCS-6446, TCS-0036, TCS-6516, TCS-6580, TCS-6515.
+Previous prefix: TCS-6446, TCS-0036, TCS-6516, TCS-6580, TCS-6518.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
@@ -205,37 +205,37 @@ Previous prefix: TCS-6446, TCS-0036, TCS-6516, TCS-6580, TCS-6515.
 | 4 | [Information-theoretic classical verification of quantum computation](index.html#TCS-6580) (TCS-6580) | Classical verification | 97 | A central quantum-complexity question connecting interactive proofs, delegation and the minimum resources needed to verify computations beyond classical simulation. |
 | 5 | [NPT bound entanglement](index.html#TCS-6518) (TCS-6518) | Entanglement distillation | 96 | A central structural boundary in entanglement theory, with canonical finite-dimensional candidates and consequences for what quantum correlations can accomplish under local operations. |
 
-Candidates considered: TCS-6446, TCS-0036, TCS-6516, TCS-6580, TCS-6515, TCS-6517, TCS-6518, TCS-6519, TCS-0037, TCS-6448, TCS-6520, TCS-6521, TCS-6522, TCS-0029, TCS-6449, TCS-0033.
+Candidates considered: TCS-0036, TCS-6446, TCS-6516, TCS-6580, TCS-6518, TCS-0037, TCS-6448, TCS-6515, TCS-4615, TCS-6517, TCS-6520, TCS-6519, TCS-6521, TCS-2229, TCS-4952, TCS-6522, TCS-7308, TCS-3709, TCS-5077, TCS-6459, TCS-0029, TCS-4737, TCS-6933, TCS-1961, TCS-6449, TCS-0027, TCS-3275, TCS-4753, TCS-0034, TCS-4991, TCS-0033, TCS-2408, TCS-4457, TCS-4734, TCS-5202, TCS-1882, TCS-6481, TCS-1259, TCS-1324, TCS-4715, TCS-4894, TCS-0861, TCS-5021, TCS-4927, TCS-6447, TCS-0031, TCS-0862, TCS-4238, TCS-0030, TCS-4811, TCS-2707, TCS-0860.
 
 ## Computability and algorithmic information theory
 
-Pair Martin’s conjecture with Kolmogorov–Loveland randomness. Move rigidity of the Turing degrees below the prefix to avoid using both places for degree structure.
+Martin's conjecture and the equivalence of foundational randomness notions lead, with rigidity immediately adjacent in importance. Exact Busy Beaver and major definability and decidability questions precede resource-bounded information variants. Diversity distinguishes the two focus topics without demoting the central structure of Turing degrees.
 
-Previous prefix: TCS-6646, TCS-6647.
+Previous prefix: TCS-6646, TCS-6648.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Martin’s conjecture](index.html#TCS-6646) (TCS-6646) | Invariant degree-theoretic functions | 98 | A flagship conjecture about the global structure of Turing degrees and the classification of invariant computational operations. |
 | 2 | [Kolmogorov–Loveland randomness versus Martin-Löf randomness](index.html#TCS-6648) (TCS-6648) | Algorithmic randomness | 96 | A defining open question linking computability, adaptive information access, fair betting and effective null tests; a resolution would settle the relationship between two foundational randomness notions. |
 
-Candidates considered: TCS-6646, TCS-6647, TCS-6648, TCS-6685, TCS-6649, TCS-6679, TCS-0247.
+Candidates considered: TCS-6646, TCS-6648, TCS-6647, TCS-6685, TCS-6679, TCS-6649, TCS-6105, TCS-7193, TCS-5010, TCS-2202, TCS-0250, TCS-0247, TCS-0254, TCS-0238, TCS-0287, TCS-0279, TCS-4185, TCS-0240.
 
 ## Proof complexity
 
-Pair Extended Frege lower bounds with Frege versus Extended Frege simulation. Replace a second nested lower-bound target with a distinct comparison of proof systems.
+Strong proof lower bounds and the existence of a universal efficiently translatable proof system are the two leading themes. Frege and modular-Frege barriers stay immediately below. Proof search, bounded arithmetic and arithmetic-system strength diversify the Top 500 before narrower resolution resource refinements.
 
-Previous prefix: TCS-6601, TCS-6602.
+Previous prefix: TCS-6601, TCS-6663.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Superpolynomial Extended Frege lower bounds](index.html#TCS-6601) (TCS-6601) | Proof-length lower bounds | 99 | A defining open lower-bound problem for strong propositional reasoning, closely connected to bounded arithmetic, circuit complexity, and the limits of efficiently checkable certificates. |
 | 2 | [Frege versus Extended Frege](index.html#TCS-6663) (TCS-6663) | Relative strength of proof systems | 97 | A canonical strong-system simulation problem, directly tied to Frege lower bounds, finite consistency and circuit-based reasoning. |
 
-Candidates considered: TCS-6601, TCS-6602, TCS-6663, TCS-0025, TCS-0024, TCS-1099, TCS-1096, TCS-1097.
+Candidates considered: TCS-6601, TCS-7162, TCS-0025, TCS-6602, TCS-6663, TCS-5332, TCS-1099, TCS-7273, TCS-0024, TCS-6770, TCS-1253, TCS-7163, TCS-1098, TCS-5333, TCS-5114, TCS-6771, TCS-4982, TCS-6766, TCS-5292, TCS-6759, TCS-1097, TCS-1096, TCS-2889, TCS-6768, TCS-6767, TCS-0071.
 
 ## Communication complexity and Boolean function analysis
 
-Keep the log-rank and Fourier Entropy–Influence conjectures, representing the communication and Boolean-analysis sides of the category.
+Log-rank and Fourier entropy-influence remain the strongest complementary anchors. Universal structure theorems, randomized direct sums and interactive compression rank above fine quantitative refinements. Several formerly low-scored cards express general principles and move substantially upward after reading their exact targets.
 
 Previous prefix: TCS-6603, TCS-6604.
 
@@ -244,11 +244,11 @@ Previous prefix: TCS-6603, TCS-6604.
 | 1 | [Log-rank conjecture](index.html#TCS-6603) (TCS-6603) | Communication versus rank | 98 | A flagship structural conjecture linking deterministic protocols and matrix rank, with many equivalent combinatorial formulations and a large quantitative gap. |
 | 2 | [Fourier Entropy–Influence conjecture](index.html#TCS-6604) (TCS-6604) | Fourier information and influence | 97 | A longstanding, broadly consequential conjecture in Boolean function analysis, with direct learning-theory implications and active 2026 progress that still leaves the universal classical inequality open. |
 
-Candidates considered: TCS-6603, TCS-6604, TCS-6605, TCS-6581, TCS-6664, TCS-6450.
+Candidates considered: TCS-6603, TCS-6604, TCS-6605, TCS-6581, TCS-5892, TCS-7219, TCS-6450, TCS-5326, TCS-6664, TCS-6710, TCS-1061, TCS-6708, TCS-1047, TCS-6707, TCS-2658, TCS-4771, TCS-1059, TCS-0540, TCS-3153, TCS-5272, TCS-6705, TCS-6711, TCS-2664, TCS-0811, TCS-2571, TCS-1845, TCS-5189, TCS-0218.
 
 ## Fine-grained complexity
 
-Keep SETH and APSP. This avoids choosing SETH together with its closely related Orthogonal Vectors formulation for both places.
+SETH and the cubic APSP barrier remain the two anchors. The next positions cover independent foundations in 3SUM, OV, online products, convolution and gap hardness. Randomized or integer-weight variants retain substantial priority but follow the first representatives of similarly important barriers, so the Top 500 does not concentrate on repeated formulations.
 
 Previous prefix: TCS-6595, TCS-6510.
 
@@ -257,11 +257,11 @@ Previous prefix: TCS-6595, TCS-6510.
 | 1 | [Strong Exponential Time Hypothesis](index.html#TCS-6595) (TCS-6595) | Satisfiability exponents | 99 | A principal organizing hypothesis of fine-grained complexity, connecting exact SAT complexity to tight running-time barriers across many algorithmic areas. |
 | 2 | [Truly subcubic APSP](index.html#TCS-6510) (TCS-6510) | Weighted graph distances | 97 | Truly subcubic exact weighted APSP is a central fine-grained benchmark with consequences for a large family of graph and matrix problems. |
 
-Candidates considered: TCS-6595, TCS-6510, TCS-6596, TCS-6597, TCS-6661, TCS-6503, TCS-6598, TCS-0557.
+Candidates considered: TCS-6595, TCS-6510, TCS-0557, TCS-6596, TCS-6503, TCS-6598, TCS-6597, TCS-7313, TCS-6935, TCS-7179, TCS-6661, TCS-6937, TCS-6599, TCS-7270, TCS-0562, TCS-6946, TCS-5422, TCS-7373, TCS-6944, TCS-7347, TCS-6950, TCS-0815, TCS-6949, TCS-6025, TCS-6942, TCS-6945, TCS-0761, TCS-0560.
 
 ## Pseudorandomness and derandomization
 
-Keep general polynomial-time derandomization and explicit generators for read-once branching programs. The second adds a concrete space-bounded construction target rather than another general BPP simulation claim.
+The two fundamental resource equalities, P versus BPP and L versus BPL, lead. Explicit branching-program generators remain close, followed by independent construction frontiers in extraction, restricted isometries and expanders. General hardness-randomness principles outrank narrower parameter improvements; low historical scores do not hide canonical prime construction.
 
 Previous prefix: TCS-0003, TCS-6600.
 
@@ -270,11 +270,11 @@ Previous prefix: TCS-0003, TCS-6600.
 | 1 | [P versus BPP](index.html#TCS-0003) (TCS-0003) | General derandomization | 97 | The main general derandomization question for polynomial-time decision algorithms, with broad consequences for the role of randomness and for hardness-versus-randomness techniques. |
 | 2 | [Optimal explicit pseudorandom generators for read-once branching programs](index.html#TCS-6600) (TCS-6600) | Space-bounded pseudorandomness | 97 | A central constructive route to L=BPL, with optimal nonconstructive seed length known and a persistent gap for uniform space-efficient generators despite advances in restricted and weighted models. |
 
-Candidates considered: TCS-0003, TCS-6600, TCS-6662, TCS-1005, TCS-0026, TCS-1018, TCS-1015, TCS-1016.
+Candidates considered: TCS-0003, TCS-0026, TCS-6600, TCS-7271, TCS-6662, TCS-6699, TCS-6686, TCS-6879, TCS-6696, TCS-1021, TCS-5341, TCS-6693, TCS-1005, TCS-5798, TCS-6689, TCS-6729, TCS-5287, TCS-1137, TCS-1956, TCS-1015, TCS-1125, TCS-1019, TCS-1022, TCS-1133, TCS-3958, TCS-1006, TCS-1016, TCS-0854, TCS-3986, TCS-1013, TCS-1014, TCS-1122, TCS-1131, TCS-1008, TCS-1018, TCS-4778, TCS-2201, TCS-1135, TCS-1124, TCS-1007.
 
 ## Parameterized complexity and algorithms
 
-Keep the two central perspectives of this bucket: dependence on a parameter and the exponential rate of exact satisfiability algorithms.
+FPT versus W[1] and ETH remain the foundational anchors. Exact TSP, Subset Sum and Set Cover provide distinct exponential-time barriers. Structural recognition and general kernelization principles fill out the primary selection, including substantial preprocessing questions previously left at 50; specialized deletion and representation variants follow.
 
 Previous prefix: TCS-6592, TCS-6593.
 
@@ -283,11 +283,11 @@ Previous prefix: TCS-6592, TCS-6593.
 | 1 | [FPT versus \(\mathrm{W}[1]\)](index.html#TCS-6592) (TCS-6592) | Parameterized tractability | 99 | The defining unresolved tractability separation of parameterized complexity, with Clique as a precise and widely used complete problem. |
 | 2 | [Exponential Time Hypothesis](index.html#TCS-6593) (TCS-6593) | Exact exponential algorithms | 98 | A foundational quantitative hardness hypothesis underlying exact, parameterized, graph, and geometric algorithm lower bounds. |
 
-Candidates considered: TCS-6592, TCS-6593, TCS-6594, TCS-6660, TCS-0787.
+Candidates considered: TCS-6592, TCS-6593, TCS-7233, TCS-4790, TCS-6594, TCS-7241, TCS-6731, TCS-4695, TCS-6379, TCS-6660, TCS-0787, TCS-7035, TCS-2804, TCS-6974, TCS-6734, TCS-7312, TCS-0801, TCS-7181, TCS-6749, TCS-7023, TCS-0816, TCS-6728, TCS-3480, TCS-4289, TCS-5374, TCS-7022, TCS-7247, TCS-2662, TCS-6814, TCS-3917, TCS-4440, TCS-7027, TCS-1945, TCS-0808, TCS-0800, TCS-0597, TCS-0799.
 
 ## Approximation algorithms and inapproximability
 
-Keep an algorithmic approximation frontier and a general hardness conjecture. Their relationship to NP hardness does not erase the distinct algorithmic and hardness roles.
+Unique Games leads as a general organizing conjecture, with Densest k-Subgraph the complementary algorithmic flagship. Directed design, sparse cuts, routing, covering, submodularity and clustering populate the next priorities. Universal hardness and rounding principles precede narrower variants; LP gaps remain distinguished from the true approximation limits of all algorithms.
 
 Previous prefix: TCS-6587, TCS-0006.
 
@@ -296,24 +296,24 @@ Previous prefix: TCS-6587, TCS-0006.
 | 1 | [Constant-factor approximation for Densest k-Subgraph](index.html#TCS-6587) (TCS-6587) | Approximation algorithms for dense subgraphs | 97 | A flagship approximation problem with a simple objective, a large algorithmic gap, strong conditional and relaxation barriers, and consequences for several other optimization problems. |
 | 2 | [Unique Games Conjecture](index.html#TCS-0006) (TCS-0006) | Hardness of approximation | 96 | An organizing conjecture for approximation thresholds, with consequences for whole families of constraint satisfaction problems and strong connections to SDP algorithms, PCPs, and analysis. |
 
-Candidates considered: TCS-6587, TCS-0006, TCS-6588, TCS-6589, TCS-6659, TCS-6590, TCS-6591.
+Candidates considered: TCS-0006, TCS-6587, TCS-6588, TCS-7266, TCS-7282, TCS-7356, TCS-7160, TCS-5407, TCS-6659, TCS-1930, TCS-7281, TCS-6589, TCS-6591, TCS-7353, TCS-7358, TCS-6309, TCS-7357, TCS-5544, TCS-6757, TCS-5787, TCS-7380, TCS-7287, TCS-7318, TCS-6590, TCS-7354, TCS-6756, TCS-2625, TCS-0922, TCS-1168, TCS-5554.
 
 ## Online algorithms, scheduling and packing
 
-The user merged the online and scheduling/packing categories with one small-category quota. Pair the deterministic k-server competitive function with unrelated-machine makespan to represent competitive analysis and offline scheduling. Bandit convex optimization and bin packing remain active candidates below this two-problem focus prefix; importance scores are preserved.
+The matroid secretary conjecture and unrelated-machine scheduling lead as complementary central problems in the merged category. Precedence, additive packing, server movement, geometric chasing and limited feedback stay near the top. Equivalent contention resolution follows its secretary representative; specialized regret and scheduling refinements do not dominate the prefix.
 
-Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
+Previous prefix: TCS-6638.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Breaking two for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 | 2 | [Breaking two for precedence-constrained makespan](index.html#TCS-6676) (TCS-6676) | Needs review | 96 | Unreviewed replacement |
 
-Candidates considered: TCS-0700, TCS-1241, TCS-1529, TCS-5030, TCS-5221, TCS-5252, TCS-5779, TCS-6576, TCS-6577, TCS-6836, TCS-6638, TCS-6676, TCS-6640, TCS-0935, TCS-0922.
+Candidates considered: TCS-7316, TCS-6638, TCS-6676, TCS-6640, TCS-7317, TCS-6576, TCS-6577, TCS-0935, TCS-7319, TCS-6721, TCS-6724, TCS-1529, TCS-7335, TCS-5779, TCS-5221, TCS-5030, TCS-6078, TCS-1241, TCS-6836, TCS-0700, TCS-5252.
 
 ## Beyond worst-case and average-case analysis
 
-Keep planted clique and the worst-case-to-average-case NP question. This balances a canonical average-case model with a general complexity-foundations question instead of choosing two planted-inference thresholds.
+Worst-case-to-average-case hardness and planted clique lead. Canonical inference, random satisfiability and smoothed local search follow, with the random-SAT search threshold restored to a priority reflecting its actual scope. Closely related hardness-amplification and specially chosen distribution variants follow these broad representatives.
 
 Previous prefix: TCS-6656, TCS-0012.
 
@@ -322,11 +322,11 @@ Previous prefix: TCS-6656, TCS-0012.
 | 1 | [Planted clique conjecture](index.html#TCS-6656) (TCS-6656) | Planted inference | 98 | A canonical computational threshold with broad consequences in average-case complexity, statistical inference, and the study of algorithmic lower-bound frameworks. |
 | 2 | [Average-case NP hardness from \(\mathrm{P} \ne  \mathrm{NP}\)](index.html#TCS-0012) (TCS-0012) | Worst-case versus average-case hardness | 97 | One of the central missing implications in complexity theory, connecting worst-case lower bounds to feasible instance generation and the limits of algorithms on typical inputs. |
 
-Candidates considered: TCS-6656, TCS-0012, TCS-6657, TCS-6684, TCS-6453, TCS-6658.
+Candidates considered: TCS-0012, TCS-6656, TCS-7238, TCS-6657, TCS-6658, TCS-6684, TCS-4876, TCS-6453, TCS-6702, TCS-6703, TCS-5011, TCS-7148, TCS-5406.
 
 ## Sampling, Markov chains and mixing times
 
-Keep two central sampling problems on different state spaces: colourings and graphs with prescribed degrees. Both involve mixing, which is intrinsic to this bucket; another spin-system question would be a closer repeat.
+General coloring and fixed-margin sampling remain the complementary anchors. Critical dynamics, universal matroid rounding and cutoff follow; related Ising refinements are interleaved with other substantial sampling questions only within nearby importance levels. All nine active candidates remain within the category's Top 500 quota.
 
 Previous prefix: TCS-6621, TCS-6622.
 
@@ -335,63 +335,63 @@ Previous prefix: TCS-6621, TCS-6622.
 | 1 | [Rapid mixing of Glauber dynamics with \(\Delta +2\) colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
 | 2 | [Kannan–Tetali–Vempala conjecture](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
 
-Candidates considered: TCS-6621, TCS-6622, TCS-6668.
+Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-2861, TCS-6843, TCS-6839, TCS-6857, TCS-6840, TCS-6851.
 
 ## Counting and enumeration
 
-Pair approximate counting of perfect matchings with the general #BIS approximation frontier. Minimal-hypergraph-transversal enumeration returns to this category after the knowledge bucket is retired; the existing two focus selections are retained.
+Exact counting complexity and #BIS lead. General perfect matchings, permanent derandomization and the two canonical output-sensitive enumeration problems follow closely. The primary selection also represents structural counting classifications and the decision-counting gap, rather than consisting entirely of individual FPRAS targets.
 
-Previous prefix: TCS-6628, TCS-6629, TCS-7112.
+Previous prefix: TCS-6628, TCS-7221.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [FPRAS for counting perfect matchings](index.html#TCS-6628) (TCS-6628) | Approximate counting | 97 | The major missing generalization of the permanent FPRAS, with an established obstruction to the direct Markov-chain approach and consequences beyond matchings. |
 | 2 | [FPRAS for #BIS](index.html#TCS-7221) (TCS-7221) | Approximate counting | 97 | #BIS is the canonical intermediate approximate-counting problem: an FPRAS would resolve a central boundary shared by many spin-system and combinatorial counting tasks. |
 
-Candidates considered: TCS-6628, TCS-6629, TCS-6671, TCS-1004, TCS-7221, TCS-7112.
+Candidates considered: TCS-6820, TCS-7221, TCS-6628, TCS-6629, TCS-7112, TCS-7240, TCS-6821, TCS-7355, TCS-7320, TCS-7099, TCS-6671, TCS-1004, TCS-3635, TCS-4671, TCS-3037, TCS-7084, TCS-7086, TCS-7082.
 
 ## Graph algorithms
 
-The narrowed Graph algorithms category focuses on computation and graph representations. Select polynomial-time graph isomorphism and deterministic linear-time minimum spanning tree as distinct foundational algorithmic targets; individually justified structural exceptions remain outside this two-card focus.
+Lead with graph isomorphism and unrestricted exact matching. Rank broad algorithmic and structural barriers ahead of polylogarithmic refinements; the second girth formulation adds limited breadth beside the main conjecture.
 
-Previous prefix: TCS-6651, TCS-6652.
+Previous prefix: TCS-7222, TCS-6536.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Graph isomorphism in polynomial time](index.html#TCS-7222) (TCS-7222) | Graph isomorphism | 97 | A central unresolved graph decision problem whose polynomial-time complexity remains a foundational algorithmic target. |
 | 2 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) (TCS-6536) | Static graph algorithms | 96 | A foundational graph-algorithm question about the necessity of randomness and the relationship between comparison complexity and actual computation. |
 
-Candidates considered: TCS-6683, TCS-6654, TCS-6655, TCS-6500, TCS-6536, TCS-6538, TCS-6539, TCS-6511, TCS-0611, TCS-7180, TCS-0771, TCS-0594, TCS-0775, TCS-7222.
+Candidates considered: TCS-7222, TCS-6538, TCS-6539, TCS-6683, TCS-6536, TCS-6500, TCS-6511, TCS-7341, TCS-7346, TCS-2783, TCS-7377, TCS-7228, TCS-7263, TCS-7342, TCS-7343, TCS-7344, TCS-7345, TCS-7180, TCS-7348, TCS-0771, TCS-6655, TCS-7285, TCS-0775, TCS-0611, TCS-7244, TCS-0594.
 
 ## Data structures
 
-The user approved a small Data structures category with dynamic optimality of splay trees and general static cell-probe lower bounds as its two focus topics. Together they represent adaptive upper bounds and unconditional information-access lower bounds. Dictionaries, heaps, ordered sequences, external-memory structures, history independence and static query representations remain active below the focus pair with unchanged importance scores.
+Keep dynamic optimality and general static lower bounds at the front. Broad dictionary and lower-bound questions precede analyses of particular implementations and specialized persistence guarantees.
 
-Previous prefix: empty.
+Previous prefix: TCS-6498, TCS-6540.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Dynamic optimality conjecture](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [Superlogarithmic static cell-probe lower bounds](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-0300, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-7338, TCS-7331, TCS-6586, TCS-7334, TCS-0949, TCS-7333, TCS-5825, TCS-0300, TCS-7328, TCS-7340, TCS-7329, TCS-6508, TCS-0474, TCS-7327, TCS-7330.
 
 ## Dynamic algorithms
 
-Retain deterministic connectivity and near-optimal matching as the strongest reviewed focus candidates after expanding to non-graph dynamic algorithms. The new maintenance questions broaden the pool; their saved importance scores and evidence do not displace this pair. Minimum spanning forests remain outside the pair to avoid duplicating its connectivity strand.
+Connectivity remains the clearest foundational target. Near-optimal matching takes the second focus slot on comparable importance while adding a distinct optimization challenge; exact distances outrank narrower dynamic refinements.
 
-Previous prefix: TCS-6625, TCS-6626.
+Previous prefix: TCS-6625, TCS-6627.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Deterministic fully dynamic connectivity with polylogarithmic worst-case updates](index.html#TCS-6625) (TCS-6625) | Dynamic connectivity | 97 | A foundational dynamic-graph frontier directly relevant to data structures, with a new randomized breakthrough and an explicit remaining deterministic bottleneck. |
 | 2 | [Fully dynamic near-optimal matching with polylogarithmic updates](index.html#TCS-6627) (TCS-6627) | Dynamic matching | 95 | A central dynamic graph problem connecting approximation, explicit solution maintenance and extremal induced-matching structure. |
 
-Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0543, TCS-0541, TCS-0300, TCS-5825, TCS-0387, TCS-3331.
+Candidates considered: TCS-6625, TCS-6627, TCS-6626, TCS-6670, TCS-0478, TCS-5209, TCS-0543, TCS-7332, TCS-7339, TCS-0541, TCS-0387, TCS-7326, TCS-0545, TCS-0536, TCS-3331.
 
 ## String algorithms and computational biology
 
-Keep trace reconstruction and constant-factor edit-distance approximation in the two focus places, covering statistical recovery from deletions and fast sequence comparison. The separately approved near-exact approximation scheme (TCS-7220) is retained immediately beyond this prefix by importance: it studies a different accuracy–runtime boundary, while selecting both edit-distance variants here would remove trace-reconstruction coverage.
+Use trace reconstruction and near-exact edit-distance approximation for the leading statistical and computational barriers. Compression and assembly rise above specialized indexing refinements; related edit-distance variants remain high without taking both focus slots.
 
 Previous prefix: TCS-6623, TCS-6624.
 
@@ -400,24 +400,24 @@ Previous prefix: TCS-6623, TCS-6624.
 | 1 | [Worst-case sample complexity of trace reconstruction](index.html#TCS-6623) (TCS-6623) | Reconstruction from noisy strings | 96 | A defining worst-case recovery problem for synchronization noise, linking string algorithms, information theory, statistics and complex-analytic methods. |
 | 2 | [Constant-factor edit-distance approximation in \(O(n\operatorname{polylog} n)\) time](index.html#TCS-6624) (TCS-6624) | Sequence distance algorithms | 95 | A central remaining precision–runtime boundary for edit distance, distinct from the established n^{1+ε} constant-factor algorithms and from exact-computation hardness. |
 
-Candidates considered: TCS-6623, TCS-6624, TCS-6669, TCS-6513, TCS-0467, TCS-0468, TCS-0470, TCS-7220.
+Candidates considered: TCS-6623, TCS-7220, TCS-6624, TCS-6513, TCS-6669, TCS-7322, TCS-7371, TCS-7297, TCS-7367, TCS-6928, TCS-7374, TCS-7360, TCS-0467, TCS-0468, TCS-7366, TCS-7362, TCS-7369, TCS-7375, TCS-0470, TCS-7365, TCS-7364, TCS-7368, TCS-7370, TCS-7361, TCS-0466.
 
 ## Game theory, social choice and fair division
 
-Pair truthful submodular auctions with EFX existence. This represents both incentive constraints and a central fairness existence question; algorithmic Santa Claus allocation remains in the wider benchmark.
+Put unrestricted EFX existence and truthful submodular auctions first: they are foundational feasibility and incentive barriers. Broad scheduling, allocation and representation questions follow before special-agent cases and narrower protocol variants.
 
-Previous prefix: TCS-6632, TCS-6639.
+Previous prefix: TCS-6632, TCS-0011.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Constant-factor universally truthful auctions for submodular bidders](index.html#TCS-6632) (TCS-6632) | Truthful mechanisms | 96 | A central multi-parameter mechanism-design problem linking truthful incentives, submodular optimization, information elicitation and the communication cost of welfare approximation. |
 | 2 | [Existence of complete EFX allocations for additive valuations](index.html#TCS-0011) (TCS-0011) | Existence of fair allocations | 92 | A central existence question for a strong and widely studied fairness guarantee for indivisible goods. |
 
-Candidates considered: TCS-6632, TCS-6639, TCS-6674, TCS-6633, TCS-6634, TCS-0011, TCS-1116, TCS-0056.
+Candidates considered: TCS-0011, TCS-6632, TCS-6674, TCS-6639, TCS-6633, TCS-7379, TCS-6634, TCS-1115, TCS-0056, TCS-7197, TCS-7200, TCS-1116, TCS-1109, TCS-7196, TCS-1108, TCS-4584, TCS-7383, TCS-7203, TCS-0073, TCS-0571, TCS-1714.
 
 ## Algebraic computation
 
-Keep matrix multiplication and permanent-versus-determinant complexity: algorithmic bilinear computation and algebraic representation lower bounds.
+VP versus VNP leads, with matrix multiplication providing an equally consequential algorithmic direction. General PIT remains immediately behind; the next tier balances major lower-bound barriers with fundamental arithmetic and decidability questions before restricted models and overlapping formulations.
 
 Previous prefix: TCS-0007, TCS-6611.
 
@@ -426,63 +426,63 @@ Previous prefix: TCS-0007, TCS-6611.
 | 1 | [Matrix multiplication exponent](index.html#TCS-0007) (TCS-0007) | Matrix multiplication | 98 | One of the main questions in algebraic algorithms, governing a widely used primitive and many dependent complexity bounds. Both faster constructions and a superquadratic lower bound would have broad consequences. |
 | 2 | [Permanent versus determinant](index.html#TCS-6611) (TCS-6611) | Algebraic representation lower bounds | 98 | The principal permanent-versus-determinant lower-bound problem, connecting algebraic computation, branching programs, geometry, and symmetry. |
 
-Candidates considered: TCS-0007, TCS-6611, TCS-6666, TCS-6612, TCS-0005, TCS-6613, TCS-6641, TCS-6614.
+Candidates considered: TCS-0005, TCS-0007, TCS-7113, TCS-6611, TCS-6666, TCS-6612, TCS-6613, TCS-6614, TCS-6641, TCS-7174, TCS-7262, TCS-0010, TCS-6888, TCS-7175, TCS-0055, TCS-6642, TCS-6677, TCS-6895, TCS-6615, TCS-6898, TCS-7223, TCS-1058, TCS-6890, TCS-6893, TCS-0009, TCS-2506, TCS-6616, TCS-5520, TCS-6897, TCS-1101, TCS-6883, TCS-6903, TCS-0481, TCS-3318, TCS-5260, TCS-2958, TCS-6884, TCS-7269, TCS-0046, TCS-5921, TCS-6882, TCS-2718, TCS-5240, TCS-1102, TCS-3959, TCS-6493, TCS-0047, TCS-7224, TCS-1103, TCS-1151, TCS-0095, TCS-2039, TCS-4523, TCS-1544, TCS-5739, TCS-2077, TCS-4350, TCS-4490, TCS-7372, TCS-1069.
 
 ## Lattices and computational number theory
 
-Pair rational polynomial solvability with polynomial-factor Euclidean SVP. This retains a major number-theoretic decision frontier while giving lattices a leading place; factoring and discrete logarithms remain outside the two-place prefix.
+Hilbert's tenth problem over the rationals and classical factoring are the leading landmarks. General lattice approximation follows closely; foundational algorithmic and hardness boundaries precede parameter-specific security reductions and refinements.
 
-Previous prefix: TCS-6571, TCS-6617.
+Previous prefix: TCS-6571, TCS-6667.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Hilbert’s tenth problem over the rationals](index.html#TCS-6571) (TCS-6571) | Diophantine decidability | 99 | A central unsolved decidability problem for an elementary, pervasive constraint language. A resolution would locate the computability boundary for rational polynomial feasibility. |
 | 2 | [Polynomial-time, polynomial-factor approximation of Euclidean SVP](index.html#TCS-6667) (TCS-6667) | Lattice approximation | 97 | A fundamental worst-case algorithm question at the heart of lattice reduction, with a wide gap between current methods and the target and connections to cryptographic hardness. |
 
-Candidates considered: TCS-6571, TCS-6617, TCS-6618, TCS-6667, TCS-6619, TCS-6620, TCS-0658, TCS-0659.
+Candidates considered: TCS-6571, TCS-6617, TCS-6667, TCS-6618, TCS-7234, TCS-0655, TCS-7169, TCS-7265, TCS-6619, TCS-6620, TCS-6861, TCS-6863, TCS-0656, TCS-0658, TCS-0659, TCS-0662, TCS-0661, TCS-6864, TCS-5317, TCS-0652, TCS-0648, TCS-1170, TCS-5395, TCS-0657, TCS-7171, TCS-7170, TCS-0653.
 
 ## Coding and information theory
 
-Pair Gaussian interference capacity with the binary rate–distance tradeoff. Move the second multiuser capacity question below the prefix so that coding theory has a leading representative. Preserve the existing uncertainty around the Gaussian-capacity claim. The later user-authorized numerical review reinstates these former focus choices with explicit 1/100 absolute rate accuracy; it does not change their importance scores or certify openness at that tolerance.
+Lead with the binary rate-distance frontier and general broadcast capacity, covering coding and network information at comparable landmark importance. Rank actual targets: the retained deletion-channel card asks for formalizing a known finite approximation, rather than discovering the exact capacity curve.
 
-Previous prefix: TCS-6606, TCS-6665.
+Previous prefix: TCS-6606, TCS-1010.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Capacity of the two-user Gaussian interference channel](index.html#TCS-6606) (TCS-6606) | Multiuser channel capacity | 97 | A central continuous-alphabet interference tradeoff, with a fully specified weighted-capacity target and the saved uncertainty about recent claims preserved. |
 | 2 | [Optimal asymptotic binary rate–distance tradeoff](index.html#TCS-1010) (TCS-1010) | Coding rate versus distance | 96 | The fundamental asymptotic binary coding tradeoff; its well-defined rate curve is restored as a distinct coding-theory focus alongside multiuser communication. |
 
-Candidates considered: TCS-6606, TCS-6665, TCS-1010, TCS-6584, TCS-6607, TCS-6608, TCS-6609, TCS-6610.
+Candidates considered: TCS-1010, TCS-6665, TCS-7210, TCS-1020, TCS-6584, TCS-6606, TCS-6608, TCS-7267, TCS-0013, TCS-6609, TCS-7211, TCS-7214, TCS-7215, TCS-1012, TCS-6738, TCS-4524, TCS-4968, TCS-1011, TCS-6610, TCS-3513, TCS-0196, TCS-4802, TCS-0184, TCS-0187, TCS-0205, TCS-0178, TCS-6607.
 
 ## Property testing and distribution learning
 
-Keep the graph-testing classification and add the universal testing-versus-distance-estimation frontier. The reviewed formulation is the explicit Problem 5.4 from the 2025 survey and replaces the former underspecified tolerant-testing index note in the focus prefix.
+The general testing-versus-estimation implication leads. Unrestricted Gaussian-mixture density learning takes the second slot at comparable importance to graph-testing classification, adding the category's major statistical-computational frontier rather than a second graph-only focus.
 
-Previous prefix: TCS-6630, TCS-6672, TCS-0672.
+Previous prefix: TCS-6630, TCS-1033.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Effective classification of polynomially testable hereditary graph properties](index.html#TCS-6630) (TCS-6630) | Graph property classification | 95 | An effective formulation of the major finite-family classification problem; it separates polynomial sampling from mere testability and abstract quantitative equivalences. |
 | 2 | [Polynomial testability versus distance estimation](index.html#TCS-1033) (TCS-1033) | Testing versus distance estimation | 96 | A universal polynomial tester-to-estimator implication would convert robust graph-property recognition into quantitative distance measurement across the dense model. |
 
-Candidates considered: TCS-6630, TCS-6672, TCS-1030, TCS-1029, TCS-1033, TCS-0672, TCS-1033.
+Candidates considered: TCS-1033, TCS-5443, TCS-6630, TCS-1029, TCS-6672, TCS-0848, TCS-5085, TCS-2535, TCS-1030, TCS-4259, TCS-5210, TCS-3906, TCS-4376, TCS-0672, TCS-0847, TCS-0841.
 
 ## Differential privacy
 
-Pair sample complexity of private PAC learning with optimal error in private continual counting. The saved review marks TCS-6631 resolved, making the former query-release focus ineligible. TCS-6673 is an active, previously considered replacement covering sequential private release; its statement, evidence and importance score are unchanged.
+Prioritize general private-learning sample bounds and efficient release of all marginals. They address broader statistical and computational limits than sharp rates for a single continual or online primitive.
 
-Previous prefix: TCS-6631, TCS-0506.
+Previous prefix: TCS-0506, TCS-6673.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
-Candidates considered: TCS-6673, TCS-0506, TCS-0507.
+Candidates considered: TCS-0506, TCS-7236, TCS-6673, TCS-0507.
 
 ## Constraint satisfaction
 
-Keep the finite promise-CSP and infinite-domain CSP dichotomies. Their common classification form is justified by fundamentally different domain and promise structures; a special graph-colouring case would add less breadth.
+Retain finite promise-CSP and infinite-domain CSP dichotomies as the broadest organizing questions. General search, expressibility and classification frontiers precede individual colouring gaps and restricted relaxations.
 
 Previous prefix: TCS-6635, TCS-6636.
 
@@ -491,11 +491,11 @@ Previous prefix: TCS-6635, TCS-6636.
 | 1 | [Finite-domain promise CSP dichotomy](index.html#TCS-6635) (TCS-6635) | Finite promise constraints | 98 | A broad structural question extending the finite CSP dichotomy into approximation and promise problems, with connections to algebra, topology, and optimization. |
 | 2 | [Bodirsky–Pinsker conjecture](index.html#TCS-6636) (TCS-6636) | Infinite-domain constraints | 97 | A central unifying conjecture about the boundary of polynomial-time constraint solving, with broad logical scope and active links to promise CSPs. |
 
-Candidates considered: TCS-6635, TCS-6636, TCS-6637, TCS-6675, TCS-1978, TCS-0441, TCS-0504, TCS-0444.
+Candidates considered: TCS-6635, TCS-6636, TCS-6637, TCS-6675, TCS-6748, TCS-7116, TCS-1173, TCS-6725, TCS-3678, TCS-1807, TCS-0504, TCS-1555, TCS-0441, TCS-1978, TCS-7237, TCS-3984, TCS-3585, TCS-0444.
 
 ## Automated reasoning, rewriting and unification
 
-Keep word equations with length constraints and modal-K unification, spanning symbolic strings with arithmetic and logical substitution.
+Lead with length-constrained word equations and Presburger arithmetic with primes, two broad decidability boundaries with distinct string and arithmetic content. General complexity and solver-power questions precede narrower matching orders and representation variants.
 
 Previous prefix: TCS-6562, TCS-6643.
 
@@ -504,11 +504,11 @@ Previous prefix: TCS-6562, TCS-6643.
 | 1 | [Word equations with linear length constraints](index.html#TCS-6562) (TCS-6562) | Word equations with arithmetic | 97 | A longstanding decidability question at the intersection of formal languages, number-theoretic constraints and automated verification; even unrestricted termination is unknown, before asking for efficient algorithms. |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) (TCS-6643) | Modal unification | 94 | The basic unresolved decidability boundary in modal unification, already in the minimal normal modal logic. |
 
-Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-6650, TCS-0306, TCS-7134.
+Candidates considered: TCS-6562, TCS-1992, TCS-6643, TCS-0163, TCS-6644, TCS-7239, TCS-6650, TCS-7194, TCS-0306, TCS-7125, TCS-1595, TCS-7134, TCS-0114, TCS-5603.
 
 ## Database theory and finite model theory
 
-Keep FO model checking and conjunctive-query enumeration. The pair covers structural logical tractability and output-sensitive database evaluation.
+A logic capturing P and Asser's spectrum problem lead as foundational descriptive-complexity questions. Broad model-checking and database-query boundaries follow closely; specific width, representation and convergence refinements come later.
 
 Previous prefix: TCS-6678, TCS-6645.
 
@@ -517,17 +517,17 @@ Previous prefix: TCS-6678, TCS-6645.
 | 1 | [FO model checking on hereditary monadically dependent graph classes](index.html#TCS-6678) (TCS-6678) | Finite-model-theoretic tractability | 96 | The central proposed tractability boundary for first-order model checking on hereditary graph classes, connecting database queries, model theory, sparsity and dense graph structure. |
 | 2 | [Constant-delay conjunctive-query classification](index.html#TCS-6645) (TCS-6645) | Database query enumeration | 95 | A central database-theory classification question: identify exactly which fixed queries permit optimal preprocessing and delay, including the self-joins excluded by classical dichotomies. |
 
-Candidates considered: TCS-6678, TCS-6645, TCS-0492, TCS-0488, TCS-0482, TCS-0487, TCS-0494, TCS-6680.
+Candidates considered: TCS-7195, TCS-7232, TCS-6678, TCS-6645, TCS-0492, TCS-6680, TCS-6372, TCS-3631, TCS-0488, TCS-0505, TCS-0494, TCS-7128, TCS-4458, TCS-0499, TCS-4995, TCS-0502, TCS-3557, TCS-0487, TCS-0482.
 
 ## Miscellaneous
 
-Retain partial-order balance as the existing computationally motivated combinatorial exception. Add Seese after individual review as a distinct foundational link between logical decidability and graph structure, moved here when the graph category was narrowed to algorithms.
+The sunflower conjecture leads for its broad combinatorial and complexity consequences. Seese's conjecture follows as a distinct logic-structure boundary; the comparison-balance conjecture remains substantial but narrower.
 
-Previous prefix: TCS-7222.
+Previous prefix: TCS-7177, TCS-6654.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [\(1/3\)–\(2/3\) conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
 | 2 | [Seese’s conjecture](index.html#TCS-6654) (TCS-6654) | Logical decidability and graph structure | 95 | Seese directly connects decidability of monadic second-order satisfiability with bounded clique-width; retain this major computability/structure boundary question as a cross-disciplinary exception. |
 
-Candidates considered: TCS-7222, TCS-7177, TCS-6654.
+Candidates considered: TCS-7290, TCS-6654, TCS-7177.

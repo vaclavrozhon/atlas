@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-561 five-sentence working summaries, based on saved source material.
+560 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -2490,7 +2490,7 @@ The input is a string, its alphabet size and a fixed prime modulus. The algorith
 [Read in atlas](index.html#TCS-0466) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Longest Common Extensions in Sublinear Space](https://arxiv.org/abs/1504.02671v1) · [Compressed Index with Construction in Compressed Space](https://doi.org/10.4230/LIPIcs.CPM.2026.25)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-## Game theory, social choice and fair division (22)
+## Game theory, social choice and fair division (21)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -2596,13 +2596,6 @@ The task is to divide indivisible goods among agents whose nonnegative values ad
 
 [Read in atlas](index.html#TCS-1115) · [Fair Division of Indivisible Goods: A Survey](https://arxiv.org/abs/2202.07551v2) · [A Polynomial-Time Algorithm for Fair and Efficient Allocation with a Fixed Number of Agents](https://doi.org/10.1007/978-3-032-18660-7_22) · [Fair and Efficient Balanced Allocation for Indivisible Goods](https://arxiv.org/abs/2603.05956v1)
 Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-6958 — Algorithmic versus dominant-strategy implementation
-
-Mechanism design asks for good outcomes when participants choose their own strategies. Algorithmic implementation guarantees approximation for a collection of acceptable strategies. A player can efficiently improve any strategy outside that collection to a dominating acceptable one. The source asks whether this framework can outperform every efficient dominant-strategy implementation. The user retains the direction pending a precise domain, representation, approximation gap and allowed hardness assumption.
-
-[Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf) · [Single-Value Combinatorial Auctions and Implementation in Undominated Strategies](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/undominated.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-18
 
 ### TCS-1109 — EF1 and Pareto optimality for additive mixed items
 

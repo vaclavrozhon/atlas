@@ -31,7 +31,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 13 | Data structures | 2 | 10 | 20 | 17 |
 | small 14 | Dynamic algorithms | 2 | 10 | 20 | 15 |
 | small 15 | String algorithms and computational biology | 2 | 10 | 20 | 25 |
-| small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 22 |
+| small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 21 |
 | small 17 | Algebraic computation | 2 | 10 | 20 | 60 |
 | small 18 | Lattices and computational number theory | 2 | 10 | 20 | 27 |
 | small 19 | Coding and information theory | 2 | 10 | 20 | 27 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 19 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 3 |
 
-Candidate pool: 959. Inactive records: 6423 (excluded from active work).
+Candidate pool: 958. Inactive records: 6424 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.
