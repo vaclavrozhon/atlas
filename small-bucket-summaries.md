@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-560 five-sentence working summaries, based on saved source material.
+561 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1466,7 +1466,7 @@ The input lists local constraints on variables with a finite common label domain
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Online algorithms, scheduling and packing (20)
+## Online algorithms, scheduling and packing (21)
 
 ### TCS-6638 — Breaking two for unrelated-machine makespan
 
@@ -1530,6 +1530,13 @@ The problem asks for a polynomial-time constant-factor approximation to the make
 
 [Read in atlas](index.html#TCS-6724) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/book.pdf) · [Scheduling to Minimize Total Weighted Completion Time via Time-Indexed Linear Programming Relaxations](https://arxiv.org/abs/1707.08039) · [On the Hardness of Scheduling With Non-Uniform Communication Delays](https://par.nsf.gov/servlets/purl/10342245) · [Communication-aware scheduling of precedence-constrained tasks on related machines](https://doi.org/10.1016/j.orl.2023.11.001) · [Communication-Aware Scheduling of Precedence-Constrained Tasks on Related Machines](https://arxiv.org/abs/2004.14639v1)
 Existing status: `source_open` · Summary written: 2026-09-15
+
+### TCS-7319 — Minimax rate of sequential binary calibration
+
+A forecaster announces a probability while an adversary simultaneously chooses a binary outcome. Both players see past forecasts and outcomes, but neither sees the other current choice. Calibration error adds the absolute frequency mismatch at each exact prediction value. The target is the smallest worst-case expected error as a function of the horizon, including logarithmic factors. Known bounds improve on the old two-thirds exponent but leave a gap for this ordinary calibration measure.
+
+[Read in atlas](index.html#TCS-7319) · [Breaking the \(T^{2/3}\) Barrier for Sequential Calibration](https://arxiv.org/abs/2406.13668) · [Full Swap Regret and Discretized Calibration](https://proceedings.mlr.press/v272/fishelson25a.html) · [Optimal Lower Bounds for Online Multicalibration](https://arxiv.org/abs/2601.05245v2)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-5030 — Optimal randomized competitive ratio of weighted k-server
 
@@ -2138,10 +2145,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7333 — Space-query exponent curve of 3SUM indexing
 
-Two integer sets are stored before membership queries arrive. A query asks whether its number belongs to their sumset. The target is the best query exponent at each allowed storage exponent. All retained information is charged even though preprocessing time is unrestricted. The numerical curve target is broader than the saved polylogarithmic-query existence question.
+Two explicit integer sets are preprocessed into a static index. Each query asks whether a supplied integer is the sum of one member of each set. The target is the smallest query exponent at every allowed storage exponent. Preprocessing time is unrestricted, but retained information and all query instructions are charged. The user-selected full curve requires certified accuracy one hundredth and is not settled by an isolated improved tradeoff.
 
 [Read in atlas](index.html#TCS-7333) · [Conditional Lower Bounds for Space/Time Tradeoffs](https://arxiv.org/abs/1706.05847) · [Improved Time-Space Tradeoffs for 3SUM-Indexing](https://arxiv.org/abs/2512.04258v2)
-Existing status: `uncertain` · Summary written: 2026-09-13
+Existing status: `uncertain` · Summary written: 2026-09-18
 
 ### TCS-7334 — Strong SetDisjointness conjecture
 
@@ -2166,10 +2173,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-7340 — Optimal randomized memory-reallocation overhead
 
-Objects of different sizes share one nearly full memory array. Every object must occupy a contiguous interval. An insertion or deletion may require moving other live objects. Cost compares the total moved volume with the size of the updated object. The remaining problem is the tight expected overhead as the unused fraction tends to zero.
+An online allocator stores variable-sized objects contiguously in a nearly full array. Insertions and deletions may force other live objects to change addresses. Each update is charged moved volume divided by the size of its updated object. The target is the optimal worst-case expected overhead as unused capacity tends to zero. The checked logarithmic lower bound and polylogarithmic upper bound leave a gap for general allocators.
 
 [Read in atlas](index.html#TCS-7340) · [A Nearly Quadratic Improvement for Memory Reallocation](https://arxiv.org/abs/2405.12152) · [Memory Reallocation with Polylogarithmic Overhead](https://arxiv.org/abs/2602.15417v1)
-Existing status: `source_open` · Summary written: 2026-09-13
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-6508 — Deque conjecture
 
@@ -2252,10 +2259,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7339 — Near-linear incremental topological ordering
 
-Directed edges arrive one at a time without creating a cycle. The algorithm maintains a total vertex order consistent with every edge. Queries compare two vertices in the maintained order. The target is almost-linear total update time over the whole insertion sequence. Fast cycle detection by itself does not maintain the order required here.
+Directed edges arrive online while every prefix graph remains acyclic. The algorithm must maintain a total vertex order consistent with all current edges. Queries compare vertices in that order with constant worst-case cost. The target combines almost-linear expected total update time with near-linear storage. Known fast cycle detection and prediction-assisted maintenance do not supply the selected unassisted ordering guarantee.
 
 [Read in atlas](index.html#TCS-7339) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Incremental Strongly Connected Components with Predictions](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SWAT.2026.17)
-Existing status: `source_open` · Summary written: 2026-09-13
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0543 — Polylogarithmic dynamic maximal matching against adaptive updates
 
@@ -2408,10 +2415,10 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-7322 — Optimal approximation ratio for shortest common superstring
 
-A common superstring contains every supplied string as a contiguous substring. The objective is to minimize its length over the input alphabet. The target is the infimum approximation ratio of uniform deterministic polynomial-time algorithms. The algorithm must return a feasible string, with input and output costs measured in the stated bit model. The Lean benchmark accepts a certified value of this ratio within absolute error 0.01.
+A common superstring contains every supplied string as an ordinary contiguous substring. The objective is its minimum number of symbols over the explicitly supplied alphabet. The target is the infimum approximation ratio of all uniform deterministic polynomial-bit-time algorithms. The numerical answer must have a proved absolute error of at most one hundredth. Recent general upper bounds and a separate greedy counterexample do not determine that full optimum.
 
 [Read in atlas](index.html#TCS-7322) · [A Tight Cycle-Cover Inequality for Shortest Common Superstring](https://eccc.weizmann.ac.il/report/2026/157/) · [Disproving the Greedy Superstring Conjecture](https://arxiv.org/abs/2609.01365)
-Existing status: `source_open` · Summary written: 2026-09-12
+Existing status: `uncertain` · Summary written: 2026-09-18
 
 ### TCS-7360 — Polyloglogarithmic suffix-array access in compact space
 
