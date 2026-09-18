@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **70**.
+Pending active reviews: **65**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -48,12 +48,7 @@ Pending active reviews: **70**.
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-0178](../../data/cards/TCS-0178.json) | Bounded-alphabet approximation of entropy-region faces | Coding and information theory | pool |
-| [TCS-0187](../../data/cards/TCS-0187.json) | Field dependence of linear-rank inequalities | Coding and information theory | pool |
 | [TCS-4802](../../data/cards/TCS-4802.json) | Noise tolerance of binary interactive codes | Coding and information theory | pool |
-| [TCS-4968](../../data/cards/TCS-4968.json) | Linear versus nonlinear code parameters | Coding and information theory | pool |
-| [TCS-6738](../../data/cards/TCS-6738.json) | Linear-length locally testable codes and proofs | Coding and information theory | pool |
-| [TCS-6739](../../data/cards/TCS-6739.json) | Locally decodable versus relaxed locally decodable code length | Coding and information theory | pool |
 | [TCS-7124](../../data/cards/TCS-7124.json) | SNP definability of CSPs in NP | Constraint satisfaction | pool |
 | [TCS-0499](../../data/cards/TCS-0499.json) | Query evaluation with treewidth parameter | Database theory and finite model theory | pool |
 | [TCS-0502](../../data/cards/TCS-0502.json) | Tractable probability versus tractable lineage | Database theory and finite model theory | pool |

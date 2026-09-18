@@ -1116,3 +1116,38 @@ Only these five reviews, their authoring scripts, this log, their queue/ledger/
 inventory changes and the NTRU archival entries enter the checkpoint. Source
 checkpoint d9b477e0 and deployment a96ebe93d2de3c6cfe7d210398d51eb820d0bdff
 cover the first 195 dispositions. Concurrent unrelated work remains unstaged.
+
+After two hundred and five recovery dispositions, the raw shared queue contains
+850 completed records, 64 pending records and one outside its original scope.
+The live catalogue has 975 active cards: 57 pending active reviews, 766 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-0187 (characteristic sets of rank inequalities), TCS-0178
+(bounded-alphabet approximation of the entropy face), TCS-4968 (a positive binary
+rate advantage over linear codes), TCS-6738 (linear-length locally testable proofs),
+and TCS-6739 (the resolved constant-alphabet three-query length separation,
+archived). Unanswered optional choices were announced and applied as editorial
+decisions, never as user confirmations.
+
+The rank card records that its finite-or-cofinite specialization has uncertain
+current status, rather than attributing that exact conjecture to the broad
+seminar question. The entropy card fixes the visualization's beta convention,
+uses normalized entropy rays and separates actual bounded-alphabet realizations
+from transformed almost-entropic samples. The coding-rate card accepts any fixed
+positive gap and checks the unchanged RANDOM 2026 LP bound. The proof card retains
+Goldreich's stronger requirement to reject far proofs of true assertions; good
+LTCs and ordinary PCPs do not settle it. The archived decoding card explicitly
+allows whole-symbol adaptive queries and does not claim the binary bit-query
+version resolved. The construction and the original arbitrary-alphabet lower
+bound were checked, including their radius and recovery guarantees.
+
+All five output hashes match their queue records, including the archived record;
+the shared ledger contains 1034 valid entries. The full offline check passes.
+Mathematical rendering passes for 36,470 expressions across 975 active cards,
+and desktop/mobile reader checks pass on publication 6495d05840c0bdad861a,
+with 934 detailed active records.
+
+Only these five reviews, their authoring scripts, this log, their queue/ledger/
+inventory changes and the RLDC archival entries enter the checkpoint. Source
+checkpoint bbd56267 and deployment 0a1b28c581016f1cdc8f9b76cd61959315e2c82f
+cover the first 200 dispositions. Concurrent unrelated work remains unstaged.

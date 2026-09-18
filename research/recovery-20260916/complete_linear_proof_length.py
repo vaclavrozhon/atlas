@@ -1,0 +1,70 @@
+"""Retain the proof branch and the source's full proof-testing condition."""
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
+from complete_review import complete,ref,block,progress
+from review_queue import read_claims
+identifier='TCS-6738';claim=read_claims(ROOT)[identifier]
+complete(identifier,dict(
+ title='Linear-length locally testable proofs for CircuitSAT',
+ status='source_open',criterion='construction',question_type='yes_no',
+ formal=r'''Does CircuitSAT have binary locally testable proofs of length linear in the circuit size? More precisely, do there exist an integer \(K\ge1\) and a polynomial-time decidable proof relation \(P\) such that, for every Boolean circuit \(C\) of size \(N\), the set
+\[
+\Pi_C=\{\pi\in\{0,1\}^{KN}:P(C,\pi)=1\}
+\]
+is nonempty exactly when \(C\) is satisfiable, and this one family of proof sets has the following property: for every fixed rational \(\varepsilon\in(0,1)\), there is a uniform randomized verifier that makes a constant number of nonadaptive bit queries to \(\pi\), accepts every \(\pi\in\Pi_C\) with probability one, and rejects every \(\pi\) at relative Hamming distance at least \(\varepsilon\) from \(\Pi_C\) with probability at least \(1/2\)? The computational and randomness bounds are specified below.''',
+ definitions=r'''A circuit is a finite directed acyclic graph with input nodes, optional constant-zero and constant-one nodes, AND and OR gates of fan-in two, NOT gates of fan-in one, and one specified output node. Every input node denotes one independently assignable Boolean variable. Its size \(N\ge1\) is the number of nodes, including inputs and constants; fan-out is unrestricted. The circuit is satisfiable if some assignment to its input nodes makes its output one. Circuits are explicitly encoded by a topologically ordered node list with gate types, predecessor indices in binary and an output index. The binary description has length \(O(N\log_2(N+2))\). The requested proof length is \(KN\) bits, measured against node count, rather than binary description length.
+
+The relation \(P\) is decided by a single deterministic Turing machine in time polynomial in the explicit input length \(|C|+|\pi|\). For every circuit, it specifies all accepted proof strings of the prescribed length. There is no advice depending on the instance or its size. No algorithm for producing a proof without a satisfying assignment is required.
+
+For \(\Pi_C\ne\varnothing\), define
+\[
+\operatorname{dist}(\pi,\Pi_C)
+=\min_{\sigma\in\Pi_C}\frac{|\{j\in\{1,\ldots,KN\}:\pi_j\ne\sigma_j\}|}{KN}.
+\]
+If \(\Pi_C=\varnothing\), set this distance to one, so every alleged proof of an unsatisfiable circuit must be rejected with probability at least one half.
+
+For each fixed rational \(\varepsilon\in(0,1)\), there must be constants \(q_\varepsilon,r_\varepsilon,a_\varepsilon,b_\varepsilon>0\) and one probabilistic oracle Turing machine \(V_\varepsilon\), uniform over all circuits and sizes. On input the explicit circuit \(C\), and oracle access to any fixed \(KN\)-bit string \(\pi\), every run uses at most \(q_\varepsilon\) proof-bit queries, at most \(r_\varepsilon\lceil\log_2(N+2)\rceil\) independent unbiased random bits, and at most \(a_\varepsilon(N+2)^{b_\varepsilon}\) Turing-machine steps. Query addresses must lie in \(\{1,\ldots,KN\}\); preparing an address counts toward time and its oracle answer costs one step. Nonadaptive means that all proof addresses depend only on \(C\) and the random bits, not on proof answers. The verifier has ordinary unrestricted polynomial-time access to the explicit circuit; only proof queries are limited by \(q_\varepsilon\).
+
+For every circuit and every proof, the probability is over the verifier's coins alone. Completeness is \(\Pr[V_\varepsilon^\pi(C)=1]=1\) whenever \(\pi\in\Pi_C\). Soundness is \(\Pr[V_\varepsilon^\pi(C)=1]\le1/2\) whenever \(\operatorname{dist}(\pi,\Pi_C)\ge\varepsilon\). There is no condition on other proofs.
+
+The same \(K\) and proof relation \(P\) must work for all accuracies. The verifier and its resource constants may depend on the fixed accuracy; no algorithm converting \(\varepsilon\) to a verifier, and no particular dependence of these constants on \(\varepsilon\), is required. Proof lengths shorter than \(KN\) may be padded consistently, so exact length here fixes an interface rather than imposing a lower bound on necessary proof length.
+
+The rejection condition also applies to satisfiable circuits with alleged proofs far from all valid proofs. Merely rejecting every proof of an unsatisfiable circuit, as in an ordinary PCP, is a weaker condition. This card retains the source's local proof-testability requirement.''',
+ answer_criterion='Give a complete mathematically correct Lean-checked proof or refutation of the stated existence of a common linear-length proof relation and its constant-query testers. A positive answer must include the computational bounds, perfect completeness and rejection of far proofs even for satisfiable circuits. A linear-length error-correcting code or an ordinary PCP without the additional proof-testing property does not alone meet the criterion.',
+ why='The question asks whether satisfiability witnesses can have only constant-factor redundancy while remaining testable through a constant number of inspected bits. It connects the economy of proof representations with robust local verification and strengthens the ordinary linear-size PCP target.',
+ importance=dict(score=90,method='editorial',reason='Linear proof length with robust constant-query verification is a central size question linking PCPs, testing and hardness of approximation; the precise stronger proof-testing condition deserves independent treatment.'),
+ source_formulation=dict(text='Open Problem 13.12 combines linear-length locally testable codes and proofs. The code branch is resolved, so this card retains the proof branch. Definitions 13.5–13.6 require rejection of far proofs also on true assertions; this stronger condition is retained. CircuitSAT with size measured by node count, logarithmic randomness and the displayed uniformity conventions make the chosen branch precise. The optional branch choice received no reply and was applied as an announced editorial default.',caption='Goldreich, April 2017 manuscript, Definitions 13.4–13.6 pp.363–365; Theorem 13.11 p.386; Open Problem 13.12 p.387 / PDF p.414.',citation='primary',format='editorial_paraphrase'),
+ references=[
+ ref('primary','Introduction to Property Testing (April 2017 manuscript)','Oded Goldreich',2017,'https://www.wisdom.weizmann.ac.il/~oded/PDF/pt-v3.pdf','Definitions 13.4–13.6 printed pp.363–365, Theorem 13.11 p.386, Open Problem 13.12 p.387 / PDF p.414'),
+ ref('update','Introduction to Property Testing: updates to open problems','Oded Goldreich',2021,'https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html','“Open Problems that has been resolved”: update to Problem 13.12, explicitly identifying the LTC part'),
+ ref('ltc','Locally Testable Codes with constant rate, distance, and locality','Irit Dinur; Shai Evra; Ron Livne; Alexander Lubotzky; Shahar Mozes',2021,'https://eccc.weizmann.ac.il/report/2021/151/','ECCC TR21-151; original 8 November 2021 and revision 16 December 2021; abstract states constant rate, distance and locality'),
+ ref('hdx','Quasi-Linear Size PCPs with Small Soundness from HDX','Mitali Bafna; Dor Minzer; Nikhil Vyas; appendix by Zhiwei Yun',2024,'https://arxiv.org/abs/2407.12762v2','Checked 7 November 2024 revision, Theorem 1.2 printed p.2 / PDF p.5; published STOC 2025 with Zhiwei Yun as coauthor, DOI 10.1145/3717823.3718197'),
+ ],
+ context_blocks=[
+ block('The source distinguishes ordinary PCP soundness from testing distance to the valid-proof set. Its linear-length problem follows a theorem with polylogarithmic overhead, and the retained definition includes the stronger proof-testing condition.'),
+ block('Goldreich’s update explicitly identifies good locally testable codes as the resolved part of Problem 13.12. That correction does not assert a linear-length construction for all satisfiability proof sets.','update'),
+ block('The 2021 construction gives codes with constant rate, constant relative distance and constant locality. It settles the code-existence branch rather than the selected proof-relation problem.','ltc'),
+ block('The checked HDX theorem reduces 3-SAT to constant-alphabet Label Cover of size n times a fixed power of log n, with perfect completeness and arbitrarily small fixed soundness. The polylogarithmic overhead remains, and the theorem as stated is an ordinary PCP result. It is not treated as a linear-size locally testable-proof theorem.','hdx'),
+ block('Measuring size by circuit nodes fixes a concrete computational representation. The source notes that functional PCP length depends on the choice of assertion representation, making this convention material rather than merely typographic.','update'),
+ ],
+ progress=[progress('2017','The textbook asks for linear-length locally testable codes and proofs and records constructions with polylogarithmic overhead.'),progress('2021','Good constant-query locally testable codes resolve the code branch.','ltc'),progress('2024-11','The checked HDX revision gives quasi-linear-size PCPs with small fixed soundness; its subsequent publication is STOC 2025.','hdx')],
+),[
+ 'Separated the resolved code branch from the retained proof branch and recorded the unanswered branch choice as editorial.',
+ 'Read the stronger source definition and preserved rejection of proofs far from all valid proofs even on satisfiable instances.',
+ 'Fixed circuit encoding and node-count size, binary proof length, proof membership, nonadaptivity, randomness, uniformity and all accuracy quantifiers.',
+ 'Distinguished known quasi-linear ordinary PCP results from the requested linear-length locally testable proof system.',
+ 'Individually assessed importance and required a complete Lean-checked proof or refutation.',
+],[
+ 'Read Goldreich Definitions 13.4–13.6, Theorem 13.11 and Open Problem 13.12 from the locally saved April 2017 manuscript.',
+ 'Read Goldreich’s primary-source correction and the ECCC TR21-151 abstract and revision metadata.',
+ 'Downloaded arXiv 2407.12762v2 and read Theorem 1.2, checking its n(log n)^C size and ordinary PCP guarantees; checked STOC 2025 metadata.',
+ 'Bounded searches through 18 September 2026 found no resolution of the selected linear-size proof-testing target; recent near-linear and quasi-linear PCP results were not counted as linear.',
+], 'The source’s locally testable-code branch is resolved by the 2021 good-LTC construction, as confirmed by Goldreich’s update. The selected linear-length proof branch, including testing far proofs of satisfiable circuits, remains unresolved in the checked sources through 18 September 2026. Ordinary PCP constructions with polylogarithmic length overhead do not settle this formulation. Circuit node count and the resource conventions are documented editorial specifications.',summary=[
+ 'A locally testable proof can be checked by reading only a constant number of its bits.',
+ 'The question asks for such satisfiability proofs with length at most a constant times the number of circuit nodes.',
+ 'For every fixed distance threshold, the tester must reject proofs far from all valid proofs, including when the circuit is satisfiable.',
+ 'The original source also asked about locally testable codes, whose linear-length existence was resolved in 2021.',
+ 'Known quasi-linear PCP results provide related progress but do not meet the retained linear-length proof-testing requirement.',
+],expected_sha256=claim['input_sha256'],claim_token=claim['token'])
