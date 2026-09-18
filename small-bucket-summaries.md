@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-573 five-sentence working summaries, based on saved source material.
+571 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -641,6 +641,13 @@ Orthogonal Vectors asks whether two lists of Boolean vectors contain a pair with
 [Read in atlas](index.html#TCS-5422) · [Superlinear Lower Bounds Based on ETH](https://doi.org/10.4230/LIPIcs.STACS.2022.55) · [Effective Guessing Has Unlikely Consequences](https://doi.org/10.1007/s00224-023-10119-x) · [The Orthogonal Vectors Conjecture and Non-Uniform Circuit Lower Bounds](https://eccc.weizmann.ac.il/report/2024/142/) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489v1) · [Faster Algorithms for \(k\)-Orthogonal Vectors in Low Dimension](https://doi.org/10.4230/LIPIcs.ICALP.2026.85)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6946 — A fine-grained reduction from integer APSP to 3SUM
+
+The question asks whether integer all-pairs shortest paths can be reduced to integer 3SUM while preserving fixed exponent savings. Any subquadratic target saving should yield a subcubic source saving common to all fixed polynomial weight ranges. The reduction may be randomized and adaptive, but must charge its own work and every oracle query. A successful run must return every exact shortest-path distance, with probability at least two thirds on each input graph. Known reductions of both problems to triangle tasks do not give the direct reduction selected here.
+
+[Read in atlas](index.html#TCS-6946) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Some Open Problems in Fine-Grained Complexity](https://www.cs.umd.edu/~gasarch/open/finegrain.pdf) · [Hardness for Triangle Problems under Even More Believable Hypotheses: Reductions from Real APSP, Real 3SUM, and OV](https://arxiv.org/abs/2203.08356v1)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-7270 — Linear-size Circuit-SAT below exhaustive search
 
 The input is a Boolean circuit with a linear number of gates and no depth or sharing restriction. The algorithm must decide exactly whether some input assignment makes its output true. For every fixed gate density, the target is a deterministic algorithm with a fixed positive saving in the variable exponent. The algorithm and saving may depend on that density; small-density and bounded-treewidth results do not cover the full question. A complete Lean-checked proof of the quantified algorithmic claim or its unconditional negation is required.
@@ -669,6 +676,13 @@ The input is a simple graph with signed integer weights on its edges. The decisi
 [Read in atlas](index.html#TCS-6945) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Towards Optimal Output-Sensitive Clique Listing or: Listing Cliques from Smaller Cliques](https://arxiv.org/abs/2307.15871v2) · [A Note on the Conditional Optimality of Chiba and Nishizeki's Algorithms](https://arxiv.org/abs/2407.08562v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6025 — Subgraph detection with a sublinear treewidth exponent on some unbounded class
+
+The generic subgraph-detection algorithm has a host-size exponent controlled by the pattern’s treewidth. The selected question asks whether some effective class with unbounded treewidth admits an exponent that is sublinear in that treewidth. The pattern-size multiplier may be any computable function, but one deterministic algorithm must handle the whole class. Copies are uncolored and need not be induced, in completely arbitrary host graphs. Known colorful lower bounds require care because their transfers need not preserve an arbitrarily selected uncolored pattern class.
+
+[Read in atlas](index.html#TCS-6025) · [Current Algorithms for Detecting Subgraphs of Bounded Treewidth Are Probably Optimal](https://doi.org/10.4230/LIPIcs.ICALP.2021.40) · [Can You Beat Treewidth?](https://doi.org/10.4086/toc.2010.v006a005) · [Can You Link Up With Treewidth?](https://arxiv.org/abs/2410.02606v2)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-0562 — Nondeterministic Strong Exponential Time Hypothesis
 
 NSETH asks whether certifying unsatisfiability remains close to exhaustive search even with nondeterministic choices. The requested refutation needs one positive saving in the exponent for every fixed clause width. Each unsatisfiable formula must have an accepting branch, while every branch on a satisfiable formula must reject. The running-time guarantee applies to every branch of a uniform machine and includes polynomial input-processing overhead. Known randomized-verifier protocols and conditional circuit lower bounds do not settle this exact nondeterministic question.
@@ -676,12 +690,12 @@ NSETH asks whether certifying unsatisfiability remains close to exhaustive searc
 [Read in atlas](index.html#TCS-0562) · [Some Open Problems in Fine-Grained Complexity](https://www.cs.umd.edu/~gasarch/open/finegrain.pdf) · [Nondeterministic Extensions of the Strong Exponential Time Hypothesis and Consequences for Non-reducibility](https://people.csail.mit.edu/virgi/6.1420/papers/nseth.pdf) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2026.28)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0560 — Fine-grained reductions from Hitting Set to 3SUM
+### TCS-0560 — A fine-grained reduction from logarithmic-dimension Hitting Set to 3SUM
 
-The source asks for a fine-grained reduction from a Hitting Set problem to 3SUM. The intended connection would translate a sufficiently fast three-number sum algorithm into progress on the source's quantified set-intersection task. Encoding many set interactions as arithmetic equalities must avoid a blowup that erases the desired time saving. Such a reduction could connect two currently distinct foundations for conditional algorithmic lower bounds. The saved entry does not specify numeric ranges or reduction overhead, so its target is stronger than merely expressing Hitting Set as some polynomial-size 3SUM instance.
+Hitting Set asks whether one supplied set intersects every set in a second supplied list. The target is a randomized reduction from its logarithmic-dimension version to exact integer 3SUM. Every fixed subquadratic target saving must yield a source saving common to all fixed logarithmic dimension constants. The cost bound charges both the reduction’s own work and the sum of all oracle-query costs. A complete answer must prove or refute this resource-preserving reduction rather than merely relate the problems by ordinary polynomial time.
 
-[Read in atlas](index.html#TCS-0560) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/finegrain.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0560) · [Some Open Problems in Fine-Grained Complexity](https://www.cs.umd.edu/~gasarch/open/finegrain.pdf) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [Nondeterministic Extensions of the Strong Exponential Time Hypothesis and Consequences for Non-reducibility](https://people.csail.mit.edu/virgi/6.1420/papers/nseth.pdf)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0815 — Fine-grained comparability of permanent and SETH
 
@@ -697,21 +711,7 @@ Multiple-string LCS finds a longest string that occurs as a subsequence of every
 [Read in atlas](index.html#TCS-0761) · [Randomization in Parameterized Complexity (Dagstuhl Seminar 17041)](https://doi.org/10.4230/DagRep.7.1.103) · [Tight Hardness Results for LCS and other Sequence Similarity Measures](https://theory.stanford.edu/~virgi/LCS.pdf) · [Exploring the Gap Between LCS and LCStr](https://drops.dagstuhl.de/storage/00lipics/lipics-vol369-cpm2026/html/LIPIcs.CPM.2026.27/LIPIcs.CPM.2026.27.html)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-6025 — Treewidth-dependent classification of subgraph isomorphism
-
-Subgraph isomorphism has general algorithms whose exponent depends on the pattern's treewidth. The source exhibits patterns for which that dependence is conditionally optimal. It asks for a classification of maximally hard pattern families and, conversely, whether some unbounded-treewidth families admit sublinear-in-treewidth exponents. Known clique-like exceptions show that treewidth alone need not determine the exact exponent. The project seeks finer structural invariants explaining when a pattern supports algorithmic shortcuts and when it forces the full generic search complexity.
-
-[Read in atlas](index.html#TCS-6025) · [Current Algorithms for Detecting Subgraphs of Bounded Treewidth Are Probably Optimal](https://doi.org/10.4230/LIPIcs.ICALP.2021.40)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6946 — Fine-grained relationship between APSP and 3SUM
-
-All-pairs shortest paths and 3SUM are central hypotheses for different families of fine-grained lower bounds. The source asks for a clearer relationship between their computational difficulties. One concerns many path minima, while the other searches for one exact arithmetic relation among three inputs. A suitable reduction could transfer a fixed exponent saving and consolidate barriers now supported by separate assumptions. The saved formulation leaves the direction and resource-preservation target open, so a complete question must select the integer or real model and the precise runtime implication sought.
-
-[Read in atlas](index.html#TCS-6946) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-## Pseudorandomness and derandomization (42)
+## Pseudorandomness and derandomization (40)
 
 ### TCS-0003 — P versus BPP
 
@@ -888,13 +888,6 @@ A lossless condenser compresses a weak random source while preserving its guaran
 [Read in atlas](index.html#TCS-1014) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Unbalanced Expanders from Multiplicity Codes](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.12) · [Two-Sided Lossless Expanders in the Unbalanced Setting](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.34)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-1024 — Extracting from low-entropy efficiently samplable sources
-
-An efficiently samplable source is a distribution produced by a small circuit, potentially with far less entropy than its output length. The textbook asks for extraction from such sources at low entropy or negligible error under plausible assumptions. The sampler's computational structure offers a restriction beyond merely knowing the amount of entropy. Using that structure could enable extraction in regimes impossible for completely arbitrary single sources. The saved note does not identify the permitted assumptions or extractor access to the sampler, so neither unconditional extraction nor a specific low-entropy threshold is asserted here.
-
-[Read in atlas](index.html#TCS-1024) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0854 — Promise-ZPP versus Promise-BPP derandomization
 
 The question asks whether derandomizing every zero-error promise problem also derandomizes every bounded-error promise problem. Zero-error machines may abstain, but whenever a promised input receives a definite answer that answer is correct. Bounded-error machines instead distinguish acceptance probabilities at least two thirds from probabilities at most one third. Each randomized machine may have its own deterministic polynomial-time decider, which must halt on all inputs and be correct on the promise. The target is a general unrelativized implication; total-language equalities and specialized low-space results do not settle it.
@@ -915,13 +908,6 @@ For every fixed time exponent, assume that some polynomial-time function defeats
 
 [Read in atlas](index.html#TCS-1137) · [New ways of studying the \(\mathrm{BPP}=\mathrm P\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/) · [Hardness vs. Randomness, Revised: Uniform, Non-Black-Box, and Instance-wise](https://epubs.siam.org/doi/10.1137/22M1475491) · [On the Complexity of Avoiding Heavy Elements](https://eccc.weizmann.ac.il/report/2024/115/)
 Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-0987 — Deterministic Heavy-Hitters & Fast Matrix Algorithms
-
-A restricted-isometry matrix approximately preserves the Euclidean lengths of all sparse vectors. The source seeks deterministic or certifiably correct constructions with nearly linear dependence on sparsity in their row count. It also asks whether suitably chosen rows of Fourier or other bounded-entry unitary matrices can achieve the desired bounds. A related computational obstacle is multiplying a selected Fourier submatrix by a vector faster than the straightforward quadratic method. These questions connect explicit measurement design with the recovery time needed by deterministic heavy-hitter and sparse-reconstruction algorithms.
-
-[Read in atlas](index.html#TCS-0987) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:21)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1008 — Fully explicit bipartite vertex expanders with constant additive loss
 
