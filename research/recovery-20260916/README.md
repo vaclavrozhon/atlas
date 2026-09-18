@@ -1418,3 +1418,30 @@ enter the checkpoint. Source checkpoint edb934c6 and deployment
 ff9b87485ba551b6198895e3ccc1cbb5bc233d0c cover the first 235 dispositions.
 Concurrent work remains unstaged; the committed queue has 884 completed and
 30 pending records.
+
+## Checkpoint 245 — 18 September 2026
+
+Five additional individual dispositions bring this recovery series to 245:
+TCS-0515, TCS-0524, TCS-2997, TCS-6157 and TCS-7128. TCS-6157 is archived
+with the finite regular-path determinacy undecidability theorem. The other four
+remain active with explicit models and qualified source-open status.
+
+TCS-0524 retains the pre-existing user-approved fixed positive degree-exponent
+saving. TCS-2997 uses success 15/16 as an announced editorial default matching
+the literal 2025 lower-bound theorem; constant-repetition amplification of
+2/3-success disjunctive local output is not assumed. TCS-6157 and TCS-7128 also
+record the announced defaults, without claiming subsequent user confirmation.
+An unnecessary common-domain sentence was removed from archived TCS-6157;
+its target, result and queue hash are preserved consistently.
+
+Offline publication checks pass. Mathematical rendering passes for 37,448
+expressions across 963 active cards; desktop/mobile reader checks pass on
+publication 752a0bfe66fc07b38155 with 959 detailed records. All five owned queue
+hashes match their canonical files. The live queue has 17 pending active cards.
+
+Only the five cards, five authoring scripts, seven ledger events and owned
+queue/archive/inventory deltas enter this checkpoint. Source checkpoint
+639716bf and deployment 1946e6bb5c0cd35bfd70b79a81b0aba1cb3800ad cover the
+first 240 dispositions. The committed queue now has 889 completed and 25
+pending records; its historical inactive entries differ from the active census.
+Concurrent work remains unstaged.
