@@ -7,6 +7,19 @@ sys.path.insert(0,str(ROOT/'research/card-completion-20260913'))
 from complete_review import CRITERIA,reader_record,validate_record,atomic
 DATE='2026-09-18'
 CHOICES={
+'5252':'Square-grid directed shortest paths with aggregate path feedback: optimal minimax expected regret as a function of side length n and horizon T, up to universal constant factors.',
+'6838':'Archive the uniform constant-factor match to T*(mu) log(1/delta) as a known negative target, already obstructed by the iterated logarithm for two Gaussian arms.',
+'6702':'Exponential nonuniform circuit hardness in both the worst-case premise and uniform average-case conclusion, at every sufficiently large length.',
+'6703':'A balanced input NP language, inverse-polynomial initial error and near-half final error, retaining exponential circuit hardness at every sufficiently large length.',
+'2662':'Deterministic ETH implies a subexponential-time gap-Clique lower bound for some fixed constant approximation factor greater than one.',
+'5374':'The source DAG-treewidth dichotomy for counting homomorphisms, parameterized jointly by pattern size and host degeneracy, using the generalized full-version definition.',
+'0088':'Archive the known conditional Max Di-Cut numerical target at absolute accuracy 1/100 under Unique Games and NP not contained in BPP.',
+'0711':'Retain the general adversarial contextual-bandit model-selection target and archive the known negative result, without restricting to special statistical models.',
+'6309':'Allow a randomized polynomial-bit-time constant approximation for hard-capacitated metric k-median, with success probability at least 2/3 on every input.',
+'0922':'Maximize total assignment value and determine the worst integer-to-configuration-LP ratio at absolute accuracy 1/100.',
+'0715':'Require a fixed positive exponent saving in polynomial-time online sparse-regression regret and archive the conditional negative result under NP not contained in BPP.',
+'0716':'Retain the two-item local-learning question and archive the conditional negative result under the planted-clique hypothesis.',
+'0700':'Exactly optimal stopping in the specified mixture of product distributions, with polynomial-bit-time preparation and execution.',
 '0597':'A fixed-parameter algorithm for ordinary k-coloring on graphs with no induced P5.',
 '1945':'Every fixed constant approximation factor for binary Nearest Codeword, under deterministic ETH, excluding f(k) times input length to an o(k) power.',
 '0560':'Logarithmic-dimension Hitting Set with one source exponent saving common to all fixed dimension constants.',

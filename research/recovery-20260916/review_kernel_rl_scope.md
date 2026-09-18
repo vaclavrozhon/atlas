@@ -39,3 +39,14 @@ Relevant primary sources checked:
 
 All three PDFs and extracted texts are in this review's source cache. The
 original card has not been replaced by an invented finite-domain open theorem.
+
+Update, 18 September 2026: the user answered both scope questions, selecting
+the finite full-kernel model and then explicitly selecting archival of that
+known computational target. The finite variant is now specified and archived
+by `complete_finite_kernel_regret.py`. The source-level infinite-domain question
+is not claimed resolved. The reduction uses compact transition and behavioral
+policy sets, finite trajectory polynomials, Bellman maxima and effective real
+quantifier elimination; exact zero testing handles multiplicative approximation
+at zero. Basu's survey §2.1 and Theorem 2.1 were read as the primary background
+for this editorial application of the standard theorem. No Lean proof was
+constructed or independently audited in this review.

@@ -1374,3 +1374,47 @@ log and their owned shared-file deltas enter the checkpoint. Source checkpoint
 1bc34a69 and deployment 499cde057071a85289bccbae11fdfce850df9d37 cover the first
 230 dispositions. Concurrent work remains unstaged; the committed queue has
 879 completed and 35 pending records.
+
+After two hundred and forty recovery dispositions, the shared queue has 885
+completed records, 29 pending records and one outside its original scope.
+There are 964 active cards: 22 pending active reviews, 790 completed active
+queue records and 152 active records outside the queue.
+
+This batch completes TCS-0502 (exact probability evaluation versus nonuniform
+d-D lineage size, retaining arbitrary internal negation), TCS-4995 (a strict
+gap between almost-entropic and submodular hypergraph width), TCS-0708 (the
+user-selected finite kernel-regret computational target, archived), TCS-0499
+(two-sided graph-treewidth FPT homomorphism, retaining uncertain status), and
+TCS-4458 (successor-invariant first-order model checking on effectively nowhere
+dense graphs). The last three scope choices were explicitly confirmed by the
+user during this batch.
+
+The finite kernel archive gives the compact semialgebraic reduction and cites
+effective quantifier elimination. It does not claim resolution of the broader
+infinite-domain learning question. The lineage review separates the recent
+non-cancelling-intersections counterexample from a general circuit lower bound.
+The width review specifies the entropy-cone closure and optimization order.
+The graph-homomorphism review records the author's May 2025 hardness announcement
+without upgrading that announcement to a checked proof. The successor review
+distinguishes the settled bounded-expansion milestone from the selected frontier.
+
+Thirteen earlier scope defaults are now explicitly confirmed: TCS-2662,
+TCS-5374, TCS-0088, TCS-0711, TCS-6309, TCS-0922, TCS-0715, TCS-0716,
+TCS-0700, TCS-5252, TCS-6838, TCS-6702 and TCS-6703. The user also confirmed
+both mergers, TCS-4983 into TCS-7317 and TCS-2427 into TCS-6567. Those two
+confirmations are attached to the retained cards, leaving archived raw copies
+intact. Confirmations do not add new completions.
+
+All nineteen owned queue output hashes match their current files, and the
+TCS-6567 amendment outside the queue has its own before/after ledger record.
+The shared ledger has 1132 valid entries. The full offline check passes.
+Mathematical rendering passes for
+37,380 expressions across 964 active cards; desktop/mobile reader checks pass
+on publication 2df206ff74665c80ae4b with 958 detailed records.
+
+Only these five new dispositions, fifteen confirmation amendments, their
+scripts, the updated kernel scope note, this log and owned shared-file deltas
+enter the checkpoint. Source checkpoint edb934c6 and deployment
+ff9b87485ba551b6198895e3ccc1cbb5bc233d0c cover the first 235 dispositions.
+Concurrent work remains unstaged; the committed queue has 884 completed and
+30 pending records.

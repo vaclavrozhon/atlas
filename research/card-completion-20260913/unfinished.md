@@ -5,11 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **35**.
+Pending active reviews: **30**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-0708](../../data/cards/TCS-0708.json) | Order Optimal Regret Bounds for Kernel-Based Reinforcement Learning | Online algorithms | pool |
 | [TCS-0315](../../data/cards/TCS-0315.json) | Fat Minors | Structural graph theory | pool |
 | [TCS-1639](../../data/cards/TCS-1639.json) | Linear neighborhood complexity of hereditary small graph classes | Structural graph theory | pool |
 | [TCS-6874](../../data/cards/TCS-6874.json) | Ramanujan graphs of every degree | Structural graph theory | pool |
@@ -20,11 +19,7 @@ Pending active reviews: **35**.
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-7124](../../data/cards/TCS-7124.json) | SNP definability of CSPs in NP | Constraint satisfaction | pool |
-| [TCS-0499](../../data/cards/TCS-0499.json) | Query evaluation with treewidth parameter | Database theory and finite model theory | pool |
-| [TCS-0502](../../data/cards/TCS-0502.json) | Tractable probability versus tractable lineage | Database theory and finite model theory | pool |
 | [TCS-1251](../../data/cards/TCS-1251.json) | Output-sensitive evaluation of cyclic queries | Database theory and finite model theory | pool |
-| [TCS-4458](../../data/cards/TCS-4458.json) | First-order versus successor-invariant logic | Database theory and finite model theory | pool |
-| [TCS-4995](../../data/cards/TCS-4995.json) | Entropic width versus submodular width | Database theory and finite model theory | pool |
 | [TCS-6157](../../data/cards/TCS-6157.json) | Determinacy and rewriting of regular path queries | Database theory and finite model theory | pool |
 | [TCS-7128](../../data/cards/TCS-7128.json) | Unconditional constant-delay query-enumeration lower bounds | Database theory and finite model theory | pool |
 | [TCS-0515](../../data/cards/TCS-0515.json) | Deterministic volume gap | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
