@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-569 five-sentence working summaries, based on saved source material.
+566 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1254,7 +1254,7 @@ Directed Feedback Vertex Set asks whether deleting at most a given number of ver
 [Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55) · [Wannabe Bounded Treewidth Graphs Admit a Polynomial Kernel for Directed Feedback Vertex Set](https://doi.org/10.1145/3711669)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Approximation algorithms and inapproximability (28)
+## Approximation algorithms and inapproximability (29)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1410,6 +1410,13 @@ A minimization CSP assigns finite-domain values to variables to minimize the ave
 [Read in atlas](index.html#TCS-6757) · [Approximation Algorithms for CSPs](https://doi.org/10.4230/DFU.Vol7.15301.287) · [How to Round Any CSP](https://www.dsteurer.org/paper/roundcsp.pdf) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-0922 — Configuration-LP gap for maximum generalized assignment
+
+Maximum generalized assignment packs indivisible items into bins to maximize their total value. Both an item’s size and its value may depend on the bin receiving it. The configuration LP allows fractional mixtures of every feasible packing while limiting each item’s total assignment. The target is the worst integral-to-fractional optimum ratio, determined to absolute accuracy one hundredth. This measures the relaxation’s strength and is distinct from the source’s separate max-min allocation question.
+
+[Read in atlas](index.html#TCS-0922) · [Scheduling: Generalized assignment](https://doi.org/10.4230/DagRep.6.2.97) · [Submodularity in Combinatorial Optimization](https://theory.stanford.edu/~jvondrak/data/KAM_thesis.pdf) · [Improved Hardness Results for Nash Social Welfare, Budgeted Allocation and GAP via the Unique Games Conjecture](https://arxiv.org/abs/2605.27098v2)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-1168 — Hardness of coloring 2-dicolorable digraphs with any fixed number of colors
 
 A dicoloring partitions a directed graph into color classes containing no directed cycle. The input is promised to admit two colors, but that coloring is not supplied. The source conjecturally asks whether producing any fixed larger number of colors remains NP-hard. Its polynomial-time algorithm uses a number of colors growing as the square root of the vertex count. Settling the constant-color hardness claim would clarify whether a bounded relaxation of the optimum can overcome the search difficulty.
@@ -1452,7 +1459,7 @@ The input lists local constraints on variables with a finite common label domain
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Online algorithms, scheduling and packing (26)
+## Online algorithms, scheduling and packing (22)
 
 ### TCS-6638 — Breaking two for unrelated-machine makespan
 
@@ -1566,20 +1573,6 @@ The question asks for one bandit policy that adapts to unknown error in a linear
 [Read in atlas](index.html#TCS-6836) · [Bandit Algorithms](https://tor-lattimore.com/downloads/book/book.pdf) · [Learning with Good Feature Representations in Bandits and in RL with a Generative Model](https://sites.ualberta.ca/~szepesva/papers/ICML2020_goodfeatures.pdf) · [Upper Confidence Bounds for Combining Stochastic Bandits](https://arxiv.org/abs/2012.13115v1) · [Dynamic Regret for Non-Stationary Linear Bandits via Misspecification Reductions](https://arxiv.org/abs/2607.02891v1)
 Existing status: `uncertain` · Summary written: 2026-09-15
 
-### TCS-0922 — Generalized assignment
-
-Generalized assignment allocates jobs to machines subject to assignment-dependent resource use and costs or values. The saved source entry asks about this broad allocation problem. The same job may be attractive on one machine and expensive or infeasible on another. Sharper algorithms would clarify how effectively capacity constraints and heterogeneous assignment preferences can be reconciled. The inherited title does not specify minimization versus maximization, approximation allowance, or budget conventions, so the draft cannot substitute a particular standard variant for the missing source question.
-
-[Read in atlas](index.html#TCS-0922) · [Scheduling](https://doi.org/10.4230/DagRep.6.2.97)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0715 — Efficient Online Sparse Regression
-
-Online sparse regression models prediction when computing every feature of an example is too expensive. On each round, the learner may inspect only k of d features before making a real-valued prediction and incurring squared loss. Its benchmark is the best fixed k-sparse linear predictor satisfying the source's norm bound. The question asks for polynomial-time algorithms achieving sublinear regret in this restricted-observation model. The difficulty is simultaneously discovering useful features and predicting accurately, while competing with a sparse predictor whose relevant coordinates are known only after the sequence is seen.
-
-[Read in atlas](index.html#TCS-0715) · [COLT / PMLR](https://proceedings.mlr.press/v35/kale14b.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0708 — Order Optimal Regret Bounds for Kernel-Based Reinforcement Learning
 
 Kernel-based reinforcement learning uses a reproducing kernel Hilbert space to represent nonlinear structure in a Markov decision process. The source asks for regret guarantees that match the best possible order in the relevant horizon and kernel-complexity parameters. This setting extends linear models while retaining more structure than an arbitrary nonlinear function class. The challenge is that uncertainty in prediction must be propagated through sequential decisions and future values. Sharp guarantees would identify when the expressive power of kernels can be used without paying avoidable exploration costs in reinforcement learning.
@@ -1587,19 +1580,12 @@ Kernel-based reinforcement learning uses a reproducing kernel Hilbert space to r
 [Read in atlas](index.html#TCS-0708) · [COLT / PMLR](https://proceedings.mlr.press/v247/vakili24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0700 — Hardness of Correlated Prophet Inequality
+### TCS-0700 — Exact optimal stopping for mixtures of product distributions
 
-A correlated stopping problem reveals random values sequentially and pays the value accepted when the policy stops. The source considers a hidden scenario chosen uniformly from a finite list, each scenario specifying independent draws from known finite-support distributions. It asks whether the optimal online policy can be computed in time polynomial in the numbers of scenarios, positions, and support values. The easier case of deterministic scenarios admits compact backward induction, but uncertain observations can produce many distinct posterior states. Efficient approximation is the alternative target if exact policy computation proves intractable.
+A hidden scenario is selected uniformly before a sequence of values is generated. Conditional on that scenario the values are independent, and every conditional distribution is explicitly known. The decision maker observes values in order and must select one when it arrives. The target asks whether an exactly optimal online stopping rule can be prepared and executed in polynomial bit time. The benchmark is the best rule with the same online information, rather than an observer who sees the whole future.
 
-[Read in atlas](index.html#TCS-0700) · [Approximation Algorithms for Stochastic Optimization](https://doi.org/10.4230/DagRep.15.3.159)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0716 — Online Local Learning
-
-Online local learning predicts labels for small groups of items while competing with a single global labeling of the whole universe. Finding the globally best explanation can be computationally hard, even when each individual prediction concerns only a few variables. The source asks how generally efficient local prediction can avoid that global inference difficulty. Its model reveals a subset on each round and evaluates the learner's proposed labeling through a local payoff. A sharp regret guarantee would show when coherent performance can be achieved through local decisions without explicitly recovering the latent global structure.
-
-[Read in atlas](index.html#TCS-0716) · [COLT / PMLR](https://proceedings.mlr.press/v35/christiano14.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0700) · [Approximation Algorithms for Stochastic Optimization: Hardness of Correlated Prophet Inequality](https://doi.org/10.4230/DagRep.15.3.159)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-1529 — One forecaster with the optimal regret rate for every proper loss
 
@@ -1607,13 +1593,6 @@ One online forecaster must issue predictions before knowing which proper loss a 
 
 [Read in atlas](index.html#TCS-1529) · [Toward Simultaneously Optimal Regret in U-Calibration](https://proceedings.mlr.press/v336/frongillo26a.html) · [Toward Simultaneously Optimal Regret in U-Calibration — version record](https://arxiv.org/abs/2606.18527)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-4983 — Sublinear competitive ratio for randomized k-server
-
-The randomized k-server problem serves sequential metric requests while paying for movement of k available servers. The source asks whether arbitrary metrics admit a competitive ratio growing strictly slower than k. Bounds obtained through tree embeddings may depend on the number of metric points, so they do not automatically provide the requested dependence on k alone. The paper separately addresses implementing randomized strategies in polynomial time. The central question would establish a universal asymptotic advantage of randomization over the linear-in-k deterministic barrier, without restricting the metric's geometry or size.
-
-[Read in atlas](index.html#TCS-4983) · [Randomized k-Server in Polynomial Time](https://doi.org/10.4230/LIPIcs.ICALP.2026.65)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5252 — Action-set-dependent regret in bandit combinatorial optimization
 
