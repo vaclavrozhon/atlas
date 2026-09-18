@@ -1310,10 +1310,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-0515 — Deterministic volume gap
 
-The VOLUME model measures how many graph vertices an adaptive local algorithm inspects to determine one requested output. Outputs from separate queries must still fit together into a single valid labeling. The conjecture says every deterministic locally checkable problem with sublinear worst-case volume actually has O(log-star n) volume. It concerns fixed bounded-degree graph families with exact size information and polynomially bounded identifiers. Proving the collapse would eliminate an entire intermediate range of deterministic local information complexity, despite the richer range available to randomized algorithms.
+The VOLUME model counts how many graph vertices are inspected to determine one requested output. Separate deterministic queries must agree on a globally legal labeling without sharing mutable state. The question asks whether every fixed locally checkable problem with sublinear volume also has iterated-logarithmic volume. The graph degree, verification radius and label alphabets are fixed, while graph size and identifiers vary. Recent constructions fill randomized complexity ranges but leave this deterministic gap unresolved.
 
 [Read in atlas](index.html#TCS-0515) · [Seeing Far vs. Seeing Wide: Volume Complexity of Local Graph Problems](https://arxiv.org/abs/1907.08160v2) · [The randomized local computation complexity of the Lovász local lemma](https://arxiv.org/abs/2103.16251v2) · [The Landscape of Distributed Complexities on Trees and Beyond](https://arxiv.org/abs/2202.04724v2) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#volume) · [New Complexity Classes in Locally Checkable Labeling for Local Computation Algorithms](https://arxiv.org/abs/2607.09626v1)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0993 — Factor-two graph distances in logarithmically many passes
 
@@ -1422,10 +1422,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-2997 — Triangle detection in CONGEST
 
-Triangle detection asks a distributed network to report whether any three vertices are pairwise adjacent. In CONGEST, each edge transmits only \(O(\log  n)\) bits per round, even though vertices initially know all their own neighbors. The saved card asks for the optimal randomized round complexity between the stated doubly logarithmic lower bound and roughly \(n^{1/3}\) upper bound. Detection needs only one positive witness somewhere in the network, unlike listing every triangle. The challenge is to exploit that smaller output requirement while still communicating enough information to discover an edge between two neighbors.
+A distributed network must detect whether three vertices are pairwise adjacent. Every edge carries only logarithmically many bits per synchronous round. A positive input needs one YES report somewhere, and the joint answer must be correct with probability at least fifteen sixteenths. The target is matching upper and lower round bounds, including any logarithmic factors. Known detection bounds remain far apart, and the stronger output requirement of listing triangles does not close that gap.
 
-[Read in atlas](index.html#TCS-2997) · [Distributed Subgraph Finding — ADGA 2025](https://adga-workshop.org/2025/keren.pdf) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802) · [Near-optimal Distributed Triangle Enumeration via Expander Decompositions](https://doi.org/10.1145/3446330)
-Existing status: `open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2997) · [Distributed Subgraph Finding — ADGA 2025](https://adga-workshop.org/2025/keren.pdf) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802v2) · [Near-optimal Distributed Triangle Enumeration via Expander Decompositions](https://doi.org/10.1145/3446330)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-7376 — Polylogarithmic-space streaming Euclidean MST estimation
 
@@ -1460,7 +1460,7 @@ Existing status: `source_open` · Summary written: 2026-09-13
 A proper coloring with \(\Delta+1\) colors always exists for a graph of maximum degree at most \(\Delta\). The question asks whether a uniform deterministic LOCAL algorithm can find one in \(O(\Delta^{1/2-\varepsilon}+\log^* n)\) rounds for some fixed \(\varepsilon>0\). Any positive constant saving in the degree exponent qualifies, however small, and it must be independent of both graph size and degree. Processors must reduce a large identifier-based palette without causing conflicts among adjacent vertices acting simultaneously. Crossing the square-root degree barrier would improve local coordination while preserving the small dependence on total network size.
 
 [Read in atlas](index.html#TCS-0524) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#local) · [Local Conflict Coloring Revisited: Linial for Lists](https://arxiv.org/abs/2007.15251) · [Faster Distributed Delta-Coloring via a Reduction to MIS](https://doi.org/10.1137/1.9781611978971.162)
-Existing status: `source_open` · Summary written: 2026-09-17
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-6380 — Fractional-edge-cover load for general-message parallel joins
 

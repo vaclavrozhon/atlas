@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-563 five-sentence working summaries, based on saved source material.
+562 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -3822,7 +3822,7 @@ The input is an entire finite algebra specified by tables of its basic operation
 [Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66) · [Equations over finite algebras](https://www.algebra.uni-linz.ac.at/Slides/sl-aaa105-6.pdf)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Database theory and finite model theory (21)
+## Database theory and finite model theory (20)
 
 ### TCS-6678 — FO model checking on hereditary monadically dependent graph classes
 
@@ -3908,6 +3908,13 @@ Polymatroid query bounds maximize a normalized monotone submodular function subj
 [Read in atlas](index.html#TCS-0487) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Optimizing Polymatroid Functions](https://arxiv.org/abs/2211.08381v1) · [Efficient Algorithms for Cardinality Estimation and Conjunctive Query Evaluation With Simple Degree Constraints](https://arxiv.org/abs/2504.02770v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-7128 — Unconditional constant-delay lower bound for the two-step query
+
+The input is one finite binary relation, viewed as a directed graph. The fixed query returns each endpoint pair connected by a two-edge walk, regardless of how many intermediate witnesses it has. The proposed algorithm would prepare a read-only index in linear time and enumerate answers with constant worst-case delay and constant extra memory. The question asks for an unconditional proof that no such deterministic algorithm exists in the specified addition-based word-RAM model. A result relying on matrix-multiplication hardness would not meet that requirement.
+
+[Read in atlas](index.html#TCS-7128) · [Constant Delay Enumeration for Conjunctive Queries](https://databasetheory.org/sites/default/files/2016-06/segoufin.pdf)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-0494 — BDD/FC conjecture
 
 The BDD/FC conjecture asks whether every finite existential rule set with bounded derivation depth is finitely controllable. Bounded derivation depth is expressed by a finite positive rewriting for each conjunctive query that works on every database. Finite controllability means that a query failing in some unrestricted model also fails in a finite model. The question allows arbitrary finite relational arities and several atoms in a rule head. The known binary theorem requires single-head rules, and the checked PODS 2025 result posted in 2026 leaves the general conjecture open.
@@ -3950,26 +3957,12 @@ Stratified Datalog can negate relations already computed in earlier stages. Semi
 [Read in atlas](index.html#TCS-3557) · [Datalog with Negation and Monotonicity](https://doi.org/10.4230/LIPIcs.ICDT.2020.19) · [Weaker Forms of Monotonicity for Declarative Networking](https://www.basketsman.com/public/documents/posters/poster_pods2014.pdf) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic](https://doi.org/10.4230/LIPIcs.CSL.2021.18)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-6157 — Determinacy and rewriting of regular path queries
-
-Regular path queries select pairs of graph vertices joined by a path whose edge labels satisfy a regular expression. A collection of views determines a query when any two databases agreeing on all view answers also agree on the query answer. The cited discussion asks whether this determinacy property is decidable for regular path queries and what language can express the resulting rewritings. The paper's own focus on unions of path-length queries provides related positive results without answering that full labeled-path question. Understanding determinacy would establish when graph queries can be recovered exactly from previously computed views.
-
-[Read in atlas](index.html#TCS-6157) · [Asymptotic Determinacy of Path Queries using Union-of-Paths Views](https://doi.org/10.4230/LIPIcs.ICDT.2015.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6372 — Cai–Fürer–Immerman definability in choiceless polynomial time
 
 CFI graphs hide an even-or-odd parity in symmetric gadgets built over a base graph. The input provides adjacency but no arbitrary order or labels revealing the hidden parity. The question asks for one choiceless polynomial-time program with counting that recovers parity for every base graph. The model may construct nested sets, but its total resources are polynomial in the expanded input size. Known positive cases and restricted lower bounds do not settle the full unordered question.
 
 [Read in atlas](index.html#TCS-6372) · [Definability of Cai-Fürer-Immerman Problems in Choiceless Polynomial Time](https://doi.org/10.4230/LIPIcs.CSL.2016.19) · [Lower Bounds for Choiceless Polynomial Time via Symmetric XOR-Circuits](https://doi.org/10.4230/LIPIcs.MFCS.2023.73) · [Choiceless Computation and Symmetry: Limitations of Definability](https://doi.org/10.4230/LIPIcs.CSL.2021.33) · [Symmetric Proofs in the Ideal Proof System](https://doi.org/10.4230/LIPIcs.MFCS.2025.40)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-7128 — Unconditional constant-delay query-enumeration lower bounds
-
-Constant-delay enumeration aims to produce query answers promptly after an initial preprocessing phase. The source asks for unconditional lower bounds for natural queries, including a distance-two example. The target is to prove an inherent limitation directly rather than obtain it only from an unproved fine-grained conjecture. Such a result would strengthen the foundations of query-enumeration classifications and clarify which costs are mathematically unavoidable. The source's preprocessing budget, RAM operations, and precise distance-two output convention matter, because lower bounds can change when stronger indexing or different output requirements are permitted.
-
-[Read in atlas](index.html#TCS-7128) · [Constant Delay Enumeration for Conjunctive Queries](https://databasetheory.org/sites/default/files/2016-06/segoufin.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Miscellaneous (3)
 
