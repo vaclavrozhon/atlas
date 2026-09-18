@@ -5,15 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **50**.
+Pending active reviews: **45**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-2662](../../data/cards/TCS-2662.json) | Subexponential constant-gap Max-Clique under ETH | Parameterized and exact algorithms | pool |
-| [TCS-5374](../../data/cards/TCS-5374.json) | Degeneracy-sensitive classification of homomorphism counting | Parameterized and exact algorithms | pool |
-| [TCS-0088](../../data/cards/TCS-0088.json) | Optimal approximation of Max Di-Cut | Approximation algorithms and hardness of approximation | pool |
-| [TCS-6309](../../data/cards/TCS-6309.json) | Constant-factor approximation for capacitated k-Median | Approximation algorithms and hardness of approximation | pool |
-| [TCS-0711](../../data/cards/TCS-0711.json) | Model Selection for Contextual Bandits | Online algorithms | pool |
 | [TCS-0922](../../data/cards/TCS-0922.json) | Generalized assignment | Online algorithms | pool |
 | [TCS-0715](../../data/cards/TCS-0715.json) | Efficient Online Sparse Regression | Online algorithms | pool |
 | [TCS-0708](../../data/cards/TCS-0708.json) | Order Optimal Regret Bounds for Kernel-Based Reinforcement Learning | Online algorithms | pool |

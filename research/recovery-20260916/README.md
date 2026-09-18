@@ -1259,3 +1259,38 @@ checkpoint. Source checkpoint 621a4121 and deployment
 b8d7b5171544714be2b4d032ffcbac7d8a800bf2 cover the first 215 dispositions.
 Concurrent unrelated work remains unstaged; the committed queue has 864 completed
 and 50 pending records.
+
+After two hundred and twenty-five recovery dispositions, the raw shared queue
+contains 870 completed records, 44 pending records and one outside its original
+scope. The live catalogue has 970 active cards: 37 pending active reviews,
+781 completed active queue records and 152 active records outside the queue.
+
+This batch completes TCS-6309 (a true constant-factor capacitated k-median
+approximation), TCS-2662 (subexponential constant-gap Clique under ordinary ETH),
+TCS-5374 (the generalized DAG-treewidth homomorphism-counting dichotomy),
+TCS-0088 (the known conditional Max Di-Cut ratio to the requested precision,
+archived), and TCS-0711 (general adversarial contextual-bandit model selection,
+archived following the 2021 negative result). The five optional scope questions
+have not received answers; the announced recommendations are recorded as
+editorial defaults, not user confirmations.
+
+The clustering card preserves exact capacities and the number of facilities;
+the ICALP 2026 source still identifies this polynomial-time target as open.
+The Clique card distinguishes a graph-size exponent from a parameterized bound.
+The counting card defines generalized reachability bags and both sides of the
+proposed parameterized dichotomy. The Max Di-Cut record states its UGC and
+NP-not-in-BPP assumptions and a certified interval narrower than 1/50; it does
+not claim the exact optimum ratio known. The bandit record fixes the adaptive
+adversary, feedback, comparator and parameter dependence covered by the cited
+impossibility result. Archival records do not claim completed Lean proofs.
+
+All five output hashes match their queue rows. The shared ledger contains 1096
+valid entries. The full offline check passes; mathematical rendering passes for
+37,071 expressions across 970 cards. Desktop/mobile reader checks pass on
+publication bd23ceb5c185cf8275b2 with 949 detailed active records.
+
+Only these five cards, their authoring scripts, this log and the owned queue,
+ledger, inventory and archival deltas enter the checkpoint. Source checkpoint
+742ebdc0 and deployment b9f0df73b654aa0d33042e265ea6d77ffabd3427 cover the first
+220 dispositions. Concurrent unrelated work remains unstaged; the committed
+queue has 869 completed and 45 pending records.
