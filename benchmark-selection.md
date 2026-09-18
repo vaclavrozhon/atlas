@@ -307,7 +307,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [Breaking two for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 | 2 | [Breaking two for precedence-constrained makespan](index.html#TCS-6676) (TCS-6676) | Needs review | 96 | Unreviewed replacement |
 
-Candidates considered: TCS-0700, TCS-0708, TCS-1241, TCS-1529, TCS-5030, TCS-5221, TCS-5252, TCS-5779, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0935, TCS-0922.
+Candidates considered: TCS-0700, TCS-0708, TCS-1241, TCS-1529, TCS-5030, TCS-5221, TCS-5252, TCS-5779, TCS-6576, TCS-6577, TCS-6836, TCS-6638, TCS-6676, TCS-6640, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 

@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-566 five-sentence working summaries, based on saved source material.
+564 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1459,7 +1459,7 @@ The input lists local constraints on variables with a finite common label domain
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Online algorithms, scheduling and packing (22)
+## Online algorithms, scheduling and packing (21)
 
 ### TCS-6638 — Breaking two for unrelated-machine makespan
 
@@ -1580,6 +1580,13 @@ Kernel-based reinforcement learning uses a reproducing kernel Hilbert space to r
 [Read in atlas](index.html#TCS-0708) · [COLT / PMLR](https://proceedings.mlr.press/v247/vakili24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-5252 — Optimal bandit regret for paths in a directed grid
+
+Each round the learner chooses a path between opposite corners of a directed square grid. It observes the sum of the losses on that path without seeing individual edge losses. Performance is compared with the best fixed path after all rounds are known. The question asks for the optimal worst-case expected regret in both grid size and horizon, up to constant factors. General hard-network bounds and newer results on ranking do not yet identify the selected grid rate.
+
+[Read in atlas](index.html#TCS-5252) · [Tight Bounds for Bandit Combinatorial Optimization](https://proceedings.mlr.press/v65/cohen17a.html) · [Improved Regret Bounds for Bandit Combinatorial Optimization](https://papers.neurips.cc/paper/9373-improved-regret-bounds-for-bandit-combinatorial-optimization.pdf)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-0700 — Exact optimal stopping for mixtures of product distributions
 
 A hidden scenario is selected uniformly before a sequence of values is generated. Conditional on that scenario the values are independent, and every conditional distribution is explicitly known. The decision maker observes values in order and must select one when it arrives. The target asks whether an exactly optimal online stopping rule can be prepared and executed in polynomial bit time. The benchmark is the best rule with the same online information, rather than an observer who sees the whole future.
@@ -1594,26 +1601,12 @@ One online forecaster must issue predictions before knowing which proper loss a 
 [Read in atlas](index.html#TCS-1529) · [Toward Simultaneously Optimal Regret in U-Calibration](https://proceedings.mlr.press/v336/frongillo26a.html) · [Toward Simultaneously Optimal Regret in U-Calibration — version record](https://arxiv.org/abs/2606.18527)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-5252 — Action-set-dependent regret in bandit combinatorial optimization
-
-Bandit combinatorial optimization chooses structured subsets and observes only the total loss of the chosen subset. The source asks which properties of the particular action set determine its optimal regret. General bounds in ambient dimension and subset size may ignore substantial structure shared by the feasible actions. For shortest-path actions, the question becomes identifying graph properties that control learning difficulty, including on a simple directed grid. A characterization would replace worst-case guarantees over all action systems with bounds that explain why one specific combinatorial decision problem is easier than another.
-
-[Read in atlas](index.html#TCS-5252) · [Tight Bounds for Bandit Combinatorial Optimization](https://proceedings.mlr.press/v65/cohen17a.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6721 — Additive-one approximation for bin packing
 
 Bin packing assigns indivisible items of known sizes to bins of unit capacity. The goal is to find a packing that uses at most one bin more than the minimum possible. The algorithm must run in polynomial time in the complete binary input length. Known general algorithms achieve a logarithmic additive loss, while approximation schemes do not guarantee one extra bin. The question asks how closely efficient computation can approach the exact optimum of a fundamental packing problem.
 
 [Read in atlas](index.html#TCS-6721) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/) · [A Logarithmic Additive Integrality Gap for Bin Packing](https://doi.org/10.1137/1.9781611974782.172)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6838 — Instance-optimal finite-time best-arm identification
-
-Best-arm identification spends samples to recommend a good arm, rather than to maximize reward during exploration. The source asks for finite-time guarantees matching its information-theoretic lower bounds and for instance-dependent bounds on simple regret. Simple regret measures the reward gap of the final recommendation, making it sensitive to how costly a particular mistake is. The source also proposes understanding the distribution of that gap, beyond just its expectation. These questions would connect asymptotically optimal exploration rules with the quality and reliability of recommendations produced under an actual finite sampling budget.
-
-[Read in atlas](index.html#TCS-6838) · [Bandit Algorithms](https://banditalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Beyond worst-case and average-case analysis (13)
 
@@ -1666,6 +1659,13 @@ Does FLIP for Max-Cut have polynomial expected path length on every graph under 
 [Read in atlas](index.html#TCS-6658) · [Local Max-Cut on Sparse Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2024.98) · [Smoothed complexity of local Max-Cut and binary Max-CSP](https://arxiv.org/abs/1911.10381) · [Superpolynomial smoothed complexity of 3-FLIP in Local Max-Cut](https://people.maths.ox.ac.uk/michel/Papers/smoothed-complexity-local-max-cut-3-flip.pdf)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-6702 — Exponential worst-case hardness implies mild average-case hardness in NP
+
+The premise is an NP language that requires exponentially large Boolean circuits in the worst case. The conclusion asks for another NP language on which exponentially large circuits err on an inverse-polynomial fraction of uniformly random inputs. Both hardness guarantees must hold at every sufficiently large input length. The proposed implication permits any proof method and adds no cryptographic assumption. It isolates the quantitative worst-to-average gap from both polynomial-time average complexity and amplification of already established average hardness.
+
+[Read in atlas](index.html#TCS-6702) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Non-black-box Worst-case to Average-case Reductions within NP](https://ieee-focs.org/FOCS-2018-Papers/pdfs/59f247.pdf) · [Cryptography meets worst-case complexity: Optimal security and more from iO and worst-case assumptions](https://eccc.weizmann.ac.il/report/2025/072/)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-7148 — Polynomial simplex complexity under zero-preserving perturbations
 
 Smoothed analysis asks how a simplex algorithm behaves on a worst-case linear program after independent random perturbations. This version keeps every original zero coefficient fixed and adds Gaussian noise only to nonzero matrix and right-hand-side entries. The target asks whether some explicitly defined two-phase simplex algorithm solves every such family exactly in expected polynomially many arithmetic operations. The algorithm class and additive noise convention are disclosed editorial choices completing a broader source question. A complete Lean answer must prove the universal expected bound or refute it for every algorithm in the stated class.
@@ -1687,26 +1687,19 @@ The user has specialized the general random-CSP program to Max-Cut on uniform si
 [Read in atlas](index.html#TCS-5406) · [The SDP Value of Random 2CSPs](https://doi.org/10.4230/LIPIcs.ICALP.2022.97) · [The Ising antiferromagnet and max cut on random regular graphs](https://doi.org/10.1137/20M137999X) · [Computational hardness of detecting graph lifts and certifying lift-monotone properties of random regular graphs](https://arxiv.org/abs/2404.17012v1) · [Reinforced Generation of Combinatorial Structures: Hardness of Approximation](https://arxiv.org/abs/2509.18057v7)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
+### TCS-6703 — Optimal exponential hardness amplification for balanced NP languages
+
+The premise supplies a balanced NP language that is mildly hard for exponentially large circuits on uniformly random inputs. The target is another NP language whose membership bit can be predicted with only exponentially small advantage over chance. The allowed circuit size must remain exponential in the amplified language’s own input length. Known constructions achieve near-exponential parameters but do not provide the selected linear exponent. The implication permits any proof method and does not require a black-box construction.
+
+[Read in atlas](index.html#TCS-6703) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Using Nondeterminism to Amplify Hardness](https://people.seas.harvard.edu/~salil/research/HardAmpNP-sicomp.pdf) · [Better Pseudorandom Generators from Milder Pseudorandom Restrictions](https://arxiv.org/abs/1210.0049) · [Hardness Amplification Beyond Boolean Functions](https://eccc.weizmann.ac.il/report/2026/038/)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-4876 — Algorithmic threshold for random k-SAT
 
 The input is a random conjunction of fixed-width clauses, with all literal positions sampled independently. The algorithm must find an assignment satisfying every clause with probability tending to one. The conjectured leading threshold is two to the clause width times its natural logarithm, divided by the width. Known algorithms reach this scale, while satisfying assignments exist at substantially higher densities. Existing overlap-gap and low-degree barriers do not establish optimality against every polynomial-time algorithm.
 
 [Read in atlas](index.html#TCS-4876) · [Sharp Thresholds for the Overlap Gap Property: Ising p-Spin Glass and Random k-SAT — full version](https://arxiv.org/abs/2309.09913) · [A Better Algorithm for Random k-SAT](https://doi.org/10.1137/09076516X) · [The Algorithmic Phase Transition of Random k-SAT for Low Degree Polynomials](https://arxiv.org/abs/2106.02129)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6702 — Worst-case-to-average-case reductions within NP
-
-Worst-case-to-average-case reductions aim to turn the difficulty of some inputs into difficulty on a substantial fraction of a samplable distribution. The source asks for suitable reductions that remain within NP. Staying inside NP preserves efficient verification of witnesses while attempting to distribute hardness more broadly. A successful construction would connect basic worst-case assumptions to the distributional hardness used in pseudorandomness and related areas. The saved survey note does not preserve the input distribution, reduction type, or hardness fraction, so those parameters must be recovered before the broad direction becomes one exact implication.
-
-[Read in atlas](index.html#TCS-6702) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6703 — Optimal exponential-scale hardness amplification in NP
-
-Hardness amplification strengthens a problem that is mildly hard on average into one that is hard on nearly all inputs. The source asks for optimal exponential-scale amplification while keeping the resulting problem in NP. The NP requirement constrains which encodings and combinations can be used without losing efficiently verifiable witnesses. An optimal result would sharpen the quantitative route from weak average-case hardness to strong pseudorandomness consequences. The saved note omits the starting advantage, output length, and target error exponent, so these must be restored before optimality can be judged against a specific amplification bound.
-
-[Read in atlas](index.html#TCS-6703) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Sampling, Markov chains and mixing times (9)
 
@@ -2490,7 +2483,7 @@ The input is a string, its alphabet size and a fixed prime modulus. The algorith
 [Read in atlas](index.html#TCS-0466) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Longest Common Extensions in Sublinear Space](https://arxiv.org/abs/1504.02671v1) · [Compressed Index with Construction in Compressed Space](https://doi.org/10.4230/LIPIcs.CPM.2026.25)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-## Game theory, social choice and fair division (24)
+## Game theory, social choice and fair division (23)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -2631,13 +2624,6 @@ Vertices are participants and hyperedges are feasible coalitions. Each participa
 
 [Read in atlas](index.html#TCS-1714) · [Stable Hypergraph Matching in Unimodular Hypergraphs](https://doi.org/10.4230/LIPIcs.ICALP.2025.31) · [Polynomial-time Stable Matching in Network Hypergraphs](https://arxiv.org/abs/2608.24728)
 Existing status: `source_open` · Summary written: 2026-09-12
-
-### TCS-2427 — Zero-sum stochastic games with variable discount factors
-
-Turn-based stochastic games combine sequential player choices, random transitions, and rewards extending over an infinite horizon. The cited passage asks about computing exact or approximate Nash equilibria even for zero-sum games as the discount factor increases. A discount factor approaching one makes remote future rewards increasingly relevant. Understanding this regime would clarify whether equilibrium computation scales efficiently with a long effective planning horizon. The saved sentence does not specify the encoding of discount factors or the approximation tolerance, both of which are necessary to distinguish polynomial complexity from parameter-dependent guarantees.
-
-[Read in atlas](index.html#TCS-2427) · [The Complexity of Infinite-Horizon General-Sum Stochastic Games](https://doi.org/10.4230/LIPIcs.ITCS.2023.76)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4584 — Nash equilibria in concurrent terminal-reward games
 

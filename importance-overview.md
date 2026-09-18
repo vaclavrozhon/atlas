@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-954 records have an editorial importance assessment; 13 remain provisional.
+957 records have an editorial importance assessment; 8 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance assessed: 21; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 22; importance assessed: 22; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -314,7 +314,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance 
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 11; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 13; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -325,9 +325,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance 
 | 5 | [Polynomial-time refutation of random 3-SAT at constant density](index.html#TCS-7238) | 96 |
 | 6 | [Infinitely-often one-way functions from average-case NP hardness](index.html#TCS-6453) | 95 |
 | 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
-| 8 | [Polynomial simplex complexity under zero-preserving perturbations](index.html#TCS-7148) | 88 |
-| 9 | [Algorithmic threshold for the symmetric binary perceptron](index.html#TCS-5011) | 87 |
-| 10 | [Optimization and certification of Max-Cut in random cubic graphs](index.html#TCS-5406) | 87 |
+| 8 | [Exponential worst-case hardness implies mild average-case hardness in NP](index.html#TCS-6702) | 94 |
+| 9 | [Polynomial simplex complexity under zero-preserving perturbations](index.html#TCS-7148) | 88 |
+| 10 | [Algorithmic threshold for the symmetric binary perceptron](index.html#TCS-5011) | 87 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
@@ -432,7 +432,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 25; importance 
 
 ## 16. Game theory, social choice and fair division (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 24; importance assessed: 21; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance assessed: 21; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
