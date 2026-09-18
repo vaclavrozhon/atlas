@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-399 five-sentence working summaries, based on saved source material.
+398 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (72)
@@ -1180,7 +1180,7 @@ The machine combines finite nondeterministic choices with rational probabilistic
 [Read in atlas](index.html#TCS-0092) · [Automata Exchange](https://automata.exchange/25.19-complete-techniques-for-deducing-fair-almost-sure-termination/) · [Positive Almost-Sure Termination — Complexity and Proof Rules](https://arxiv.org/abs/2310.16145) · [Verifying Almost-Sure Termination for Randomized Distributed Algorithms](https://sigplan.org/OpenTOC/popl26.html)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Distributed, parallel and sublinear algorithms (50)
+## Distributed, parallel and sublinear algorithms (49)
 
 ### TCS-6553 — P versus NC
 
@@ -1419,13 +1419,6 @@ Each process proposes a value and must decide one of the values proposed by part
 
 [Read in atlas](index.html#TCS-7337) · [Revisionist Simulations: A New Approach to Proving Space Lower Bounds](https://epubs.siam.org/doi/10.1137/20M1322923) · [Revisionist Simulations: A New Approach to Proving Space Lower Bounds (preprint)](https://arxiv.org/abs/1711.02455v5) · [Anonymous Obstruction-Free \((n,k)\)-Set Agreement with \(n-k+1\) Atomic Read/Write Registers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2015.18) · [Solving Tasks with Fewer Registers Than Processes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2025.21) · [How Exhaustive Does an Extension-Based Proof Need to Be?](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2025.29)
 Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-2997 — Triangle detection in CONGEST
-
-A distributed network must detect whether three vertices are pairwise adjacent. Every edge carries only logarithmically many bits per synchronous round. A positive input needs one YES report somewhere, and the joint answer must be correct with probability at least fifteen sixteenths. The target is matching upper and lower round bounds, including any logarithmic factors. Known detection bounds remain far apart, and the stronger output requirement of listing triangles does not close that gap.
-
-[Read in atlas](index.html#TCS-2997) · [Distributed Subgraph Finding — ADGA 2025](https://adga-workshop.org/2025/keren.pdf) · [Distributed Triangle Detection is Hard in Few Rounds](https://arxiv.org/abs/2504.01802v2) · [Near-optimal Distributed Triangle Enumeration via Expander Decompositions](https://doi.org/10.1145/3446330)
-Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-7376 — Polylogarithmic-space streaming Euclidean MST estimation
 
@@ -2389,7 +2382,7 @@ Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-6454 — Low-noise LPN hardness from Nearest Codeword hardness
 
-Binary Nearest Codeword asks whether a given target lies within a specified Hamming distance of a linear code. The proposed implication uses worst-case difficulty of that decision problem to rule out a uniform distinguisher for one low-noise LPN regime. The LPN experiment has a random secret, a random matrix, n-squared samples and inverse-square-root noise at square dimensions. The saved conclusion excludes success at every sufficiently large dimension and is weaker than full eventual negligible-advantage security. The recent code-and-dual-code reduction uses an additional assumption that the selected target aims to remove.
+Binary Nearest Codeword asks whether a given target lies within a specified Hamming distance of a linear code. The proposed implication uses worst-case difficulty of that decision problem to rule out a uniform distinguisher for one low-noise LPN regime. The LPN experiment has a random secret, a random matrix, n-squared samples and inverse-square-root noise at square dimensions. The conclusion requires negligible advantage at every sufficiently large square dimension, including exclusion of distinguishers useful on a sparse unbounded sequence. The recent code-and-dual-code reduction uses an additional assumption that the selected target aims to remove.
 
 [Read in atlas](index.html#TCS-6454) · [Towards Worst-case Hardness for Low-Noise LPN](https://eccc.weizmann.ac.il/report/2026/095/)
 Existing status: `source_open` · Summary written: 2026-09-18

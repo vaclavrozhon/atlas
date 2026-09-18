@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-562 five-sentence working summaries, based on saved source material.
+560 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1254,7 +1254,7 @@ Directed Feedback Vertex Set asks whether deleting at most a given number of ver
 [Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55) · [Wannabe Bounded Treewidth Graphs Admit a Polynomial Kernel for Directed Feedback Vertex Set](https://doi.org/10.1145/3711669)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Approximation algorithms and inapproximability (29)
+## Approximation algorithms and inapproximability (30)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1409,6 +1409,13 @@ A minimization CSP assigns finite-domain values to variables to minimize the ave
 
 [Read in atlas](index.html#TCS-6757) · [Approximation Algorithms for CSPs](https://doi.org/10.4230/DFU.Vol7.15301.287) · [How to Round Any CSP](https://www.dsteurer.org/paper/roundcsp.pdf) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7287 — Square-root logarithmic approximation for metric labeling
+
+Metric labeling assigns one label to each graph vertex. Its cost combines vertex assignment costs with distances between labels across weighted edges. The selected target is a randomized polynomial-time approximation growing only as the square root of the logarithm of the number of labels. The label metric and all rational costs are explicit and unrestricted, and zero optimum is included. General logarithmic approximation and special-metric results leave this chosen milestone unanswered in the checked sources.
+
+[Read in atlas](index.html#TCS-7287) · [A Linear Programming Formulation and Approximation Algorithms for the Metric Labeling Problem](https://chekuri.cs.illinois.edu/papers/metric-labeling-sidma.pdf) · [The Hardness of Metric Labeling](https://doi.org/10.1137/06065430X)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0922 — Configuration-LP gap for maximum generalized assignment
 
@@ -1996,10 +2003,10 @@ Existing status: `source_open` · Summary written: 2026-09-17
 
 ### TCS-7263 — Linear-time directed shortest paths with nonnegative real weights
 
-The input is a directed graph with arbitrary nonnegative real arc lengths and a specified source. The task is to output every exact source distance. The question asks for deterministic linear worst-case time using real addition and comparison. Recent algorithms break the sorting barrier while retaining superlinear overhead. A linear algorithm would match the cost of reading the graph and writing the distances.
+The task is to compute every exact distance from one source in a directed graph with nonnegative real arc lengths. The requested running time is linear in the number of vertices and arcs. A uniform deterministic machine may compare, add and subtract real values but cannot inspect their encodings. All memory access, control, preprocessing and output instructions count toward the bound. Recent improvements and separate numerical-operation results leave this total-time milestone unanswered in the checked sources.
 
-[Read in atlas](index.html#TCS-7263) · [Breaking the Sorting Barrier for Directed Single-Source Shortest Paths](https://arxiv.org/abs/2504.17033) · [A Faster Directed Single-Source Shortest Path Algorithm](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.81)
-Existing status: `source_open` · Summary written: 2026-09-13
+[Read in atlas](index.html#TCS-7263) · [Breaking the Sorting Barrier for Directed Single-Source Shortest Paths](https://arxiv.org/abs/2504.17033) · [A Faster Directed Single-Source Shortest Path Algorithm](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.81) · [Krajinou grafových algoritmů](https://mj.ucw.cz/vyuka/ga/ga.pdf) · [Beyond Distance Ordering: Resource Complexity and Universal Optimality of Exact Labeled Directed Shortest Paths](https://arxiv.org/abs/2609.04825v1) · [A Faster Undirected Single-Source Shortest Path Algorithm](https://arxiv.org/abs/2609.15247v1)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-7348 — Single-exponential exact cut mimicking networks
 
@@ -2476,7 +2483,7 @@ The input is a string, its alphabet size and a fixed prime modulus. The algorith
 [Read in atlas](index.html#TCS-0466) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Longest Common Extensions in Sublinear Space](https://arxiv.org/abs/1504.02671v1) · [Compressed Index with Construction in Compressed Space](https://doi.org/10.4230/LIPIcs.CPM.2026.25)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-## Game theory, social choice and fair division (23)
+## Game theory, social choice and fair division (22)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -2583,6 +2590,13 @@ The task is to divide indivisible goods among agents whose nonnegative values ad
 [Read in atlas](index.html#TCS-1115) · [Fair Division of Indivisible Goods: A Survey](https://arxiv.org/abs/2202.07551v2) · [A Polynomial-Time Algorithm for Fair and Efficient Allocation with a Fixed Number of Agents](https://doi.org/10.1007/978-3-032-18660-7_22) · [Fair and Efficient Balanced Allocation for Indivisible Goods](https://arxiv.org/abs/2603.05956v1)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-6958 — Algorithmic versus dominant-strategy implementation
+
+Mechanism design asks for good outcomes when participants choose their own strategies. Algorithmic implementation guarantees approximation for a collection of acceptable strategies. A player can efficiently improve any strategy outside that collection to a dominating acceptable one. The source asks whether this framework can outperform every efficient dominant-strategy implementation. The user retains the direction pending a precise domain, representation, approximation gap and allowed hardness assumption.
+
+[Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf) · [Single-Value Combinatorial Auctions and Implementation in Undominated Strategies](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/undominated.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-18
+
 ### TCS-1109 — EF1 and Pareto optimality for additive mixed items
 
 Each participant may value an indivisible item positively, negatively or at zero. Every item must be assigned, and the participants have additive utilities and equal entitlements. EF1 permits eliminating each envy comparison by removing at most one item from one of the two bundles. The question is whether an allocation with this fairness guarantee can always also be Pareto optimal for at least three agents. Recent results settle pure chores and some alternative mixed-item fairness guarantees, but the checked 2026 sources do not resolve the unrestricted combination.
@@ -2624,20 +2638,6 @@ Two players act simultaneously in a finite state graph. A terminal state pays ea
 
 [Read in atlas](index.html#TCS-4584) · [Mixed Nash Equilibria in Concurrent Terminal-Reward Games](https://doi.org/10.4230/LIPIcs.FSTTCS.2014.351) · [Stochastic Equilibria under Imprecise Deviations in Terminal-Reward Concurrent Games](https://doi.org/10.4204/EPTCS.226.5)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-6957 — Characterizing domains restricted to affine maximizers
-
-An affine maximizer chooses an allocation maximizing a weighted sum of reported values plus fixed outcome offsets. The textbook asks which valuation domains make these the only allocation rules implementable with truthful incentives. Rich domains can constrain how reports may change outcomes if payments are to deter manipulation. A characterization would identify when mechanism design is forced into this familiar optimization form. The saved 2007 question does not spell out domain richness or incentive conventions, so the classification must not be extended automatically to restricted valuations or weaker equilibrium implementation notions.
-
-[Read in atlas](index.html#TCS-6957) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6958 — Algorithmic versus dominant-strategy implementation
-
-Mechanism implementation connects an allocation algorithm with strategic behavior that makes its intended outcome attainable. The textbook asks whether efficient algorithmic implementation can approximate better than every efficient dominant-strategy implementation. Dominant strategies require honest behavior to be optimal regardless of others' reports, imposing a particularly strong incentive condition. A separation would quantify the algorithmic value of a weaker implementation framework. The saved historical note does not define that framework or choose the optimization objective, so the proposed comparison needs those details before it becomes one concrete approximation separation.
-
-[Read in atlas](index.html#TCS-6958) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Algebraic computation (60)
 
@@ -3587,7 +3587,7 @@ A learner repeatedly chooses an action and then observes the losses of every act
 [Read in atlas](index.html#TCS-0507) · [Open Problem: Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](https://proceedings.mlr.press/v247/hu24a.html) · [Improved Regret in Stochastic Decision-Theoretic Online Learning under Differential Privacy](https://proceedings.mlr.press/v313/wu26a.html) · [Near-Optimal Algorithms for Differentially Private Online Learning in a Stochastic Environment](https://arxiv.org/abs/2102.07929)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-## Constraint satisfaction (19)
+## Constraint satisfaction (18)
 
 ### TCS-6635 — Finite-domain promise CSP dichotomy
 
@@ -3715,13 +3715,6 @@ A crisp constraint language lists the allowed tuples over a finite domain, and t
 [Read in atlas](index.html#TCS-3678) · [Testing the Complexity of a Valued CSP Language](https://doi.org/10.4230/LIPIcs.ICALP.2019.77) · [Testing the complexity of a valued CSP language](https://arxiv.org/abs/1803.02289) · [The Complexity of Finding Coset-Generating Polymorphisms and the Promise Metaproblem](https://doi.org/10.4230/LIPIcs.ICALP.2026.169)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-7124 — SNP definability of CSPs in NP
-
-The historical source asks which NP constraint satisfaction problems have an exact SNP definition. SNP guesses fixed-arity relations on the input and checks a fixed universal first-order condition. Known results translate such CSPs exactly into reducts of structures with finitely many forbidden induced patterns. The checked sources do not identify that reformulation as resolving the intended broader classification direction. The card remains pending until a substantive criterion beyond the known equivalence is specified.
-
-[Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf) · [Complexity of Infinite-Domain Constraint Satisfaction](https://wwwpub.zih.tu-dresden.de/~bodirsky/Book.pdf) · [On the Computational Power of Extensional ESO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.LICS.2026.20)
-Existing status: `uncertain` · Summary written: 2026-09-16
-
 ## Automated reasoning, rewriting and unification (14)
 
 ### TCS-6562 — Word equations with linear length constraints
@@ -3822,7 +3815,7 @@ The input is an entire finite algebra specified by tables of its basic operation
 [Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66) · [Equations over finite algebras](https://www.algebra.uni-linz.ac.at/Slides/sl-aaa105-6.pdf)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Database theory and finite model theory (20)
+## Database theory and finite model theory (19)
 
 ### TCS-6678 — FO model checking on hereditary monadically dependent graph classes
 
@@ -3943,13 +3936,6 @@ Fix a Boolean query that remains true whenever its input database maps homomorph
 [Read in atlas](index.html#TCS-0505) · [List of open questions: Complexity of uniform reliability for homomorphism-closed queries](https://a3nm.net/work/research/questions/#complexity-of-uniform-reliability-for-homomorphism-closed-queries) · [Uniform Reliability for Unbounded Homomorphism-Closed Graph Queries](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICDT.2023.14) · [The Dichotomy of Probabilistic Inference for Unions of Conjunctive Queries](https://homes.cs.washington.edu/~suciu/jacm-dichotomy.pdf) · [Uniform Reliability of Self-Join-Free Conjunctive Queries](https://lmcs.episciences.org/10288/pdf) · [When is Shapley Value Computation a Matter of Counting?](https://www.labri.fr/perso/meghyn/papers/BieFigLaf-PODS24.pdf) · [Approximating Queries on Probabilistic Graphs](https://arxiv.org/abs/2309.13287v8)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-1251 — Output-sensitive evaluation of cyclic queries
-
-A conjunctive query combines several required relations, and cycles make those requirements interact around a closed pattern. Output-sensitive evaluation measures work using both the input size and the actual number of answers. The source asks whether techniques available for triangles can extend to arbitrary cyclic conjunctive queries. Large intermediate relations can be wasteful even when the final output is small. The project seeks evaluation strategies that exploit the whole query structure instead of paying for every locally possible combination.
-
-[Read in atlas](index.html#TCS-1251) · [Output-Sensitive Evaluation of Acyclic Conjunctive Regular Path Queries](https://doi.org/10.4230/LIPIcs.ICDT.2026.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3557 — Does extension preservation eliminate stratified intensional negation?
 
 Stratified Datalog can negate relations already computed in earlier stages. Semi-positive Datalog only negates input relations. The question asks whether preserving answers when new values extend a database always permits the simpler semi-positive form. The input growth must preserve every relation on tuples of old values, which differs from unrestricted monotonicity. The source leaves this converse expressiveness question open, and the checked later first-order preservation results do not resolve it.
@@ -3980,9 +3966,9 @@ Seese’s conjecture concerns arbitrary classes of finite simple undirected grap
 [Read in atlas](index.html#TCS-6654) · [Forbidden Induced Subgraphs for Bounded Shrub-Depth and the Expressive Power of MSO](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.167) · [Vertex-minors, monadic second-order logic, and a conjecture by Seese](https://www.labri.fr/perso/courcell/Textes1/BC-Oum%282007%29.pdf) · [MSO undecidability for hereditary classes of unbounded clique-width](https://doi.org/10.1016/j.ejc.2023.103700) · [Hereditary 2-WQO Graph Classes Have Bounded Clique-Width](https://arxiv.org/abs/2607.10939v2)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-### TCS-7290 — Extremal size of sunflower-free set families
+### TCS-7290 — Sunflower conjecture
 
-A sunflower is a collection of distinct sets with one common pairwise intersection. For fixed r, the target is the maximum size of a family of k-element sets containing no r-member sunflower. Determine its growth as k increases within constant factors that may depend on r. The ground set is any finite universe and the question imposes no algorithmic restrictions. The sunflower conjecture predicts at most exponential growth, a weaker claim than determining the full extremal order.
+A sunflower is a collection of distinct sets with one common pairwise intersection. The conjecture fixes the number of petals and asks how many equal-sized sets force that structure. It asks for an exponential threshold whose base depends only on the petal count. The ground set is any finite set, and the core may be empty. Known logarithmic-base bounds and limitations for robust sunflowers leave the ordinary exponential conjecture open in the checked sources.
 
-[Read in atlas](index.html#TCS-7290) · [Improved sunflower bounds](https://arxiv.org/abs/1908.08483)
-Existing status: `source_open` · Summary written: 2026-09-12
+[Read in atlas](index.html#TCS-7290) · [Improved bounds for the sunflower lemma](https://arxiv.org/abs/1908.08483) · [The Story of Sunflowers](https://doi.org/10.1112/jlms.70380)
+Existing status: `source_open` · Summary written: 2026-09-18

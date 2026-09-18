@@ -12,7 +12,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 485 | 15 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 801 | 199 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 798 | 202 |
 
 ## Unfilled places
 
@@ -23,6 +23,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Algorithms has 27/50 places.
 - top1000: Automata and formal languages has 31/50 places.
 - top1000: Semantics, logic and verification has 37/50 places.
+- top1000: Distributed, parallel and sublinear algorithms has 49/50 places.
 - top1000: Optimization and numerical computation has 24/50 places.
 - top1000: Geometry, topology and metric spaces has 40/50 places.
 - top1000: Learning theory has 36/50 places.
@@ -35,8 +36,9 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Dynamic algorithms has 15/20 places.
 - top1000: Property testing and distribution learning has 16/20 places.
 - top1000: Differential privacy has 4/20 places.
-- top1000: Constraint satisfaction has 19/20 places.
+- top1000: Constraint satisfaction has 18/20 places.
 - top1000: Automated reasoning, rewriting and unification has 14/20 places.
+- top1000: Database theory and finite model theory has 19/20 places.
 - top1000: Miscellaneous has 3/20 places.
 
 ## Review needed after catalogue changes

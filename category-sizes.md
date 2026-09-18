@@ -10,7 +10,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | large 2 | Algorithms | 5 | 25 | 50 | 27 |
 | large 3 | Automata and formal languages | 5 | 25 | 50 | 31 |
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 37 |
-| large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 50 |
+| large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 49 |
 | large 6 | Optimization and numerical computation | 5 | 25 | 50 | 24 |
 | large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 40 |
 | large 8 | Learning theory | 5 | 25 | 50 | 36 |
@@ -31,17 +31,17 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 13 | Data structures | 2 | 10 | 20 | 17 |
 | small 14 | Dynamic algorithms | 2 | 10 | 20 | 15 |
 | small 15 | String algorithms and computational biology | 2 | 10 | 20 | 25 |
-| small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 23 |
+| small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 22 |
 | small 17 | Algebraic computation | 2 | 10 | 20 | 60 |
 | small 18 | Lattices and computational number theory | 2 | 10 | 20 | 27 |
 | small 19 | Coding and information theory | 2 | 10 | 20 | 27 |
 | small 20 | Property testing and distribution learning | 2 | 10 | 20 | 16 |
 | small 21 | Differential privacy | 2 | 10 | 20 | 4 |
-| small 22 | Constraint satisfaction | 2 | 10 | 20 | 19 |
+| small 22 | Constraint satisfaction | 2 | 10 | 20 | 18 |
 | small 23 | Automated reasoning, rewriting and unification | 2 | 10 | 20 | 14 |
-| small 24 | Database theory and finite model theory | 2 | 10 | 20 | 20 |
+| small 24 | Database theory and finite model theory | 2 | 10 | 20 | 19 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 3 |
 
-Candidate pool: 963. Inactive records: 6419 (excluded from active work).
+Candidate pool: 959. Inactive records: 6423 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.
