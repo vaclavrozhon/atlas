@@ -5,14 +5,10 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **65**.
+Pending active reviews: **60**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-4927](../../data/cards/TCS-4927.json) | Classification of quantum gate sets | Quantum computation | pool |
-| [TCS-0464](../../data/cards/TCS-0464.json) | Information leakage in distributed OR | Communication complexity and Boolean function analysis | pool |
-| [TCS-2571](../../data/cards/TCS-2571.json) | Communication characterization of nonmonotone Karchmer–Wigderson games | Communication complexity and Boolean function analysis | pool |
-| [TCS-5189](../../data/cards/TCS-5189.json) | Approximating decision-tree complexity | Communication complexity and Boolean function analysis | pool |
 | [TCS-0560](../../data/cards/TCS-0560.json) | Fine-grained reductions from Hitting Set to 3SUM | Fine-grained complexity | pool |
 | [TCS-6025](../../data/cards/TCS-6025.json) | Treewidth-dependent classification of subgraph isomorphism | Fine-grained complexity | pool |
 | [TCS-6946](../../data/cards/TCS-6946.json) | Fine-grained relationship between APSP and 3SUM | Fine-grained complexity | pool |
@@ -48,7 +44,6 @@ Pending active reviews: **65**.
 | [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
-| [TCS-4802](../../data/cards/TCS-4802.json) | Noise tolerance of binary interactive codes | Coding and information theory | pool |
 | [TCS-7124](../../data/cards/TCS-7124.json) | SNP definability of CSPs in NP | Constraint satisfaction | pool |
 | [TCS-0499](../../data/cards/TCS-0499.json) | Query evaluation with treewidth parameter | Database theory and finite model theory | pool |
 | [TCS-0502](../../data/cards/TCS-0502.json) | Tractable probability versus tractable lineage | Database theory and finite model theory | pool |

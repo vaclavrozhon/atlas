@@ -1151,3 +1151,42 @@ Only these five reviews, their authoring scripts, this log, their queue/ledger/
 inventory changes and the RLDC archival entries enter the checkpoint. Source
 checkpoint bbd56267 and deployment 0a1b28c581016f1cdc8f9b76cd61959315e2c82f
 cover the first 200 dispositions. Concurrent unrelated work remains unstaged.
+
+After two hundred and ten recovery dispositions, the raw shared queue contains
+855 completed records, 59 pending records and one outside its original scope.
+The live catalogue has 974 active cards: 52 pending active reviews, 770 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-4802 (the constant-rate binary interactive error
+threshold), TCS-5189 (factor-two hardness of circuit decision-tree depth),
+TCS-0464 (finite-round OR information cost, archived as a known approximation),
+TCS-4927 (strict intermediate quantum decision power) and TCS-2571 (the selected
+ordinary-KW candidate characterization). Thirty received user scope confirmations
+are recorded on already completed cards and in the audit ledger; they do not
+increase the disposition count. The exact choices and identifiers are preserved
+in record_user_scope_confirmations.py. The final three targets were explicitly
+selected by the user before completion.
+
+The interactive-code review replaces an obsolete 2/7 upper bound by the checked
+13/47 shared-budget bound. The decision-tree card separates multiplicative from
+known additive hardness. The OR card supplies a finite message-alphabet and
+support-preserving probability-grid certificate, including an explicit entropy
+error bound for every message count; archival does not claim an exact formula
+or a Lean formalization. The quantum card fixes the single-output decision
+interface and separates sampling, postselection and physical nonuniversality
+from strict complexity-class containments. The KW card defines both mapping
+reductions and quasipolynomial dimension growth, and marks the precise editorial
+candidate's status uncertain rather than attributing it to the source.
+
+The full offline check passes. Mathematical rendering passes for 36,639
+expressions across 974 active cards, and desktop/mobile reader checks pass on
+publication 12418926a040efa5d7b2, with 938 detailed active records. The shared
+ledger has 1070 valid entries. All owned output hashes are checked before staging.
+
+Only these five new reviews, thirty confirmation updates, their scripts, this
+log, their queue/ledger/inventory changes and the OR archival entries enter the
+checkpoint. Source checkpoint 71d0a884 and deployment
+2a17a443d9c6e93e910781db8216e75e4006a3c3 cover the first 205 dispositions.
+Concurrent unrelated work remains unstaged; the committed queue therefore has
+854 completed and 60 pending records, while the live inventory additionally
+reflects concurrent work and retirements.
