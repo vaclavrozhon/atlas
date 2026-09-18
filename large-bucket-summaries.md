@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-398 five-sentence working summaries, based on saved source material.
+399 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (72)
@@ -1261,24 +1261,24 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-6499 — Sublogarithmic distributed MIS
 
-A maximal independent set contains no adjacent vertices and leaves every unselected vertex next to a selected one. The question asks for a randomized LOCAL algorithm that finds such a set in \(o(\log  n)\) rounds on every graph with high probability. Message sizes and local computation are unrestricted, so the resource measures the distance over which decisions must be coordinated. The running-time improvement must hold uniformly even for graphs of very large degree. Degree-sensitive algorithms already improve some cases, but the target requires a mechanism that also avoids logarithmically many phases on unrestricted graphs.
+Vertices must choose a maximal independent set using only communication along graph edges. The LOCAL model allows arbitrarily long messages and unlimited finite local computation. The question asks for a randomized round count that is little-o of the logarithm of the graph size. Success must hold jointly with arbitrarily high fixed polynomial confidence on every graph and identifier assignment. Recent algorithms handle graphs without short cycles, while the unrestricted graph case remains the selected target.
 
 [Read in atlas](index.html#TCS-6499) · [Breaking Barriers for Distributed MIS by Faster Degree Reduction](https://arxiv.org/abs/2505.15652) · [An Improved Distributed Algorithm for Maximal Independent Set](https://arxiv.org/abs/1506.05093) · [Round Elimination via Self-Reduction: Closing Gaps for Distributed Maximal Matching](https://arxiv.org/abs/2505.15654)
-Existing status: `open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-6505 — One-cycle versus two-cycles conjecture
 
-The one-cycle-versus-two problem distinguishes a single n-vertex cycle from two disjoint cycles of half that size. In the low-memory MPC model, edges are spread across machines with sublinear local memory and linear total memory. The conjecture says randomized algorithms require \(\Omega (\log  n)\) communication rounds under these resource bounds. Both input types have identical vertex counts, edge counts, and degrees, so only their global connectivity distinguishes them. A lower bound must handle arbitrary communication between machines and arbitrary encodings, rather than assuming information can travel only along graph edges.
+The input graph is promised to be one large cycle or two equal-sized cycles. Its edge list is spread across machines with sublinear local memory and linear total memory. Machines can exchange arbitrary coded messages with any other machines, subject to per-round volume limits. The conjecture requires logarithmically many rounds for every uniform high-probability algorithm in this model. The identical local degrees and edge counts make the global arrangement of the components the essential information.
 
 [Read in atlas](index.html#TCS-6505) · [\(O(1)\)-Round MPC Algorithms for Multi-Dimensional Grid Graph Connectivity, Euclidean MST and DBSCAN](https://doi.org/10.4230/LIPIcs.ICDT.2025.7) · [Equivalence classes and conditional hardness in massively parallel computations](https://doi.org/10.1007/s00446-021-00418-2)
-Existing status: `open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-18
 
-### TCS-6506 — Deterministic LOCAL MIS in \(O(\log  n)\) rounds
+### TCS-6506 — Logarithmic-round deterministic maximal independent set
 
-Deterministic maximal independent set algorithms must coordinate their choices using the graph and vertex identifiers alone. The question asks whether \(O(\log  n) \mathrm{LOCAL}\) rounds suffice on every graph and every valid identifier assignment. The output must be independent and dominate all unselected vertices, without requiring maximum cardinality. Network decomposition already supports polylogarithmic deterministic algorithms, so the target is a sharper dependence on network size. Reaching the logarithmic bound would require organizing deterministic progress efficiently even when identifier patterns defeat simple greedy local rules.
+The vertices of an arbitrary graph must deterministically choose a maximal independent set. They can exchange unlimited finite messages along edges, but their identifiers may be adversarial. The target is a number of rounds bounded by one constant times the logarithm of the graph size. The guarantee must hold uniformly over all degrees and identifier assignments. Known polylogarithmic algorithms and nearly logarithmic lower bounds leave this sharper upper-bound milestone open in the checked sources.
 
 [Read in atlas](index.html#TCS-6506) · [Near-Optimal Deterministic Network Decomposition and Ruling Set, and Improved MIS](https://arxiv.org/abs/2410.19516) · [Lower Bounds for Maximal Matchings and Maximal Independent Sets](https://arxiv.org/abs/1901.02441) · [Polylogarithmic-Time Deterministic Network Decomposition and Distributed Derandomization](https://arxiv.org/abs/1907.10937) · [Faster Distributed \(\Delta\)-Coloring via a Reduction to MIS](https://doi.org/10.1137/1.9781611978971.162)
-Existing status: `open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0954 — Subquadratic metric TSP cost estimation below factor two
 
@@ -2238,7 +2238,7 @@ The question asks whether a weak passive learner with a superpolynomial saving o
 [Read in atlas](index.html#TCS-4186) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18) · [Conspiracies between Learning Algorithms, Circuit Lower Bounds and Pseudorandomness — full preprint](https://arxiv.org/abs/1611.01190) · [Learning algorithms from circuit lower bounds](https://doi.org/10.1007/s00037-024-00261-4)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Cryptography (29)
+## Cryptography (30)
 
 ### TCS-6545 — Public-key encryption from one-way functions
 
@@ -2380,12 +2380,19 @@ Fully homomorphic encryption permits evaluating Boolean circuits over encrypted 
 [Read in atlas](index.html#TCS-7277) · [On the Power of Hierarchical Identity-Based Encryption](https://eprint.iacr.org/2015/815.pdf) · [Lecture 15: Fully Homomorphic Encryption](https://mit6875.github.io/LECNOTES/lec15.pdf) · [Bootstrapping Homomorphic Encryption via Functional Encryption](https://doi.org/10.4230/LIPIcs.ITCS.2023.17)
 Existing status: `source_open` · Summary written: 2026-09-13
 
+### TCS-7225 — PZK versus SZK
+
+Zero knowledge asks whether an efficient simulator can reproduce what any efficient verifier sees. Statistical simulation allows negligible total variation error, while perfect simulation requires exact agreement conditioned on not failing. The question compares the classes of promise problems admitting these two kinds of ordinary interactive proofs. All machines are uniform, simulators have strict polynomial runtime and receive only the common input. Known oracle separations and perfect-zero-knowledge results in other proof models leave this class equality unresolved in the checked sources.
+
+[Read in atlas](index.html#TCS-7225) · [Foundations of Cryptography, Volume 1: Basic Tools](https://www.wisdom.weizmann.ac.il/~oded/foc-vol1.html) · [On the Power of Statistical Zero Knowledge](https://epubs.siam.org/doi/10.1137/17M1161749) · [Perfect Zero-Knowledge PCPs for #P](https://arxiv.org/abs/2403.11941)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-6454 — Low-noise LPN hardness from Nearest Codeword hardness
 
-Learning parity with noise asks for information about hidden binary linear equations when some answers have been flipped. This project asks whether worst-case hardness of the binary nearest-codeword problem implies average-case hardness for a specified low-noise LPN distribution. The chosen regime uses quadratically many samples and a noise rate inversely proportional to the square root of the secret dimension. A reduction must produce that particular random-instance distribution rather than merely another hard coding problem or a different noise level. Such a connection would strengthen the theoretical foundation of low-noise LPN in the way worst-case reductions support lattice-based assumptions.
+Binary Nearest Codeword asks whether a given target lies within a specified Hamming distance of a linear code. The proposed implication uses worst-case difficulty of that decision problem to rule out a uniform distinguisher for one low-noise LPN regime. The LPN experiment has a random secret, a random matrix, n-squared samples and inverse-square-root noise at square dimensions. The saved conclusion excludes success at every sufficiently large dimension and is weaker than full eventual negligible-advantage security. The recent code-and-dual-code reduction uses an additional assumption that the selected target aims to remove.
 
 [Read in atlas](index.html#TCS-6454) · [Towards Worst-case Hardness for Low-Noise LPN](https://eccc.weizmann.ac.il/report/2026/095/)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-7274 — One-way functions in \(\mathrm{NC}^{0}\) from one-way functions
 
