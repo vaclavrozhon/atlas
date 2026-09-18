@@ -1468,3 +1468,37 @@ deltas enter this checkpoint; concurrent work remains unstaged.
 
 The preceding checkpoint is source a6bbfdd2 and deployment
 aa449ba20ae98b9bdda202fadf89a2b21b8b4ec5, covering the first 245 dispositions.
+
+## Checkpoint 256 — 18 September 2026
+
+Three new full reviews (TCS-7263, TCS-7287 and TCS-7290) and three explicit
+user exclusions (TCS-6957, TCS-7124 and TCS-1251) bring this recovery series
+to 256 unique dispositions. The exclusions retain the source material and
+concrete specification gaps in the archive; they are not completed benchmark
+statements or claims of mathematical resolution. The user also removed the
+previously reviewed TCS-2997, confirmed TCS-6157, TCS-7128 and the binary
+sunflower target, and selected the stronger eventual negligible-advantage
+conclusion for TCS-6454. Its former quantifiers are preserved in history.
+
+TCS-6958 remains active and pending specification by explicit user choice.
+Its source framework, missing comparison parameters and individual importance
+are now documented. Five other active cards remain to be completed. The
+historical committed queue has 900 completed dispositions and 14 pending rows;
+the live queue includes one unrelated additional completion.
+
+The SSSP review preserves directed real weights and total instruction time;
+the September numeric-operation result does not meet that cost model. Metric
+labeling keeps the square-root-logarithmic approximation milestone. Sunflowers
+use the original exponential-base conjecture rather than robust sunflowers.
+
+All eleven owned current hashes match the queue. Offline checks pass;
+mathematical rendering passes for 37,558 expressions across 959 active records,
+and desktop/mobile checks pass on publication c5c690a63864ad19917c. The scope
+amendment script was changed to validate its full batch before writing after
+an initial validation interruption; all eight already-authored updates were
+reconciled with their original hashes before publication, and the pending
+record was then validated and saved. No partial state was deployed.
+
+Only owned card, archive, selection, queue, ledger and authoring-log changes
+enter this checkpoint. Source fbcf5543 and deployment
+2a7401d024c11c591aa3963a64468e50ef928be9 cover the preceding 250 dispositions.
