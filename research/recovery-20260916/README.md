@@ -1334,3 +1334,43 @@ checkpoint. Source checkpoint de4de1a8 and deployment
 8bba4fd0072d81f40c94ae7313e55a427924ccc5 cover the first 225 dispositions.
 Concurrent unrelated work remains unstaged; the committed queue has 874 completed
 and 40 pending records.
+
+After two hundred and thirty-five recovery dispositions, the shared queue has
+880 completed records, 34 pending records and one outside its original scope.
+The catalogue has 965 active cards: 27 pending active reviews, 786 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-5252 (joint minimax bandit regret for a directed square
+grid), TCS-6838 (the selected uniform finite-time characteristic-time bound,
+archived using the established two-arm iterated-logarithm obstruction), TCS-6702
+(the exponential worst-to-mild-average NP implication), TCS-6703 (balanced NP
+mild-to-strong amplification with optimal exponential parameters), and TCS-2427
+(the exact discounted-game branch consolidated into TCS-6567 and archived).
+These optional choices remain editorial defaults, not received confirmations.
+
+The bandit reviews distinguish aggregate feedback from separate edge feedback,
+and the grid target from the subsequently solved full-permutation question.
+The best-arm archive does not declare the whole textbook research direction
+resolved and does not rely on the full proofs of the fresh gap-entropy preprint.
+The NP statements specify circuit gates, uniform input measures, eventual
+all-length quantifiers, existential implications and full negations. They do
+not impose a black-box construction or add a cryptographic premise.
+
+The stochastic-game consolidation retains the existing SSG threshold target.
+The original 2009 chapter could not be downloaded; its indexed primary abstract
+and the explicit reduction statements in the inspected 2024 and 2025 papers
+support the connection, without a full-proof-audit claim. The initial merge
+script stopped before any write because TCS-6567 is outside the original queue;
+its amendment now correctly preserves that fact rather than inventing a row.
+
+All five new disposition hashes match their queue rows, and the target amendment
+has its separate before/after hashes in the ledger. The ledger has 1111 valid
+entries. Full offline checks pass, mathematical rendering passes for 37,241
+expressions across 965 cards, and desktop/mobile reader checks pass on publication
+5824caec8ac8a99be1b5 with 954 detailed active records.
+
+Only these five dispositions, the SSG amendment, their authoring scripts, this
+log and their owned shared-file deltas enter the checkpoint. Source checkpoint
+1bc34a69 and deployment 499cde057071a85289bccbae11fdfce850df9d37 cover the first
+230 dispositions. Concurrent work remains unstaged; the committed queue has
+879 completed and 35 pending records.

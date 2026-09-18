@@ -5,15 +5,11 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **40**.
+Pending active reviews: **35**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
 | [TCS-0708](../../data/cards/TCS-0708.json) | Order Optimal Regret Bounds for Kernel-Based Reinforcement Learning | Online algorithms | pool |
-| [TCS-5252](../../data/cards/TCS-5252.json) | Action-set-dependent regret in bandit combinatorial optimization | Online algorithms | pool |
-| [TCS-6838](../../data/cards/TCS-6838.json) | Instance-optimal finite-time best-arm identification | Online algorithms | pool |
-| [TCS-6702](../../data/cards/TCS-6702.json) | Worst-case-to-average-case reductions within NP | Beyond worst-case and average-case analysis | pool |
-| [TCS-6703](../../data/cards/TCS-6703.json) | Optimal exponential-scale hardness amplification in NP | Beyond worst-case and average-case analysis | pool |
 | [TCS-0315](../../data/cards/TCS-0315.json) | Fat Minors | Structural graph theory | pool |
 | [TCS-1639](../../data/cards/TCS-1639.json) | Linear neighborhood complexity of hereditary small graph classes | Structural graph theory | pool |
 | [TCS-6874](../../data/cards/TCS-6874.json) | Ramanujan graphs of every degree | Structural graph theory | pool |
@@ -21,7 +17,6 @@ Pending active reviews: **40**.
 | [TCS-7143](../../data/cards/TCS-7143.json) | Bipartite circle pivot-minors from large rank-width | Structural graph theory | pool |
 | [TCS-7144](../../data/cards/TCS-7144.json) | Tree vertex-minors from large linear rank-width | Structural graph theory | pool |
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
-| [TCS-2427](../../data/cards/TCS-2427.json) | Zero-sum stochastic games with variable discount factors | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6957](../../data/cards/TCS-6957.json) | Characterizing domains restricted to affine maximizers | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-7124](../../data/cards/TCS-7124.json) | SNP definability of CSPs in NP | Constraint satisfaction | pool |
