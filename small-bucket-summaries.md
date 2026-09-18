@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-564 five-sentence working summaries, based on saved source material.
+563 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1459,7 +1459,7 @@ The input lists local constraints on variables with a finite common label domain
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Online algorithms, scheduling and packing (21)
+## Online algorithms, scheduling and packing (20)
 
 ### TCS-6638 — Breaking two for unrelated-machine makespan
 
@@ -1572,13 +1572,6 @@ The question asks for one bandit policy that adapts to unknown error in a linear
 
 [Read in atlas](index.html#TCS-6836) · [Bandit Algorithms](https://tor-lattimore.com/downloads/book/book.pdf) · [Learning with Good Feature Representations in Bandits and in RL with a Generative Model](https://sites.ualberta.ca/~szepesva/papers/ICML2020_goodfeatures.pdf) · [Upper Confidence Bounds for Combining Stochastic Bandits](https://arxiv.org/abs/2012.13115v1) · [Dynamic Regret for Non-Stationary Linear Bandits via Misspecification Reductions](https://arxiv.org/abs/2607.02891v1)
 Existing status: `uncertain` · Summary written: 2026-09-15
-
-### TCS-0708 — Order Optimal Regret Bounds for Kernel-Based Reinforcement Learning
-
-Kernel-based reinforcement learning uses a reproducing kernel Hilbert space to represent nonlinear structure in a Markov decision process. The source asks for regret guarantees that match the best possible order in the relevant horizon and kernel-complexity parameters. This setting extends linear models while retaining more structure than an arbitrary nonlinear function class. The challenge is that uncertainty in prediction must be propagated through sequential decisions and future values. Sharp guarantees would identify when the expressive power of kernels can be used without paying avoidable exploration costs in reinforcement learning.
-
-[Read in atlas](index.html#TCS-0708) · [COLT / PMLR](https://proceedings.mlr.press/v247/vakili24a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5252 — Optimal bandit regret for paths in a directed grid
 
@@ -3880,6 +3873,13 @@ The input is a finite relational structure with no distinguished ordering of its
 [Read in atlas](index.html#TCS-3631) · [Choiceless Logarithmic Space](https://doi.org/10.4230/LIPIcs.MFCS.2019.31) · [Is Polynomial Time Choiceless?](https://logic.rwth-aachen.de/pub/graedel/cptYuri.pdf) · [FC-Datalog as a Framework for Efficient String Querying](https://arxiv.org/abs/2501.10344v2)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-4458 — Successor-invariant first-order model checking on nowhere dense graphs
+
+A first-order sentence may use a successor path through all vertices, provided its answer is independent of the chosen path. The question asks for fixed-parameter model checking on every effectively nowhere dense graph class. The parameter is the sentence length, and the polynomial exponent in the graph input must not depend on it. The algorithm receives promises of class membership and successor invariance rather than having to verify them. The bounded-expansion case is known, while the selected target reaches the broader sparse-graph frontier of ordinary first-order logic.
+
+[Read in atlas](index.html#TCS-4458) · [Successor-Invariant First-Order Logic on Graphs with Excluded Topological Subgraphs](https://doi.org/10.4230/LIPIcs.CSL.2016.18) · [Model-Checking for Successor-Invariant First-Order Formulas on Graph Classes of Bounded Expansion](https://arxiv.org/abs/1701.08516) · [Deciding First-Order Properties of Nowhere Dense Graphs](https://arxiv.org/abs/1311.3899)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-0488 — Computability of entropic query-size bounds
 
 Entropy bounds limit the number of tuples returned by a database join from constraints on conditional degrees. The entropic bound optimizes total entropy over the closure of all finite discrete entropy vectors. The question asks for one terminating algorithm that computes this value to every requested absolute accuracy in arbitrary dimension. Simple constraints admit effective special cases, while the general polymatroid relaxation can overestimate the desired value. Resolving computability would determine whether the strongest information-theoretic estimate is accessible to algorithms at all.
@@ -3893,6 +3893,13 @@ The system consists of finitely many polynomial recurrences over a commutative s
 
 [Read in atlas](index.html#TCS-0482) · [Semirings in Databases, Automata, and Logic — Convergence rate of Datalogo over p-stable semirings](https://doi.org/10.4230/DagRep.15.2.89) · [Polynomial Time Convergence of the Iterative Evaluation of Datalogo Programs](https://arxiv.org/abs/2312.14063v2) · [Publication listing: Optimal Convergence of Iterative Methods for Datalogo](https://hung-q-ngo.github.io/publications.html) · [Publications by topic: Optimal Convergence of Iterative Methods for Datalogo](https://www.andrew.cmu.edu/user/moseleyb/bytopic.html)
 Existing status: `uncertain` · Summary written: 2026-09-17
+
+### TCS-4995 — Entropic width versus submodular width
+
+Both widths measure a hypergraph by choosing a tree decomposition after seeing an information profile on its vertices. Submodular width permits every normalized monotone submodular profile. Entropic width permits only limits of profiles realized as joint entropies of finite random variables. The question asks whether this restriction ever makes the width strictly smaller. Any positive gap on one finite hypergraph settles the existence question, while the opposite answer requires equality for all hypergraphs.
+
+[Read in atlas](index.html#TCS-4995) · [The Quest for Faster Join Algorithms (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICDT.2025.1) · [Generalized Covers for Conjunctive Queries](https://doi.org/10.4230/LIPIcs.ICDT.2025.28) · [Jaguar: A Primal Algorithm for Conjunctive Query Evaluation in Submodular-Width Time](https://arxiv.org/abs/2603.13624v2)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0487 — Complexity of polymatroid query-size bounds
 
@@ -3908,19 +3915,19 @@ The BDD/FC conjecture asks whether every finite existential rule set with bounde
 [Read in atlas](index.html#TCS-0494) · [List of open questions: Does bounded derivation depth imply finite controllability?](https://a3nm.net/work/research/questions/#does-bounded-derivation-depth-imply-finite-controllability) · [On the BDD/FC Conjecture](https://arxiv.org/abs/1408.2081) · [No Cliques Allowed: The Next Step Towards BDD/FC Conjecture](https://inria.hal.science/hal-05273623v1/file/2025-pods-no-cliques-allowed.pdf) · [No Cliques Allowed: The Next Step Towards BDD/FC Conjecture](https://arxiv.org/abs/2603.09558)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-0499 — Query evaluation with treewidth parameter
+### TCS-0499 — Graph homomorphism parameterized by both treewidths
 
-Query evaluation checks whether a relational query has an answer on a supplied database. The source asks about its complexity when treewidth is the parameter controlling the query's structure. Treewidth measures how closely the pattern decomposes into small interacting pieces, suggesting dynamic programming methods. The challenge is determining the exact parameter dependence and whether the database-size exponent can be kept independent of treewidth. The inherited label does not specify the query language or whether a decomposition is supplied, so those choices remain necessary before a fixed-parameter or lower-bound statement can be made.
+Both inputs are finite simple undirected graphs, and the task is to decide whether one maps homomorphically into the other. The parameter is the larger of the two treewidths. The requested algorithm may depend arbitrarily and computably on that parameter, but its polynomial input-size exponent must be fixed. Algorithms for one fixed target graph or with a width-dependent exponent do not meet the requirement. A primary-source announcement of hardness makes current status uncertain until the supporting reduction is verified.
 
-[Read in atlas](index.html#TCS-0499) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#complexity-of-query-evaluation-parameterized-by-treewidth)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0499) · [List of open questions: Complexity of query evaluation parameterized by treewidth](https://a3nm.net/work/research/questions/#complexity-of-query-evaluation-parameterized-by-treewidth) · [Complexity of the homomorphism problem parameterized by treewidth](https://cstheory.stackexchange.com/questions/34877/complexity-of-the-homomorphism-problem-parameterized-by-treewidth)
+Existing status: `uncertain` · Summary written: 2026-09-18
 
-### TCS-0502 — Tractable probability versus tractable lineage
+### TCS-0502 — Tractable probability without polynomial-size deterministic decomposable lineage
 
-A probabilistic query may have an efficiently computable answer probability even when its Boolean lineage has a complicated representation. The source asks whether tractable probability evaluation necessarily comes with tractable lineages. The question tests whether a compact reusable explanation is essential to efficient numerical evaluation or merely one common route. A separation would show that direct probability algorithms can exploit structure missed by the chosen lineage formalism. The saved label does not define tractable lineage or the database class, so those representation and input assumptions must be recovered before a universal implication can be assessed.
+The query is a fixed Boolean union of conjunctive queries on a tuple-independent probabilistic database. The question asks whether its exact probability can be computed in polynomial bit time while its Boolean lineage has no polynomial-size deterministic decomposable circuit. The circuit may use negation at any depth and need not be constructible efficiently. A known compilation result eliminates a former candidate and covers a substantial special family. A recent obstruction to one proposed construction method does not yet establish the required general separation.
 
-[Read in atlas](index.html#TCS-0502) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#do-tractable-queries-on-probabilistic-instances-have-tractable-lineages)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0502) · [List of open questions: Do tractable queries on probabilistic instances have tractable lineages?](https://a3nm.net/work/research/questions/#do-tractable-queries-on-probabilistic-instances-have-tractable-lineages) · [Solving a Special Case of the Intensional vs Extensional Conjecture in Probabilistic Databases](https://arxiv.org/abs/1912.11864v2) · [Refutation of the Non-Cancelling Intersections Conjecture](https://arxiv.org/abs/2608.27416)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0505 — Uniform reliability of homomorphism-closed queries
 
@@ -3942,20 +3949,6 @@ Stratified Datalog can negate relations already computed in earlier stages. Semi
 
 [Read in atlas](index.html#TCS-3557) · [Datalog with Negation and Monotonicity](https://doi.org/10.4230/LIPIcs.ICDT.2020.19) · [Weaker Forms of Monotonicity for Declarative Networking](https://www.basketsman.com/public/documents/posters/poster_pods2014.pdf) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic](https://doi.org/10.4230/LIPIcs.CSL.2021.18)
 Existing status: `open` · Summary written: 2026-09-12
-
-### TCS-4458 — First-order versus successor-invariant logic
-
-Successor-invariant first-order logic may use an added successor ordering, but its answer must not depend on which ordering was chosen. The source asks whether efficient model checking can extend as broadly as for plain first-order logic. It suggests bounded-expansion and locally excluded-minor classes beyond its existing topological-subgraph restriction. Adding order can destroy structural sparsity in the representation used by standard methods. The challenge is to exploit invariance without paying the algorithmic cost of treating that arbitrary order as unrestricted extra graph structure.
-
-[Read in atlas](index.html#TCS-4458) · [Successor-Invariant First-Order Logic on Graphs with Excluded Topological Subgraphs](https://doi.org/10.4230/LIPIcs.CSL.2016.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4995 — Entropic width versus submodular width
-
-Width measures summarize how a database join's variable interactions affect the running time of decomposition-based algorithms. The source compares entropic width with submodular width and records the inequality that entropic width is no larger. The extracted question asks whether that inequality can ever be strict. A gap would show that the two structural descriptions capture different levels of inherent join complexity. Resolving it would help connect entropy-based lower-bound arguments with the width parameters used by algorithms, rather than assuming they describe the same obstruction merely because one always bounds the other.
-
-[Read in atlas](index.html#TCS-4995) · [The Quest for Faster Join Algorithms (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICDT.2025.1)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6157 — Determinacy and rewriting of regular path queries
 
