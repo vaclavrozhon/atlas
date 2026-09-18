@@ -1445,3 +1445,26 @@ queue/archive/inventory deltas enter this checkpoint. Source checkpoint
 first 240 dispositions. The committed queue now has 889 completed and 25
 pending records; its historical inactive entries differ from the active census.
 Concurrent work remains unstaged.
+
+## Checkpoint 250 — 18 September 2026
+
+Completed TCS-6499, TCS-6506, TCS-6505, TCS-6454 and TCS-7225 individually,
+bringing the recovery series to 250 dispositions. The two MIS cards retain their
+distinct randomized little-o-logarithmic and deterministic logarithmic targets.
+The MPC cycle conjecture has explicit linear total space, arbitrary messages,
+initial placement and eventual lower-bound quantifiers. The LPN card retains
+the saved weaker eventual-success exclusion as an announced default, without
+claiming standard eventual negligible-advantage security. PZK versus SZK retains
+input-only strict-polynomial-time simulation and bounded failure for perfect
+simulation; oracle and other-proof-model results are kept separate.
+
+Offline publication checks pass. Mathematical rendering passes for 37,559
+expressions across 963 active cards, and desktop/mobile checks pass on
+publication 2d9758494e0f449afd17 with 959 detailed records. The active queue has
+12 pending cards; the committed historical queue has 894 completed and 20
+pending entries. All five owned output hashes were verified. Only these cards,
+their authoring scripts and five ledger events plus owned queue/inventory/log
+deltas enter this checkpoint; concurrent work remains unstaged.
+
+The preceding checkpoint is source a6bbfdd2 and deployment
+aa449ba20ae98b9bdda202fadf89a2b21b8b4ec5, covering the first 245 dispositions.

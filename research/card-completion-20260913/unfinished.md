@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **25**.
+Pending active reviews: **20**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -20,11 +20,6 @@ Pending active reviews: **25**.
 | [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-7124](../../data/cards/TCS-7124.json) | SNP definability of CSPs in NP | Constraint satisfaction | pool |
 | [TCS-1251](../../data/cards/TCS-1251.json) | Output-sensitive evaluation of cyclic queries | Database theory and finite model theory | pool |
-| [TCS-6454](../../data/cards/TCS-6454.json) | Low-noise LPN hardness from Nearest Codeword hardness | Cryptography | existing_detailed_audit |
-| [TCS-6499](../../data/cards/TCS-6499.json) | Sublogarithmic distributed MIS | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-6505](../../data/cards/TCS-6505.json) | One-cycle versus two-cycles conjecture | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-6506](../../data/cards/TCS-6506.json) | Deterministic LOCAL MIS in \(O(\log  n)\) rounds | Distributed, parallel and sublinear algorithms | existing_detailed_audit |
-| [TCS-7225](../../data/cards/TCS-7225.json) | PZK versus SZK | Cryptography | existing_detailed_audit |
 | [TCS-7263](../../data/cards/TCS-7263.json) | Linear-time directed shortest paths with nonnegative real weights | Structural graph theory | existing_detailed_audit |
 | [TCS-7287](../../data/cards/TCS-7287.json) | Square-root logarithmic approximation for metric labeling | Approximation algorithms and hardness of approximation | existing_detailed_audit |
 | [TCS-7290](../../data/cards/TCS-7290.json) | Extremal size of sunflower-free set families | Miscellaneous | existing_detailed_audit |
