@@ -825,6 +825,20 @@ A demi-bit is a polynomial-size generator that adds one output bit and resists n
 [Read in atlas](index.html#TCS-1956) · [Stretching Demi-Bits and Nondeterministic-Secure Pseudorandomness](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.95) · [Hardness of Range Avoidance and Proof Complexity Generators from Demi-Bits](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.111)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-3958 — Polynomial-stretch PRGs for depth-two threshold circuits with superlinear gate count
+
+The circuit class has at most two layers of gates that compare weighted sums against thresholds. The question allows a fixed superlinear number of gates with arbitrary real weights and unrestricted fan-in. One uniform polynomial-time generator must produce n bits from at most n^(1−delta) random bits for a fixed positive delta. Every circuit in the class must distinguish that output from uniform with advantage at most one tenth. The target asks for polynomial stretch beyond the one-bit construction obtainable from known average-case hardness.
+
+[Read in atlas](index.html#TCS-3958) · [Satisfiability and Derandomization for Small Polynomial Threshold Circuits](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2018.46) · [Fooling Constant-Depth Threshold Circuits](https://ieee-focs.org/FOCS-2021-Papers/pdfs/FOCS2021-5stbVHiOp5jRHWlSl41FkR/205500a104/205500a104.pdf) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/) · [Super-Linear Gate and Super-Quadratic Wire Lower Bounds for Depth-Two and Depth-Three Threshold Circuits](https://cseweb.ucsd.edu/~dakane/depth2LTF.pdf)
+Existing status: `source_open` · Summary written: 2026-09-18
+
+### TCS-4778 — Does exponential circuit hardness derandomize amplified relational computation?
+
+The task is to find a valid output for a relation, even when validity cannot be efficiently checked. The randomized solver must reduce its error to 2^−t in time polynomial in the input length and t. Output lengths stay polynomial in the original input length, independently of t. The selected hypothesis gives exponential circuit hardness to a language computable in deterministic exponential time. The question is whether this hypothesis guarantees a uniform deterministic polynomial-time solver for every such relation.
+
+[Read in atlas](index.html#TCS-4778) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
+Existing status: `uncertain` · Summary written: 2026-09-18
+
 ### TCS-1015 — Seeded extraction with constant total entropy loss
 
 A seeded extractor combines an arbitrary weak random source with a short independent uniform seed. This question asks for logarithmic seed length and an output losing at most a constant number of the combined available entropy bits. The statistical error is fixed at one hundredth for every source meeting the min-entropy bound. The entire family must be evaluated by one deterministic polynomial-time algorithm, including any preprocessing. Nonconstructive existence and recent faster constant-fraction extractors leave this specific combination of parameters unsettled in the checked sources.
@@ -852,6 +866,13 @@ An averaging sampler estimates a function’s global mean by taking the ordinary
 
 [Read in atlas](index.html#TCS-6689) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Near-Optimal Averaging Samplers and Matrix Samplers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2025.6) · [Near-Optimal Averaging Samplers and Matrix Samplers](https://eccc.weizmann.ac.il/report/2024/097/revision/5/)
 Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-2201 — A general oracle conversion from two-source extractors to non-malleable extractors
+
+An ordinary two-source extractor produces a nearly uniform bit from two independent weak random strings. Non-malleability requires that bit to stay nearly uniform even after revealing the output on separately tampered strings. The selected question asks for one general conversion using only evaluation queries to the original extractor. It permits a constant-factor logarithmic entropy overhead, a fixed-power increase in error and polynomial time in inverse error. The exact conversion is an editorial candidate inspired by the source’s broader question, with its present status recorded separately.
+
+[Read in atlas](index.html#TCS-2201) · [Two-Source and Affine Non-Malleable Extractors for Small Entropy](https://doi.org/10.4230/LIPIcs.ICALP.2024.108)
+Existing status: `uncertain` · Summary written: 2026-09-18
 
 ### TCS-1021 — Promise-BPP derandomization implying EXP circuit hardness
 
@@ -958,33 +979,12 @@ A universal traversal sequence is one list of absolute local port numbers that v
 [Read in atlas](index.html#TCS-1007) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/pseudorandomness-published-Dec12.pdf) · [Self-stabilizing Graph Exploration by a Single Agent](https://arxiv.org/abs/2010.08929v4) · [Self-stabilizing graph exploration by a single agent](https://doi.org/10.1016/j.tcs.2026.116085)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-2201 — Non-malleable extractors from standard extractors
-
-A standard extractor turns weak randomness into near-uniform bits under its source assumptions. The cited question asks whether standard extractors can also be used to construct non-malleable extractors. Non-malleability requires output to remain useful even when an adversary creates related, tampered inputs or seeds. A general transformation would connect an established randomness primitive to the stronger guarantees needed in adversarial settings. The saved sentence does not fix the source or tampering model, so the two-source and affine variants named by the paper must be distinguished when stating an actual reduction.
-
-[Read in atlas](index.html#TCS-2201) · [Two-Source and Affine Non-Malleable Extractors for Small Entropy](https://doi.org/10.4230/LIPIcs.ICALP.2024.108)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3958 — Pseudorandom generators for superlinear-size depth-two threshold circuits
-
-A depth-two LTF circuit composes two layers of linear threshold gates. The source asks for a nontrivial pseudorandom generator when the number of gates is superlinear in the input length. Threshold gates aggregate many weighted inputs, allowing correlations to influence the output in ways simple local tests cannot capture. A generator in this size range would strengthen derandomization for a basic threshold-circuit model. The saved question does not quantify the superlinear growth, seed saving, or error, so these must be fixed before the intended advance can be assessed.
-
-[Read in atlas](index.html#TCS-3958) · [Satisfiability and Derandomization for Small Polynomial Threshold Circuits](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2018.46)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3986 — Circuit hardness from inverse-polynomial-error BPP heuristics
 
 The premise permits deterministic polynomial-time simulation of each BPP language with inverse-polynomial error under uniformly random inputs. The guarantee holds at every sufficiently large length, with separate algorithms for different requested error powers. The selected conclusion is a standard disjunction of Boolean circuit hardness for NEXP and arithmetic circuit hardness for the permanent. An older theorem reaches this conclusion under much smaller exceptional sets. The card makes the source’s broad converse direction precise through an explicitly authorized editorial specialization.
 
 [Read in atlas](index.html#TCS-3986) · [Fine-Grained Derandomization: From Problem-Centric to Resource-Centric Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2018.27) · [Fine-Grained Derandomization: From Problem-Centric to Resource-Centric Complexity — full version](https://eccc.weizmann.ac.il/report/2018/092/) · [Pseudorandom generators, typically-correct derandomization, and circuit lower bounds](https://doi.org/10.1007/s00037-011-0019-z) · [On The Utility of Fine-Grained Complexity Theory](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2020/EECS-2020-165.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-4778 — Derandomizing amplified relational computation
-
-Relational computation allows many valid answers to a single input, which complicates familiar derandomization arguments. The paper distinguishes algorithms whose error can be reduced with logarithmic overhead from versions with weaker accuracy-time tradeoffs. It asks whether plausible derandomization assumptions collapse the stronger amplification variant to deterministic polynomial time. It also asks how that class relates to algorithms with negligible error and whether examples require polynomial dependence on inverse error. The project would clarify how randomness, output flexibility, and quantitative reliability interact beyond ordinary decision problems.
-
-[Read in atlas](index.html#TCS-4778) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5798 — Pseudodeterministic construction of primes at every length
 
@@ -1142,6 +1142,13 @@ A graph is perfect if every induced subgraph needs exactly as many colors as the
 [Read in atlas](index.html#TCS-7027) · [A survey of parameterized algorithms and the complexity of edge modification](https://doi.org/10.1016/j.cosrev.2023.100556) · [Parameterized complexity of vertex deletion into perfect graph classes](https://doi.org/10.1016/j.tcs.2012.03.013) · [Search-space reduction via essential vertices revisited: Vertex multicut and cograph deletion](https://doi.org/10.1016/j.jcss.2025.103730)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-1945 — Tight ETH lower bounds for binary Nearest Codeword at every constant factor
+
+Nearest Codeword asks how many bits separate a target from the nearest word in a binary linear code. The parameter k is the promised upper bound on that distance in yes instances. The target excludes time f(k) times an input-size power whose exponent grows slower than k. This lower bound must follow from ordinary deterministic ETH for every fixed approximation factor greater than one. A May 2026 result handles some constant factor, while its stated all-factor extension remains the selected question.
+
+[Read in atlas](index.html#TCS-1945) · [Improved Lower Bounds for Approximating Parameterized Nearest Codeword and Related Problems Under ETH](https://doi.org/10.4230/LIPIcs.ICALP.2024.107) · [Tight Lower Bound for Approximating Parametrized Maximum Likelihood Decoding under ETH](https://arxiv.org/abs/2605.08797)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-7023 — Polynomial kernels for minor-free edge deletion
 
 The problem deletes at most k edges so that the remaining graph excludes every member of a fixed forbidden-minor family. It asks whether every such family permits a polynomial-time reduction to one equivalent instance of polynomial size in k. The input graph is arbitrary, and all vertices remain available during edge deletion. A general kernel would provide a broad preprocessing guarantee for structural graph repair beyond known fixed-parameter algorithms. The card restores the family quantifier and distinguishes vertex deletion, promised minor-free inputs and more general compressions.
@@ -1184,12 +1191,12 @@ Maximum acyclic subgraph retains as many arcs of a directed graph as possible wi
 [Read in atlas](index.html#TCS-0808) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [A Note on Exact Algorithms for Vertex Ordering Problems on Graphs](https://doi.org/10.1007/s00224-011-9312-0) · [Exploiting Spanning Trees for Directed Acyclicity](https://arxiv.org/abs/2607.07705v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-0597 — Parameterized coloring of H-free graphs
+### TCS-0597 — Fixed-parameter tractability of coloring graphs with no induced P5
 
-An H-free graph excludes a specified graph H under the source's intended containment convention. The entry asks about parameterized complexity of coloring problems on such restricted graphs. Forbidding a pattern can simplify the interactions that force many colors, but different forbidden graphs can behave very differently. A classification would identify which structural exclusions make coloring computationally manageable. The saved label does not specify induced versus ordinary subgraph exclusion, the coloring variant, or the parameter, so it does not justify a particular tractability boundary.
+A graph is P5-free when no five vertices induce precisely a path. The input asks whether such a graph can be colored with at most k colors. The target is one deterministic algorithm with running time f(k) times a polynomial in the graph size. The polynomial exponent must be independent of the number of colors. Existing polynomial algorithms for each separately fixed k leave this stronger parameterized question open in the checked sources.
 
-[Read in atlas](index.html#TCS-0597) · [Graph Colouring: from Structure to Algorithms](https://doi.org/10.4230/DagRep.9.6.125)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0597) · [Graph Colouring: from Structure to Algorithms (Dagstuhl Seminar 19271)](https://doi.org/10.4230/DagRep.9.6.125) · [Vertex Partitioning in Graphs: From Structure to Algorithms (Dagstuhl Seminar 22481)](https://doi.org/10.4230/DagRep.12.11.109)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0799 — Converting CNF to DNF
 
@@ -1197,13 +1204,6 @@ For each variable count n and clause width k, the target is the largest minimum 
 
 [Read in atlas](index.html#TCS-0799) · [Converting CNF to DNF, in Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [On converting CNF to DNF: BRICS RS-03-45](https://www.brics.dk/RS/03/45/BRICS-RS-03-45.pdf) · [On converting CNF to DNF](https://doi.org/10.1016/j.tcs.2005.07.029) · [A Generalization of the Satisfiability Coding Lemma and Its Applications](https://doi.org/10.4230/LIPIcs.SAT.2022.9) · [A Formalization of the Exponential Blowup in the Transformations between CNF and DNF](https://isa-afp.org/entries/CNF_DNF_Exp_Blowup.html)
 Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-1945 — Parameterized Nearest Codeword hardness beyond Gap-ETH
-
-Nearest Codeword seeks a codeword close to a target vector under the specified distance measure. The source asks for constant-factor approximation lower bounds for its parameterized version and related problems. The desired obstruction excludes running times whose exponent in the input size is sublinear in k. Obtaining it from assumptions weaker than Gap-ETH would reduce reliance on a strong initial approximation-gap hypothesis. The saved excerpt does not define the field, distance parameter, or related variants, so those details remain part of the later precise formulation.
-
-[Read in atlas](index.html#TCS-1945) · [Improved Lower Bounds for Approximating Parameterized Nearest Codeword and Related Problems Under ETH](https://doi.org/10.4230/LIPIcs.ICALP.2024.107)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2662 — Subexponential constant-gap Max-Clique under ETH
 
