@@ -1502,3 +1502,39 @@ record was then validated and saved. No partial state was deployed.
 Only owned card, archive, selection, queue, ledger and authoring-log changes
 enter this checkpoint. Source fbcf5543 and deployment
 2a7401d024c11c591aa3963a64468e50ef928be9 cover the preceding 250 dispositions.
+
+## Checkpoint 261 — 18 September 2026
+
+Completed the last five actionable reviews: TCS-7319 (ordinary sequential
+calibration), TCS-7340 (general randomized memory reallocation), TCS-7322
+(the best general superstring approximation ratio), TCS-7333 (the approved
+3SUM-indexing exponent curve), and TCS-7339 (unassisted incremental topological
+ordering). This recovery series now records 261 unique dispositions, including
+mergers, known-result archives and explicit user exclusions.
+
+The active catalogue has 959 records: 958 revised, self-contained formulations
+and TCS-6958 requiring specification, retained in that state by the user.
+There are no outstanding claims or other pending active reviews. The remaining
+historical queue rows refer to inactive work or, in the committed ownership-only
+snapshot, concurrent work not included in these commits. The committed queue
+has 905 completed and nine pending rows; the live queue has 906 completed and
+eight pending, of which only TCS-6958 is active.
+
+The last reviews distinguish ordinary calibration from squared/group error,
+per-update expected relocation cost from amortized and tail bounds, general
+superstring algorithms from greedy, fixed-word uniform RAM indexing from
+cell-probe variants, and actual topological ordering from cycle/SCC detection.
+No mathematical open problem or Lean formalization is claimed solved by this
+editorial work. Numerical curve/value targets retain their selected tolerance,
+and the known sources do not independently certify a tolerance-level answer.
+
+All five owned output hashes and five completion events were verified. The
+full offline checks pass. Mathematical rendering passes for 37,640 expressions
+across 959 active records, and desktop/mobile checks pass on publication
+6b8a4ca89ebf893e6727. All fourteen final-response and last-batch records were
+also checked for consistent selected dispositions, hashes and five-sentence
+summaries. Only the five cards, their scripts, this log and owned queue/ledger/
+inventory deltas enter this checkpoint; concurrent changes remain unstaged.
+
+Source 2ce7950f and deployment a4204d1994e62a3d5b9ff8febc0eedf1d6ac8a5b
+cover the preceding 256 dispositions and the user's final scope choices.

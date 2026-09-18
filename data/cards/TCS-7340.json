@@ -4,16 +4,20 @@
   "area": "Data structures",
   "criterion": "resources",
   "question_type": "asymptotic_complexity",
-  "formal": "Determine, up to absolute constant factors as \\(\\varepsilon\\to0\\), the optimal worst-case expected reallocation overhead \\(F(\\varepsilon)\\) for online allocators with load at most \\(1-\\varepsilon\\). The allocator stores objects in contiguous intervals of a fixed array and may relocate live objects after each insertion or deletion.",
-  "definitions": "For every fixed real \\(0<\\varepsilon\\le1/2\\) and integer array length \\(M\\ge1\\), a request inserts a fresh object of positive integer size \\(s\\), or deletes a named live object. Valid finite sequences start empty and have total live size at most \\((1-\\varepsilon)M\\) after every request. At each operation boundary, every live object occupies one contiguous interval of its size in \\(\\{0,\\ldots,M-1\\}\\), and these intervals are disjoint. On an update involving an object \\(x\\), cost is \\(1+\\sum_y s(y)/s(x)\\), where the sum is over objects live both before and after the update whose starting addresses change. This counts allocation changes at operation boundaries; local computation and allocation metadata are uncharged. The online rule may know \\(M,\\varepsilon\\) but no future requests, and may use private randomness. A sequence is fixed independently of that randomness; allocations must always be valid. For a family of rules covering all \\(M\\), its overhead is the supremum, over all capacities, valid finite request sequences and individual update indices, of expected update cost. \\(F(\\varepsilon)\\) is the infimum of those overheads over all such families. No history-independence or resizability constraint is imposed. The target measures each update’s expectation, rather than expected amortized cost or a high-probability bound.",
+  "formal": "Determine, up to absolute constant factors as \\(\\varepsilon\\to0^+\\), the optimal worst-case expected overhead \\(F(\\varepsilon)\\) for online memory reallocation at load at most \\(1-\\varepsilon\\). In the model below,\n\\[\nF(\\varepsilon)=\\inf_{\\mathcal A}\\ \\sup_{M,\\sigma,j}\\ \\mathbb E[\\operatorname{cost}_{\\mathcal A,M}(\\sigma,j)],\n\\qquad 0<\\varepsilon\\le\\tfrac12.\n\\]\nThe supremum ranges over positive integer capacities, nonempty valid finite request sequences fixed independently of the allocator's randomness, and one update in each sequence. All live objects occupy disjoint contiguous intervals.",
+  "definitions": "The memory consists of integer slots \\(\\{0,\\ldots,M-1\\}\\). Each object has a distinct name and a positive integer size \\(s(x)\\). A request inserts a fresh object and supplies its size, or deletes a named live object. Valid sequences start empty and, after each update, have total live size at most \\((1-\\varepsilon)M\\). There is no restriction on the individual sizes beyond that load bound, and deleted object names are not reused. At every operation boundary an allocation map \\(\\phi\\) assigns each live object a starting slot, with interval \\([\\phi(x),\\phi(x)+s(x))\\) contained in \\([0,M)\\); these intervals are pairwise disjoint.\n\nIf the updated object is \\(x\\), the live sets before and after the update are \\(X,X'\\), and their allocation maps are \\(\\phi,\\phi'\\), then\n\\[\n\\operatorname{cost}=1+\\frac{1}{s(x)}\\sum_{\\substack{y\\in X\\cap X'\\\\\\phi(y)\\ne\\phi'(y)}}s(y).\n\\]\nThe leading one charges the inserted or deleted object. Each persistent object whose start changes is charged its full size once. This is the source's boundary-allocation switching cost: intermediate physical copying steps, implementation time and allocation metadata are not an additional cost. Objects may be rearranged arbitrarily between valid boundary allocations; this is not an in-place copying task with a separately limited scratch buffer.\n\nFor each fixed \\(\\varepsilon\\), an admissible family \\(\\mathcal A=(A_M)_{M\\ge1}\\) consists of online randomized allocation rules. Each rule knows \\(M,\\varepsilon\\), all past requests and its private randomness, but has no future request information. Its allocations must always be valid. There is no computational, history-independence, resizability or metadata-space restriction. Rules may be specified as distributions over valid next allocations conditional on past requests and allocations. There is no requirement to compute them from a finite representation of the real parameter \\(\\varepsilon\\).\n\nThe adversary may select any finite valid sequence \\(\\sigma\\) after the family is fixed, but cannot change it based on the realized randomness or observed allocations. For each \\(j\\in\\{1,\\ldots,|\\sigma|\\}\\), expectation covers the allocator's entire random history through update \\(j\\). Taking the supremum after that expectation requires a bound for each update separately. It is neither an amortized average over updates nor a bound on the expectation of their maximum. Capacities with no valid nonempty sequence contribute no candidate to the supremum. Larger capacities permit insertions, so the supremum is nonempty and the overhead is at least one. The infimum need not be attained.\n\nThe requested characterization supplies an explicit positive expression \\(f(\\varepsilon)\\), independent of the optimization defining \\(F\\), and constants \\(c,C>0\\), \\(0<\\varepsilon_0\\le1/2\\), such that \\(c f(\\varepsilon)\\le F(\\varepsilon)\\le C f(\\varepsilon)\\) for every \\(0<\\varepsilon\\le\\varepsilon_0\\). All logarithmic factors matter. Renaming the defining extremum or solving each finite-horizon allocation game separately is not a matching asymptotic expression uniform over all capacities and sequence lengths.",
   "why": "A tight result would establish the intrinsic price of fragmentation when a general-purpose allocator operates close to full capacity.",
   "context_blocks": [
     {
-      "text": "The 2024 work studies low-overhead memory reallocation and its relationship with stronger resizability and history-independence guarantees. Those extra guarantees are not required for the target here.",
-      "citation": "origin"
+      "text": "When memory is nearly full, insertion may force relocation of other objects even though total free volume suffices. Charging moved volume relative to the updated object isolates that fragmentation cost.",
+      "citation": "recent"
     },
     {
-      "text": "Jin’s February 2026 paper gives an upper bound \\(O((\\log(1/\\varepsilon))^4(\\log\\log(1/\\varepsilon))^2)\\) and a lower bound \\(\\Omega(\\log(1/\\varepsilon))\\) for general allocators. The new general lower bound improves the scope of earlier bounds restricted to resizable allocators.",
+      "text": "The 2026 upper bound is \\(O(\\log^4(1/\\varepsilon)(\\log\\log(1/\\varepsilon))^2)\\); the lower bound is \\(\\Omega(\\log(1/\\varepsilon))\\) for general allocators. Thus the remaining logarithmic powers are part of the selected target.",
+      "citation": "recent"
+    },
+    {
+      "text": "The new lower bound removes the extra restrictions in earlier lower-bound models. Its separate tail obstruction explains why expected overhead and a high-probability guarantee must not be conflated.",
       "citation": "recent"
     }
   ],
@@ -37,12 +41,17 @@
   ],
   "progress": [
     {
+      "date": "2024",
+      "text": "The earlier work gives a near-square-root overhead in inverse slack; its additional resizability guarantee is stronger than required here.",
+      "citation": "origin"
+    },
+    {
       "date": "2026-02-17",
-      "text": "Polylogarithmic overhead is achieved, and a logarithmic lower bound is proved for general allocators.",
+      "text": "Theorems 1.1 and 1.3 give polylogarithmic expected overhead and a logarithmic lower bound even without extra allocation restrictions. The paper explicitly asks to close their gap.",
       "citation": "recent"
     }
   ],
-  "answer_criterion": "Supply an explicit function \\(f(\\varepsilon)\\) and a complete Lean-checked proof that \\(c f(\\varepsilon)\\le F(\\varepsilon)\\le C f(\\varepsilon)\\) for absolute positive constants \\(c,C\\) and all sufficiently small positive \\(\\varepsilon\\). Bounds only for resizable or history-independent allocators, or only for amortized expectation, do not establish the required matching result.",
+  "answer_criterion": "Give a complete mathematically correct Lean-checked proof of an explicit matching expression and both inequalities with the stated absolute constants. The upper result must cover arbitrary object sizes and every individual update of every oblivious sequence. The lower result must apply to all allowed allocator families, including those without resizability or history independence. Bounds only in amortized expectation, or high-probability tail bounds for another resource, do not settle this target.",
   "related": [],
   "related_problem_ids": [
     "TCS-0300"
@@ -50,18 +59,21 @@
   "year": 2024,
   "evidence": "reviewed",
   "status": "source_open",
-  "status_note": "Open in the cited dated sources. The bounded source and subsequent-result review on 13 September 2026 found no verified resolution of this target; this is not exhaustive certification of current openness.",
+  "status_note": "Jin’s February 2026 primary paper explicitly leaves the near-quartic logarithmic gap open for this exact general expected-overhead model. Bounded checks through 18 September 2026 found no verified resolution; this is not exhaustive certification.",
   "model_self_contained": true,
   "requires_context": false,
-  "formulation_reviewed_on": "2026-09-13",
+  "formulation_reviewed_on": "2026-09-18",
   "statement_review": {
     "status": "revised",
-    "reviewed_on": "2026-09-13",
+    "reviewed_on": "2026-09-18",
     "remaining_issue": "",
     "notes": [
-      "Individual formulation, model, duplicate and category review for the user-requested researcher list."
+      "Retained general allocator families, arbitrary sizes and worst-case per-update expectation against oblivious sequences.",
+      "Verified the exact boundary-allocation switching cost, including the unit charge for the updated object.",
+      "Specified allocation validity, parameter dependence and the supremum/expectation order without introducing an implementation-time restriction.",
+      "Preserved importance 84 and separated general lower bounds from resizable, history-independent and tail guarantees."
     ],
-    "scope": "Formulation and bounded source review; no independent verification of new preprint proofs."
+    "scope": "Individual formulation and source review; current-status limits are recorded separately."
   },
   "importance": {
     "score": 84,
@@ -75,15 +87,15 @@
   },
   "working_summary": {
     "sentences": [
-      "Objects of different sizes share one nearly full memory array.",
-      "Every object must occupy a contiguous interval.",
-      "An insertion or deletion may require moving other live objects.",
-      "Cost compares the total moved volume with the size of the updated object.",
-      "The remaining problem is the tight expected overhead as the unused fraction tends to zero."
+      "An online allocator stores variable-sized objects contiguously in a nearly full array.",
+      "Insertions and deletions may force other live objects to change addresses.",
+      "Each update is charged moved volume divided by the size of its updated object.",
+      "The target is the optimal worst-case expected overhead as unused capacity tends to zero.",
+      "The checked logarithmic lower bound and polylogarithmic upper bound leave a gap for general allocators."
     ],
     "basis": "saved_sources",
-    "source_basis": "source-text",
-    "written_on": "2026-09-13",
+    "source_basis": "individual_source_review",
+    "written_on": "2026-09-18",
     "source_refs": [
       "origin",
       "recent"
@@ -96,9 +108,32 @@
     ],
     "affinity_status": "Research connection identified in the conversation; not a claim that the researcher originated or personally prioritizes every question."
   },
-  "review_note": "Added or consolidated following the user request of 13 September 2026. See research/researcher-problems-20260913/README.md.",
+  "review_note": "Completed individual review against P versus NP on 2026-09-18; see research/card-completion-20260913/reviews.jsonl.",
   "id": "TCS-7340",
   "published_at": "2026-09-13T09:26:53+00:00",
-  "updated_at": "2026-09-13T09:26:53+00:00",
-  "is_new": true
+  "updated_at": "2026-09-18T08:47:09+00:00",
+  "is_new": true,
+  "source_formulation": {
+    "text": "The primary 2026 paper asks for the best overhead as a function of unused capacity and explicitly leaves the gap between its general logarithmic lower bound and polylogarithmic upper bound open.",
+    "citation": "recent",
+    "caption": "Introduction pp. 2–4, exact allocation-map cost; Theorems 1.1 and 1.3.",
+    "format": "editorial_paraphrase"
+  },
+  "quality_review": {
+    "reviewed_on": "2026-09-18",
+    "reference_card": "TCS-0001",
+    "state": "revised",
+    "changes": [
+      "Retained general allocator families, arbitrary sizes and worst-case per-update expectation against oblivious sequences.",
+      "Verified the exact boundary-allocation switching cost, including the unit charge for the updated object.",
+      "Specified allocation validity, parameter dependence and the supremum/expectation order without introducing an implementation-time restriction.",
+      "Preserved importance 84 and separated general lower bounds from resizable, history-independent and tail guarantees."
+    ],
+    "checked_sources": [
+      "Read the February 2026 introduction’s exact model and overhead definition, Theorems 1.1, 1.3 and 1.4, and §2 load-factor convention.",
+      "Checked current primary arXiv metadata on 18 September 2026; the cited version remains v1 and is listed for STOC 2026.",
+      "Bounded later-work searches found no verified matching logarithmic rate. The 2024 result is corroborated by the 2026 introduction; no new independent audit of either full algorithm proof is claimed."
+    ],
+    "scope": "Checked target, definitions, quantifiers, answer criterion, context, significance and dated source claims. Bounded later-work checks do not independently certify every cited proof."
+  }
 }
