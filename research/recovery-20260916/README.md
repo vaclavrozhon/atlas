@@ -1294,3 +1294,43 @@ ledger, inventory and archival deltas enter the checkpoint. Source checkpoint
 742ebdc0 and deployment b9f0df73b654aa0d33042e265ea6d77ffabd3427 cover the first
 220 dispositions. Concurrent unrelated work remains unstaged; the committed
 queue has 869 completed and 45 pending records.
+
+After two hundred and thirty recovery dispositions, the raw shared queue contains
+875 completed records, 39 pending records and one outside its original scope.
+The live catalogue has 967 active cards: 32 pending active reviews, 783 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-0715 (fixed-exponent online sparse regression, archived
+under NP not contained in BPP), TCS-0716 (two-local logarithmic-label regret,
+archived under planted-clique hardness), TCS-0922 (the maximum-assignment
+configuration-LP gap), TCS-0700 (exact efficient stopping for a uniform mixture
+of product distributions), and TCS-4983 (the sublinear randomized k-server
+milestone, merged into TCS-7317 and archived). Optional choices have not yet
+received replies; the announced defaults are editorial, not user confirmations.
+
+The sparse-regression review checks a rational rescaling of the published
+hardness reduction and distinguishes fixed exponent savings from unrestricted
+sublinear rates. The local-learning review keeps the separate higher-locality
+question outside its conditional resolution. The assignment card separates the
+max-min allocation paragraph and corrects its offline subject category. The
+stopping card fixes both the distribution encoding and the policy execution
+interface. The k-server merge preserves the complete quantitative target and
+handles nonattainment of the competitive-ratio infimum with positive slack.
+
+TCS-0708 remains pending. The scope note review_kernel_rl_scope.md records why
+a proposed unrestricted-computation finite-domain specialization would not be
+a sound new open target. A corrected optional question asks whether to retain
+the broader source for specification or deliberately archive that finite target.
+No card has been silently substituted and this note adds no disposition.
+
+All six owned output hashes match their queue rows. The shared ledger contains
+1104 valid entries. The full offline check passes; mathematical rendering passes
+for 37,152 expressions across 967 cards. Desktop/mobile reader checks pass on
+publication 79793c2f02a992e4cccb with 951 detailed active records.
+
+Only these five dispositions, the k-server target amendment, their scripts,
+the kernel scope note, this log and the owned shared-file deltas enter the
+checkpoint. Source checkpoint de4de1a8 and deployment
+8bba4fd0072d81f40c94ae7313e55a427924ccc5 cover the first 225 dispositions.
+Concurrent unrelated work remains unstaged; the committed queue has 874 completed
+and 40 pending records.

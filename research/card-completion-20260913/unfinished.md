@@ -5,16 +5,11 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **45**.
+Pending active reviews: **40**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
-| [TCS-0922](../../data/cards/TCS-0922.json) | Generalized assignment | Online algorithms | pool |
-| [TCS-0715](../../data/cards/TCS-0715.json) | Efficient Online Sparse Regression | Online algorithms | pool |
 | [TCS-0708](../../data/cards/TCS-0708.json) | Order Optimal Regret Bounds for Kernel-Based Reinforcement Learning | Online algorithms | pool |
-| [TCS-0700](../../data/cards/TCS-0700.json) | Hardness of Correlated Prophet Inequality | Online algorithms | pool |
-| [TCS-0716](../../data/cards/TCS-0716.json) | Online Local Learning | Online algorithms | pool |
-| [TCS-4983](../../data/cards/TCS-4983.json) | Sublinear competitive ratio for randomized k-server | Online algorithms | pool |
 | [TCS-5252](../../data/cards/TCS-5252.json) | Action-set-dependent regret in bandit combinatorial optimization | Online algorithms | pool |
 | [TCS-6838](../../data/cards/TCS-6838.json) | Instance-optimal finite-time best-arm identification | Online algorithms | pool |
 | [TCS-6702](../../data/cards/TCS-6702.json) | Worst-case-to-average-case reductions within NP | Beyond worst-case and average-case analysis | pool |
