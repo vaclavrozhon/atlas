@@ -2648,6 +2648,13 @@ Parity is a basic function that small constant-depth classical circuits cannot a
 [Read in atlas](index.html#TCS-4894) · [Parity vs. AC0 with Simple Quantum Preprocessing](https://doi.org/10.4230/LIPIcs.ITCS.2024.92) · [Unconditional Pseudorandomness Against Shallow Quantum Circuits](https://doi.org/10.4230/LIPIcs.ITCS.2026.70)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-4927 — A finite quantum gate set with decision power strictly between P and BQP
+
+A finite quantum gate set determines which polynomial-size uniform circuits can be built from its operations. The user-selected question asks for a bounded-error decision class strictly larger than P and strictly smaller than BQP. The gates must also escape every common one-qubit conjugate of the Clifford group. The card fixes algebraic gates, computational-basis inputs and one final measured output bit to make the computational model precise. Known hardness results for sampling restricted circuits do not establish this stronger unconditional decision-class separation.
+
+[Read in atlas](index.html#TCS-4927) · [The Classification of Reversible Bit Operations](https://doi.org/10.4230/LIPIcs.ITCS.2017.23) · [Complexity Classification of Conjugated Clifford Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.21) · [A Criterion for Post-Selected Quantum Advantage](https://arxiv.org/abs/2411.02369v2)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-6449 — Quantum versus classical nonuniform advice
 
 Quantum and classical advice supply information fixed for an entire input length to an efficient quantum computation. The selected advice must decide every binary input of that length correctly with bounded error, and can be arbitrarily hard to prepare. The question asks whether quantum advice increases the resulting ordinary class of total languages. A known simulation by PP with classical advice uses a different error and computation model, while successive oracle separations retain their black boxes. The latest standard classical-oracle separation does not resolve the ordinary equality, and fresh-copy advice remains distinct from untrusted per-instance witnesses.
@@ -2794,13 +2801,6 @@ A fixed two-qubit interaction generates circuits by evolving selected ordered pa
 
 [Read in atlas](index.html#TCS-4457) · [Complexity Classification of Two-Qubit Commuting Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2016.28) · [The Space Around BQP](https://dspace.mit.edu/server/api/core/bitstreams/ad343002-e1d8-4966-96ac-7d32b3b215d4/content) · [General Conditions for Universality of Quantum Hamiltonians](https://doi.org/10.1103/PRXQuantum.3.010308)
 Existing status: `source_open` · Summary written: 2026-09-13
-
-### TCS-4927 — Classification of quantum gate sets
-
-A classification of reversible classical gates describes which transformations become possible when a gate set is composed repeatedly. The source uses that completed classical picture to motivate an analogous classification for quantum gates. The quantum question is whether known nonuniversal families, such as stabilizer operations and basis-preserving constructions, account for all relevant possibilities. Additional discrete families or intermediate computational behavior could make the quantum landscape substantially richer. A full classification would organize quantum gate resources by the computations they enable and identify exactly where universality appears.
-
-[Read in atlas](index.html#TCS-4927) · [The Classification of Reversible Bit Operations](https://doi.org/10.4230/LIPIcs.ITCS.2017.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5077 — Exponential repetition of two-player entangled games
 

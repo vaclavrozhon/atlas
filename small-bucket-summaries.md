@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-574 five-sentence working summaries, based on saved source material.
+573 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -315,7 +315,7 @@ The input is a CNF formula and a proof-length budget written in unary. The algor
 [Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1) · [Regular resolution effectively simulates resolution](https://doi.org/10.1016/j.ipl.2024.106489) · [Automating Resolution is NP-Hard](https://arxiv.org/abs/1904.02991) · [The Proof Analysis Problem](https://arxiv.org/abs/2506.16956)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Communication complexity and Boolean function analysis (29)
+## Communication complexity and Boolean function analysis (28)
 
 ### TCS-6603 — Log-rank conjecture
 
@@ -436,6 +436,13 @@ Two parties want to compute a total Boolean function using little communication.
 [Read in atlas](index.html#TCS-4771) · [Nondeterministic and Randomized Boolean Hierarchies in Communication Complexity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.92) · [Pseudodeterminism and \(\mathrm{MA}\ne\mathrm{NP}^{\mathrm{BPP}}\) in Communication Complexity](https://arxiv.org/abs/2608.26425v1) · [Constant-Cost Communication is not Reducible to k-Hamming Distance](https://arxiv.org/abs/2407.20204v2)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-2571 — A randomized-communication characterization of ordinary KW games
+
+An ordinary Karchmer–Wigderson game asks two parties to find a coordinate where their differently classified Boolean inputs disagree. The selected candidate says these games capture exactly total search tasks with cheap answer verification and cheap randomized communication. Capture means deterministic mapping reductions in both directions, with polylogarithmic communication and at most quasipolynomially many target coordinates. Ordinary games have cheap randomized protocols, whereas the known monotone representation theorem covers a broader class of total search tasks. The exact equivalence is a user-selected editorial candidate whose current status remains uncertain, not a conjecture quoted from the source.
+
+[Read in atlas](index.html#TCS-2571) · [TFNP Characterizations of Proof Systems and Monotone Circuits](https://doi.org/10.4230/LIPIcs.ITCS.2023.30) · [On Communication Complexity of Fixed Point Computation](https://arxiv.org/abs/1909.10958v3)
+Existing status: `uncertain` · Summary written: 2026-09-18
+
 ### TCS-1047 — Formula size versus partition complexity
 
 A De Morgan formula computes a Boolean function with an expression tree whose leaves are literals. Its partition measure counts disjoint rectangles pairing accepting and rejecting inputs, each certified by one differing coordinate. The question asks whether formula leaf size is always bounded by a fixed polynomial in that rectangle count. The partition need not already be organized as a recursive communication protocol, which is the source of the possible gap. Jukna’s author draft dated 14 September 2026 still lists the polynomial inverse as open and gives only a quasipolynomial general bound.
@@ -449,6 +456,13 @@ A depth-two Boolean circuit computes a linear transformation using shared middle
 
 [Read in atlas](index.html#TCS-1059) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Block Rigidity: Strong Multiplayer Parallel Repetition implies Super-Linear Lower Bounds for Turing Machines](https://eccc.weizmann.ac.il/report/2020/173/) · [Efficient Linearization Implies the Multiphase Conjecture](https://eccc.weizmann.ac.il/report/2022/122/)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-5189 — PSPACE-hardness of a factor-two gap in decision-tree depth
+
+Given a Boolean circuit, decision-tree depth is the fewest input-bit queries needed in the worst case to compute its function exactly. The question asks whether distinguishing depth at most k from depth greater than 2k remains PSPACE-hard. The function is supplied by a circuit, whose binary description is the input-size measure. Exact computation and constant additive approximation are already hard in the cited source, while a multiplicative gap needs a stronger result. The card fixes a factor-two many-one promise and keeps this distinct from truth-table algorithms and tree-size minimization.
+
+[Read in atlas](index.html#TCS-5189) · [The Hardness of Decision Tree Complexity](https://doi.org/10.4230/LIPIcs.STACS.2025.66)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-0540 — Near-linear communication for exact maximum flow with local outputs
 
@@ -471,26 +485,12 @@ The question concerns square real matrices with low rank and at least half their
 [Read in atlas](index.html#TCS-0811) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [Disjoint pairs in set systems and combinatorics of low rank matrices](https://arxiv.org/abs/2411.13510v1) · [Extremal Combinatorics, Oberwolfach Report 42/2025](https://ems.press/content/serial-article-files/52246)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-0464 — Information leakage in distributed OR
-
-Two parties hold random bits and want to compute their OR while revealing as little as possible about their individual inputs. The selected problem asks for the minimum information that either participant must disclose during such a protocol. Some disclosure may be forced by the output itself, while additional leakage depends on the communication strategy. The source also asks how the optimum changes when the allowed number of rounds changes. Understanding this small example would clarify fundamental limits on information-efficient distributed computation before introducing more complicated functions or cryptographic assumptions.
-
-[Read in atlas](index.html#TCS-0464) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1061 — Quadratic decision-tree bounds from block sensitivity
 
 The target is a universal quadratic upper bound on deterministic decision-tree depth in terms of block sensitivity. A decision tree adaptively reads individual bits and must compute a total Boolean function correctly on every input. Block sensitivity counts disjoint blocks whose separate flips all change the value at one common input. The known general bound is cubic, while quadratic bounds hold for several restricted classes. The proposed constant must work for every function and dimension, and recent results on tree size or counts of minimal blocks do not settle this depth question.
 
 [Read in atlas](index.html#TCS-1061) · [Boolean Function Complexity: Advances and Frontiers (author’s early draft)](https://web.vu.lt/mif/s.jukna/boolean/bool-V7.pdf) · [Decision Tree Complexity Versus Block Sensitivity and Degree](https://doi.org/10.4230/LIPIcs.FSTTCS.2023.27) · [Nearly Tight Bounds on the Block Number of Boolean Functions in Terms of Sensitivity](https://eccc.weizmann.ac.il/report/2026/010/)
 Existing status: `source_open` · Summary written: 2026-09-15
-
-### TCS-2571 — Communication characterization of nonmonotone Karchmer–Wigderson games
-
-Karchmer–Wigderson games turn differences in Boolean function values into a communication search task. The cited work characterizes communication problems associated with proof systems and monotone circuits. The saved question asks for an analogous characterization covering non-monotone games. Such a description would connect richer circuit reasoning with an intrinsic class of total-search communication problems. The excerpt does not specify the reduction notion or the properties of the existing characterization, so those ingredients remain to be recovered before a precise equivalence can be stated.
-
-[Read in atlas](index.html#TCS-2571) · [TFNP Characterizations of Proof Systems and Monotone Circuits](https://doi.org/10.4230/LIPIcs.ITCS.2023.30)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2658 — Sign-rank bounds from constant margin
 
@@ -505,13 +505,6 @@ A Boolean function has a Fourier expansion in parity characters. Its sparsity co
 
 [Read in atlas](index.html#TCS-3153) · [Tight Chang’s-Lemma-Type Bounds for Boolean Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2021.10) · [Fourier Sparsity and Dimension](https://theoryofcomputing.org/articles/v015a011/) · [Spectral Norm, Economical Sieve, and Linear Invariance Testing of Boolean Functions](https://doi.org/10.4230/LIPIcs.STACS.2026.30)
 Existing status: `source_open` · Summary written: 2026-09-12
-
-### TCS-5189 — Approximating decision-tree complexity
-
-Decision tree complexity measures the worst-case number of adaptive input queries needed to compute a function. The cited source asks about the complexity of approximating this quantity. An algorithm assessing complexity must reason about the best possible querying strategy, rather than simply execute one given tree. Approximation could provide useful estimates of intrinsic query cost even when exact optimization is difficult. The saved question does not fix the input representation or the permitted factor, so those choices are necessary before one can compare algorithms and hardness results meaningfully.
-
-[Read in atlas](index.html#TCS-5189) · [The Hardness of Decision Tree Complexity](https://doi.org/10.4230/LIPIcs.STACS.2025.66)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5892 — Constant-factor randomized direct sums for total Boolean functions
 
@@ -3485,6 +3478,13 @@ Linear rank inequalities constrain the dimensions of every nonempty sum in a col
 [Read in atlas](index.html#TCS-0196) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Linear rank inequalities on five or more variables](https://arxiv.org/abs/0910.0284v3) · [Interaction between skew-representability, tensor products, extension properties, and rank inequalities](https://arxiv.org/abs/2507.10709v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-4802 — The maximal error fraction for constant-rate binary two-way codes
+
+Alice sends an arbitrary binary message to Bob, and Bob may send costly, corruptible feedback bits. The speaking order is fixed, and an adversary may flip a bounded fraction of all transmitted bits in both directions. The target is the largest tolerable fraction with linear total communication, to certified absolute error 1/100. A construction tolerates slightly more than one quarter, while the checked upper bound is 13/47. Those bounds still leave too wide an interval, and noiseless-feedback results do not settle this model.
+
+[Read in atlas](index.html#TCS-4802) · [Binary Codes with Resilience Beyond 1/4 via Interaction](https://doi.org/10.1109/FOCS54457.2022.00008) · [Interactive Error Correcting Codes: New Constructions and Impossibility Bounds](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.32) · [Round-Vs-Resilience Tradeoffs for Binary Feedback Channels](https://doi.org/10.4230/LIPIcs.ITCS.2025.22)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-0178 — Bounded-alphabet approximation of the β = 0 entropy face
 
 A symmetric three-dimensional slice of the four-variable almost-entropic region has a distinguished face labeled β = 0. The question asks whether every point of that face is a limit of interior points represented by normalized entropy vectors of bounded-alphabet distributions. One finite bound on the alphabet size must work for the whole face and for every requested accuracy. The source reports small-alphabet points on the face but an apparent gap in numerical exploration of the interior. The card fixes the visualization’s coordinate convention and distinguishes actual entropy realizations from transformed almost-entropic samples.
@@ -3512,13 +3512,6 @@ The Ingleton score divides a particular linear combination of four-variable entr
 
 [Read in atlas](index.html#TCS-0205) · [Algorithmic Aspects of Information Theory (Dagstuhl Seminar 22301)](https://doi.org/10.4230/DagRep.12.7.180) · [Entropy region and convolution](https://arxiv.org/abs/1310.5957v1) · [Violations of the Ingleton inequality and revising the four-atom conjecture](https://doi.org/10.14736/kyb-2020-5-0916) · [Optimizing Distributions for Associated Entropic Vectors via Generative Convolutional Neural Networks](https://doi.org/10.3390/e26080711)
 Existing status: `source_open` · Summary written: 2026-09-17
-
-### TCS-4802 — Noise tolerance of binary interactive codes
-
-Binary two-way codes use interaction between communicating parties to tolerate corrupted transmissions. The source asks for the maximal noise tolerance, considering constant-rate and even zero-rate communication. Interaction can exploit feedback-like information that is unavailable to a sender using a fixed one-way block code. Determining the threshold would isolate the fundamental benefit of dialogue against noise. The saved question does not reproduce the adversary or turn-taking conventions, and positive constant rate is a stronger requirement than merely allowing communication whose rate tends to zero.
-
-[Read in atlas](index.html#TCS-4802) · [Binary Codes with Resilience Beyond \(1/4\) via Interaction](https://doi.org/10.1109/FOCS54457.2022.00008)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ## Property testing and distribution learning (16)
 
