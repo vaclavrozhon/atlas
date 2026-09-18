@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-571 five-sentence working summaries, based on saved source material.
+569 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (18)
@@ -1100,12 +1100,26 @@ Each job is a prescribed sequence of nonpreemptive operations on specified machi
 [Read in atlas](index.html#TCS-6814) · [Parameterized complexity of machine scheduling: 15 open problems](https://arxiv.org/abs/1709.01670v3) · [Makespan Minimization in Job Shops: A Linear Time Approximation Scheme](https://doi.org/10.1137/S0895480199363908)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-2662 — Does ETH rule out subexponential constant-gap Max-Clique?
+
+The input is an arbitrary graph and a requested clique size k. The promise separates graphs with a k-clique from graphs whose largest clique is smaller by a fixed multiplicative factor. The target asks whether ordinary ETH rules out subexponential time in the total number of vertices. It is enough to establish this barrier for some fixed factor greater than one. Parameterized running times and assumptions that already contain a satisfiability gap do not settle the selected implication.
+
+[Read in atlas](index.html#TCS-2662) · [On Lower Bounds of Approximating Parameterized k-Clique](https://doi.org/10.4230/LIPIcs.ICALP.2022.90)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-4289 — \(\mathrm{W}[2]\)-hardness of bounded-VC-dimension Hitting Set
 
 Hitting Set asks whether at most k elements can intersect every set in an explicitly supplied finite set system. The question is whether some fixed bound on the system's VC dimension still permits W[2]-hardness when only k is the parameter. Hardness means one uniform deterministic fixed-parameter many-one reduction from unrestricted Hitting Set, with every output satisfying that fixed VC bound. The 2016 source proves W[1]-hardness even when primal and dual dimensions are both two, but leaves the stronger W[2] classification open. The bounded review through September 2026 found related hardness and approximation results but no verified resolution of this question.
 
 [Read in atlas](index.html#TCS-4289) · [Hitting Set for Hypergraphs of Low VC-dimension](https://doi.org/10.4230/LIPIcs.ESA.2016.23) · [The PACE 2025 Parameterized Algorithms and Computational Experiments Challenge: Dominating Set and Hitting Set](https://doi.org/10.4230/LIPIcs.IPEC.2025.32) · [The Parameterized Complexity of Independent Set and More when Excluding a Half-Graph, Co-Matching, or Matching](https://arxiv.org/abs/2602.07606v1) · [Fixed Budget vs. Covering Target: The Partial Set Cover Boundary for Bounded VC-Dimension](https://arxiv.org/abs/2608.03801v1)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-5374 — A DAG-treewidth dichotomy for homomorphism counting in degenerate graphs
+
+A homomorphism maps pattern vertices to host vertices while preserving every edge. The problem asks for the exact number of these maps when the host has small degeneracy. The joint parameter is pattern size plus host degeneracy. The candidate criterion is bounded generalized DAG-treewidth across the permitted patterns. The missing direction would make every computable class with unbounded width hard for parameterized counting.
+
+[Read in atlas](index.html#TCS-5374) · [Exact and Approximate Pattern Counting in Degenerate Graphs: New Algorithms, Hardness Results, and Complexity Dichotomies](https://doi.org/10.1109/FOCS52979.2021.00036) · [Exact and Approximate Pattern Counting in Degenerate Graphs: New Algorithms, Hardness Results, and Complexity Dichotomies — full version](https://arxiv.org/abs/2103.05588)
+Existing status: `source_open` · Summary written: 2026-09-18
 
 ### TCS-6728 — Chromatic number in \(2^{n}\) time and polynomial space
 
@@ -1205,13 +1219,6 @@ For each variable count n and clause width k, the target is the largest minimum 
 [Read in atlas](index.html#TCS-0799) · [Converting CNF to DNF, in Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40) · [On converting CNF to DNF: BRICS RS-03-45](https://www.brics.dk/RS/03/45/BRICS-RS-03-45.pdf) · [On converting CNF to DNF](https://doi.org/10.1016/j.tcs.2005.07.029) · [A Generalization of the Satisfiability Coding Lemma and Its Applications](https://doi.org/10.4230/LIPIcs.SAT.2022.9) · [A Formalization of the Exponential Blowup in the Transformations between CNF and DNF](https://isa-afp.org/entries/CNF_DNF_Exp_Blowup.html)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-2662 — Subexponential constant-gap Max-Clique under ETH
-
-A constant-gap Max-Clique problem distinguishes graphs with a large clique from graphs whose cliques are smaller by a fixed factor. The saved question asks whether this promise problem admits subexponential time in the vertex count under ETH. The gap relaxes exact optimization while retaining a substantial difference between the two answer cases. Resolving its compatibility with ETH would clarify the relationship between exact satisfiability hardness and approximation gaps. The source excerpt does not specify the two thresholds or randomness convention, and its question is not itself an established ETH lower bound.
-
-[Read in atlas](index.html#TCS-2662) · [On Lower Bounds of Approximating Parameterized k-Clique](https://doi.org/10.4230/LIPIcs.ICALP.2022.90)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2804 — Slice-wise Polynomial Space Conjecture
 
 XNLP describes parameterized problems with short nondeterministic working memory and fixed-parameter polynomial running time. The conjecture forbids deterministic algorithms for XNLP-hard problems with both slice-wise polynomial time and a fixed polynomial space exponent. One algorithm must meet both guarantees on every input. The parameter may affect the time exponent and the space multiplier, but not the space exponent. Later completeness results retain this as a conjecture that would explain memory barriers in dynamic programming.
@@ -1240,13 +1247,6 @@ Delete at most a specified number of vertices to eliminate every minor from a fi
 [Read in atlas](index.html#TCS-4695) · [Hitting forbidden minors: Approximation and Kernelization](https://doi.org/10.4230/LIPIcs.STACS.2011.189) · [Planar F-Deletion: Approximation, Kernelization and Optimal FPT Algorithms](https://doi.org/10.1109/FOCS.2012.62) · [Lossy Planarization: A Constant-Factor Approximate Kernelization for Planar Vertex Deletion](https://doi.org/10.1137/22M152058X) · [Kernelization Dichotomies for Hitting Minors Under Structural Parameterizations](https://doi.org/10.4230/LIPIcs.STACS.2026.17)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-5374 — Degeneracy-sensitive classification of homomorphism counting
-
-Pattern homomorphism counting measures adjacency-preserving maps from a pattern into a host graph. The source asks for an explicit criterion on computable pattern classes in its degeneracy-sensitive counting framework. The intended dichotomy places every satisfying class in FPT and every remaining class on the #\(\mathrm{W}[1]\)-hard side. Such a criterion would explain a broad tractability boundary rather than only catalog individual easy patterns. The saved notation does not fully define the host restrictions or parameter combination, so those model details must be supplied before presenting the classification as self-contained.
-
-[Read in atlas](index.html#TCS-5374) · [Exact and Approximate Pattern Counting in Degenerate Graphs: New Algorithms, Hardness Results, and Complexity Dichotomies](https://doi.org/10.1109/FOCS52979.2021.00036)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6379 — Polynomial kernels for Directed Feedback Vertex Set
 
 Directed Feedback Vertex Set asks whether deleting at most a given number of vertices destroys every directed cycle. The question is whether polynomial-time preprocessing can always replace an instance by one of size polynomial in that deletion budget. The replacement must preserve the exact yes or no answer. Known kernels with extra structural parameters or more restrictive deletion targets do not give this guarantee. Resolving the general question would clarify the limits of efficient compression for directed cycle problems.
@@ -1254,7 +1254,7 @@ Directed Feedback Vertex Set asks whether deleting at most a given number of ver
 [Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55) · [Wannabe Bounded Treewidth Graphs Admit a Polynomial Kernel for Directed Feedback Vertex Set](https://doi.org/10.1145/3711669)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Approximation algorithms and inapproximability (29)
+## Approximation algorithms and inapproximability (28)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -1382,6 +1382,13 @@ Steiner Tree seeks a minimum-cost tree connecting a specified terminal set in an
 [Read in atlas](index.html#TCS-7358) · [Steiner Tree Approximation via Iterative Randomized Rounding](https://doi.org/10.1145/2432622.2432628) · [Local Search for Weighted Tree Augmentation and Steiner Tree](https://arxiv.org/abs/2107.07403v1) · [Better-Than-2 Approximations for Weighted Tree Augmentation and Applications to Steiner Tree](https://doi.org/10.1145/3722101) · [The Steiner tree problem on graphs: Inapproximability results](https://doi.org/10.1016/j.tcs.2008.06.046) · [The Bidirected Cut Relaxation for Steiner Tree has Integrality Gap Smaller than 2](https://arxiv.org/abs/2407.19905v2) · [Online Steiner Forest with Recourse](https://doi.org/10.4230/LIPIcs.ICALP.2026.141)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-6309 — A polynomial-time constant approximation for capacitated k-median without violations
+
+Clients must be assigned to at most k chosen facilities in a finite metric space. Each facility has its own hard capacity, and every client must be served. The question asks for a constant-factor approximation in ordinary polynomial time. Randomization is permitted, but every output must respect both resource constraints. Known algorithms that use FPT time or exceed a resource bound do not settle this target.
+
+[Read in atlas](index.html#TCS-6309) · [Constant-Factor FPT Approximation for Capacitated k-Median](https://doi.org/10.4230/LIPIcs.ESA.2019.1) · [On Tight FPT Time Approximation Algorithms for k-Clustering Problems](https://doi.org/10.4230/LIPIcs.ICALP.2026.72)
+Existing status: `source_open` · Summary written: 2026-09-18
+
 ### TCS-7354 — Optimal polynomial-time approximation ratio for metric k-means
 
 Metric k-means chooses exactly k distinct centers from an explicit candidate set that includes every client. Its objective is the sum of squared metric distances to the nearest selected center. The target is the infimum of expected ratios achievable by uniform randomized polynomial-time algorithms. The July 2026 result reports an improved algorithmic ratio approaching 4.9 without determining the infimum. Acceptance requires a complete unconditional Lean-checked approximation to that constant within 0.01.
@@ -1402,13 +1409,6 @@ A minimization CSP assigns finite-domain values to variables to minimize the ave
 
 [Read in atlas](index.html#TCS-6757) · [Approximation Algorithms for CSPs](https://doi.org/10.4230/DFU.Vol7.15301.287) · [How to Round Any CSP](https://www.dsteurer.org/paper/roundcsp.pdf) · [New Algorithms and Hardness Results for Robust Satisfiability of (Promise) CSPs](https://arxiv.org/abs/2602.10368v1)
 Existing status: `source_open` · Summary written: 2026-09-16
-
-### TCS-0088 — Optimal approximation of Max Di-Cut
-
-Max Di-Cut selects a vertex partition and counts arcs pointing from its first side to its second. The record asks for the best approximation ratio achievable by an efficient algorithm. Arc directions mean reversing the two sides can change the objective, unlike in an undirected cut. A sharp ratio would reveal how much of the best directed separation can be recovered without exact optimization. The saved entry does not specify weighting conventions, randomized guarantees, or the hardness assumption needed to turn this topic into one precise threshold question.
-
-[Read in atlas](index.html#TCS-0088) · [TCS Open Problems](https://tcsopenproblems.com/problem/1)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1168 — Hardness of coloring 2-dicolorable digraphs with any fixed number of colors
 
@@ -1445,13 +1445,6 @@ Draw every graph in the plane using at most a fixed constant times its minimum p
 [Read in atlas](index.html#TCS-5787) · [Inserting Multiple Edges into a Planar Graph](https://doi.org/10.4230/LIPIcs.SoCG.2016.30) · [A Subpolynomial Approximation Algorithm for Graph Crossing Number in Low-Degree Graphs](https://arxiv.org/abs/2202.06827) · [An Algorithm for Estimating the Crossing Number of Dense Graphs, and Continuous Analogs of the Crossing and Rectilinear Crossing Numbers](https://doi.org/10.1007/s00454-025-00783-w)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-6309 — Constant-factor approximation for capacitated k-Median
-
-Capacitated k-median selects centers and assigns clients while limiting how many clients each center can serve. The objective minimizes total assignment distance using the permitted number of centers. The saved introductory passage highlights the existence of a polynomial-time constant-factor approximation as a central question in its source. Capacity restrictions complicate the usual strategy of sending every client to its nearest chosen center. The fragment does not preserve the exact capacity and center-count conventions, and the historical observation is not a new verification of the question's present status.
-
-[Read in atlas](index.html#TCS-6309) · [Constant-Factor FPT Approximation for Capacitated k-Median](https://doi.org/10.4230/LIPIcs.ESA.2019.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6756 — Optimal general-domain CSP approximation under Unique Games hardness
 
 The input lists local constraints on variables with a finite common label domain. The task maximizes the number of satisfied constraints using randomized polynomial time for each fixed arity and domain size. The target is the best expected approximation ratio, compared across both parameters with universal constants. The chosen hardness framework assumes Unique Games hardness and that NP is not contained in BPP. Known matching regimes and recent Boolean leading-constant claims do not determine the full general-domain scale.
@@ -1459,7 +1452,7 @@ The input lists local constraints on variables with a finite common label domain
 [Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-## Online algorithms, scheduling and packing (27)
+## Online algorithms, scheduling and packing (26)
 
 ### TCS-6638 — Breaking two for unrelated-machine makespan
 
@@ -1572,13 +1565,6 @@ The question asks for one bandit policy that adapts to unknown error in a linear
 
 [Read in atlas](index.html#TCS-6836) · [Bandit Algorithms](https://tor-lattimore.com/downloads/book/book.pdf) · [Learning with Good Feature Representations in Bandits and in RL with a Generative Model](https://sites.ualberta.ca/~szepesva/papers/ICML2020_goodfeatures.pdf) · [Upper Confidence Bounds for Combining Stochastic Bandits](https://arxiv.org/abs/2012.13115v1) · [Dynamic Regret for Non-Stationary Linear Bandits via Misspecification Reductions](https://arxiv.org/abs/2607.02891v1)
 Existing status: `uncertain` · Summary written: 2026-09-15
-
-### TCS-0711 — Model Selection for Contextual Bandits
-
-A contextual bandit learner observes a context, chooses an action, and receives feedback only for that action. Model selection asks the learner to adapt to the best class in a sequence of candidate policy classes. The source seeks regret guarantees that reflect the complexity of that best class without requiring it to be chosen in advance. Unlike supervised model selection, exploration determines which losses can be observed and compared. The challenge is to combine reliable adaptation across model sizes with efficient data collection, so that a large available class does not always impose its full learning cost.
-
-[Read in atlas](index.html#TCS-0711) · [COLT / PMLR](https://proceedings.mlr.press/v125/foster20a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0922 — Generalized assignment
 

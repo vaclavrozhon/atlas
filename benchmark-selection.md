@@ -139,7 +139,7 @@ Previous prefix: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585.
 | 4 | [Nearly linear-time solution of general sparse linear systems](index.html#TCS-6585) (TCS-6585) | Numerical linear algebra | 97 | A fundamental input-size complexity question for one of the most widely used computational primitives, with meaningful positive results for structured classes and general reductions from apparently special systems. |
 | 5 | [Smale’s seventh problem](index.html#TCS-6578) (TCS-6578) | Geometric energy optimization | 94 | Smale's seventh problem asks for efficient construction of globally near-optimal configurations. |
 
-Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6585, TCS-6576, TCS-6577, TCS-6578, TCS-0491, TCS-0711, TCS-0724, TCS-0715, TCS-0728, TCS-0708, TCS-0722, TCS-7227, TCS-7226.
+Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6585, TCS-6576, TCS-6577, TCS-6578, TCS-0491, TCS-0724, TCS-0715, TCS-0728, TCS-0708, TCS-0722, TCS-7227, TCS-7226.
 
 ## Geometry, topology and metric spaces
 
@@ -294,7 +294,7 @@ Previous prefix: TCS-6587, TCS-0006.
 | 1 | [Constant-factor approximation for Densest k-Subgraph](index.html#TCS-6587) (TCS-6587) | Approximation algorithms for dense subgraphs | 97 | A flagship approximation problem with a simple objective, a large algorithmic gap, strong conditional and relaxation barriers, and consequences for several other optimization problems. |
 | 2 | [Unique Games Conjecture](index.html#TCS-0006) (TCS-0006) | Hardness of approximation | 96 | An organizing conjecture for approximation thresholds, with consequences for whole families of constraint satisfaction problems and strong connections to SDP algorithms, PCPs, and analysis. |
 
-Candidates considered: TCS-6587, TCS-0006, TCS-6588, TCS-6589, TCS-6659, TCS-6590, TCS-6591, TCS-0088.
+Candidates considered: TCS-6587, TCS-0006, TCS-6588, TCS-6589, TCS-6659, TCS-6590, TCS-6591.
 
 ## Online algorithms, scheduling and packing
 
@@ -307,7 +307,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [Breaking two for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 | 2 | [Breaking two for precedence-constrained makespan](index.html#TCS-6676) (TCS-6676) | Needs review | 96 | Unreviewed replacement |
 
-Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-4983, TCS-5030, TCS-5221, TCS-5252, TCS-5779, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0935, TCS-0922.
+Candidates considered: TCS-0700, TCS-0708, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-4983, TCS-5030, TCS-5221, TCS-5252, TCS-5779, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 
