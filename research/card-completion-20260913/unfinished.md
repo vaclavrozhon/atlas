@@ -5,7 +5,7 @@ This inventory records pending reviews, including work already reserved.
 Use `python3 scripts/review_queue.py list --available` for the live unclaimed list.
 Reserve a card before editing; see [the workflow](README.md#parallel-review-workflow).
 
-Pending active reviews: **9**.
+Pending active reviews: **8**.
 
 | Card | Title | Area | Queue priority |
 | --- | --- | --- | --- |
@@ -16,5 +16,4 @@ Pending active reviews: **9**.
 | [TCS-7143](../../data/cards/TCS-7143.json) | Bipartite circle pivot-minors from large rank-width | Structural graph theory | pool |
 | [TCS-7144](../../data/cards/TCS-7144.json) | Tree vertex-minors from large linear rank-width | Structural graph theory | pool |
 | [TCS-7145](../../data/cards/TCS-7145.json) | Well-quasi-ordering by pivot-minors | Structural graph theory | pool |
-| [TCS-6958](../../data/cards/TCS-6958.json) | Algorithmic versus dominant-strategy implementation | Algorithmic game theory, mechanism design and fair division | pool |
 | [TCS-7376](../../data/cards/TCS-7376.json) | Polylogarithmic-space streaming Euclidean MST estimation | Distributed, parallel and sublinear algorithms | existing_detailed_audit |

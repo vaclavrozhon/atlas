@@ -1538,3 +1538,27 @@ inventory deltas enter this checkpoint; concurrent changes remain unstaged.
 
 Source 2ce7950f and deployment a4204d1994e62a3d5b9ff8febc0eedf1d6ac8a5b
 cover the preceding 256 dispositions and the user's final scope choices.
+
+## User removal of the final pending record — 18 September 2026
+
+After asking what TCS-6958 concerns, the user explicitly requested its removal.
+The existing archival command moved the complete current card without rewriting
+its content, reserved its ID, recorded the reason and removed it from active
+selection. Its pending queue item is closed as `excluded_by_user`, without
+claiming that the research direction was resolved or fully specified. The
+recovery series now has 262 dispositions and no pending active review.
+
+The current archive preserves the independently revised importance assessment
+already present when removal was requested. Other ranking edits are outside
+this change. Public deployment is prepared in an isolated canonical-source copy
+whose pre-removal publication must exactly match the currently live catalogue;
+only then is TCS-6958 removed and the catalogue rebuilt. This prevents the
+separate unpublished category-wide ranking review from entering this deployment.
+
+The isolated pre-removal publication exactly reproduced live version
+6b8a4ca89ebf893e6727. Rebuilding after the removal produces
+ae1abf0d16f1fdbc5098 with 958 records. All remaining card differences are
+limited to derived category counts/ranks and removal of incoming related links.
+Full and all three benchmark exports exclude TCS-6958; desktop/mobile reader
+checks and the deployment snapshot check pass. Local working exports were also
+refreshed, preserving the separate ranking review locally without publishing it.
