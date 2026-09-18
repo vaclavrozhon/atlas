@@ -1225,3 +1225,37 @@ archival deltas enter the checkpoint. Source checkpoint 19003e22 and deployment
 4a63ed7fc882bd1f5ca48975dbefea0ee34cc181 cover the first 210 dispositions.
 Concurrent unrelated work remains unstaged; the committed queue therefore has
 859 completed and 55 pending records.
+
+After two hundred and twenty recovery dispositions, the raw shared queue contains
+865 completed records, 49 pending records and one outside its original scope.
+The live catalogue has 972 active cards: 42 pending active reviews, 778 completed
+active queue records and 152 active records outside the queue.
+
+This batch completes TCS-3958 (polynomial-stretch PRGs for superlinear-gate
+threshold circuits), TCS-0597 (FPT coloring of induced-P5-free graphs), TCS-1945
+(binary Nearest Codeword lower bounds for every constant factor from ETH),
+TCS-4778 (the circuit-hardness implication for amplified relations), and TCS-2201
+(the universal two-source extractor oracle conversion). All final scopes were
+explicitly selected by the user. The last PRG answer supersedes an earlier
+one-bit choice; two other choices were confirmed after initial authoring.
+
+The PRG review found that the proposed one-bit milestone follows from known
+average-case hardness, so the final card requires polynomial stretch. Its audit
+retains both the initial proposal and the explicit correction. The coding review
+checks the May 2026 some-factor result and preserves the paper's stated open
+all-factor direction. The two general pseudorandomness implications mark their
+precise editorial formulations uncertain, rather than attributing those exact
+statements to broader source questions. The coloring bibliography distinguishes
+the 2022 seminar from its May 2023 report publication and corrects the editor list.
+
+All five output hashes match their queue rows. The shared ledger contains 1089
+valid entries. The full offline check passes; mathematical rendering passes for
+36,941 expressions across 972 cards. Desktop/mobile reader checks pass on
+publication 26b85ef84a91194ad185 with 946 detailed active records.
+
+Only these five cards, their authoring and correction scripts, the confirmation
+updates, this log and the owned queue, ledger and inventory deltas enter the
+checkpoint. Source checkpoint 621a4121 and deployment
+b8d7b5171544714be2b4d032ffcbac7d8a800bf2 cover the first 215 dispositions.
+Concurrent unrelated work remains unstaged; the committed queue has 864 completed
+and 50 pending records.
