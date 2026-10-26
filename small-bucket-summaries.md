@@ -1,9 +1,9 @@
 # Working summaries — small categories
 
-618 five-sentence working summaries, based on saved source material.
+669 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computability and algorithmic information theory (18)
+## Computability and algorithmic information theory (30)
 
 ### TCS-6646 — Martin’s conjecture
 
@@ -75,6 +75,20 @@ A finite list of two-by-two integer matrices generates all nonempty products wit
 [Read in atlas](index.html#TCS-7193) · [Mortality for \(2 \times  2\) Matrices is NP-hard](https://cgi.csc.liv.ac.uk/~igor/papers/paper_BHP_MFCS2012.pdf) · [On Affine Reachability Problems](https://arxiv.org/abs/1905.05114v3) · [The membership problem for subsemigroups of \(GL_{2}(\mathbb{Z} )\) is NP-complete](https://doi.org/10.1016/j.ic.2023.105132) · [On Word Representations and Embeddings in Complex Matrices](https://arxiv.org/abs/2604.15386v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7461 — Rigidity of the computably enumerable degrees
+
+The objects are degrees of computably enumerable sets under Turing reducibility. An automorphism preserves exactly the reducibility order. The question forbids every nonidentity automorphism, including noncomputable ones. Arithmetic coding of individual degrees would suffice, but is a stronger target. The cited double-jump result does not distinguish every degree.
+
+[Read in atlas](index.html#TCS-7461) · [Interpretability and definability in the recursively enumerable degrees](https://richardashore.github.io/papers/pdf/def8o.pdf)
+Existing status: `uncertain` · Summary written: 2026-10-26
+
+### TCS-7465 — Biinterpretability of computably enumerable degrees with arithmetic
+
+Standard arithmetic must be reconstructed inside the order of c.e. degrees. Its numbers are definable equivalence classes of finite tuples of degrees. A single definable map must attach an arithmetic index to every degree. The indexed c.e. set must have that very degree. Both the interpretation and the coding map must be parameter-free.
+
+[Read in atlas](index.html#TCS-7465) · [Interpretability and definability in the recursively enumerable degrees](https://richardashore.github.io/papers/pdf/def8o.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0238 — An algorithmic Ahlswede–Körner lemma
 
 For individual binary strings x and y, side information z can shorten descriptions of either string and of their pair. The question asks whether another string \(z'\) can preserve those three conditional description lengths to logarithmic accuracy. The replacement must have a logarithmically short description when x and y are both given. It need not be easy to obtain from z, and no fast construction is required. The source establishes a special case for stochastic pairs, while the general question tests the scope of an algorithmic analogue of the Ahlswede–Körner lemma.
@@ -96,12 +110,54 @@ Every tuple of strings has a profile of complexities of its nonempty subtuples. 
 [Read in atlas](index.html#TCS-0250) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Algebraic Barriers to Halving Algorithmic Information Quantities in Correlated Strings](https://doi.org/10.4230/LIPIcs.MFCS.2025.84)
 Existing status: `source_open` · Summary written: 2026-09-12
 
+### TCS-7463 — Low-\(n\) Boolean algebra conjecture
+
+A presentation assigns natural-number names to elements of a Boolean algebra. Its atomic diagram records all basic operations and relations. Low-n means the nth jump of that diagram adds no power beyond the nth ordinary jump. The question asks for a computable copy, without a computable isomorphism requirement. The cited positive cases through n=4 leave the all-finite-n assertion stronger.
+
+[Read in atlas](index.html#TCS-7463) · [Some Questions in Computable Mathematics](https://math.uchicago.edu/~drh/Papers/Papers/open.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7470 — Universality of recursive isomorphism on binary sequences
+
+Binary sequences are equivalent when a computable permutation rearranges their coordinates. The comparison objects are Borel equivalence relations with countable classes. A reduction must preserve and reflect equivalence on every pair. The reduction may be any Borel function. Measure universality and universality on three symbols do not settle the binary target.
+
+[Read in atlas](index.html#TCS-7470) · [Uniformity, Universality, and Computability Theory](https://math.berkeley.edu/~marks/papers/uurt_v5.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0254 — Algorithmic networks characterized by cut inequalities
 
 A network distributes correlated finite strings through directed channels with limited capacities. Each cut imposes a necessary bound on the information that must enter its vertices to meet their demands. The question asks exactly which fixed network patterns make all of these bounds sufficient for a coding solution. Codes are existential per-instance assignments with logarithmic local descriptions, without an efficient uniform-encoder requirement. The source gives both positive examples and networks where the cut bounds fail, leaving the general structural characterization open.
 
 [Read in atlas](index.html#TCS-0254) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Multisource Algorithmic Information Theory](https://doi.org/10.4230/DagSemProc.06051.9)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7462 — Deciding the two-quantifier theory of c.e. degrees
+
+The input is a sentence about the ordering of c.e. degrees. There is one universal block followed by one existential block. Both blocks can have arbitrary finite length. Only ordering and logical equality occur in the matrix. The target is computability of truth, without a running-time bound.
+
+[Read in atlas](index.html#TCS-7462) · [One point extensions of antichains in the local structure of the enumeration degrees](https://www.computability.org/luminy2022/abstracts/MariyaSoskova.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7466 — Deciding finite-lattice embeddability into c.e. degrees
+
+A finite lattice is given by its join and meet tables. An embedding must preserve both operations in the c.e. degree structure. Meets must be genuine greatest lower bounds among all c.e. degrees. The least and greatest input elements need not map to the global bounds. The target is a decision algorithm for all finite lattices.
+
+[Read in atlas](index.html#TCS-7466) · [Embedding Finite Lattices into the Computably Enumerable Degrees—A Status Survey](https://people.math.wisc.edu/~slempp/papers/muenster.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7471 — Topological computable categoricity of infinite Polish spaces
+
+A computable dense metric presentation describes a Polish space. Different computable presentations may use different compatible metrics. The desired comparison is an effective homeomorphism in both directions. Its algorithms may depend on the two presentations. The question asks whether any infinite space satisfies this property.
+
+[Read in atlas](index.html#TCS-7471) · [Open Problems in Computability Theory and Descriptive Set Theory](https://arxiv.org/html/2507.03972v1#S8)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7472 — Degree of topological categoricity of Baire space
+
+Baire space consists of all infinite sequences of natural numbers. Its computable presentations need not have effectively comparable metrics. A degree is sufficient if it computes suitable homeomorphisms for every pair. The target asks whether the sufficient degrees have a least member. Pair-dependent choices are allowed, but minimality must hold in the full Turing order.
+
+[Read in atlas](index.html#TCS-7472) · [Open Problems in Computability Theory and Descriptive Set Theory](https://arxiv.org/html/2507.03972v1#S8)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ### TCS-0287 — Strong extractors for infinite sequences
 
@@ -117,6 +173,20 @@ The question asks whether some binary strings lack every simple probabilistic ex
 [Read in atlas](index.html#TCS-4185) · [Stochasticity in Algorithmic Statistics for Polynomial Time](https://doi.org/10.4230/LIPIcs.CCC.2017.17) · [Stochasticity in Algorithmic Statistics for Polynomial Time](https://eccc.weizmann.ac.il/report/2017/043/) · [Stochasticity in Algorithmic Statistics for Polynomial Time: CCC 2017 presentation](https://computationalcomplexity.org/Archive/2017/slides/17_MV.pdf) · [Algorithmic Statistics and Prediction for Polynomial Time-Bounded Algorithms](https://doi.org/10.1007/978-3-319-94418-0_29) · [Prediction and MDL for infinite sequences](https://doi.org/10.1007/s00224-024-10180-0)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
+### TCS-7464 — Low-two supersets lattice conjecture
+
+Take all c.e. supersets of a fixed c.e. set A. Identify sets differing at only finitely many positions. The resulting interval lattice is compared with the lattice of all c.e. sets modulo finite difference. The hypotheses require A to be coinfinite and low-two. The cited new superset theorem is not an isomorphism theorem for the whole interval.
+
+[Read in atlas](index.html#TCS-7464) · [Low₂ computably enumerable sets have hyperhypersimple supersets](https://arxiv.org/abs/2412.01939)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7468 — Classifying sets with countable infinite-time decision complexity
+
+Inputs are arbitrary infinite binary sequences. A single finite program must decide all inputs within one countable ordinal bound. Every target set has a Borel code. The task is to distinguish suitable codes by a structural condition in the constructible hierarchy. This explicitly selected variant treats decision only; semidecision and singleton refinements are separate questions.
+
+[Read in atlas](index.html#TCS-7468) · [Decision times of infinite computations](https://arxiv.org/abs/2011.04942)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0240 — Communication rate for secret-key agreement at fixed Hamming distance
 
 Alice and Bob hold binary strings at a specified Hamming distance and may communicate on a channel observed by an eavesdropper. The input pair must have nearly the largest Kolmogorov complexity possible in that distance layer, and its complexity profile is public. Using independent private randomness, they must agree on a key whose length is their mutual information up to logarithmic loss and which remains nearly incompressible given the transcript. The target is the smallest asymptotic worst-case number of communicated bits per input bit, as a function of relative distance. An answer must prove the whole rate function within absolute error 1/100 in Lean, with success guaranteed separately for every promised input pair.
@@ -130,6 +200,20 @@ Two words have fully extractable common information when a word containing almos
 
 [Read in atlas](index.html#TCS-0279) · [Extraction of mutual information about two strings, in Computability, Complexity and Randomness](https://doi.org/10.4230/DagRep.2.1.19) · [Stability of Properties of Kolmogorov Complexity under Relativization](https://www.lirmm.fr/~romashchen/ps/itp2010.pdf) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf) · [Extracting Common Information: Solutions to Q7, Q8, and Q9 of the 27 Open Problems](https://doi.org/10.2139/ssrn.7251558)
 Existing status: `uncertain` · Summary written: 2026-09-17
+
+### TCS-7467 — Two-quantifier theory of the local enumeration degrees
+
+Enumeration reductions use positive finite information from an oracle set. Mutual reducibility identifies sets into degrees. Only degrees with a Σ⁰₂ representative occur in the local structure. The input formulas have one universal and one existential block. The known Ahmad-pair restriction does not decide arbitrary sentences of this form.
+
+[Read in atlas](index.html#TCS-7467) · [On Cupping and Ahmad Pairs](https://people.math.wisc.edu/~slempp/papers/nocup.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7469 — Admissibility of gaps in infinite-time decision times
+
+The spectrum records the fastest uniform decision time of each decidable set. A gap contains no spectrum element and ends at an attainable time. This variant requires a limit lower endpoint approached by attainable times. Admissibility means that the corresponding constructible level satisfies KP with Infinity. The decision-only limsup/reset formulation is explicitly separated from clockable and semidecision spectra.
+
+[Read in atlas](index.html#TCS-7469) · [Decision times of infinite computations](https://arxiv.org/abs/2011.04942)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ## Proof complexity (26)
 
@@ -1459,7 +1543,7 @@ The task compares two arbitrary explicit strings using unit-cost insertions, del
 [Read in atlas](index.html#TCS-5554) · [An Algorithmic Bridge Between Hamming and Levenshtein Distances](https://doi.org/10.4230/LIPIcs.ITCS.2023.58) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://doi.org/10.1109/FOCS46700.2020.00096) · [Does Preprocessing Help in Fast Sequence Comparisons?](https://doi.org/10.1145/3357713.3384300) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://doi.org/10.1145/3798129.3800789)
 Existing status: `open` · Summary written: 2026-09-12
 
-## Online algorithms, scheduling and packing (22)
+## Online algorithms, scheduling and packing (29)
 
 ### TCS-6575 — Deterministic competitiveness of k-server
 
@@ -1538,6 +1622,20 @@ A forecaster announces a probability while an adversary simultaneously chooses a
 [Read in atlas](index.html#TCS-7319) · [Breaking the \(T^{2/3}\) Barrier for Sequential Calibration](https://arxiv.org/abs/2406.13668) · [Full Swap Regret and Discretized Calibration](https://proceedings.mlr.press/v272/fishelson25a.html) · [Optimal Lower Bounds for Online Multicalibration](https://arxiv.org/abs/2601.05245v2)
 Existing status: `source_open` · Summary written: 2026-09-18
 
+### TCS-7473 — Optimal competitive ratio of online bin packing
+
+Items of sizes at most one arrive without future information. Each item must be placed permanently into a unit bin. The ratio compares the number of used bins with an offline optimum. A single additive constant is allowed for all inputs. The benchmark requires certified absolute accuracy 1/100 for the optimal asymptotic ratio.
+
+[Read in atlas](index.html#TCS-7473) · [A new lower bound for classic online bin packing](https://arxiv.org/abs/1807.05554)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7478 — Polynomial-time constant approximation for the General Scheduling Problem
+
+Jobs have release times and may be preempted on one machine. Each job has its own nondecreasing completion-cost function. Costs are explicitly encoded by rational step-function breakpoints. The input horizon may be exponentially large in its binary encoding. The target is a uniform constant factor in polynomial bit complexity.
+
+[Read in atlas](index.html#TCS-7478) · [A (2+ε)-approximation algorithm for the general scheduling problem in quasipolynomial time](https://arxiv.org/abs/2511.16536)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0935 — Polynomial-time unit-job precedence scheduling on fixed machines
 
 Every job takes one time slot, and a directed acyclic graph specifies which jobs must finish before others start. At most k jobs may run simultaneously on k identical machines. The question asks for polynomial-time computation of the minimum number of slots for every fixed k greater than two. The polynomial and algorithm may depend on k, but must handle all job counts and precedence graphs. The recent exact subexponential algorithm improves the general upper bound without establishing the requested polynomial time.
@@ -1558,6 +1656,13 @@ The problem asks for a polynomial-time constant-factor approximation to the make
 
 [Read in atlas](index.html#TCS-6724) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/book.pdf) · [Scheduling to Minimize Total Weighted Completion Time via Time-Indexed Linear Programming Relaxations](https://arxiv.org/abs/1707.08039) · [On the Hardness of Scheduling With Non-Uniform Communication Delays](https://par.nsf.gov/servlets/purl/10342245) · [Communication-aware scheduling of precedence-constrained tasks on related machines](https://doi.org/10.1016/j.orl.2023.11.001) · [Communication-Aware Scheduling of Precedence-Constrained Tasks on Related Machines](https://arxiv.org/abs/2004.14639v1)
 Existing status: `source_open` · Summary written: 2026-09-15
+
+### TCS-7479 — Optimal prophet-secretary constant
+
+Independent values come from known distributions. Their arrival order is uniform and independent of the samples. The policy observes both identity and value before accepting or rejecting. Only one value can be selected and past rejections cannot be recalled. The benchmark is the expected maximum and the target is the optimal universal factor.
+
+[Read in atlas](index.html#TCS-7479) · [Prophet Secretary and Matching: the Significance of the Largest Item](https://arxiv.org/abs/2411.01191)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ### TCS-1529 — One forecaster with the optimal regret rate for every proper loss
 
@@ -1580,6 +1685,13 @@ An online list serves each request before seeing the next, and access costs the 
 [Read in atlas](index.html#TCS-7335) · [List Update with Prediction](https://ojs.aaai.org/index.php/AAAI/article/download/33694/35849) · [A New Lower Bound for the List Update Problem in the Partial Cost Model](https://people.inf.ethz.ch/gaertner/subdir/texts/own_work/lowerb.pdf)
 Existing status: `source_open` · Summary written: 2026-09-15
 
+### TCS-7474 — Optimal stretch for online bin stretching
+
+The input is guaranteed to fit into m unit bins offline. Online assignments use exactly m bins and cannot be changed. Stretch is the maximum load relative to unit offline capacity. The selected target is the limsup of the optimal stretch as m grows. A proof need not establish that the ordinary limit exists.
+
+[Read in atlas](index.html#TCS-7474) · [Improved online load balancing with known makespan](https://arxiv.org/abs/2407.08376)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-1241 — Sublogarithmic competitiveness for online metric TSP
 
 Points arrive with distances to earlier points and must immediately be inserted into an evolving order. Each insertion preserves the relative order of all previous arrivals, but there is no fixed array capacity or computational resource bound. The final cost is the sum of distances between consecutive points, compared with the best offline ordering. The question asks whether a deterministic algorithm can guarantee a competitive ratio smaller than logarithmic by an asymptotic factor on every metric input. This would isolate how much performance is lost through irreversible ordering alone, beyond the additional losses caused by limited storage.
@@ -1601,6 +1713,13 @@ The question asks for one bandit policy that adapts to unknown error in a linear
 [Read in atlas](index.html#TCS-6836) · [Bandit Algorithms](https://tor-lattimore.com/downloads/book/book.pdf) · [Learning with Good Feature Representations in Bandits and in RL with a Generative Model](https://sites.ualberta.ca/~szepesva/papers/ICML2020_goodfeatures.pdf) · [Upper Confidence Bounds for Combining Stochastic Bandits](https://arxiv.org/abs/2012.13115v1) · [Dynamic Regret for Non-Stationary Linear Bandits via Misspecification Reductions](https://arxiv.org/abs/2607.02891v1)
 Existing status: `uncertain` · Summary written: 2026-09-15
 
+### TCS-7477 — Three-competitive deterministic file migration
+
+Serving a request costs its distance from the current file. Moving the file costs D times the distance moved. Both online and offline policies start at the same location. The target is factor three with a sequence-independent additive constant. The selected model uses finite metrics and integral file-size parameter D.
+
+[Read in atlas](index.html#TCS-7477) · [Dynamic Beats Fixed: On Phase-Based Algorithms for File Migration](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2017.13)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0700 — Exact optimal stopping for mixtures of product distributions
 
 A hidden scenario is selected uniformly before a sequence of values is generated. Conditional on that scenario the values are independent, and every conditional distribution is explicitly known. The decision maker observes values in order and must select one when it arrives. The target asks whether an exactly optimal online stopping rule can be prepared and executed in polynomial bit time. The benchmark is the best rule with the same online information, rather than an observer who sees the whole future.
@@ -1614,6 +1733,20 @@ Each round the learner chooses a path between opposite corners of a directed squ
 
 [Read in atlas](index.html#TCS-5252) · [Tight Bounds for Bandit Combinatorial Optimization](https://proceedings.mlr.press/v65/cohen17a.html) · [Improved Regret Bounds for Bandit Combinatorial Optimization](https://papers.neurips.cc/paper/9373-improved-regret-bounds-for-bandit-combinatorial-optimization.pdf)
 Existing status: `source_open` · Summary written: 2026-09-18
+
+### TCS-7475 — Optimal deterministic price of obligatory testing
+
+Every job must first be tested on the same machine that processes it. The processing duration is revealed only after the test. Test and execution may be separated by work on other jobs. The objective is the sum of processing completion times. The target optimizes the deterministic ratio over unequal positive test durations.
+
+[Read in atlas](index.html#TCS-7475) · [Scheduling with Obligatory Tests](https://arxiv.org/html/2406.16734v1)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7476 — Power of randomization in scheduling with obligatory tests
+
+All jobs are available initially and each requires a unit-duration test. Testing reveals the processing time without executing the processing itself. A randomized scheduler is compared with an offline schedule obeying the same tests. The instance is fixed before the scheduler draws its private random bits. The target is a worst-instance ratio of expected total completion time.
+
+[Read in atlas](index.html#TCS-7476) · [Scheduling with Obligatory Tests](https://arxiv.org/html/2406.16734v1)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ## Beyond worst-case and average-case analysis (18)
 
@@ -1743,7 +1876,7 @@ An adversary fixes item sizes and a uniformly random permutation determines thei
 [Read in atlas](index.html#TCS-7381) · [Best Fit Bin Packing with Random Order Revisited](https://arxiv.org/abs/2012.00511) · [Bin Packing under Random-Order: Breaking the Barrier of 3/2](https://arxiv.org/abs/2401.04714)
 Existing status: `source_open` · Summary written: 2026-10-23
 
-## Sampling, Markov chains and mixing times (11)
+## Sampling, Markov chains and mixing times (17)
 
 ### TCS-6621 — Rapid mixing of Glauber dynamics with \(\Delta +2\) colours
 
@@ -1773,6 +1906,20 @@ Expander graphs are sparse graphs on which random walks mix rapidly. This questi
 [Read in atlas](index.html#TCS-6843) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Modern aspects of Markov chains: entropy, curvature and the cutoff phenomenon](https://arxiv.org/abs/2508.21055) · [Cutoff on all Ramanujan graphs](https://arxiv.org/abs/1507.04725)
 Existing status: `source_open` · Summary written: 2026-09-14
 
+### TCS-7480 — Stationary-start cover-time lower bound
+
+Start a finite reversible chain in its stationary distribution. Count transitions until every state has been seen. The proposed lower bound equals the complete-graph walk value. Self-loops and periodic chains are included. The exact inequality is stronger than a leading-order asymptotic bound.
+
+[Read in atlas](index.html#TCS-7480) · [Reversible Markov Chains and Random Walks on Graphs](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch6.S6.html)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7485 — A single hard-core uniqueness threshold on the square lattice
+
+Occupied lattice vertices may not be adjacent. Activity weights configurations by the number of occupied sites. Infinite-volume laws are specified through all finite conditional distributions. The chosen question asks for one threshold separating uniqueness and coexistence. It leaves behavior exactly at the threshold and its numerical value outside this card.
+
+[Read in atlas](index.html#TCS-7485) · [Phase Coexistence for the Hard-Core Model on Z²](https://arxiv.org/abs/1611.01115)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-6839 — Polynomial mixing of planar Ising dynamics with plus boundaries
 
 Fixing plus spins around a planar Ising box selects a boundary phase while the interior spins evolve randomly. The question asks whether local heat-bath updates mix in polynomial time at every fixed positive temperature. The bound must hold from every interior starting configuration, including the all-minus state. Polynomial constants may depend on temperature but cannot grow with the box size. The checked 2026 source retains this question while improving quasipolynomial mixing and proving rapid ordering from more favorable initializations.
@@ -1793,6 +1940,20 @@ A self-avoiding walk models a polymer whose lattice vertices cannot overlap. The
 
 [Read in atlas](index.html#TCS-6857) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Efficient implementation of the pivot algorithm for self-avoiding walks](https://arxiv.org/abs/1005.1444)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7481 — Polynomial mixing at the four-state Potts critical point
+
+Four colors interact ferromagnetically on a periodic square grid. A step opens same-color edges and recolors all resulting clusters. The inverse temperature is log 3 in the specified Potts normalization. Mixing is measured from the worst starting spin configuration. The question asks for a fixed polynomial in the side length.
+
+[Read in atlas](index.html#TCS-7481) · [Mixing times of critical 2D Potts models](https://arxiv.org/abs/1607.02182)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7483 — Cluster sampling of graph colorings with \(\Delta+1\) colors
+
+A step resamples every component induced by a chosen pair of colors. The equilibrium is uniform over all proper colorings. The available palette has at least one color more than maximum degree. The desired polynomial must work uniformly as both graph size and palette grow. Results limited to chordal or outerplanar graphs do not cover this target.
+
+[Read in atlas](index.html#TCS-7483) · [Approximate Colorwise Tensorization of Entropy and Optimal Mixing of the Wang–Swendsen–Kotecký Dynamics](https://arxiv.org/html/2607.10119)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ### TCS-2861 — Weakly negatively regressive sampling of matroid bases
 
@@ -1822,7 +1983,21 @@ The cover time is the expected number of random-walk steps needed to visit every
 [Read in atlas](index.html#TCS-6851) · [Reversible Markov Chains and Random Walks on Graphs](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch6.S8.html#SS3) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf) · [Cover times, blanket times, and majorizing measures](https://annals.math.princeton.edu/2012/175-3/p08) · [Deterministic approximation for the cover time of trees](https://cims.nyu.edu/~zeitouni/pdf/feigezeitouni3.pdf) · [A polynomial time approximation scheme for computing the supremum of Gaussian processes](https://arxiv.org/abs/1202.4970)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-## Counting and enumeration (19)
+### TCS-7482 — Critical Swendsen–Wang spectral-gap exponent
+
+The model is the critical Ising system expressed as a two-color Potts model. One step updates every Swendsen–Wang cluster. The inverse spectral gap measures relaxation time. The selected target asks first whether its logarithmic growth exponent converges. If it converges, the benchmark requires certified accuracy 1/100 for that exponent.
+
+[Read in atlas](index.html#TCS-7482) · [Mixing times of critical 2D Potts models](https://arxiv.org/abs/1607.02182)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7484 — Rapid cluster sampling of three-colourings on the square torus
+
+The graph is an even-sided periodic square grid. Its states are all proper three-colorings. Each step independently swaps components of a random color pair. The question allows any fixed polynomial in the grid side length. A proof must cover all initial colorings, not a selected communicating class.
+
+[Read in atlas](index.html#TCS-7484) · [Approximate Colorwise Tensorization of Entropy and Optimal Mixing of the Wang–Swendsen–Kotecký Dynamics](https://arxiv.org/html/2607.10119)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+## Counting and enumeration (23)
 
 ### TCS-6628 — FPRAS for counting perfect matchings
 
@@ -1950,12 +2125,40 @@ The task counts labelled subsets whose total weight fits a capacity. The answer 
 [Read in atlas](index.html#TCS-7399) · [Approximately Counting Knapsack Solutions in Subquadratic Time](https://arxiv.org/html/2410.22267v1) · [Faster Deterministic Approximation for Counting Knapsack](https://arxiv.org/abs/2610.14595)
 Existing status: `source_open` · Summary written: 2026-10-23
 
+### TCS-7488 — Edge-exchange Gray codes for directed spanning trees
+
+The root is fixed before listing directed spanning trees. Every listed tree must orient all paths away from that root. Successive trees delete one arc and insert one arc. The endpoints of the full list need not be adjacent. This directed statement would imply the related undirected pivot-exchange statement.
+
+[Read in atlas](index.html#TCS-7488) · [Listing Spanning Trees of Outerplanar Graphs by Pivot-Exchanges](https://drops.dagstuhl.de/storage/00lipics/lipics-vol327-stacs2025/html/LIPIcs.STACS.2025.16/LIPIcs.STACS.2025.16.html)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-7082 — A natural OutputP versus IncP separation from clique-free domination
 
 For a fixed forbidden clique size, the task is to list every inclusion-minimal dominating set of the input graph once. An algorithm with total running time polynomial in the input and the entire output is already known. The question asks whether TFNP ≠ FP forces some fixed clique size for which no algorithm produces every initial output segment in incremental polynomial time. This selects the concrete graph candidate suggested by the source instead of imposing an undefined condition of naturalness. The existing abstract separation and algorithms for smaller graph classes do not settle this implication, whose proof or refutation must be Lean-checked.
 
 [Read in atlas](index.html#TCS-7082) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042v1) · [On The Complexity of Enumeration](https://arxiv.org/abs/1703.01928v2) · [Enumerating minimal dominating sets in K_t-free graphs and variants](https://arxiv.org/abs/1810.00789v3) · [Enumerating Minimal Dominating Sets and Variants in Chordal Bipartite Graphs](https://doi.org/10.4230/LIPIcs.WADS.2025.15)
 Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-7487 — Pivot-exchange Gray codes for spanning trees
+
+A spanning-tree list must visit every tree exactly once. Each transition replaces a single edge. The removed and inserted edges must have a common endpoint. Only path adjacency is required. Outerplanar instances are covered by the cited theorem, while this target includes all connected simple graphs.
+
+[Read in atlas](index.html#TCS-7487) · [Listing Spanning Trees of Outerplanar Graphs by Pivot-Exchanges](https://drops.dagstuhl.de/storage/00lipics/lipics-vol327-stacs2025/html/LIPIcs.STACS.2025.16/LIPIcs.STACS.2025.16.html)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7486 — Ranking and unranking a spanning-tree Gray code
+
+All labeled spanning trees of a complete graph must occur once. Adjacent trees exchange one edge. A tree and its binary position must be convertible in polynomial time. The same algorithms must work for every n without advice. No cyclic adjacency of the endpoints is imposed.
+
+[Read in atlas](index.html#TCS-7486) · [Traversing combinatorial 0/1-polytopes via optimization](https://arxiv.org/html/2304.08567v2)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7489 — Polynomial-delay disjointness Gray codes for combinations
+
+The vertices are k-subsets of an n-element set. Adjacent outputs must be disjoint, including the closing transition. The exceptional pair (5,2) is excluded. A single algorithm must start and continue with polynomial delay. Polynomial workspace rules out storing the entire exponential list.
+
+[Read in atlas](index.html#TCS-7489) · [Kneser graphs are Hamiltonian](https://arxiv.org/html/2212.03918)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ## Structural graph theory and graph algorithms (53)
 
@@ -2330,7 +2533,7 @@ The problem asks whether three-colorability is decidable in deterministic polyno
 [Read in atlas](index.html#TCS-0594) · [Colouring Graphs of Bounded Diameter, in Graph Colouring: from Structure to Algorithms](https://doi.org/10.4230/DagRep.9.6.125) · [Algorithms and Almost Tight Results for 3-Colorability of Small Diameter Graphs](https://doi.org/10.1007/s00453-014-9949-6) · [Faster 3-coloring of small-diameter graphs](https://arxiv.org/abs/2104.13860v1) · [List 3-coloring \(C_{4}\)-free graphs of diameter-2 in polynomial-time](https://arxiv.org/abs/2606.30282v2)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-## Data structures (22)
+## Data structures (27)
 
 ### TCS-6498 — Dynamic optimality conjecture
 
@@ -2430,6 +2633,13 @@ The standard pairing heap performs a left-to-right pairing pass and a right-to-l
 [Read in atlas](index.html#TCS-7328) · [Pure Pairing Heaps](https://arxiv.org/abs/2607.23118v1) · [Improved Upper Bounds for Pairing Heaps](https://arxiv.org/abs/1110.4428v1) · [Towards a Final Analysis of Pairing Heaps](https://doi.org/10.4230/DagSemProc.06091.5) · [On the Efficiency of Pairing Heaps and Related Data Structures](https://doi.org/10.1145/320211.320214)
 Existing status: `source_open` · Summary written: 2026-09-17
 
+### TCS-7493 — Splay traversal conjecture
+
+The requested keys are the preorder of a fixed target search tree. The initial search tree may be unrelated to that target. Each access uses the ordinary bottom-up Splay rotations. Search visits and rotations are both charged. The assertion is a universal linear total bound for the complete traversal.
+
+[Read in atlas](index.html#TCS-7493) · [Pattern-avoiding access in binary search trees](https://arxiv.org/abs/1507.06953)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-7329 — Logarithmic fully retroactive priority queues
 
 A fully retroactive priority queue permits inserting and erasing queue operations anywhere in its current history. Every edit changes the queue obtained by replaying later historical operations, and minimum queries may refer to any time. The target is one deterministic comparison pointer-machine implementation with logarithmic amortized time and linear storage in the currently maintained history. All temporary storage and counter manipulation are charged, and histories remain valid without a monotonicity promise. The 2026 logarithmic result covers monotonic priority queues in its stated comparison model and leaves the general question open in that dated source.
@@ -2450,6 +2660,20 @@ A sparse weighted graph is preprocessed into a structure answering approximate d
 
 [Read in atlas](index.html#TCS-7383) · [Faster Algorithms for (2k−1)-Stretch Distance Oracles](https://arxiv.org/abs/2507.06721v1)
 Existing status: `source_open` · Summary written: 2026-10-23
+
+### TCS-7497 — Sorting-bound external-memory breadth-first search
+
+The graph resides on disk and is accessed in blocks. Even its vertices may exceed internal-memory capacity. Every vertex needs an exact unweighted distance from one source. The cost includes reading, preprocessing and writing output. The target matches sorting complexity throughout the specified memory range.
+
+[Read in atlas](index.html#TCS-7497) · [External-Memory Breadth-First Search with Sublinear I/O](https://people.mpi-inf.mpg.de/~mehlhorn/ftp/ExternalBFS.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7498 — Sorting-bound external-memory weighted shortest paths
+
+The task is exact weighted shortest paths from one source. Weights are nonnegative real scalar records and may include zero. No bound on the ratio of edge lengths is available. Transfers rather than internal arithmetic are charged. The goal is sorting-bound I/O without assuming all vertices fit in memory.
+
+[Read in atlas](index.html#TCS-7498) · [I/O-Efficient Undirected Shortest Paths with Unbounded Edge Lengths](https://www.mpi-inf.mpg.de/~umeyer/dps/ESA06_zeh.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ### TCS-0474 — Constant-update working-set heaps on pointer machines
 
@@ -2486,7 +2710,21 @@ Each search-tree node combines an equality key with a possibly different split k
 [Read in atlas](index.html#TCS-7401) · [On Huang and Wong’s algorithm for generalized binary split trees](https://link.springer.com/article/10.1007/s00236-021-00411-z)
 Existing status: `source_open` · Summary written: 2026-10-23
 
-## Dynamic algorithms (20)
+### TCS-7491 — Fast insertion arbitrarily close to bucketized-cuckoo thresholds
+
+Each key has two independent random candidate buckets. Every bucket can hold b keys and insertions may evict older keys. The target covers every fixed positive gap below the placement threshold. Time is expected amortized and all unsuccessful work counts. Failure over the entire insertion sequence must vanish as table size grows.
+
+[Read in atlas](index.html#TCS-7491) · [Fast Insertion for Bucketized Cuckoo Hashing](https://arxiv.org/abs/2607.24545)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7490 — Rank error of MultiQueues under unrestricted insertion orders
+
+Insertions choose one of q queues uniformly. A deletion compares two random queue minima and returns the smaller one. Empty samples are retried sequentially. The target is the worst expected error at an individual deletion within T operations. New keys may be smaller than keys deleted earlier.
+
+[Read in atlas](index.html#TCS-7490) · [Engineering MultiQueues: Fast Relaxed Concurrent Priority Queues](https://arxiv.org/html/2504.11652)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+## Dynamic algorithms (29)
 
 ### TCS-6625 — Deterministic fully dynamic connectivity with polylogarithmic worst-case updates
 
@@ -2537,6 +2775,20 @@ The target is a polynomial-time query that first-order dynamic programs cannot m
 [Read in atlas](index.html#TCS-7437) · [An Open Question in Dynamic Descriptive Complexity](https://databasetheory.org/sites/default/files/blog_attach/SchwentickOpenProblems_0.pdf)
 Existing status: `source_open` · Summary written: 2026-10-23
 
+### TCS-7494 — Worst-case dynamic Courcelle theorem at bounded treewidth
+
+The graph remains within a fixed treewidth bound. The maintained property is a fixed counting monadic second-order sentence. Sets of edges as well as vertices may be quantified. Queries return only whether the sentence is true. The challenge is a worst-case guarantee on every update rather than amortized logarithmic time.
+
+[Read in atlas](index.html#TCS-7494) · [Dynamic Treewidth in Logarithmic Time](https://arxiv.org/abs/2504.02790v2)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7495 — Worst-case polylogarithmic fully dynamic planarity testing
+
+Edges may be inserted and deleted in any legal order. Nonplanar intermediate graphs must be supported. The maintained answer is one exact planarity bit. The proposed update bound must hold for each operation. No embedding output or planar-only promise is used.
+
+[Read in atlas](index.html#TCS-7495) · [Fully-dynamic Planarity Testing in Polylogarithmic Time](https://arxiv.org/abs/1911.03449)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0541 — Dynamic spanning trees with polylogarithmic average stretch
 
 A changing unweighted graph must retain a spanning tree in each connected component. The quality measure is the average tree-path length between the endpoints of graph edges. The question asks for polylogarithmic expected quality with sublinear expected amortized work per edge insertion or deletion. The update sequence is fixed independently of the algorithm’s randomness, and disconnected intermediate graphs are covered. Existing subpolynomial-stretch forests and polylogarithmic-stretch metric embeddings leave different parts of this target unresolved.
@@ -2572,6 +2824,13 @@ Edges of an undirected graph are inserted and deleted. A query asks whether two 
 [Read in atlas](index.html#TCS-7393) · [Dynamic Connectivity, Minimum Spanning Tree, and 2-Edge Connectivity with Polylogarithmic Worst-Case Update Time](https://arxiv.org/abs/2610.00491)
 Existing status: `source_open` · Summary written: 2026-10-23
 
+### TCS-7496 — Polylogarithmic updates for the exact arboricity value
+
+Arboricity is the minimum number of forests covering the edges without overlap. The structure reports that integer exactly. The graph can pass through arbitrary arboricity values. Only a value query is required, not an explicit forest partition. The selected target is deterministic polylogarithmic amortized update time.
+
+[Read in atlas](index.html#TCS-7496) · [Tree-Packing Revisited: Faster Fully Dynamic Min-Cut and Arboricity](https://arxiv.org/abs/2405.09141v4)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0387 — Logarithmic fully dynamic planar nearest neighbors
 
 The structure maintains points in the Euclidean plane. Queries ask for an exact nearest stored point. Points can both enter and leave the set. Queries must be worst-case logarithmic and updates logarithmic in expected amortized cost. The recent incremental result does not meet the full dynamic target.
@@ -2600,6 +2859,20 @@ Edges change one at a time on a fixed finite vertex set. Auxiliary relations mus
 [Read in atlas](index.html#TCS-7436) · [An Open Question in Dynamic Descriptive Complexity](https://databasetheory.org/sites/default/files/blog_attach/SchwentickOpenProblems_0.pdf) · [The Dynamic Descriptive Complexity of k-Clique](https://www.cs.umd.edu/~gasarch/TOPICS/ramsey/zeume.pdf)
 Existing status: `source_open` · Summary written: 2026-10-23
 
+### TCS-7492 — Polylogarithmic updates for bounded rank-width
+
+Rank-width measures binary adjacency ranks across decomposition cuts. The graph is promised to keep rank-width at most k. A maintained decomposition may have width a constant factor larger. An explicit tree can be extracted in near-linear parameterized time. The sought improvement is a fixed polylogarithmic update bound.
+
+[Read in atlas](index.html#TCS-7492) · [Almost-linear time parameterized algorithm for rankwidth via dynamic rankwidth](https://arxiv.org/abs/2402.12364)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7502 — Optimal-query fully dynamic text indexing
+
+Characters can be inserted or removed at arbitrary current positions. A query reports every occurrence of a new pattern in the current text. Output positions refer to the text after all prior edits. Space is linear in current text length, while word size uses a supplied maximum. The desired query time has no extra logarithmic term.
+
+[Read in atlas](index.html#TCS-7502) · [Text Indexing and Pattern Matching with Ephemeral Edits](https://arxiv.org/abs/2508.05124v2)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0536 — Dynamic edge coloring with sublinear additive slack
 
 A changing graph must keep a proper integer color on every edge. The target allows only a power-sublinear additive number of colors above the maximum-degree bound, up to logarithmic factors. One uniform algorithm should maintain that coloring in polylogarithmic expected amortized time over all degree scales. The question remains meaningful even when updates are chosen independently of the algorithm’s randomness. Small recoloring counts and recent restricted-graph or subpolynomial-time results do not by themselves meet the stated total-work guarantee.
@@ -2621,12 +2894,40 @@ The graph changes by inserting or deleting an entire vertex and its incident edg
 [Read in atlas](index.html#TCS-7392) · [Fully-Dynamic All-Pairs Shortest Paths: Likely Optimal Worst-Case Update Time](https://arxiv.org/abs/2306.02662v3)
 Existing status: `source_open` · Summary written: 2026-10-23
 
+### TCS-7501 — Fast dynamic vertex colouring against adaptive updates
+
+The palette has one more color than a fixed promised maximum degree. Colors must stay proper after every edge update. An adversary can choose future updates after inspecting past color answers. Random coins and internal memory stay private. The target combines always-correct coloring with polylogarithmic expected update work.
+
+[Read in atlas](index.html#TCS-7501) · [Faster Dynamic (Δ+1)-Coloring Against Adaptive Adversaries](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.79)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0545 — Low-loss deterministic reduction from weighted to unweighted dynamic matching
 
 The question asks for a reusable conversion from dynamic unweighted matching to dynamic weighted matching on general graphs. An input algorithm with approximation ratio alpha should yield one with ratio alpha times one minus the chosen accuracy. The selected variant preserves determinism and transfers both worst-case and amortized update guarantees when the input algorithm provides them. The overhead may depend on accuracy but should be only polylogarithmic in graph size and weight range, apart from the stated auxiliary graph enlargement. A recent general-graph conversion works for near-optimal input algorithms, leaving the arbitrary-ratio target unresolved.
 
 [Read in atlas](index.html#TCS-0545) · [Dynamic Graph Algorithms (Dagstuhl Seminar 22461): Reducing weighted matching to unweighted matching](https://doi.org/10.4230/DagRep.12.11.45) · [A Framework for Dynamic Matching in Weighted Graphs](https://doi.org/10.1145/3406325.3451113) · [From Unweighted to Weighted Dynamic Matching in Non-Bipartite Graphs: A Low-Loss Reduction](https://doi.org/10.1137/1.9781611978971.10)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7500 — Fully dynamic linear programming with outliers
+
+A point may violate at most k current planar halfplane constraints. The objective direction is fixed. Insertions and deletions arrive online without future deletion information. Queries must handle finite optimum, infeasibility and unboundedness. The target permits Las Vegas randomization with explicit space and expected-time bounds.
+
+[Read in atlas](index.html#TCS-7500) · [Robust Classification of Dynamic Bichromatic Point Sets in R²](https://arxiv.org/html/2406.19161)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7503 — Logarithmic dynamic convex-hull line intersection queries
+
+Points may be inserted and deleted anywhere in the plane. A query asks exactly where a line cuts the current convex hull. The answer is empty, a point or a segment. Degenerate point sets and tangencies are included. Updates may amortize their cost, but every query must finish in logarithmic time.
+
+[Read in atlas](index.html#TCS-7503) · [Dynamic Planar Convex Hull](https://cs.au.dk/~gerth/papers/focs02.pdf) · [Problem 12: Dynamic Planar Convex Hull](https://topp.openproblem.net/p12)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7499 — Faster approximate dynamic distances on monotone grids
+
+The graph is a square grid with only monotone directed arcs. Updates change nonnegative arc weights. All update values are known in advance but query placement is not. Preprocessing cannot hide superlinear work in the update count. The target combines polylogarithmic update work with square-root distance-query time.
+
+[Read in atlas](index.html#TCS-7499) · [Dynamic Time Warping Under Translation: Approximation Guided by Space-Filling Curves](https://arxiv.org/html/2203.07898)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ## String algorithms and computational biology (26)
 
@@ -2812,7 +3113,7 @@ Each input describes a language by concatenating one chosen string from each ord
 [Read in atlas](index.html#TCS-7368) · [Elastic-degenerate string comparison](https://doi.org/10.1016/j.ic.2025.105296) · [Elastic-Degenerate String Comparison](https://arxiv.org/abs/2411.07782v1) · [Pattern matching with Elastic-Degenerate strings and Elastic-Founder graphs](https://doi.org/10.1186/s13015-025-00289-3) · [Faster ED-String Matching with k Mismatches](https://arxiv.org/abs/2503.01388v1)
 Existing status: `source_open` · Summary written: 2026-09-17
 
-## Game theory, social choice and fair division (19)
+## Game theory, social choice and fair division (27)
 
 ### TCS-0011 — Existence of complete EFX allocations for additive valuations
 
@@ -2842,6 +3143,20 @@ Machines privately know an unrelated processing time for each job and receive pa
 [Read in atlas](index.html#TCS-6674) · [A proof of the Nisan–Ronen conjecture](https://arxiv.org/abs/2301.11905) · [A Proof of the Nisan–Ronen Conjecture](https://doi.org/10.1145/3785408) · [Setting Lower Bounds on Truthfulness](https://arxiv.org/abs/1507.08708) · [Randomized Truthful Mechanisms for Scheduling Unrelated Machines](https://link.springer.com/chapter/10.1007/978-3-540-92185-1_46) · [An Improved Randomized Truthful Mechanism for Scheduling Unrelated Machines](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2008.1314) · [New Bounds for Truthful Scheduling on Two Unrelated Selfish Machines](https://link.springer.com/article/10.1007/s00224-019-09927-x) · [Universally truthful mechanisms for scheduling](https://arxiv.org/abs/2609.12621)
 Existing status: `source_open` · Summary written: 2026-09-16
 
+### TCS-7507 — Constant-factor truthful subadditive combinatorial auctions
+
+Bidders may value bundles subadditively without any prior distribution. The mechanism accesses valuations through exact demand and value queries. Allocated bundles cannot overlap. Truthful reporting must maximize each bidder’s expected quasilinear utility. A single positive welfare factor must hold independently of the number of items.
+
+[Read in atlas](index.html#TCS-7507) · [Improved Truthful Mechanisms for Subadditive Combinatorial Auctions: Breaking the Logarithmic Barrier](https://arxiv.org/abs/2010.01420)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7510 — Black-box conversion to dominant-strategy truthfulness without expected-welfare loss
+
+Independent finite type distributions are explicitly known. The original allocation algorithm is accessible only through oracle calls. Feasibility can be certified only for allocations actually returned by the oracle. The transformed mechanism must be truthful for each fixed vector of other reports. Expected welfare must match or exceed the original algorithm with no additive loss.
+
+[Read in atlas](index.html#TCS-7510) · [Black-Box Reductions to DSIC Mechanism Design](https://github.com/aieconcs/econcs-bench/blob/main/black-box-dsic-mechanism-design/PROBLEM.md) · [The Complexity of Black-Box Mechanism Design with Priors](https://arxiv.org/abs/1906.10794)
+Existing status: `source_open` · Summary written: 2026-10-26
+
 ### TCS-0056 — Universal maximin-share approximation for additive goods
 
 Each agent’s maximin share is the best value they can secure by partitioning the goods and receiving a least-valued bundle. The target is the largest fraction of those personal shares that can always be met simultaneously for nonnegative additive valuations. It ranges over all finite numbers of agents and indivisible goods, with equal entitlements and no sharing. Determining this constant would quantify the inherent loss of fairness caused by indivisibility, independently of computational efficiency. The card requires a Lean-certified absolute error of at most one hundredth and records the precise versions and limits of the known bounds.
@@ -2855,6 +3170,20 @@ The cake is a continuous interval whose value may differ arbitrarily between age
 
 [Read in atlas](index.html#TCS-6633) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191v1) · [The Query Complexity of Cake Cutting](https://proceedings.neurips.cc/paper_files/paper/2022/file/f7a7bb369e48f10e85fce85b67d8c516-Paper-Conference.pdf) · [Thou Shalt Covet Thy Neighbor’s Cake](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfreesq.pdf) · [Envy-free cake cutting: a polynomial number of queries with high probability](https://doi.org/10.1007/s00355-025-01633-7)
 Existing status: `source_open` · Summary written: 2026-09-17
+
+### TCS-7505 — Constant-factor welfare from posted item prices
+
+Buyers have independent, known distributions over subadditive valuations. The seller fixes one nonnegative price per item before seeing values. Every buyer takes a utility-maximizing bundle from the remaining items. One set of prices must work for all fixed arrival permutations and tie choices. The goal is a constant expected fraction of optimal welfare.
+
+[Read in atlas](index.html#TCS-7505) · [q-Partitioning Valuations: Exploring the Space Between Subadditive and Fractionally Subadditive Valuations](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.18)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7508 — Constant price of stability for undirected network design
+
+Each player chooses a path joining its own pair of terminals. Users of an edge split that edge’s cost equally. A stable profile permits no profitable unilateral path change. The comparison uses the cheapest stable profile and the socially cheapest network. The proposed constant must work for arbitrary terminal pairs and player counts.
+
+[Read in atlas](index.html#TCS-7508) · [The Price of Stability for Network Design with Fair Cost Allocation](https://doi.org/10.1137/070680096)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ### TCS-0571 — Pure positional Nash equilibria in reachability games
 
@@ -2946,6 +3275,34 @@ Vertices are participants and hyperedges are feasible coalitions. Each participa
 
 [Read in atlas](index.html#TCS-1714) · [Stable Hypergraph Matching in Unimodular Hypergraphs](https://doi.org/10.4230/LIPIcs.ICALP.2025.31) · [Polynomial-time Stable Matching in Network Hypergraphs](https://arxiv.org/abs/2608.24728)
 Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-7504 — Optimal truthful pricing from one sample
+
+A seller sees one sample from the same unknown law as the buyer’s value. The seller posts a price before learning the buyer’s value. The distribution is continuous with nondecreasing hazard rate. Performance is compared with the distribution’s optimal monopoly revenue. Published bounds already meet the default numerical accuracy, while the exact constant is not identified.
+
+[Read in atlas](index.html#TCS-7504) · [Robustness in Mechanism Design](https://arxiv.org/html/2610.01805)
+Existing status: `uncertain` · Summary written: 2026-10-26
+
+### TCS-7506 — Optimal randomized truthful two-facility location
+
+Agents report real-valued locations. The mechanism places two facilities and pays no transfers. Each agent cares about distance to its closer facility. Truthfulness is measured in expectation over the mechanism’s randomness. The optimum ratio includes all agent counts and all zero-cost instances.
+
+[Read in atlas](index.html#TCS-7506) · [Randomized Strategyproof Facility Location: Two Facilities and Beyond](https://arxiv.org/abs/2608.22484v2)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7511 — Optimal truthful approximation for multi-hospital kidney exchange
+
+Hospitals control disjoint sets of vertices in a compatibility graph. They may hide vertices before the mechanism selects exchanges. A hospital can internally match its own unmatched vertices afterward. Truthfulness compares its expected total matched patients under full disclosure and every hiding deviation. The approximation ratio must cover arbitrarily many hospitals.
+
+[Read in atlas](index.html#TCS-7511) · [Mix and Match: A Strategyproof Mechanism for Multi-Hospital Kidney Exchange](https://www.cs.cmu.edu/~arielpro/15896/docs/paper21.pdf)
+Existing status: `source_open` · Summary written: 2026-10-26
+
+### TCS-7509 — Sharp selfishness threshold for manipulation-resistant tournaments
+
+The input gives the winner of every pairwise match. A tournament rule selects an overall winner by a probability distribution. A team winning all its matches must be selected with certainty. Changing a win to a loss must not improve that team’s own chance. The exact pairwise inequality fixes the remaining selfishness threshold at one.
+
+[Read in atlas](index.html#TCS-7509) · [Strategyproof Tournament Rules for Teams with a Constant Degree of Selfishness](https://arxiv.org/html/2512.05235)
+Existing status: `source_open` · Summary written: 2026-10-26
 
 ## Algebraic computation (60)
 

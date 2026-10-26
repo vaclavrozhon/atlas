@@ -340,7 +340,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 17; importance 
 | 3 | [Kannan–Tetali–Vempala conjecture](index.html#TCS-6622) | 90 |
 | 4 | [Cutoff for bounded-degree transitive expanders](index.html#TCS-6843) | 86 |
 | 5 | [Stationary-start cover-time lower bound](index.html#TCS-7480) | 86 |
-| 6 | [Hard-core phase transition on the square lattice](index.html#TCS-7485) | 86 |
+| 6 | [A single hard-core uniqueness threshold on the square lattice](index.html#TCS-7485) | 86 |
 | 7 | [Polynomial mixing of planar Ising dynamics with plus boundaries](index.html#TCS-6839) | 82 |
 | 8 | [Monotonicity of Ising spectral gaps](index.html#TCS-6840) | 82 |
 | 9 | [Mixing of the self-avoiding-walk pivot chain](index.html#TCS-6857) | 82 |
