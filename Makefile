@@ -36,3 +36,4 @@ check-web: publish
 	cd services/notes && npm test
 	node tests/community.cjs
 	node tests/votes.cjs
+	node tests/selection.cjs

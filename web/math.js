@@ -45,12 +45,15 @@
   function excerpt(text,limit=700){
     text=String(text||'');if(text.length<=limit)return text;
     let cut=limit;
-    const formula=parts(text).find(part=>part.math&&part.start<cut&&part.end>=cut);
-    if(formula)cut=formula.end;
-    else{
+    const segments=parts(text);
+    if(!segments.some(part=>part.math&&part.start<cut&&part.end>=cut)){
       const space=text.lastIndexOf(' ',cut);
       if(space>0)cut=space;
     }
+    // Moving back to a word boundary can enter a formula that ended just
+    // before the original limit (for example, a display followed by a newline).
+    const formula=segments.find(part=>part.math&&part.start<cut&&part.end>=cut);
+    if(formula)cut=formula.end;
     return text.slice(0,cut).trimEnd()+(cut<text.length?' […]':'');
   }
   let frame=0;

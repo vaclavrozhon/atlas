@@ -26,7 +26,7 @@ def main():
             review_helper = Path('research/card-completion-20260913/complete_review.py')
             (snapshot / review_helper).parent.mkdir(parents=True)
             shutil.copy2(ROOT / review_helper, snapshot / review_helper)
-        for script in ['scripts/publish.py', 'tests/ranking.py', 'tests/taxonomy.py', 'tests/test_related_problems.py',
+        for script in ['scripts/publish.py', 'tests/ranking.py', 'tests/taxonomy.py', 'tests/final_selection.py', 'tests/test_related_problems.py',
                        'tests/test_publication.py', 'tests/test_pages.py', 'tests/test_review_queue.py']:
             subprocess.run([sys.executable, str(snapshot / script)], cwd=snapshot, check=True)
 

@@ -18,6 +18,7 @@ from importance import apply_importance, validate_importance
 from taxonomy import apply_taxonomy
 from card_activity import read_inactive, active_card_paths, eligible_candidate
 from related_problems import apply_related_problems
+from final_selection import apply_final_selection
 
 BASE, SITE, CARDS = ROOT, BUILD, DATA / 'cards'
 
@@ -195,6 +196,7 @@ def _publish(site=SITE):
     previous_version = previous['meta'].get('version', '')
     previous_cards = {card['id']: jsdump(card) for card in previous['cards']}
     apply_taxonomy(data)
+    apply_final_selection(data)
     apply_importance(data)
     report = textbook_report(data)
     data['meta']['working_summary_count'] = sum(bool(c.get('working_summary')) for c in data['cards'])
@@ -203,7 +205,7 @@ def _publish(site=SITE):
     update_metadata(data, now)
     site.mkdir(parents=True, exist_ok=True)
     # A complete build works offline and needs no previously generated files.
-    for name in ['index.html', 'app.js', 'community.js', 'votes.js', 'math.js', 'style.css',
+    for name in ['index.html', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js', 'style.css',
                  'map.html', 'map.js', 'map.css', '.nojekyll']:
         atomic(site / name, (WEB / name).read_text())
     shutil.copytree(WEB / 'vendor', site / 'vendor', dirs_exist_ok=True)

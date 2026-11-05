@@ -35,7 +35,7 @@ def assert_export_parity(site, payload, *, independent_build=False):
     assert offline == data
     assert not (site / 'updates.json').exists()
     assert not (site / 'README.md').exists()
-    for name in ['index.html', 'app.js', 'community.js', 'votes.js', 'math.js', 'style.css', '.nojekyll']:
+    for name in ['index.html', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js', 'style.css', '.nojekyll']:
         assert (site / name).read_bytes() == (SOURCE / 'web' / name).read_bytes()
     assert (site / 'vendor/katex.min.js').exists()
     assert read_json(site / 'version.json')['version'] == data['meta']['version']
@@ -134,7 +134,8 @@ with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
     assert delta['base_version'] == first['version']
     assert delta['cards'][0]['why'] == authored['why']
     assert delta['cards'][0]['working_summary'] == authored['working_summary']
-    assert delta['cards'][0]['community_reviews'] == authored['community_reviews']
+    assert 'community_reviews' not in delta['cards'][0]
+    assert read_json(path)['community_reviews'] == authored['community_reviews']
     assert hashes()[str(path.relative_to(base))] == hashlib.sha256(path.read_bytes()).hexdigest()
     assert_export_parity(site, edited)
 

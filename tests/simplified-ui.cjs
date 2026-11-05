@@ -3,13 +3,14 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const base=process.env.ATLAS_URL||'http://127.0.0.1:8768/';
-const dir=path.resolve(__dirname,'../research/ui-simplification-20260911');
+const dir=path.resolve(__dirname,'../research/final-selection-20261105/ui/general');
 
 (async()=>{
   await fs.mkdir(dir,{recursive:true});
   const browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
   try{
     const context=await browser.newContext({viewport:{width:1440,height:1000}});
+    await context.route('**/api/selection',route=>route.fulfill({json:{version:require('../build/catalog.json').meta.final_selection.version,choices:[]}}));
     await context.route('https://api.github.com/**',route=>route.fulfill({json:[]}));
     await context.route('https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/votes',route=>route.fulfill({json:{votes:[],mine:[]}}));
     await context.addInitScript(()=>{
@@ -23,8 +24,8 @@ const dir=path.resolve(__dirname,'../research/ui-simplification-20260911');
     await page.goto(base);
     await page.waitForFunction(()=>window.ATLAS_DEBUG);
     const inventory=await page.evaluate(()=>({
-      active:ATLAS_DEBUG.data.cards.filter(c=>!c.scope_exclusion&&!['resolved','excluded'].includes(c.status)).map(c=>c.id),
-      inactive:ATLAS_DEBUG.data.cards.filter(c=>c.scope_exclusion||['resolved','excluded'].includes(c.status)).map(c=>c.id),
+      active:ATLAS_DEBUG.data.cards.filter(ATLAS_DEBUG.isActive).map(c=>c.id),
+      inactive:ATLAS_DEBUG.data.cards.filter(c=>!ATLAS_DEBUG.isActive(c)).map(c=>c.id),
       areas:ATLAS_DEBUG.data.areas.map(a=>a.label),
       top100:ATLAS_DEBUG.data.meta.benchmarks.top100.total,
       top500:ATLAS_DEBUG.data.meta.benchmarks.top500.total,
@@ -34,7 +35,7 @@ const dir=path.resolve(__dirname,'../research/ui-simplification-20260911');
     assert.deepEqual(new Set(await ids()),new Set(inventory.active));
     assert.equal(await page.locator('#areas .area-group').count(),0);
     assert.deepEqual(await page.locator('#areas label > span:nth-child(2)').allTextContents(),inventory.areas);
-    assert.equal((await page.locator('#areas .count').allTextContents()).reduce((n,s)=>n+Number(s.replaceAll(',','')),0),inventory.active.length);
+    assert.equal((await page.locator('#areas .count').allTextContents()).reduce((n,s)=>n+Number(s.split('/')[0].trim()),0),500);
     const removed=['area-search','saved-only','advanced-filters','new-only','textbook-only','evidence','status','scope','group','reason','year','random','export','export-community','sort','live-status','benchmark-note','coverage'];
     for(const id of removed)assert.equal(await page.locator(`#${id}`).count(),0,id);
     assert.equal(await page.locator('.save,[data-note],.pill,[data-action="note"],[data-action="copy"]').count(),0);
@@ -51,6 +52,7 @@ const dir=path.resolve(__dirname,'../research/ui-simplification-20260911');
     assert.equal(await page.locator('#view').inputValue(),'full');
     await page.locator('#view').selectOption('compact');
     for(const selection of ['top100','top500','top1000']){
+      await page.locator('#methodology').evaluate(el=>el.open=true);
       await page.locator('#benchmark').selectOption(selection);
       assert.equal((await ids()).length,inventory[selection]);
       const original=await ids();
@@ -76,8 +78,8 @@ const dir=path.resolve(__dirname,'../research/ui-simplification-20260911');
     assert(await page.locator('#methodology').evaluate(el=>el.open));
     assert.equal(await page.locator('#methodology a').count(),0);
     assert.equal(await page.locator('#methodology #coverage-table tbody tr').count(),inventory.areas.length);
-    assert((await page.locator('#selection-plan').textContent()).includes('same ranking within each category'));
-    assert.match(await page.locator('#benchmark-goal').textContent(), /primary goal is a benchmark of 500 problems.*Top 100 is a priority subset/);
+    assert((await page.locator('#selection-plan').textContent()).includes('10 large categories × 25 and 25 small categories × 10'));
+    assert.match(await page.locator('#benchmark-goal').textContent(), /initial proposal selects 500 green problems/);
 
     await page.locator('#new-problem').click();
     assert.equal(await page.locator('#problem-fields input,#problem-fields select,#problem-fields textarea').count(),4);
@@ -104,16 +106,16 @@ const dir=path.resolve(__dirname,'../research/ui-simplification-20260911');
     await page.locator('#clear').click();
     const activeId=await page.locator('.problem-card').first().getAttribute('id');
     await page.locator(`#${activeId} .card-details > summary`).click();
-    await page.locator(`#${activeId} [data-public-note]`).click();
-    await page.locator('#public-note-text').fill('Public draft survives an update.');
-    await page.locator('#public-note-text').evaluate(el=>el.setSelectionRange(6,6));
-    const update=await page.evaluate(id=>({version:'simplified-live-fixture',cards:ATLAS_DEBUG.data.cards.map(c=>c.id===id?{...c,status:'resolved'}:c),areas:ATLAS_DEBUG.data.areas,meta:{...ATLAS_DEBUG.data.meta,version:'simplified-live-fixture'}}),activeId);
+    await page.locator('#new-problem').click();
+    await page.locator('#proposal-statement').fill('Public draft survives an update.');
+    await page.locator('#proposal-statement').evaluate(el=>el.setSelectionRange(6,6));
+    const update=await page.evaluate(id=>({version:'simplified-live-fixture',cards:ATLAS_DEBUG.data.cards.map(c=>c.id===id?{...c,status:'excluded'}:c),areas:ATLAS_DEBUG.data.areas,meta:{...ATLAS_DEBUG.data.meta,version:'simplified-live-fixture'}}),activeId);
     await page.route('**/version.json',r=>r.fulfill({json:{version:update.version}}));
     await page.route('**/catalog.json',r=>r.fulfill({json:update}));
-    await page.waitForFunction(id=>ATLAS_DEBUG.data.cards.find(c=>c.id===id).status==='resolved',activeId);
+    await page.waitForFunction(id=>ATLAS_DEBUG.data.cards.find(c=>c.id===id).status==='excluded',activeId);
     await page.waitForFunction(id=>!document.getElementById(id),activeId);
-    assert.equal(await page.locator('#public-note-text').inputValue(),'Public draft survives an update.');
-    assert(await page.locator('#public-note-text').evaluate(el=>document.activeElement===el&&el.selectionStart===6));
+    assert.equal(await page.locator('#proposal-statement').inputValue(),'Public draft survives an update.');
+    assert(await page.locator('#proposal-statement').evaluate(el=>document.activeElement===el&&el.selectionStart===6));
     assert.equal(await page.locator('#live-status').count(),0);
     await page.locator('#close-contribution').click();
     assert(!(await ids()).includes(activeId));

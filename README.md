@@ -5,10 +5,13 @@ library. Its purpose is to benchmark AI research on significant mathematical
 questions. The catalogue contains candidates at different review stages;
 inclusion alone does not certify current openness.
 
-Our primary goal is a benchmark of **500 problems**. The **Top 100** is a
-priority subset of those same 500, with secondary editorial attention. Both
-share the same category order and ranking within each category. Selection and
-review primarily develop the full Top 500.
+The final-selection proposal contains **500 green problems**: 25 in each of ten
+large categories and 10 in each of twenty-five small categories. Every other
+active card is red. Green/red decisions are separate from scientific status,
+votes and the older Top 100/500/1000 ranking views. Editors can change colors and
+move suitable cards between one specific large and one specific small category;
+shared counts may be above or below target. See the
+[finalization record](research/final-selection-20261105/README.md).
 
 The [project manifest](docs/MANIFEST.md) allows proposition, numerical and curve
 questions, with Lean-checked answers and default absolute accuracy 0.01 for
@@ -75,10 +78,10 @@ After building, `python3 scripts/deploy_pages.py --dry-run` validates the local
 snapshot without uploading it. Library and research files are outside the
 published directory.
 
-Public notes and votes use the separately deployed [notes service](services/notes/README.md).
-Shared thumbs-up/down scores determine the live order and Top selections within
-each category, with the editorial order breaking ties. One changeable vote per
-problem is remembered in each browser without login.
-Visitors can post without an account and optionally add an unverified display name.
-The submitting browser retains a deletion token. Existing GitHub notes and problem
-proposals continue to load from GitHub issues.
+Votes and shared selection use the separately deployed
+[service](services/notes/README.md). Thumbs-up/down scores determine live order
+within categories, with editorial priority breaking ties. Green/red decisions
+persist independently and require the shared editor key. Existing community
+feedback is preserved in `research/community-feedback-20261105/` and in the
+service, but the final reader neither loads nor displays it. New problem proposals
+can still be submitted through the GitHub form.

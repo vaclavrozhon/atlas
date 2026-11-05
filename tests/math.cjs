@@ -13,6 +13,9 @@ const nearCut='x '.repeat(345)+'\\(\\frac{a+b}{c+d}\\) after the expression.';
 const excerpt=math.excerpt(nearCut);
 assert.equal(math.parts(excerpt).filter(p=>p.math).length,1,'A compact preview retains the whole formula at its boundary');
 assert(!excerpt.includes('\\frac{a+b} […]'));
+const afterFormula='Start \\[x=1\\text{ steps}\\]\nUnbrokenWordAfterTheFormula';
+const afterExcerpt=math.excerpt(afterFormula,afterFormula.indexOf('Unbroken')+4);
+assert.equal(math.parts(afterExcerpt).filter(p=>p.math).length,1,'Moving to a word boundary must not cut back into the preceding formula');
 assert.equal(math.parts('The price is \\$2, while \\(x=2\\).').filter(p=>p.math).length,1);
 assert.equal(math.plain('\\(\\mathrm{P}\\ne\\mathrm{NP}\\)'),'P≠NP','Search preserves operators between formatted names');
 
@@ -36,7 +39,7 @@ function walk(value,location){
 for(const file of fs.readdirSync(path.resolve(__dirname,'../data/cards'))){
  if(!file.endsWith('.json'))continue;
  const card=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../data/cards',file)));
- if(card.scope_exclusion||['resolved','excluded'].includes(card.status))continue;
+ if(card.scope_exclusion||card.status==='excluded'||(card.status==='resolved'&&!card.benchmark_eligibility?.open_at_cutoff))continue;
  cards++;
  for(const [key,value] of Object.entries(card))if(top.has(key))walk(value,card.id+'.'+key);
 }

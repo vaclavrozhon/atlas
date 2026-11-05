@@ -251,7 +251,15 @@ remain provenance. Category assignments are explicit editorial decisions,
 not keyword guesses. Quotas are selection targets, not candidate-pool limits.
 
 The current plan has ten large and twenty-five small categories. They contribute
-25/10 problems each to the primary Top 500 and 5/2 to its Top 100 subset.
+25/10 problems each to the initial green selection. Shared manual edits may
+change those counts. Green/red selection is distinct from scientific status
+and votes. `data/final_selection.json` records the initial proposal; manual
+overrides persist in the service and must not be overwritten by publication.
+Prioritize upvoted cards, explicitly explain every upvoted red choice, and retain
+topic diversity without applying the suggested square-root intuition as a formula.
+Some cards offer exactly two UI categories, one large and one small; movement
+preserves color. Existing category assignment remains the default unless a modest
+editorial move improves balance.
 The registry's fifty/twenty quotas and the existing Top 1000 export remain a
 legacy larger view, not an active selection goal. The Data structures addition
 fills the slot released by the online/scheduling merger. The 5 November 2026
@@ -475,8 +483,10 @@ focus membership or the resulting category sizes. Early-ranked and previously
 reviewed cards have no immunity. Do not fill category gaps merely to balance
 the pool. Candidate-pool reduction is distinct from the nested benchmark quotas;
 do not silently change or redistribute those quotas during pruning.
-For editorial work, primarily develop Top 500 with importance and broad
-coverage. Give secondary attention to its Top 100 priority subset. The retained
-Top 1000 view does not create an additional research target. Publish each
-completed card promptly. This records the content target and does
-not initiate additional research during repository maintenance.
+For the current finalization, develop the green selection with importance and
+broad coverage. Top 100/500/1000 are retained ranking views and do not control green
+membership. Keep community feedback outside the final reader; its separate archive
+preserves the original contributions. Defer the whole-catalogue solvedness and
+numerical-precision audit until the user finalizes the green cards, then remind
+them to perform it. Targeted research for new or explicitly restored candidates
+remains in scope. This does not authorize an automatic new research pass.

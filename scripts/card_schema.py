@@ -2,7 +2,7 @@
 
 OBSOLETE_FIELDS = {'rank', 'classification_method', 'importance_method'}
 DERIVED_FIELDS = {'criterion_label', 'selection_group', 'selection_target',
-                  'importance_rank', 'importance_count', 'benchmark_focus'}
+                  'importance_rank', 'importance_count', 'benchmark_focus', 'selection'}
 
 
 def canonical_record(card):

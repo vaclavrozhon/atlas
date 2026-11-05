@@ -1,6 +1,6 @@
 # Reader sources
 
-This directory contains `index.html`, `app.js`, `community.js`, `votes.js`, `math.js`, `style.css`,
+This directory contains `index.html`, `app.js`, `community.js`, `votes.js`, `selection.js`, `math.js`, `style.css`,
 `.nojekyll` and local KaTeX assets in `vendor/`.
 
 `map.html`, `map.js` and `map.css` provide the separate interactive problem map.
@@ -17,7 +17,8 @@ selection keeps a preview open, with a link to the original catalogue card.
 Arrow keys browse problems and Enter focuses the full-card link; Escape dismisses
 the preview. Reduced-motion preferences pause the simulation after initial layout.
 The map also opens offline and checks consistent live catalogue snapshots online,
-preserving positions while removing deleted or resolved nodes and their links.
+preserving positions while removing inactive nodes and their links. Shared category moves and selection
+labels are also reflected in map previews.
 The locally bundled D3 version and license are documented in `vendor/D3.md`.
 
 Run `make serve` from the repository root to build and view the reader.
@@ -25,25 +26,28 @@ Run `make serve` from the repository root to build and view the reader.
 also opens directly offline. Generated JSON, CSV, `data.js` and reports belong
 only in `build/` and are rebuilt from canonical data.
 
-The reader supports search, categories, Compact and Full layouts, Top 100,
-Top 500 and a legacy Top 1000 view, public notes and proposed community
-problems. Top 500 is the primary goal; Top 100 is its priority subset.
-All three views use prefixes of the same ranking within each
-category and preserve the category order. Shared votes determine this ranking:
-thumbs up minus thumbs down first, then the existing catalogue priority. This
-also determines membership in Top 100, Top 500 and the legacy Top 1000 view,
-using the existing category quotas before search filters. A browser retains one
-identity without login. Click the selected thumb to cancel, or the other to switch.
-Both layouts display shared counts and highlight the current browser's vote.
-Counts refresh every 30 seconds and on returning to the page; cached counts are
-retained during an outage. Without cached counts the reader uses catalogue priority.
-Static exports continue to record the reproducible editorial ranking; shared votes
-are stored independently in the service. Public notes post directly to the
-[notes service](../services/notes/README.md) without an account; names are optional
-and unverified. Problem proposals and older notes use GitHub. The catalogue and
-mathematical rendering work offline. Live publication
-uses `version.json`, `updates-delta.json` and `catalog.json` as the full fallback.
-Resolved and retired records are hidden. See [the rules](../docs/RULES.md).
+The reader supports search, categories, Compact and Full layouts, and All/Green/Red
+filters. `selection.js` loads public overrides from the existing service and
+applies them to the canonical initial proposal. The sidebar displays actual green
+counts against 25/10 targets, regardless of filters. Editors enable shared edits
+with a secret key retained in session storage. Exactly one large/small category
+pair is offered on suitable cards; moving preserves color. Revisions prevent
+silent overwrite by stale editors, and exact pending requests survive lost replies.
+The initial proposal and last loaded choices remain visible during an outage.
+
+Votes continue to order each category: thumbs up minus thumbs down, then catalogue
+priority. They do not change green/red decisions. The previous Top 100/500/1000
+ranking filters remain in About, with visible filter chips when active. Mathematical
+rendering and the initial catalogue also work offline. Live publication uses
+`version.json`, `updates-delta.json` and `catalog.json` as the full fallback.
+Resolved cards with documented January 1, 2026 eligibility remain visible; inactive
+cards do not. See [the rules](../docs/RULES.md).
+
+Community feedback is preserved separately and is neither fetched nor rendered
+by the final reader. Publication strips `community_reviews` from reader exports
+without changing the canonical source or archive. `community.js` retains the
+GitHub problem proposal form and its browser-local draft migration. Existing notes,
+proposals, votes and deletion ownership remain intact in the separate service.
 
 Both layouts show related active problems by title and stable ID, without inline
 explanations. The first five are visible and longer lists can be expanded.
@@ -56,15 +60,4 @@ Mathematical expressions use explicit LaTeX delimiters and the bundled KaTeX.
 previews, so blank lines or excerpt limits cannot split a formula. Source excerpts
 and reference titles render math too. Long inline expressions scroll within the
 card on small screens. Search uses readable mathematical text rather than requiring
-LaTeX command names. Public reader notes retain their plain-text format.
-
-Editorial responses to public contributions are stored in the destination card's
-`community_reviews` array. The reader appends `[solved]` for an addressed correction,
-`[reviewed]` for an assessed observation, or `[added]` for an incorporated proposal,
-with the response, date and catalogue link. These labels describe the feedback,
-not whether the mathematical problem is solved. Original notes and proposals,
-authors and deletion ownership are preserved. Reviews match the source, stable
-contribution ID, original problem ID and exact original text (the whole issue body
-for GitHub); edited contributions do not inherit a stale response. A reviewed note
-on a consolidated problem also appears on its active successor, naming its original
-card. Publication updates refresh responses with their canonical card.
+LaTeX command names.

@@ -4,11 +4,17 @@ Atlas benchmarks AI research on significant open problems in theoretical
 computer science. Scientific importance and a clear mathematical target guide
 selection.
 
-Our primary goal is a benchmark of **500 problems**. The **Top 100** is a
-priority subset of those same 500, with secondary editorial attention. Selection
-and review should primarily develop the full Top 500. Both use the same category
-order and ranking within each category. A 1,000-problem benchmark is no longer
-an active goal.
+The 5 November 2026 finalization uses a **500-problem green selection**: 25 per
+large category and 10 per small category, across ten large and twenty-five small
+categories. All active candidates are marked green or red, independently of votes
+and scientific status. Shared manual decisions may exceed or fall short of these
+targets. Top 100, Top 500 and Top 1000 remain older ranking views; their prefixes
+do not define the final green dataset. Problems open at the start of 2026 may
+remain eligible after a later solution, with evidence recorded on the card.
+
+The whole-catalogue solvedness and numerical-precision audit is deferred until
+the user finalizes the green choices. Remind the user then; the initial AI proposal
+does not itself complete that human review.
 
 Cards have exactly two editorial activity states: **active** and **inactive**.
 Active cards live in `data/cards/`. Inactive cards retain their complete content

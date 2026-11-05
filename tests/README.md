@@ -14,9 +14,9 @@ lossless moves, explicit restoration, reserved IDs and removal from live exports
 opening, category selection, community forms, mobile layout and live deletions.
 It checks full-catalogue fallback after missed updates and safe retries while
 publication files temporarily disagree about the current version.
-It also tests the public notes worker against SQLite and exercises posting,
-retrying, reading and deleting notes in independent browser contexts without
-accounts. All note writes go to an isolated local database.
+It also tests the notes/proposals/votes/selection worker against real SQLite.
+The final reader must not fetch or render archived feedback; its GitHub proposal
+form preserves browser-local drafts. All test writes go to isolated databases.
 `votes.cjs` also exercises two independent voters and multiple tabs, vote
 cancellation and replacement, retries after lost responses, shared scores,
 vote-driven Top selections with editorial ties, storage failures and mobile UI.
@@ -25,8 +25,8 @@ Install its dependencies with `npm ci --prefix tests`; Chrome is expected at
 `/usr/bin/google-chrome`. These checks do not submit GitHub issues or deploy a site.
 
 `simplified-ui.cjs` provides additional focused UI regressions against the server
-specified by `ATLAS_URL`. `community.cjs` starts its own local reader server and
-bridges API requests to the production worker with a temporary SQLite database.
+specified by `ATLAS_URL`. `community.cjs` starts its own local reader server and checks feedback privacy
+and the preserved problem-proposal form.
 GitHub issue submissions are mocked.
 Historical one-off checks and saved screenshots were removed during cleanup.
 
@@ -42,3 +42,9 @@ the bundled KaTeX and checks balanced delimiters and formula-safe excerpts.
 `math-browser.cjs` renders every active card in both layouts, checks parse errors
 and unrendered delimiters, then exercises excerpts, reference titles and mobile
 width using local fixtures. Both run in `make check-web`.
+
+`selection.cjs` bridges requests to the production worker with an isolated SQLite
+database. It tests two editors, public read-only access, color and paired category
+changes, counts beyond quota, lost replies, conflicts, reloads, publication, map
+synchronization, mobile layout and outages. `final_selection.py` checks the initial
+500-card proposal, coverage, paired categories and explicit editorial decisions.

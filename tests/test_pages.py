@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='atlas-pages-test-') as directory:
     (source / 'working-note.txt').write_text('Local unpublished work')
     pages.git(source, 'add', 'working-note.txt')
     index = (source / '.git/index').read_bytes()
-    for name in ['index.html', 'style.css', 'app.js', 'community.js', 'votes.js', 'math.js',
+    for name in ['index.html', 'style.css', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js',
                  'map.html', 'map.js', 'map.css', 'vendor/d3.min.js', 'data.js', '.nojekyll', 'old-file.txt']:
         (site / name).parent.mkdir(parents=True, exist_ok=True)
         (site / name).write_text('' if name == '.nojekyll' else 'Fixture')

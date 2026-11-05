@@ -15,7 +15,8 @@ not meet today's active-card schema. Activity is determined by the folder and
 is separate from the scientific `status` field.
 
 - `categories.json`: category IDs, stable keys, labels, order and quotas.
-- `benchmark_selection.json`: ordered focus choices and their editorial reasons.
+- `benchmark_selection.json`: ordered focus choices for the older ranking views.
+- `final_selection.json`: the initial green/red proposal, targets, optional paired category and upvoted-red explanations. Shared manual overrides live in the selection service.
 - `criteria.json`: scientific selection criteria and labels.
 - `metadata.json`: dataset background and methodology.
 - `archive/index.json`: inactive IDs mapped to archival reasons, including legacy removals.
@@ -23,11 +24,14 @@ is separate from the scientific `status` field.
 - `archive/activity.jsonl`: archival and explicit restoration decisions.
 - `id_registry.json`: historical source-key-to-ID mappings. IDs remain reserved.
 
-The primary benchmark goal is 500 problems, with Top 100 as its priority subset
-and secondary editorial focus. They use the same category order and ranked
-prefixes: 25/10 and 5/2 problems per large/small category respectively. The
-registry's 50/20 `target` values support the legacy Top 1000 view; a 1,000-problem
-benchmark is no longer an active goal.
+The final green proposal uses 25/10 problems per large/small category. It is
+independent of the legacy Top 100/500/1000 ranked prefixes and the registry's
+50/20 `target` values. Publication derives each card's `selection` and a stable
+manifest version from `final_selection.json`. New unreviewed imports default to
+red. Regenerating the proposal never overwrites manual choices in the service.
+A change to colors or paired categories also requires regenerating and deploying
+`services/notes/selection-manifest.mjs`; a version mismatch disables live editing
+until the reader and service agree.
 
 Run `make publish` after edits. It computes category totals, benchmark membership,
 rankings, JSON/CSV exports and live updates without rewriting these source files.
@@ -78,7 +82,8 @@ Archival moves the exact card file into `archive/cards/`, keeps its ID reserved,
 records the reason and removes it from focus selections. It does not choose
 replacement problems. Multiple IDs may be supplied for the same reason.
 Live snapshots and removal deltas also remove inactive cards from open readers.
-Do not delete card files or use resolved/excluded cards as an active backlog.
+Do not delete card files. Resolved active cards require the explicit 2026-cutoff
+eligibility evidence described in the rules; excluded cards remain archived.
 
 Ordinary imports, even with `--replace`, reject inactive IDs and their historical
 source keys. A stale card copied into `cards/` cannot override the archive.

@@ -1,8 +1,12 @@
+import { selectionManifest } from './selection-manifest.mjs';
+
 const initialized = new WeakMap();
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const tokenPattern = /^[0-9a-f]{64}$/;
-const problemPattern = /^(TCS-\d{4,}|GH-\d+)$/;
+const problemPattern = /^(TCS-\d{4,}|GH-\d+|P-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/;
 const publicColumns = 'seq, id, problem_id, author, text, created_at';
+const proposalFields = ['title', 'category', 'statement', 'sources', 'author'];
+const proposalColumns = 'seq, id, title, category, statement, sources, author, created_at';
 
 async function initialize(db) {
   if (!initialized.has(db)) {
@@ -28,6 +32,19 @@ async function initialize(db) {
         PRIMARY KEY(problem_id, voter_hash)
       )`),
       db.prepare('CREATE INDEX IF NOT EXISTS votes_voter ON votes(voter_hash)'),
+      db.prepare(`CREATE TABLE IF NOT EXISTS proposals (
+        seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL, category TEXT NOT NULL, statement TEXT NOT NULL,
+        sources TEXT NOT NULL, author TEXT NOT NULL, created_at TEXT NOT NULL,
+        owner_hash TEXT NOT NULL, deleted INTEGER NOT NULL DEFAULT 0
+      )`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS selection_choices (
+        problem_id TEXT PRIMARY KEY,
+        color TEXT NOT NULL CHECK(color IN ('green', 'red')),
+        area TEXT NOT NULL,
+        revision INTEGER NOT NULL CHECK(revision >= 1),
+        updated_at TEXT NOT NULL
+      )`),
     ]).catch(error => { initialized.delete(db); throw error; });
     initialized.set(db, pending);
   }
@@ -59,20 +76,32 @@ async function voteState(db, problemId, voterHash) {
     totals: totals || {problem_id: problemId, up: 0, down: 0, score: 0}};
 }
 
+async function selectionState(db, problemId) {
+  const saved = await db.prepare('SELECT problem_id, color, area, revision, updated_at FROM selection_choices WHERE problem_id = ?').bind(problemId).first();
+  if (saved) return saved;
+  const initial = selectionManifest.cards[problemId];
+  return {problem_id: problemId, color: initial.color, area: initial.area, revision: 0, updated_at: null};
+}
+
+function selectionEditor(request, env) {
+  const token = request.headers.get('authorization')?.replace(/^Bearer /, '') || '';
+  return tokenPattern.test(env.SELECTION_EDITOR_TOKEN || '') && equal(token, env.SELECTION_EDITOR_TOKEN);
+}
+
 async function bodyJSON(request) {
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     throw Object.assign(new Error('Use a JSON request.'), {status: 415});
   }
-  if (!request.body) throw Object.assign(new Error('Enter a note.'), {status: 400});
+  if (!request.body) throw Object.assign(new Error('Enter your contribution.'), {status: 400});
   const reader = request.body.getReader(), chunks = [];
   let length = 0;
   while (true) {
     const {done, value} = await reader.read();
     if (done) break;
     length += value.byteLength;
-    if (length > 90000) {
+    if (length > 350000) {
       await reader.cancel();
-      throw Object.assign(new Error('This note is too long.'), {status: 413});
+      throw Object.assign(new Error('This contribution is too long.'), {status: 413});
     }
     chunks.push(value);
   }
@@ -80,7 +109,22 @@ async function bodyJSON(request) {
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   try { return JSON.parse(new TextDecoder().decode(bytes)); }
-  catch { throw Object.assign(new Error('Invalid note data.'), {status: 400}); }
+  catch { throw Object.assign(new Error('Invalid contribution data.'), {status: 400}); }
+}
+
+function publicProposal(row) {
+  return Object.fromEntries(['seq', 'id', ...proposalFields, 'created_at'].map(key => [key, row[key]]));
+}
+
+async function postLimit(request, env) {
+  const window = Math.floor(Date.now() / 600000);
+  const fingerprint = await digest(env.NOTES_ADMIN_TOKEN + '\n' + (request.headers.get('cf-connecting-ip') || 'unknown'));
+  const limit = await env.DB.prepare(`INSERT INTO note_limits(fingerprint, window, count) VALUES (?, ?, 1)
+    ON CONFLICT(fingerprint) DO UPDATE SET window = excluded.window,
+    count = CASE WHEN note_limits.window = excluded.window THEN note_limits.count + 1 ELSE 1 END
+    RETURNING count`).bind(fingerprint, window).first();
+  await env.DB.prepare('DELETE FROM note_limits WHERE window < ?').bind(window - 1).run();
+  return limit.count > 5;
 }
 
 export default {
@@ -104,6 +148,92 @@ export default {
         return reply({ok: true});
       }
       if (url.pathname === '/' && request.method === 'GET') return reply({service: 'Atlas public notes', website: 'https://vaclavrozhon.github.io/atlas/'});
+      if (url.pathname === '/api/selection/auth' && request.method === 'POST') {
+        if (!selectionEditor(request, env)) return reply({error: 'The editor key is not valid.'}, 403);
+        return reply({can_edit: true, version: selectionManifest.version});
+      }
+      if (url.pathname === '/api/selection' && request.method === 'GET') {
+        const result = await env.DB.prepare('SELECT problem_id, color, area, revision, updated_at FROM selection_choices ORDER BY problem_id').all();
+        // Retiring a catalogue card does not delete its shared choice. It simply
+        // stops exposing the row until that same stable ID is active again.
+        return reply({version: selectionManifest.version,
+          choices: result.results.filter(row => Object.hasOwn(selectionManifest.cards, row.problem_id))});
+      }
+      if (url.pathname === '/api/selection' && request.method === 'POST') {
+        if (!selectionEditor(request, env)) return reply({error: 'Enable editing with the shared editor key.'}, 403);
+        const input = await bodyJSON(request);
+        if (!input || typeof input !== 'object' || Array.isArray(input) ||
+            typeof input.problem_id !== 'string' || !Object.hasOwn(selectionManifest.cards, input.problem_id) ||
+            !['green', 'red'].includes(input.color) || !Number.isSafeInteger(input.revision) || input.revision < 1)
+          return reply({error: 'Invalid selection change.'}, 400);
+        if (input.version !== selectionManifest.version)
+          return reply({error: 'The catalogue has changed. Reload before editing.', version: selectionManifest.version}, 409);
+        const initial = selectionManifest.cards[input.problem_id];
+        if (!initial.area_options.includes(input.area)) return reply({error: 'This card cannot be moved to that category.'}, 400);
+        const current = await selectionState(env.DB, input.problem_id);
+        const matches = row => row.revision === input.revision && row.color === input.color && row.area === input.area;
+        if (matches(current)) return reply({choice: current, version: selectionManifest.version});
+        if (input.revision !== current.revision + 1)
+          return reply({error: 'Someone else changed this card. Review the current choice and try again.', choice: current, version: selectionManifest.version}, 409);
+        await env.DB.prepare(`INSERT INTO selection_choices(problem_id, color, area, revision, updated_at) VALUES (?, ?, ?, ?, ?)
+          ON CONFLICT(problem_id) DO UPDATE SET color = excluded.color, area = excluded.area,
+          revision = excluded.revision, updated_at = excluded.updated_at
+          WHERE selection_choices.revision = excluded.revision - 1`)
+          .bind(input.problem_id, input.color, input.area, input.revision, new Date().toISOString()).run();
+        const saved = await selectionState(env.DB, input.problem_id);
+        if (!matches(saved)) return reply({error: 'Someone else changed this card. Review the current choice and try again.', choice: saved, version: selectionManifest.version}, 409);
+        return reply({choice: saved, version: selectionManifest.version});
+      }
+      if (url.pathname === '/api/proposals' && request.method === 'GET') {
+        const raw = url.searchParams.get('before'), before = raw === null ? Number.MAX_SAFE_INTEGER : Number(raw);
+        if (!Number.isSafeInteger(before) || before < 1) return reply({error: 'Invalid page cursor.'}, 400);
+        const result = await env.DB.prepare(`SELECT ${proposalColumns} FROM proposals WHERE deleted = 0 AND seq < ? ORDER BY seq DESC LIMIT 201`).bind(before).all();
+        const proposals = result.results.slice(0, 200);
+        return reply({proposals, next: result.results.length > 200 ? proposals.at(-1).seq : null});
+      }
+      if (url.pathname === '/api/proposals' && request.method === 'POST') {
+        if (!tokenPattern.test(env.NOTES_ADMIN_TOKEN || '')) return reply({error: 'Suggestions are temporarily unavailable.'}, 503);
+        const input = await bodyJSON(request);
+        if (!input || typeof input !== 'object' || Array.isArray(input)) return reply({error: 'Invalid suggestion data.'}, 400);
+        if (input.website) return reply({error: 'The submission could not be accepted.'}, 400);
+        if (!uuid.test(input.id || '') || !tokenPattern.test(input.edit_token || '')) return reply({error: 'Invalid suggestion identifier.'}, 400);
+        for (const [field, max] of [['title', 200], ['statement', 50000]]) {
+          if (typeof input[field] !== 'string' || !input[field].trim() || input[field].length > max) return reply({error: `Enter a ${field} of at most ${max.toLocaleString('en')} characters.`}, 400);
+        }
+        for (const [field, max] of [['category', 80], ['sources', 5000], ['author', 80]]) {
+          if (input[field] !== undefined && (typeof input[field] !== 'string' || input[field].length > max)) return reply({error: `Use at most ${max.toLocaleString('en')} characters for ${field}.`}, 400);
+        }
+        if (input.category && !/^[a-z0-9-]+$/.test(input.category)) return reply({error: 'Choose a category or leave it undecided.'}, 400);
+        const values = Object.fromEntries(proposalFields.map(field => [field, input[field]?.trim() || (field === 'author' ? 'Anonymous' : '')]));
+        const id = 'P-' + input.id.toLowerCase(), ownerHash = await digest(input.edit_token);
+        const matches = row => equal(ownerHash, row.owner_hash) && proposalFields.every(field => row[field] === values[field]);
+        const existing = await env.DB.prepare('SELECT * FROM proposals WHERE id = ?').bind(id).first();
+        if (existing) {
+          if (existing.deleted) return reply({error: 'This suggestion has been removed.'}, 410);
+          if (!matches(existing)) return reply({error: 'This submission identifier has already been used.'}, 409);
+          return reply({proposal: publicProposal(existing)});
+        }
+        if (await postLimit(request, env)) return reply({error: 'Please wait a few minutes before posting again.'}, 429, {'Retry-After': String(600 - Math.floor(Date.now() / 1000) % 600)});
+        await env.DB.prepare(`INSERT INTO proposals(id, title, category, statement, sources, author, created_at, owner_hash)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING`)
+          .bind(id, ...proposalFields.map(field => values[field]), new Date().toISOString(), ownerHash).run();
+        const row = await env.DB.prepare('SELECT * FROM proposals WHERE id = ?').bind(id).first();
+        if (row.deleted || !matches(row)) return reply({error: 'This submission identifier has already been used.'}, 409);
+        return reply({proposal: publicProposal(row)}, 201);
+      }
+      const proposalMatch = url.pathname.match(/^\/api\/proposals\/(P-[0-9a-f-]+)$/);
+      if (proposalMatch && request.method === 'DELETE') {
+        const id = proposalMatch[1];
+        if (!uuid.test(id.slice(2))) return reply({error: 'Invalid suggestion identifier.'}, 400);
+        const token = request.headers.get('authorization')?.replace(/^Bearer /, '') || '';
+        if (!tokenPattern.test(token)) return reply({error: 'You cannot remove this suggestion.'}, 403);
+        const row = await env.DB.prepare('SELECT owner_hash FROM proposals WHERE id = ?').bind(id).first();
+        if (!row) return reply({error: 'Suggestion not found.'}, 404);
+        const admin = tokenPattern.test(env.NOTES_ADMIN_TOKEN || '') && equal(token, env.NOTES_ADMIN_TOKEN);
+        if (!admin && !equal(await digest(token), row.owner_hash)) return reply({error: 'You cannot remove this suggestion.'}, 403);
+        await env.DB.prepare("UPDATE proposals SET deleted = 1, title = '', category = '', statement = '', sources = '', author = '' WHERE id = ?").bind(id).run();
+        return reply({removed: true});
+      }
       if (url.pathname === '/api/votes' && ['GET', 'POST'].includes(request.method)) {
         const authorization = request.headers.get('authorization');
         const token = authorization?.replace(/^Bearer /, '') || '';

@@ -29,7 +29,7 @@ const {pathToFileURL}=require('node:url');
     await page.locator('#map-pause').click();
     assert.equal(await page.locator('#map-pause').getAttribute('aria-pressed'),'true');
     const graph=await page.evaluate(()=>{
-      const m=ATLAS_MAP,active=m.data.cards.filter(c=>!c.scope_exclusion&&!['resolved','excluded'].includes(c.status));
+      const m=ATLAS_MAP,active=m.data.cards.filter(c=>!c.scope_exclusion&&c.status!=='excluded'&&(c.status!=='resolved'||c.benchmark_eligibility?.open_at_cutoff));
       const ids=new Set(active.map(c=>c.id)),pairs=new Set();
       for(const c of active)for(const id of c.related_problem_ids||[])if(ids.has(id)&&id!==c.id)pairs.add([c.id,id].sort().join('|'));
       return {nodes:m.nodes.length,expected:active.length,edges:m.links.length,expectedEdges:pairs.size,

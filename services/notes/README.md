@@ -2,8 +2,8 @@
 
 Small Cloudflare Worker with durable D1 storage, deployed through Sites. The
 catalogue stays on GitHub Pages. This service accepts public notes without a
-GitHub or ChatGPT account; GitHub issues remain the source of problem proposals
-and older notes. Display names are optional and unverified.
+GitHub or ChatGPT account; It also accepts problem suggestions directly; GitHub issues remain the source of
+older proposals and notes. Display names are optional and unverified.
 
 Run `npm test` (Node 22+) and `npm run build`. Tests execute the worker against real
 SQLite, including reconnecting to a file database, pagination, retries, deletion,
@@ -59,3 +59,47 @@ secret. Reusing the existing `DB` binding preserves both notes and votes. New
 browsers or cleared browser storage create a new identity, as intentionally chosen
 for a small group without accounts. Unit tests and `node tests/votes.cjs` from the
 repository root cover durability, retries, competing tabs and the browser UI.
+
+## Problem suggestions
+
+`GET /api/proposals` returns `proposals` and `next`, with the same cursor pagination
+as comments. `POST /api/proposals` accepts `id` (UUID v4), `edit_token` (64 hex),
+`title` (1–200 characters), `statement` (1–50,000), optional `category` (a category
+slug, at most 80), `sources` (up to 5,000), `author` (up to 80), and the empty
+`website` honeypot. A blank category means undecided. Names default to Anonymous.
+The returned `proposal.id` is `P-<UUID>` and can be used as the `problem_id` for
+comments and votes. Suggestions are public immediately but are not catalogue cards.
+
+The separate `proposals` table is created without modifying existing notes or votes.
+Exact retries are idempotent and do not consume the shared five-posts-per-ten-minutes
+limit. `DELETE /api/proposals/P-<UUID>` accepts the author's deletion token or the
+existing administrator secret. It clears the public fields and keeps a tombstone;
+retries cannot recreate a deleted suggestion. Public responses exclude credentials.
+Use the existing site and D1 binding when deploying this extension.
+
+## Shared final selection
+
+`selection-manifest.mjs` is generated from the Atlas source with
+`python3 scripts/final_selection.py --manifest services/notes/selection-manifest.mjs`.
+It contains the initial green/red proposal and each card's one or two allowed
+categories. Regenerating defaults never updates or deletes saved manual choices.
+
+Configure `SELECTION_EDITOR_TOKEN` as a separate secret runtime variable (32 random
+bytes, 64 lowercase hex). Its local copy is outside Git at
+`~/.config/atlas-notes/selection-editor-token` with mode 0600. The editor enters it
+in the Atlas's Edit selection dialog; it is retained only for that browser tab's
+session. Public readers can see choices but cannot change them. Never put the key
+in a URL, deployment artifact, or public client source.
+
+`GET /api/selection` returns the manifest version and durable overrides from
+`selection_choices`. `POST /api/selection/auth` checks the editor bearer key.
+`POST /api/selection` requires that key and takes `problem_id`, `color`, `area`,
+`revision` (previous + 1), and `version`. Only the configured categories are
+allowed, but green counts may exceed or fall short of targets. Exact retries are
+idempotent. A conflicting edit returns HTTP 409 with the current choice instead
+of overwriting it. A mismatched manifest also returns 409 and requires a reload.
+Retired card rows remain in storage, but disappear from public reads until restored.
+
+Deployment preserves the existing site, D1 binding, notes, proposals and votes.
+The final catalogue reader no longer displays community feedback; the preserved
+feedback archive is maintained separately in the Atlas research directory.

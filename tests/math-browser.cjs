@@ -52,7 +52,7 @@ const {pathToFileURL}=require('node:url');
    await page.setViewportSize({width:390,height:844});await page.waitForTimeout(80);
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Inline math must not widen a mobile page');
   }
-  const dir=path.resolve(__dirname,'../research/latex-formatting-20260912');fs.mkdirSync(dir,{recursive:true});
+  const dir=path.resolve(__dirname,'../research/final-selection-20261105/ui/math');fs.mkdirSync(dir,{recursive:true});
   await page.locator('#view').selectOption('full');await page.evaluate(()=>ATLAS_DEBUG.go('TCS-6523'));
   await page.screenshot({path:dir+'/mobile.png'});
   await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>ATLAS_DEBUG.go('TCS-6523'));await page.screenshot({path:dir+'/desktop.png'});
