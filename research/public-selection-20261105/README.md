@@ -15,5 +15,8 @@ the deferred scientific/numerical audit are unchanged.
 Validation: all 12 service tests passed against real SQLite; selection browser
 checks passed for anonymous visitors, direct controls, color/category changes,
 shared persistence, concurrent edits, retries, publication and mobile widths.
-The page integration check also passed. Deployment details and live anonymous
-verification are recorded in deployment.json and ui/live.json when complete.
+The page integration check also passed. The backend (version 5) and reader are
+published. A clean browser changed a real card without credentials, a second
+anonymous visitor observed it, and the original color was restored and confirmed
+after reload. Both controls were visible on desktop and mobile. Deployment
+details and live verification are recorded in deployment.json and ui/live.json.
