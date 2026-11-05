@@ -83,11 +83,6 @@ async function selectionState(db, problemId) {
   return {problem_id: problemId, color: initial.color, area: initial.area, revision: 0, updated_at: null};
 }
 
-function selectionEditor(request, env) {
-  const token = request.headers.get('authorization')?.replace(/^Bearer /, '') || '';
-  return tokenPattern.test(env.SELECTION_EDITOR_TOKEN || '') && equal(token, env.SELECTION_EDITOR_TOKEN);
-}
-
 async function bodyJSON(request) {
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     throw Object.assign(new Error('Use a JSON request.'), {status: 415});
@@ -149,7 +144,7 @@ export default {
       }
       if (url.pathname === '/' && request.method === 'GET') return reply({service: 'Atlas public notes', website: 'https://vaclavrozhon.github.io/atlas/'});
       if (url.pathname === '/api/selection/auth' && request.method === 'POST') {
-        if (!selectionEditor(request, env)) return reply({error: 'The editor key is not valid.'}, 403);
+        // Compatibility with older readers; selection editing is now public.
         return reply({can_edit: true, version: selectionManifest.version});
       }
       if (url.pathname === '/api/selection' && request.method === 'GET') {
@@ -160,7 +155,6 @@ export default {
           choices: result.results.filter(row => Object.hasOwn(selectionManifest.cards, row.problem_id))});
       }
       if (url.pathname === '/api/selection' && request.method === 'POST') {
-        if (!selectionEditor(request, env)) return reply({error: 'Enable editing with the shared editor key.'}, 403);
         const input = await bodyJSON(request);
         if (!input || typeof input !== 'object' || Array.isArray(input) ||
             typeof input.problem_id !== 'string' || !Object.hasOwn(selectionManifest.cards, input.problem_id) ||

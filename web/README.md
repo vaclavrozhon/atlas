@@ -29,8 +29,8 @@ only in `build/` and are rebuilt from canonical data.
 The reader supports search, categories, Compact and Full layouts, and All/Green/Red
 filters. `selection.js` loads public overrides from the existing service and
 applies them to the canonical initial proposal. The sidebar displays actual green
-counts against 25/10 targets, regardless of filters. Editors enable shared edits
-with a secret key retained in session storage. Exactly one large/small category
+counts against 25/10 targets, regardless of filters. Every reader sees the color and category buttons immediately; selection writes
+require no login, edit mode or editor key. Exactly one large/small category
 pair is offered on suitable cards; moving preserves color. Revisions prevent
 silent overwrite by stale editors, and exact pending requests survive lost replies.
 The initial proposal and last loaded choices remain visible during an outage.

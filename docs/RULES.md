@@ -258,7 +258,9 @@ overrides persist in the service and must not be overwritten by publication.
 Prioritize upvoted cards, explicitly explain every upvoted red choice, and retain
 topic diversity without applying the suggested square-root intuition as a formula.
 Some cards offer exactly two UI categories, one large and one small; movement
-preserves color. Existing category assignment remains the default unless a modest
+preserves color. By the subsequent explicit owner request, anyone may edit colors
+and offered category pairs: show controls on each card without a login or edit-mode
+gate. Existing category assignment remains the default unless a modest
 editorial move improves balance.
 The registry's fifty/twenty quotas and the existing Top 1000 export remain a
 legacy larger view, not an active selection goal. The Data structures addition

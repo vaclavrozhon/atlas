@@ -84,20 +84,20 @@ Use the existing site and D1 binding when deploying this extension.
 It contains the initial green/red proposal and each card's one or two allowed
 categories. Regenerating defaults never updates or deletes saved manual choices.
 
-Configure `SELECTION_EDITOR_TOKEN` as a separate secret runtime variable (32 random
-bytes, 64 lowercase hex). Its local copy is outside Git at
-`~/.config/atlas-notes/selection-editor-token` with mode 0600. The editor enters it
-in the Atlas's Edit selection dialog; it is retained only for that browser tab's
-session. Public readers can see choices but cannot change them. Never put the key
-in a URL, deployment artifact, or public client source.
+Selection editing is public by explicit owner request. Every reader sees color
+and paired-category buttons immediately, with no login or editor key. The former
+`SELECTION_EDITOR_TOKEN` is no longer used. Moderation of notes and proposals
+continues to require their existing author or administrator token.
 
 `GET /api/selection` returns the manifest version and durable overrides from
-`selection_choices`. `POST /api/selection/auth` checks the editor bearer key.
-`POST /api/selection` requires that key and takes `problem_id`, `color`, `area`,
-`revision` (previous + 1), and `version`. Only the configured categories are
-allowed, but green counts may exceed or fall short of targets. Exact retries are
-idempotent. A conflicting edit returns HTTP 409 with the current choice instead
-of overwriting it. A mismatched manifest also returns 409 and requires a reload.
+`selection_choices`. `POST /api/selection` accepts anonymous JSON requests with
+`problem_id`, `color`, `area`, `revision` (previous + 1), and `version`.
+`POST /api/selection/auth` remains a compatibility endpoint returning `can_edit: true`;
+the current reader does not call it or send an Authorization header for selection.
+Only the configured categories are allowed, but green counts may exceed or fall
+short of targets. Exact retries are idempotent. A conflicting edit returns HTTP
+409 with the current choice instead of overwriting it. A mismatched manifest also
+returns 409 and requires a reload. The existing origin policy still applies.
 Retired card rows remain in storage, but disappear from public reads until restored.
 
 Deployment preserves the existing site, D1 binding, notes, proposals and votes.

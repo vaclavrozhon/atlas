@@ -44,7 +44,7 @@ and unrendered delimiters, then exercises excerpts, reference titles and mobile
 width using local fixtures. Both run in `make check-web`.
 
 `selection.cjs` bridges requests to the production worker with an isolated SQLite
-database. It tests two editors, public read-only access, color and paired category
+database. It tests anonymous visitors, immediately visible controls, color and paired category
 changes, counts beyond quota, lost replies, conflicts, reloads, publication, map
 synchronization, mobile layout and outages. `final_selection.py` checks the initial
 500-card proposal, coverage, paired categories and explicit editorial decisions.

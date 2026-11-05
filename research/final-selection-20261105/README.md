@@ -45,11 +45,12 @@ before publication (votes-prepublication.json).
 
 ## Shared review
 
-Use Edit selection and the team editor key. The private local key is outside Git
-at ~/.config/atlas-notes/selection-editor-token (mode 0600). Public visitors see
-the selection; editors can toggle colors and use the offered up/down moves.
+A subsequent owner instruction on the same day made selection editing public.
+Everyone sees color and available up/down category buttons directly on each card,
+without an edit-mode toggle or editor key. Changes remain shared and persistent.
 The sidebar counts all greens against the target, independently of search/color
-filters. All/Green/Red filters support reviewing the proposed dataset.
+filters. All/Green/Red filters support reviewing the proposed dataset. See
+../public-selection-20261105/README.md for that access change.
 
 Initial defaults live in data/final_selection.json. The existing Sites service
 stores manual overrides separately with revision checks and idempotent retries.

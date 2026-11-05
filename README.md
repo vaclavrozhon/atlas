@@ -81,7 +81,8 @@ published directory.
 Votes and shared selection use the separately deployed
 [service](services/notes/README.md). Thumbs-up/down scores determine live order
 within categories, with editorial priority breaking ties. Green/red decisions
-persist independently and require the shared editor key. Existing community
+persist independently and can be edited by everyone directly on each card,
+without a login or editor key. Existing community
 feedback is preserved in `research/community-feedback-20261105/` and in the
 service, but the final reader neither loads nor displays it. New problem proposals
 can still be submitted through the GitHub form.
