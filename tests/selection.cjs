@@ -18,14 +18,14 @@ const http=require('node:http');
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base=`http://127.0.0.1:${server.address().port}/`,env={DB:db,SELECTION_EDITOR_TOKEN:key,NOTES_ALLOWED_ORIGINS:new URL(base).origin};
   const browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
-  let lost=false,offline=false,feedbackRequests=0;
+  let lost=false,offline=false,pauseReads=false,feedbackRequests=0;
   async function routes(context){
     await context.route('https://api.github.com/**',route=>{feedbackRequests++;return route.fulfill({json:[]});});
     await context.route('**/api/notes**',route=>{feedbackRequests++;return route.fulfill({json:{notes:[],next:null}});});
     await context.route('**/api/votes',route=>route.fulfill({json:{votes:[],mine:[]}}));
     await context.route('**/version.json',route=>route.fulfill({json:{version:JSON.parse(fs.readFileSync(root+'/version.json')).version}}));
     await context.route('**/api/selection**',async route=>{
-      if(offline)return route.fulfill({status:503,json:{error:'Offline fixture'}});
+      if(offline||(pauseReads&&route.request().method()==='GET'))return route.fulfill({status:503,json:{error:'Offline fixture'}});
       const req=route.request(),response=await worker.fetch(new Request(req.url(),{method:req.method(),headers:req.headers(),...(req.postData()?{body:req.postData()}:{} )}),env);
       if(req.method()==='POST'&&!req.url().endsWith('/auth')){
         posts.push(req.postDataJSON());
@@ -98,9 +98,9 @@ const http=require('node:http');
     await click(fresh,id,'move');await revision(fresh,id,4);
     assert.equal(await fresh.evaluate(id=>ATLAS_SELECTION.choice(id).area,id),initial.area_options[1]);
     assert((await fresh.locator(`#${id} .selection-card-status`).innerText()).includes('another editor'));
-    lost=true;await click(fresh,id,'color');await fresh.locator(`#${id} [data-selection-action="retry"]`).waitFor();
+    pauseReads=true;lost=true;await click(fresh,id,'color');await fresh.locator(`#${id} [data-selection-action="retry"]`).waitFor();
     await click(fresh,id,'retry');await revision(fresh,id,5);
-    assert.deepEqual(posts.at(-1),posts.at(-2),'Retry is the exact same edit');
+    assert.deepEqual(posts.at(-1),posts.at(-2),'Retry is the exact same edit');pauseReads=false;
     await page.bringToFront();await page.evaluate(()=>ATLAS_SELECTION.refresh());await revision(page,id,5);
     await page.evaluate(async id=>{
       const copy=JSON.parse(JSON.stringify(TCS_ATLAS));
@@ -126,7 +126,7 @@ const http=require('node:http');
     await page.locator('#edit-selection').click();assert.equal(await page.locator('[data-selection-action]').count(),0);
     assert.equal(await page.evaluate(()=>sessionStorage.getItem('tcs-atlas-selection-editor-v1')),null);
     assert.equal(errors.length,0,errors.join('\n'));
-    const report={checks:['complete green/red proposal','500 greens and 35 category counters','all/green/red filters','upvoted red explanation','read-only visitors and editor authentication','shared color and two-way category edits','quota deviations','reload persistence','independent visitors','stale edit conflict','lost-response retry','manual choice survives publication','full and compact controls','320–1440px layout','outage preservation','feedback not loaded or rendered'],errors};
+    const report={checks:['complete green/red proposal','500 greens and 35 category counters','all/green/red filters','upvoted red explanation','read-only visitors and editor authentication','shared color and two-way category edits','quota deviations','reload persistence','independent visitors','stale edit conflict','lost-response retry','manual choice survives publication','map shows shared colors and category moves','full and compact controls','320–1440px layout','outage preservation','feedback not loaded or rendered'],errors};
     fs.writeFileSync(artifact+'/checks.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
   }finally{await browser.close();await new Promise(resolve=>server.close(resolve));db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

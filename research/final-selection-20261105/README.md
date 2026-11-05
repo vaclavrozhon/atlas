@@ -72,7 +72,12 @@ intact. The GitHub new-problem form still preserves unsent local drafts.
   A pre-existing word-boundary truncation bug was fixed without changing statements.
 - Service version 4 deployed successfully from commit
   c8c607e74b1c16ef14a79437f9a1f81cebd9708e, preserving the existing site and D1 database.
-- Reader deployment details are recorded separately in deployment.json when complete.
+- The reader is published at https://vaclavrozhon.github.io/atlas/ (Pages commit
+  e703509240f008c13de48153a5ebf0c1585286a4). See deployment.json and ui/live.json.
+- A real editor color change was observed by an independent visitor, restored to
+  its original value and confirmed after reload. The live total remains 500 green.
+- All 19 original public notes, the proposal list and 97 aggregate vote records
+  are unchanged after deploying the service.
 
 ## Deferred work
 
