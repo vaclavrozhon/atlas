@@ -14,6 +14,9 @@ The 13 September 2026 decision now preserves inactive cards in
 `data/archive/cards/`. Routine research and improvements target `data/cards/`
 only; the archive is outside the research backlog unless explicitly requested.
 
+- [numerical-targets-20261105/TCS-0154.json](numerical-targets-20261105/TCS-0154.json): user-selected polynomial growth exponent with absolute 0.01 accuracy for Separating words, replacing the stronger constant-factor asymptotic target; earlier wording and the precise decision are preserved.
+- [category-split-20261105/audit.json](category-split-20261105/audit.json): individually split the 53 graph cards into 32 Structural graph theory and 21 Graph algorithms cards, and merged six Differential privacy cards into Cryptography. The registry retains 10 large and 25 small categories; all 1,120 active cards and importance scores are preserved.
+- [community-feedback-20261105/notes.txt](community-feedback-20261105/notes.txt): all 19 public notes and two GitHub contributions saved verbatim, with authors, dates, sources and earlier editorial responses, outside the website build.
 - [review-notes.md](review-notes.md): preserved model distinctions and dated source checks.
 - [top200-problems-20260913/](top200-problems-20260913/README.md): two major problem candidates for each of the 200 selected researchers, 400 associations, 198 reused cards and eight new cards, with affinities, references, status distinctions and an admission audit.
 - [graph-candidates-20260913/](graph-candidates-20260913/IMPORT.md): fifteen approved graph and Chan targets, eleven new cards and four existing-card updates, with category mapping and model distinctions.

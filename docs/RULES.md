@@ -1,6 +1,6 @@
 # Atlas rules
 
-Confirmed editorial and repository decisions, updated on 13 September 2026.
+Confirmed editorial and repository decisions, updated on 5 November 2026.
 This is the authoritative policy document. Current category names, quotas and
 focus choices live in the linked data registries. Dated research observations
 live in [research/review-notes.md](../research/review-notes.md) and individual
@@ -99,9 +99,19 @@ guarantee from the separate open exact-capacity problem. This decision does not
 require a new scientific result, an efficient evaluation algorithm or exact
 determination of the curve.
 
-Asymptotic-complexity questions retain their stated precision, such
-as constant-factor matching bounds; 0.01 is not an additive error on big-O
-notation. Infinite values, where allowed, require proof of infinitude. Partial
+When the intended answer is a numerical growth or complexity exponent, that
+exponent is a numerical target and uses the same absolute 1/100 tolerance.
+For example, TCS-0154 asks for the infimum of real r >= 0 for which the
+worst-case state count s(n) is O(n^r), to that precision. Define the model,
+quantifiers and exponent explicitly; do not assume the infimum is attained
+or that an ordinary logarithmic growth limit exists. An exponent does not
+determine logarithmic factors or settle a stronger exact threshold conjecture.
+This records the user's clarification of 5 November 2026.
+
+An asymptotic question explicitly targeting an entire function up to constant
+factors retains that criterion; 0.01 is not an additive error on big-O notation.
+That distinction must not be used to exempt a numerical exponent from the
+numerical-answer rule. Infinite values, where allowed, require proof of infinitude. Partial
 advances and special cases count only if they meet the entire answer criterion.
 
 Sources, tools and human involvement in solution attempts are unrestricted.
@@ -238,7 +248,10 @@ The current plan has ten large and twenty-five small categories. They contribute
 25/10 problems each to the primary Top 500 and 5/2 to its Top 100 subset.
 The registry's fifty/twenty quotas and the existing Top 1000 export remain a
 legacy larger view, not an active selection goal. The Data structures addition
-fills the slot released by the online/scheduling merger. Generate counts and
+fills the slot released by the online/scheduling merger. The 5 November 2026
+split of Structural graph theory and Graph algorithms adds one small category;
+merging Differential privacy into Cryptography removes one small category.
+The total and the large/small quotas are unchanged. Generate counts and
 category reports from data instead of copying mutable inventories into instructions.
 
 Apply these accepted boundaries using the registry's current display labels:
@@ -266,13 +279,31 @@ Apply these accepted boundaries using the registry's current display labels:
   scheduling and packing. Scheduling is no longer separate; online questions
   no longer default to Optimization. Merely mentioning online algorithms does
   not override specialist learning, privacy, quantum or distributed targets.
-- **Graph theory and algorithms:** the accepted structural scope includes minors,
+- **Structural graph theory:** this small category retains the `structural` ID
+  and `Structural graph theory` key. Its scope includes minors,
   decompositions, width parameters, sparse classes, separators, logical
   characterizations, hereditary/forbidden-subgraph structure, coloring, and
-  expansion/girth questions with computational consequences. It also includes
-  static spanning trees, matching, subgraph detection, canonization, paths,
-  graph-width algorithms and graph-specific labels. Dynamic, distributed,
-  parameterized and fine-grained targets take specialist precedence.
+  expansion/girth questions with computational consequences. Classify the main
+  target: an existence, extremal, reconstruction-uniqueness or structural-bound
+  question belongs here even when it has algorithmic applications. This includes
+  the excluded-grid threshold, recoloring diameter and Boolean dimension of
+  planar-cover posets.
+- **Graph algorithms:** this separate small category uses the `graph-algorithms`
+  ID and `Graph algorithms` key. It covers static spanning trees, matching,
+  subgraph detection, isomorphism, canonization, paths, flows, connectivity,
+  graph-width algorithms and efficient explicit graph constructions. Graph
+  representations with specified storage, query or reachability resources,
+  including distance labels, distance oracles, cut mimicking networks and
+  Steiner shortcuts, also belong here. Dynamic, distributed, parameterized
+  and fine-grained targets retain their specialist categories.
+- **Cryptography and differential privacy:** this large category retains the
+  `crypto` ID and `Cryptography` key. It combines cryptographic primitives,
+  security assumptions and information-theoretic security with private learning,
+  statistical query release, continual observation and private optimization.
+  The separate `privacy` category is retired; its active cards move here with
+  their scientific statements, status and importance scores preserved. The
+  combined category uses one large-category quota and the existing five
+  cryptographic focus choices; privacy candidates enter the shared ranking.
 - **General combinatorics:** largely excluded, with no dedicated category or
   quota to fill. Selected computationally motivated exceptions may use a
   suitable specialist category or Miscellaneous with a specific rationale.

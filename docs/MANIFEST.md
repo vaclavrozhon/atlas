@@ -40,6 +40,14 @@ a decimal expansion or a simple exact expression for the target. Numerical
 evidence alone is insufficient. Exact answers also qualify, and asymptotic bounds
 use the precision specified by the card.
 
+Numerical growth and complexity exponents also use absolute accuracy **0.01**.
+For example, the user selected the polynomial growth exponent for TCS-0154
+on 5 November 2026. Define the exponent as an infimum of admissible polynomial
+upper bounds when a growth limit is not established. The accuracy applies to
+the exponent, without requiring matching logarithmic factors or a leading
+constant. This does not turn a numerical approximation into a resolution of
+a stronger exact conjecture.
+
 For **BB(6)**, the accepted answer is an explicit six-state machine, a proof that
 it halts, and a proof that no halting machine in the same class runs longer.
 Its runtime specifies BB(6) exactly. A simple closed form or decimal expansion
@@ -53,4 +61,5 @@ for a number or curve.
 
 The detailed editorial, source and repository requirements are in
 [RULES.md](RULES.md). This manifest records the user's decisions of
-12–13 September 2026; it does not claim that the catalogue is already formalized.
+12–13 September 2026 and the numerical-exponent clarification of 5 November 2026;
+it does not claim that the catalogue is already formalized.

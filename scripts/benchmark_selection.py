@@ -55,7 +55,7 @@ def apply_focus(data):
                 issues.append(f'Review focus replacement for {identifier} in {area}')
                 continue
             card['benchmark_focus'] = dict(position=position, topic=entry['topic'],
-                reason=entry['reason'], reviewed_on=selection['reviewed_on'])
+                reason=entry['reason'], reviewed_on=review.get('reviewed_on', selection['reviewed_on']))
         available = sum(c['area'] == area and eligible(c) for c in cards.values())
         selected = sum(c['area'] == area and 'benchmark_focus' in c for c in cards.values())
         if selected < min(limit, available):
@@ -64,6 +64,7 @@ def apply_focus(data):
         issues.append(f'Category needs focus review: {area}')
     data['meta']['benchmark_selection'] = dict(
         reviewed_on=selection['reviewed_on'], basis=selection['basis'],
+        updated_on=selection.get('updated_on', selection['reviewed_on']),
         reviewed_categories=len(seen_areas & areas.keys()), issues=issues)
 
 
@@ -111,7 +112,8 @@ def selection_report(data):
     def md(value):
         return str(value).replace('|', '\\|').replace('\n', ' ')
     lines = ['# Benchmark selection review', '',
-        f"Reviewed on {selection['reviewed_on']} across {len(data['areas'])} categories.",
+        f"Full ranking reviewed on {selection['reviewed_on']}; category selections updated on "
+        f"{selection.get('updated_on', selection['reviewed_on'])} across {len(data['areas'])} categories.",
         '', GOAL, '', selection['basis'], '',
         'Top 100 takes the first 5/2 places in each large/small category. '
         'Top 500 takes the first 25/10 and the legacy Top 1000 view takes '
