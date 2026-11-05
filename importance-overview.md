@@ -1,14 +1,14 @@
 # Importance order in all 35 categories
 
-Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards, including resolved records, are archived outside the ranking without changing their historical importance score. Importance review does not establish that a saved question is still open.
+Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards are archived outside the ranking. Problems first resolved on or after 1 January 2026 can remain eligible, with dated evidence, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-1,120 records have an editorial importance assessment; 0 remain provisional.
+1,146 records have an editorial importance assessment; 0 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 69; importance assessed: 69; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 65; importance assessed: 65; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 69; importance 
 
 ## 2. Algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 28; importance assessed: 28; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 34; importance assessed: 34; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -34,11 +34,11 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 28; importance 
 | 3 | [Size-bounded approximate multicommodity-flow sparsifiers](index.html#TCS-7380) | 90 |
 | 4 | [Hypergraph cut sparsifiers with \\(O(n/\\varepsilon ^{2})\\) hyperedges](index.html#TCS-0946) | 92 |
 | 5 | [Near-linear output-sensitive Subset Sum](index.html#TCS-7350) | 90 |
-| 6 | [Small Implicit Graph Conjecture](index.html#TCS-5705) | 90 |
-| 7 | [Quadratic-size submodular hypergraph sparsifiers](index.html#TCS-2018) | 86 |
-| 8 | [Quasipolynomial dependence on vertices for hypergraph isomorphism](index.html#TCS-3346) | 86 |
-| 9 | [Optimal size of four-additive graph spanners](index.html#TCS-6783) | 86 |
-| 10 | [Optimal additive error of linear-size spanners](index.html#TCS-6785) | 86 |
+| 6 | [Truly subcubic APSP](index.html#TCS-6510) | 96 |
+| 7 | [Breaking the \\(2^{n}\\) barrier for weighted TSP](index.html#TCS-7233) | 94 |
+| 8 | [Optimal deterministic restricted-isometry matrices](index.html#TCS-6662) | 92 |
+| 9 | [Subset Sum below the meet-in-the-middle exponent](index.html#TCS-4790) | 90 |
+| 10 | [Small Implicit Graph Conjecture](index.html#TCS-5705) | 90 |
 
 ## 3. Automata and formal languages (large)
 
@@ -57,26 +57,26 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 40; importance 
 | 9 | [Linear-time minimization of deterministic finite automata](index.html#TCS-7261) | 86 |
 | 10 | [Decidability of the nondeterministic tree-automaton index problem](index.html#TCS-7431) | 86 |
 
-## 4. Semantics, logic and verification (large)
+## 4. Logic, verification and automated reasoning (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 51; importance assessed: 51; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 80; importance assessed: 80; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Skolem problem](index.html#TCS-5773) | 96 |
 | 2 | [Parity games in polynomial time](index.html#TCS-4245) | 94 |
-| 3 | [Tarski’s exponential function problem](index.html#TCS-7230) | 96 |
-| 4 | [Internal semisimplicial types in ordinary HoTT](index.html#TCS-6569) | 90 |
-| 5 | [Decidability of multiplicative-exponential linear logic](index.html#TCS-7192) | 90 |
-| 6 | [Positivity problem for linear recurrences](index.html#TCS-6565) | 94 |
-| 7 | [Simple stochastic games in polynomial time](index.html#TCS-6567) | 92 |
-| 8 | [Mean-payoff games in polynomial time](index.html#TCS-6568) | 92 |
-| 9 | [Continuous Skolem problem](index.html#TCS-6566) | 86 |
-| 10 | [Scott-continuous lambda models with theory \\(\\lambda \\beta\\)](index.html#TCS-6570) | 86 |
+| 3 | [Word equations with linear length constraints](index.html#TCS-6562) | 94 |
+| 4 | [A logic capturing polynomial time](index.html#TCS-7195) | 98 |
+| 5 | [Internal semisimplicial types in ordinary HoTT](index.html#TCS-6569) | 90 |
+| 6 | [Tarski’s exponential function problem](index.html#TCS-7230) | 96 |
+| 7 | [Positivity problem for linear recurrences](index.html#TCS-6565) | 94 |
+| 8 | [Simple stochastic games in polynomial time](index.html#TCS-6567) | 92 |
+| 9 | [Mean-payoff games in polynomial time](index.html#TCS-6568) | 92 |
+| 10 | [FO model checking on hereditary monadically dependent graph classes](index.html#TCS-6678) | 92 |
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 54; importance assessed: 54; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 55; importance assessed: 55; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 54; importance 
 
 ## 6. Optimization and numerical computation (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 35; importance assessed: 35; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance assessed: 38; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -102,15 +102,15 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 35; importance 
 | 3 | [Nearly linear-time solution of general sparse linear systems](index.html#TCS-6585) | 96 |
 | 4 | [Exact semidefinite feasibility in polynomial time](index.html#TCS-6574) | 94 |
 | 5 | [Single-exponential dependence on dimension for integer programming](index.html#TCS-7264) | 92 |
-| 6 | [Polynomial-time simplex pivot rule](index.html#TCS-6572) | 94 |
-| 7 | [Beck–Fiala conjecture](index.html#TCS-7315) | 92 |
-| 8 | [Conforti–Cornuéjols conjecture](index.html#TCS-7227) | 88 |
-| 9 | [P-matrix linear complementarity in polynomial time](index.html#TCS-7231) | 88 |
-| 10 | [Truly linear-time Laplacian solving](index.html#TCS-7397) | 88 |
+| 6 | [Crouzeix’s sharp numerical-range inequality](index.html#TCS-6579) | 95 |
+| 7 | [Polynomial-time simplex pivot rule](index.html#TCS-6572) | 94 |
+| 8 | [Beck–Fiala conjecture](index.html#TCS-7315) | 92 |
+| 9 | [Conforti–Cornuéjols conjecture](index.html#TCS-7227) | 88 |
+| 10 | [P-matrix linear complementarity in polynomial time](index.html#TCS-7231) | 88 |
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 42; importance assessed: 42; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 46; importance assessed: 46; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -119,15 +119,15 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 42; importance 
 | 3 | [Unknot recognition in polynomial time](index.html#TCS-6528) | 94 |
 | 4 | [Planar k-set extremal function](index.html#TCS-0318) | 90 |
 | 5 | [Polynomial Hirsch conjecture](index.html#TCS-6573) | 94 |
-| 6 | [Lang–Plaut problem](index.html#TCS-6524) | 90 |
-| 7 | [Optimal size of weak \\(\\varepsilon\\)-nets for convex ranges](index.html#TCS-6526) | 90 |
-| 8 | [Decidability of PL four-sphere recognition](index.html#TCS-7242) | 90 |
-| 9 | [Euclidean minimum spanning tree complexity](index.html#TCS-0403) | 86 |
-| 10 | [Dürer’s conjecture](index.html#TCS-0406) | 86 |
+| 6 | [Optimal \\(\\ell_1\\) distortion of planar Earth Mover Distance](index.html#TCS-6529) | 92 |
+| 7 | [Lang–Plaut problem](index.html#TCS-6524) | 90 |
+| 8 | [Optimal size of weak \\(\\varepsilon\\)-nets for convex ranges](index.html#TCS-6526) | 90 |
+| 9 | [Decidability of PL four-sphere recognition](index.html#TCS-7242) | 90 |
+| 10 | [Optimal \\(\\ell_{1}\\) distortion of binary edit distance](index.html#TCS-7297) | 90 |
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 40; importance assessed: 40; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 42; importance assessed: 42; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -138,13 +138,13 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 40; importance 
 | 5 | [One-way functions from hardness of learning P/poly](index.html#TCS-5090) | 90 |
 | 6 | [Learning Boolean juntas from uniform random examples](index.html#TCS-6543) | 90 |
 | 7 | [Learning decision trees from uniform random examples in polynomial time](index.html#TCS-7294) | 90 |
-| 8 | [NP-hardness of improper learning of \\(\\mathrm{P}/\\mathrm{poly}\\)](index.html#TCS-1573) | 86 |
-| 9 | [Time complexity of Gaussian agnostic halfspace learning](index.html#TCS-4592) | 86 |
-| 10 | [Fully polynomial learning of halfspace intersections under Gaussian and uniform inputs](index.html#TCS-5088) | 86 |
+| 8 | [Polynomial-time density learning of Gaussian mixtures](index.html#TCS-5443) | 88 |
+| 9 | [NP-hardness of improper learning of \\(\\mathrm{P}/\\mathrm{poly}\\)](index.html#TCS-1573) | 86 |
+| 10 | [Time complexity of Gaussian agnostic halfspace learning](index.html#TCS-4592) | 86 |
 
-## 9. Cryptography (large)
+## 9. Cryptography and differential privacy (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 40; importance assessed: 40; provisional: 0.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 46; importance assessed: 46; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -155,9 +155,9 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 40; importance 
 | 5 | [Sub-square-root share-size exponents in perfect secret sharing](index.html#TCS-0465) | 92 |
 | 6 | [Existence of one-way functions](index.html#TCS-7167) | 98 |
 | 7 | [Existence of public-key encryption](index.html#TCS-7168) | 94 |
-| 8 | [Oblivious transfer from public-key encryption](index.html#TCS-6549) | 92 |
-| 9 | [Key agreement from one-way functions](index.html#TCS-7229) | 92 |
-| 10 | [One-way permutations from one-way functions](index.html#TCS-6546) | 90 |
+| 8 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) | 92 |
+| 9 | [Oblivious transfer from public-key encryption](index.html#TCS-6549) | 92 |
+| 10 | [Key agreement from one-way functions](index.html#TCS-7229) | 92 |
 
 ## 10. Quantum computation and information (large)
 
@@ -178,7 +178,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 52; importance 
 
 ## 1. Computability and algorithmic information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 30; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 32; importance assessed: 32; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 28; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 29; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -229,24 +229,24 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 4. Fine-grained complexity (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 28; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 27; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Strong Exponential Time Hypothesis](index.html#TCS-6595) | 96 |
-| 2 | [Truly subcubic APSP](index.html#TCS-6510) | 96 |
-| 3 | [Truly subquadratic algorithms for 3SUM](index.html#TCS-0557) | 92 |
-| 4 | [Online matrix–vector multiplication conjecture](index.html#TCS-6503) | 92 |
-| 5 | [Truly subquadratic exact edit distance](index.html#TCS-7179) | 92 |
-| 6 | [Orthogonal Vectors Hypothesis](index.html#TCS-6596) | 88 |
-| 7 | [Algebraic k-Clique Hypothesis](index.html#TCS-6597) | 88 |
-| 8 | [Min-Plus Convolution Hypothesis](index.html#TCS-6598) | 88 |
-| 9 | [Randomized Strong Exponential Time Hypothesis](index.html#TCS-6935) | 88 |
-| 10 | [Randomized APSP hypothesis for polynomial integer weights](index.html#TCS-6937) | 88 |
+| 2 | [Truly subquadratic algorithms for 3SUM](index.html#TCS-0557) | 92 |
+| 3 | [Online matrix–vector multiplication conjecture](index.html#TCS-6503) | 92 |
+| 4 | [Truly subquadratic exact edit distance](index.html#TCS-7179) | 92 |
+| 5 | [Orthogonal Vectors Hypothesis](index.html#TCS-6596) | 88 |
+| 6 | [Algebraic k-Clique Hypothesis](index.html#TCS-6597) | 88 |
+| 7 | [Min-Plus Convolution Hypothesis](index.html#TCS-6598) | 88 |
+| 8 | [Randomized Strong Exponential Time Hypothesis](index.html#TCS-6935) | 88 |
+| 9 | [Randomized APSP hypothesis for polynomial integer weights](index.html#TCS-6937) | 88 |
+| 10 | [ETH versus Gap-ETH](index.html#TCS-7313) | 88 |
 
 ## 5. Pseudorandomness and derandomization (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 40; importance assessed: 40; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 39; importance assessed: 39; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -254,12 +254,12 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 40; importance 
 | 2 | [L versus BPL](index.html#TCS-0026) | 96 |
 | 3 | [Optimal explicit pseudorandom generators for read-once branching programs](index.html#TCS-6600) | 94 |
 | 4 | [P versus RP](index.html#TCS-6686) | 94 |
-| 5 | [Optimal deterministic restricted-isometry matrices](index.html#TCS-6662) | 92 |
-| 6 | [AM versus NP](index.html#TCS-6699) | 92 |
-| 7 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 88 |
-| 8 | [Does arithmetic formula hardness derandomize identity testing?](index.html#TCS-5287) | 88 |
-| 9 | [Pseudorandom generators from hitting-set generators](index.html#TCS-5341) | 88 |
-| 10 | [Uniform PRGs from exponential-time hardness](index.html#TCS-6696) | 88 |
+| 5 | [AM versus NP](index.html#TCS-6699) | 92 |
+| 6 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 88 |
+| 7 | [Does arithmetic formula hardness derandomize identity testing?](index.html#TCS-5287) | 88 |
+| 8 | [Pseudorandom generators from hitting-set generators](index.html#TCS-5341) | 88 |
+| 9 | [Uniform PRGs from exponential-time hardness](index.html#TCS-6696) | 88 |
+| 10 | [Explicit near-optimal vertex expanders](index.html#TCS-6879) | 88 |
 
 ## 6. Parameterized complexity and algorithms (small)
 
@@ -268,19 +268,19 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 37; importance 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [FPT versus \\(\\mathrm{W}\[1\]\\)](index.html#TCS-6592) | 98 |
-| 2 | [Breaking the \\(2^{n}\\) barrier for weighted TSP](index.html#TCS-7233) | 94 |
-| 3 | [Exponential Time Hypothesis](index.html#TCS-6593) | 94 |
-| 4 | [Subset Sum below the meet-in-the-middle exponent](index.html#TCS-4790) | 90 |
-| 5 | [Set Cover conjecture](index.html#TCS-6594) | 90 |
-| 6 | [Strictness of the W-hierarchy](index.html#TCS-6731) | 90 |
-| 7 | [Polynomial kernel for Edge Multiway Cut](index.html#TCS-6660) | 86 |
-| 8 | [Polynomial compression versus polynomial kernelization](index.html#TCS-6734) | 86 |
-| 9 | [General Formula-SAT with a fixed exponential saving](index.html#TCS-6974) | 86 |
-| 10 | [Single-exponential Directed Feedback Vertex Set](index.html#TCS-7035) | 86 |
+| 2 | [Exponential Time Hypothesis](index.html#TCS-6593) | 94 |
+| 3 | [Set Cover conjecture](index.html#TCS-6594) | 90 |
+| 4 | [Strictness of the W-hierarchy](index.html#TCS-6731) | 90 |
+| 5 | [Polynomial kernel for Edge Multiway Cut](index.html#TCS-6660) | 86 |
+| 6 | [Polynomial compression versus polynomial kernelization](index.html#TCS-6734) | 86 |
+| 7 | [General Formula-SAT with a fixed exponential saving](index.html#TCS-6974) | 86 |
+| 8 | [Single-exponential Directed Feedback Vertex Set](index.html#TCS-7035) | 86 |
+| 9 | [Exact recognition of bounded clique-width](index.html#TCS-7181) | 86 |
+| 10 | [FPT approximation of twin-width](index.html#TCS-7241) | 86 |
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 29; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 27; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -312,9 +312,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 | 9 | [Additive-one approximation for bin packing](index.html#TCS-6721) | 88 |
 | 10 | [Constant-factor online contention resolution for matroids](index.html#TCS-5779) | 84 |
 
-## 9. Beyond worst-case and average-case analysis (small)
+## 9. Average-case analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 18; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 16; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -326,8 +326,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 | 6 | [Algorithmic threshold for random k-SAT](index.html#TCS-4876) | 86 |
 | 7 | [Infinitely-often one-way functions from average-case NP hardness](index.html#TCS-6453) | 86 |
 | 8 | [Exponential worst-case hardness implies mild average-case hardness in NP](index.html#TCS-6702) | 86 |
-| 9 | [Algorithmic threshold for the symmetric binary perceptron](index.html#TCS-5011) | 82 |
-| 10 | [Optimization and certification of Max-Cut in random cubic graphs](index.html#TCS-5406) | 82 |
+| 9 | [Optimization and certification of Max-Cut in random cubic graphs](index.html#TCS-5406) | 82 |
+| 10 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 82 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
@@ -348,7 +348,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 17; importance 
 
 ## 11. Counting and enumeration (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance assessed: 23; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 24; importance assessed: 24; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -363,26 +363,43 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance 
 | 9 | [Decision versus approximate counting for fixed-width SAT](index.html#TCS-4671) | 82 |
 | 10 | [FPRAS for counting undirected Euler tours](index.html#TCS-6671) | 82 |
 
-## 12. Structural graph theory and graph algorithms (small)
+## 12. Structural graph theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 53; importance assessed: 53; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 32; importance assessed: 32; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Hadwiger’s conjecture](index.html#TCS-6651) | 98 |
-| 2 | [Graph isomorphism in polynomial time](index.html#TCS-7222) | 96 |
-| 3 | [Erdős–Hajnal conjecture](index.html#TCS-6652) | 96 |
-| 4 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) | 94 |
-| 5 | [Almost-linear-time exact maximum matching in general graphs](index.html#TCS-6538) | 94 |
-| 6 | [Tutte’s 5-flow conjecture](index.html#TCS-7248) | 94 |
-| 7 | [Erdős girth conjecture](index.html#TCS-2783) | 90 |
-| 8 | [Erdős girth conjecture](index.html#TCS-6500) | 90 |
-| 9 | [Gyárfás–Sumner conjecture](index.html#TCS-6653) | 90 |
-| 10 | [Reed’s conjecture](index.html#TCS-6682) | 90 |
+| 2 | [Erdős–Hajnal conjecture](index.html#TCS-6652) | 96 |
+| 3 | [Tutte’s 5-flow conjecture](index.html#TCS-7248) | 94 |
+| 4 | [Erdős girth conjecture](index.html#TCS-2783) | 90 |
+| 5 | [Erdős girth conjecture](index.html#TCS-6500) | 90 |
+| 6 | [Gyárfás–Sumner conjecture](index.html#TCS-6653) | 90 |
+| 7 | [Reed’s conjecture](index.html#TCS-6682) | 90 |
+| 8 | [Vertex reconstruction conjecture](index.html#TCS-7216) | 90 |
+| 9 | [List edge-coloring conjecture](index.html#TCS-7218) | 90 |
+| 10 | [Caccetta–Häggkvist conjecture](index.html#TCS-7251) | 90 |
 
-## 13. Data structures (small)
+## 13. Graph algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 27; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 22; importance assessed: 22; provisional: 0.
+
+| Category position | Problem | Editorial priority |
+| --- | --- | --- |
+| 1 | [Graph isomorphism in polynomial time](index.html#TCS-7222) | 96 |
+| 2 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) | 94 |
+| 3 | [Almost-linear-time exact maximum matching in general graphs](index.html#TCS-6538) | 94 |
+| 4 | [Deterministic Exact Matching](index.html#TCS-6511) | 86 |
+| 5 | [Exact directed maximum flow in \\(O((m+n) \\operatorname{polylog} n)\\) time](index.html#TCS-7228) | 86 |
+| 6 | [Almost-linear triangle detection](index.html#TCS-6539) | 82 |
+| 7 | [Graph canonization versus graph isomorphism](index.html#TCS-7180) | 82 |
+| 8 | [Strongly explicit Ramanujan families for every degree](index.html#TCS-7285) | 82 |
+| 9 | [Strongly polynomial near-linear negative-weight shortest paths](index.html#TCS-7341) | 82 |
+| 10 | [Strongly polynomial maximum flow below the \\(mn\\) barrier](index.html#TCS-7346) | 82 |
+
+## 14. Data structures (small)
+
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 28; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -397,7 +414,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance 
 | 9 | [Space-query exponent curve of 3SUM indexing](index.html#TCS-7333) | 86 |
 | 10 | [Strong SetDisjointness conjecture](index.html#TCS-7334) | 86 |
 
-## 14. Dynamic algorithms (small)
+## 15. Dynamic algorithms (small)
 
 Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 29; provisional: 0.
 
@@ -414,9 +431,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance 
 | 9 | [Worst-case polylogarithmic fully dynamic planarity testing](index.html#TCS-7495) | 86 |
 | 10 | [Dynamic spanning trees with polylogarithmic average stretch](index.html#TCS-0541) | 82 |
 
-## 15. String algorithms and computational biology (small)
+## 16. String algorithms and computational biology (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance assessed: 26; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 25; importance assessed: 25; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -424,16 +441,16 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 26; importance 
 | 2 | [Constant-factor edit-distance approximation in \\(O(n\\operatorname{polylog} n)\\) time](index.html#TCS-6624) | 94 |
 | 3 | [Constant-factor approximation of the smallest grammar](index.html#TCS-6513) | 90 |
 | 4 | [Almost-linear-time \\((1+\\varepsilon)\\)-approximation of edit distance](index.html#TCS-7235) | 90 |
-| 5 | [Optimal \\(\\ell_{1}\\) distortion of binary edit distance](index.html#TCS-7297) | 90 |
-| 6 | [Breaking two for sum-of-pairs multiple sequence alignment](index.html#TCS-6669) | 86 |
-| 7 | [Truly subquadratic \\((1+\\varepsilon)\\)-approximation of edit distance](index.html#TCS-7220) | 86 |
-| 8 | [Optimal approximation ratio for shortest common superstring](index.html#TCS-7322) | 86 |
-| 9 | [Almost-linear constant-factor approximation of LCS](index.html#TCS-7371) | 86 |
-| 10 | [Linear-space encoding from smallest string attractors](index.html#TCS-6928) | 82 |
+| 5 | [Breaking two for sum-of-pairs multiple sequence alignment](index.html#TCS-6669) | 86 |
+| 6 | [Truly subquadratic \\((1+\\varepsilon)\\)-approximation of edit distance](index.html#TCS-7220) | 86 |
+| 7 | [Optimal approximation ratio for shortest common superstring](index.html#TCS-7322) | 86 |
+| 8 | [Almost-linear constant-factor approximation of LCS](index.html#TCS-7371) | 86 |
+| 9 | [Linear-space encoding from smallest string attractors](index.html#TCS-6928) | 82 |
+| 10 | [Text-to-pattern Hamming distances below the square-root barrier](index.html#TCS-7367) | 82 |
 
-## 16. Game theory, social choice and fair division (small)
+## 17. Game theory, social choice and fair division (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 27; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 28; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -448,26 +465,43 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance 
 | 9 | [Constant-factor welfare from posted item prices](index.html#TCS-7505) | 84 |
 | 10 | [Constant price of stability for undirected network design](index.html#TCS-7508) | 84 |
 
-## 17. Algebraic computation (small)
+## 18. Algebraic algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 60; importance assessed: 60; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 27; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Matrix multiplication exponent](index.html#TCS-0007) | 100 |
-| 2 | [VP versus VNP](index.html#TCS-0005) | 100 |
+| 2 | [Bit complexity of integer multiplication](index.html#TCS-7174) | 88 |
+| 3 | [Derandomizing polynomial identity testing](index.html#TCS-7113) | 96 |
+| 4 | [Deterministic polynomial-time factorization over finite fields](index.html#TCS-6614) | 92 |
+| 5 | [Word problem for one-relation monoids](index.html#TCS-6641) | 88 |
+| 6 | [Sum-of-square-roots problem](index.html#TCS-0055) | 84 |
+| 7 | [Polynomial-time finite-group isomorphism in the Cayley-table model](index.html#TCS-6615) | 84 |
+| 8 | [Conjugacy problem for one-relator groups](index.html#TCS-6642) | 84 |
+| 9 | [Isomorphism problem for one-relator groups](index.html#TCS-6677) | 84 |
+| 10 | [Derandomizing black-box depth-four PIT](index.html#TCS-6898) | 84 |
+
+## 19. Algebraic complexity (small)
+
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 36; importance assessed: 36; provisional: 0.
+
+| Category position | Problem | Editorial priority |
+| --- | --- | --- |
+| 1 | [VP versus VNP](index.html#TCS-0005) | 100 |
+| 2 | [Superpolynomial arithmetic formula lower bounds](index.html#TCS-6888) | 92 |
 | 3 | [Permanent versus determinant](index.html#TCS-6611) | 96 |
-| 4 | [Derandomizing polynomial identity testing](index.html#TCS-7113) | 96 |
-| 5 | [VP versus VBP over the complex numbers](index.html#TCS-6612) | 92 |
-| 6 | [Polynomial-size arithmetic formulas for the determinant](index.html#TCS-6613) | 92 |
-| 7 | [Deterministic polynomial-time factorization over finite fields](index.html#TCS-6614) | 92 |
-| 8 | [Shub–Smale \\(\\tau\\)-conjecture](index.html#TCS-6666) | 92 |
-| 9 | [Superpolynomial arithmetic formula lower bounds](index.html#TCS-6888) | 92 |
-| 10 | [Explicit univariate arithmetic circuit lower bounds](index.html#TCS-0009) | 88 |
+| 4 | [VP versus VBP over the complex numbers](index.html#TCS-6612) | 92 |
+| 5 | [Polynomial-size arithmetic formulas for the determinant](index.html#TCS-6613) | 92 |
+| 6 | [Shub–Smale \\(\\tau\\)-conjecture](index.html#TCS-6666) | 92 |
+| 7 | [Explicit univariate arithmetic circuit lower bounds](index.html#TCS-0009) | 88 |
+| 8 | [Superlinear constant-degree arithmetic circuit lower bounds](index.html#TCS-0010) | 88 |
+| 9 | [Explicit three-dimensional tensors of superlinear rank](index.html#TCS-6895) | 88 |
+| 10 | [Strassen’s asymptotic rank conjecture](index.html#TCS-7262) | 88 |
 
-## 18. Lattices and computational number theory (small)
+## 20. Lattices and computational number theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 27; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 28; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -479,12 +513,12 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance 
 | 6 | [Exact Euclidean SVP in BQP](index.html#TCS-7169) | 88 |
 | 7 | [Quantum polynomial-factor approximation of Euclidean SVP](index.html#TCS-7234) | 88 |
 | 8 | [Deterministic polynomial-time construction of a prime of a given bit length](index.html#TCS-7265) | 88 |
-| 9 | [Polynomial-factor Euclidean SVP hardness assuming NP is not contained in RP](index.html#TCS-0655) | 84 |
-| 10 | [Quantum-ETH hardness of cryptographic-factor GapSVP](index.html#TCS-0658) | 84 |
+| 9 | [Deterministic NP-hardness reductions for Euclidean SVP](index.html#TCS-0651) | 85 |
+| 10 | [Polynomial-factor Euclidean SVP hardness assuming NP is not contained in RP](index.html#TCS-0655) | 84 |
 
-## 19. Coding and information theory (small)
+## 21. Coding and information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 27; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 25; importance assessed: 25; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -497,39 +531,26 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance 
 | 7 | [Polynomial-length constant-query locally decodable codes](index.html#TCS-1020) | 88 |
 | 8 | [Decidability of unconditional entropy inequalities](index.html#TCS-6608) | 88 |
 | 9 | [Constant-rate binary locally decodable codes with logarithmic query complexity](index.html#TCS-6609) | 88 |
-| 10 | [Shannon capacity of \\(C_{7}\\)](index.html#TCS-6610) | 88 |
+| 10 | [Capacity of the general two-way channel](index.html#TCS-7211) | 88 |
 
-## 20. Property testing and distribution learning (small)
+## 22. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 20; importance assessed: 20; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 19; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Effective classification of polynomially testable hereditary graph properties](index.html#TCS-6630) | 92 |
 | 2 | [Polynomial testability versus distance estimation](index.html#TCS-1033) | 92 |
 | 3 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 88 |
-| 4 | [Polynomial-time density learning of Gaussian mixtures](index.html#TCS-5443) | 88 |
-| 5 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 84 |
-| 6 | [Planar graphs from local neighborhoods](index.html#TCS-4376) | 84 |
-| 7 | [Sublinear testing of bounded-degree graph isomorphism](index.html#TCS-6672) | 84 |
-| 8 | [Complexity of tolerant monotonicity testing](index.html#TCS-7384) | 84 |
-| 9 | [Polynomial testing of induced four-cycle freeness](index.html#TCS-1030) | 80 |
-| 10 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 80 |
+| 4 | [Polynomial-query submodularity testing](index.html#TCS-0848) | 84 |
+| 5 | [Planar graphs from local neighborhoods](index.html#TCS-4376) | 84 |
+| 6 | [Sublinear testing of bounded-degree graph isomorphism](index.html#TCS-6672) | 84 |
+| 7 | [Complexity of tolerant monotonicity testing](index.html#TCS-7384) | 84 |
+| 8 | [Polynomial testing of induced four-cycle freeness](index.html#TCS-1030) | 80 |
+| 9 | [Query complexity of Max-CSP testing](index.html#TCS-5085) | 80 |
+| 10 | [Efficient black-box testing of high-dimensional convexity](index.html#TCS-7385) | 80 |
 
-## 21. Differential privacy (small)
-
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 6; importance assessed: 6; provisional: 0.
-
-| Category position | Problem | Editorial priority |
-| --- | --- | --- |
-| 1 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) | 92 |
-| 2 | [Polynomial-time private release of all marginals](index.html#TCS-7236) | 88 |
-| 3 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) | 84 |
-| 4 | [Additive privacy cost for adversarial bandits](index.html#TCS-7390) | 84 |
-| 5 | [Optimal regret for private stochastic online learning](index.html#TCS-0507) | 78 |
-| 6 | [Optimal private sample complexity for nonsmooth nonconvex optimization](index.html#TCS-7391) | 74 |
-
-## 22. Constraint satisfaction (small)
+## 23. Constraint satisfaction (small)
 
 Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 18; provisional: 0.
 
@@ -546,45 +567,36 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 | 9 | [Boolean decision-Holant dichotomy](index.html#TCS-6748) | 82 |
 | 10 | [Universal representation of NP by \\(\\omega\\)-categorical CSPs](index.html#TCS-7116) | 82 |
 
-## 23. Automated reasoning, rewriting and unification (small)
+## 24. Database theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 20; importance assessed: 20; provisional: 0.
-
-| Category position | Problem | Editorial priority |
-| --- | --- | --- |
-| 1 | [Word equations with linear length constraints](index.html#TCS-6562) | 94 |
-| 2 | [NP membership of word-equation satisfiability](index.html#TCS-0163) | 90 |
-| 3 | [Decidability of Presburger arithmetic with primes](index.html#TCS-1992) | 86 |
-| 4 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) | 86 |
-| 5 | [Decidability of termination for one-rule string rewriting](index.html#TCS-6644) | 86 |
-| 6 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 82 |
-| 7 | [Greedy CDCL without restarts versus resolution](index.html#TCS-7239) | 82 |
-| 8 | [Madlener–Otto plain-group conjecture](index.html#TCS-7405) | 82 |
-| 9 | [NP membership of context unification](index.html#TCS-7411) | 82 |
-| 10 | [Decidability of fifth-order \\(\\beta\\)-matching](index.html#TCS-1595) | 78 |
-
-## 24. Database theory and finite model theory (small)
-
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 22; importance assessed: 22; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 16; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
-| 1 | [A logic capturing polynomial time](index.html#TCS-7195) | 98 |
-| 2 | [FO model checking on hereditary monadically dependent graph classes](index.html#TCS-6678) | 92 |
-| 3 | [Asser’s problem](index.html#TCS-7232) | 92 |
-| 4 | [A logic capturing logarithmic space](index.html#TCS-3631) | 88 |
-| 5 | [Constant-delay conjunctive-query classification](index.html#TCS-6645) | 88 |
-| 6 | [Conjunctive-query containment under bag semantics](index.html#TCS-0492) | 84 |
-| 7 | [Decidability of conjunctive-query entailment in SROIQ](index.html#TCS-6680) | 84 |
-| 8 | [Fagin’s binary-relation spectrum problem](index.html#TCS-7415) | 84 |
-| 9 | [Effective syntax for order-invariant first-order queries](index.html#TCS-7422) | 84 |
-| 10 | [Computability of entropic query-size bounds](index.html#TCS-0488) | 80 |
+| 1 | [Conjunctive-query containment under bag semantics](index.html#TCS-0492) | 84 |
+| 2 | [Constant-delay conjunctive-query classification](index.html#TCS-6645) | 88 |
+| 3 | [Dichotomy for consistent query answering under primary keys](index.html#TCS-7512) | 90 |
+| 4 | [Dichotomy for deletion resilience of relational queries](index.html#TCS-7513) | 86 |
+| 5 | [Decidability of conjunctive-query entailment in SROIQ](index.html#TCS-6680) | 84 |
+| 6 | [Computability of entropic query-size bounds](index.html#TCS-0488) | 80 |
+| 7 | [BDD/FC conjecture](index.html#TCS-0494) | 80 |
+| 8 | [Decidability of query answering with linear rules and transitivity](index.html#TCS-0495) | 80 |
+| 9 | [Linear-round convergence over stable semirings](index.html#TCS-0482) | 76 |
+| 10 | [Uniform reliability of homomorphism-closed queries](index.html#TCS-0505) | 76 |
 
 ## 25. Miscellaneous (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 2; importance assessed: 2; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 12; importance assessed: 12; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Sunflower conjecture](index.html#TCS-7290) | 94 |
 | 2 | [\\(1/3\\)–\\(2/3\\) conjecture](index.html#TCS-7177) | 88 |
+| 3 | [Frankl's union-closed sets conjecture](index.html#TCS-7514) | 92 |
+| 4 | [Hadamard matrices of every order divisible by four](index.html#TCS-7515) | 89 |
+| 5 | [Rota's basis conjecture for matroids](index.html#TCS-7520) | 89 |
+| 6 | [Shannon capacity of \\(C_{7}\\)](index.html#TCS-6610) | 88 |
+| 7 | [Asymptotic exponent of the largest cap set](index.html#TCS-7516) | 88 |
+| 8 | [Feige's small-deviation conjecture](index.html#TCS-7521) | 88 |
+| 9 | [Nivat's conjecture on rectangular pattern complexity](index.html#TCS-7518) | 87 |
+| 10 | [Lonely runner conjecture](index.html#TCS-7517) | 83 |

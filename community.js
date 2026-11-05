@@ -78,12 +78,14 @@
     return `<p class="community-review"><strong>[${esc(review.status)}]</strong> ${esc(review.response)} <span class="small">Editorial review · ${esc(date(review.reviewed_on))} · <a href="#${esc(card.id)}">${esc(card.id)}</a></span></p>`;
   }
   function notesContent(id){
+    if(data.meta.community_public===false)return '';
     const notes=contributions.filter(item=>item.kind==='note'&&(item.problem_id===id||reviewFor(item)?.card.id===id));
     if(!notes.length)return '';
     return `<details class="community-thread" data-thread="${esc(id)}" ${openThreads.has(id)?'open':''}><summary>Public notes (${notes.length})</summary>${notes.map(item=>`<article class="public-note"><p class="public-note-author">${byAuthor(item)}${item.problem_id!==id?` · Originally on ${esc(item.problem_id)}`:''}</p><p class="public-note-text">${esc(item.text)}</p>${reviewHTML(item)}${item.source==='direct'?(ownership[item.id]?`<button type="button" class="text-button" data-delete-note="${esc(item.id)}">Delete my note</button>`:''):`<a class="small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Reply or edit on GitHub ↗</a>`}</article>`).join('')}</details>`;
   }
-  function notesHTML(id){return `<div class="public-notes" data-public-notes="${esc(id)}">${notesContent(id)}</div>`;}
+  function notesHTML(id){if(data.meta.community_public===false)return '';return `<div class="public-notes" data-public-notes="${esc(id)}">${notesContent(id)}</div>`;}
   function render(){
+    if(data.meta.community_public===false){$('community').hidden=true;return;}
     const problems=contributions.filter(item=>item.kind==='problem');
     $('community-count').textContent=problems.length?`(${problems.length})`:'';
     $('community-problem-count').textContent=`(${problems.length})`;
@@ -93,6 +95,7 @@
   }
   function status(text){$('community-status').textContent=text;}
   async function refresh(force=false){
+    if(data.meta.community_public===false)return;
     if(loading)return;
     if(!force&&Date.now()-lastAttempt<60000)return;
     if(!force&&loadedAt&&Date.now()-loadedAt<300000){status(`Shared contributions checked ${new Date(loadedAt).toLocaleString('en')}.`);return;}
@@ -149,7 +152,7 @@
     $('proposal-category').value=selected||'';
   }
   function open(kind,id){
-    if(posting)return;
+    if(posting||(kind==='note'&&data.meta.community_public===false))return;
     const target=kind==='note'?problem(id):null;
     if(kind==='note'&&!target)return;
     current={kind,id,key:kind==='note'?`note:${id}`:'problem'};
@@ -227,10 +230,10 @@
     if(!$('contribution-form').reportValidity())return;
     if(current.kind==='note'){await postNote();return;}
     saveDraft();const draft=submission(),url=issueURL(draft.title,draft.body);
-    $('refresh-after-submission').hidden=false;
+    $('refresh-after-submission').hidden=data.meta.community_public===false;
     if(url.length>7500){$('contribution-copy-text').value=draft.body;$('open-long-contribution').href=issueURL(draft.title);$('long-contribution').hidden=false;$('long-contribution').scrollIntoView({block:'nearest'});return;}
     window.open(url,'_blank','noopener,noreferrer');
-    $('contribution-result').textContent='Finish by clicking “Submit new issue” on GitHub. Then return here and refresh contributions. Your draft is kept until you discard it.';
+    $('contribution-result').textContent='Finish by clicking “Submit new issue” on GitHub. Your draft is kept until you discard it.';
   });
   for(const id of ['public-note-text','proposal-title','proposal-statement'])$(id).addEventListener('input',event=>event.target.setCustomValidity(''));
   $('copy-contribution').onclick=async()=>{
@@ -270,6 +273,7 @@
     event.target.open?openThreads.add(id):openThreads.delete(id);
   },true);
   function revealHash(){
+    if(data.meta.community_public===false)return;
     const id=decodeURIComponent(location.hash.slice(1));
     if(id==='community')$('community').open=true;
     if(/^GH-\d+$/.test(id)){

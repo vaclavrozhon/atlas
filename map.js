@@ -7,7 +7,7 @@
   if(!ctx){$('map-loading').textContent='This browser cannot display the map. Please use the catalogue.';return;}
   const math=window.ATLAS_MATH,esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=s=>math.plain(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  const active=c=>c&&!c.scope_exclusion&&!['resolved','excluded'].includes(c.status);
+  const active=c=>c&&!c.scope_exclusion&&c.status!=='excluded'&&(c.status!=='resolved'||c.benchmark_eligibility?.open_at_cutoff===true);
   const number=n=>n.toLocaleString('en');
   let data=window.TCS_ATLAS,nodes=[],links=[],byId=new Map(),areas=new Map(),neighbors=new Map();
   let width=1,height=1,transform=d3.zoomIdentity,simulation=null,hovered=null,pinned=false,dragging=false;
@@ -15,6 +15,30 @@
   let category='',query='',matches=new Set(),resultsLimit=25,fetching=false,disposed=false;
   const selection=d3.select(canvas),preview=$('map-preview');
   const colorAt=i=>d3.hcl((i*137.508+145)%360,43,48+(i%3)*7).formatHex();
+  let sharedChoices=new Map(),sharedVersion='',readingChoices=false;
+  function applySharedChoices(){
+    for(const c of data.cards)if(c.selection){
+      const saved=sharedChoices.get(c.id);
+      c.area=saved&&data.areas.some(a=>a.area===saved.area)?saved.area:c.selection.area;
+    }
+  }
+  async function refreshSelection(){
+    if(readingChoices||disposed||document.hidden||location.protocol==='file:')return;
+    readingChoices=true;
+    try{
+      const response=await fetch('https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/selection',{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(12000)});
+      if(!response.ok)return;
+      const result=await response.json();
+      if(result.version!==data.meta.final_selection?.version||!Array.isArray(result.choices))return;
+      if(!result.choices.every(c=>typeof c.problem_id==='string'&&['green','red'].includes(c.color)&&typeof c.area==='string'))return;
+      const signature=JSON.stringify(result);
+      if(signature===sharedVersion)return;
+      const changed=sharedChoices.size||result.choices.length;
+      sharedVersion=signature;sharedChoices=new Map(result.choices.map(c=>[c.problem_id,c]));
+      if(changed)applyCatalogue(data);
+    }catch(_){/* Keep the last loaded choices during an outage. */}
+    finally{readingChoices=false;}
+  }
 
   function savedDescription(card){
     const sentences=card.working_summary?.sentences;
@@ -72,6 +96,8 @@
       preview.dataset.id=c.id;preview.style.setProperty('--category-color',node.color);
       $('map-preview-meta').textContent=c.id+' · '+(a?.label||c.area);
       $('map-preview-title').textContent=c.title;
+      const color=sharedChoices.get(c.id)?.color||c.selection?.color||'red';
+      $('map-preview-selection').innerHTML='<span class="selection-badge '+color+'">'+(color==='green'?'Green · selected':'Red · not selected')+'</span>';
       $('map-preview-text').innerHTML=(description.label?'<p class="map-text-origin">'+esc(description.label)+'</p>':'')+math.paragraphs(description.text);
       $('map-preview-degree').textContent=number(neighbors.get(c.id)?.size||0)+' related problems';
       $('map-preview-link').href='index.html#'+encodeURIComponent(c.id);
@@ -198,7 +224,7 @@
   function applyCatalogue(next){
     if(!Array.isArray(next?.cards)||!Array.isArray(next?.areas))return false;
     const old=byId,selected=pinned?hovered?.id:null;simulation?.stop();
-    data=next;areas=new Map(next.areas.map((a,i)=>[a.area,{...a,color:colorAt(i)}]));
+    data=next;applySharedChoices();areas=new Map(next.areas.map((a,i)=>[a.area,{...a,color:colorAt(i)}]));
     const cardList=next.cards.filter(active).sort((a,b)=>a.id.localeCompare(b.id));
     const offsets=new Map();
     nodes=cardList.map(c=>{
@@ -238,7 +264,7 @@
       const marker=await response.json();if(!marker.version||marker.version===data.meta.version)return;
       const full=await fetch('catalog.json',{cache:'no-store'});if(!full.ok)return;
       const next=await full.json();if(next.meta?.version!==marker.version)return;
-      applyCatalogue(next);
+      applyCatalogue(next);refreshSelection();
     }catch(_){/* The bundled catalogue remains usable offline; retry next time. */}
     finally{fetching=false;}
   }
@@ -295,9 +321,11 @@
   }
   requestAnimationFrame(warm);
   const interval=setInterval(checkUpdates,60000);checkUpdates();
+  const choicesInterval=setInterval(refreshSelection,15000);refreshSelection();
   window.addEventListener('pagehide',()=>{simulation.stop();});
-  window.addEventListener('pageshow',()=>{resume();checkUpdates();});
+  window.addEventListener('pageshow',()=>{resume();checkUpdates();refreshSelection();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSelection();});
   window.ATLAS_MAP={get data(){return data;},get nodes(){return nodes;},get links(){return links;},get simulation(){return simulation;},
-    get ready(){return !warming;},get transform(){return transform;},get paused(){return paused;},savedDescription,focusProblem,applyCatalogue,checkUpdates,
-    dispose(){disposed=true;clearInterval(interval);simulation.stop();cancelAnimationFrame(frame);}};
+    get ready(){return !warming;},get transform(){return transform;},get paused(){return paused;},savedDescription,focusProblem,applyCatalogue,checkUpdates,refreshSelection,
+    dispose(){disposed=true;clearInterval(interval);clearInterval(choicesInterval);simulation.stop();cancelAnimationFrame(frame);}};
 })();

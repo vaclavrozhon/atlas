@@ -15,7 +15,7 @@
   const areaLabel=area=>areasByName.get(area)?.label||area||'';
   const cardAreaLabel=c=>areaLabel(c.area);
   const benchmarks={top100:{label:'Top 100',quotas:{large:5,small:2}},top500:{label:'Top 500',quotas:{large:25,small:10}},top1000:{label:'Top 1000',tentative:true,quotas:{large:50,small:20}}};
-  const isActive=c=>!!c&&!c.scope_exclusion&&!['resolved','excluded'].includes(c.status);
+  const isActive=c=>!!c&&!c.scope_exclusion&&c.status!=='excluded'&&(c.status!=='resolved'||c.benchmark_eligibility?.open_at_cutoff===true);
   let voteRanks=new Map(),areaPositions=new Map();
   const inBenchmark=(c,name)=>isActive(c)&&(voteRanks.get(c.id)||Infinity)<=(benchmarks[name]?.quotas[areasByName.get(c.area)?.group]||0);
   const benchmarkSummary=name=>{
@@ -59,7 +59,8 @@
     const kinds={question:'Question',conjecture:'Conjecture',research_direction:'Research direction'};
     return `<section class="textbook-notes"><h3>Questions recorded in textbooks and surveys</h3><p class="small muted">Dated paraphrases; definitions and assumptions are at the cited locations. A source note does not override a later review of this card.</p><ol>${c.textbook_notes.map(n=>`<li><p><strong>${esc(kinds[n.kind]||n.kind)}.</strong> ${esc(n.summary)}</p><p class="small">${esc(n.reference.authors)} · ${esc(n.reference.year)} · ${link(n.reference)} · ${esc(n.reference.locator)} · ${link({url:n.reference.pdf_url},'Original PDF ↗')}</p><p class="small muted">${esc(n.status_note)}</p>${n.caution?`<p class="small muted">Source caveat: ${esc(n.caution)}</p>`:''}</li>`).join('')}</ol></section>`;
   }
-  const importanceOrder=(a,b)=>Number(a.status==='resolved')-Number(b.status==='resolved')||(a.benchmark_focus?.position??Infinity)-(b.benchmark_focus?.position??Infinity)||(b.importance?.score??50)-(a.importance?.score??50)||a.id.localeCompare(b.id,'en');
+  const focusPosition=c=>!c.selection||c.area===c.selection.area?(c.benchmark_focus?.position??Infinity):Infinity;
+  const importanceOrder=(a,b)=>focusPosition(a)-focusPosition(b)||(b.importance?.score??50)-(a.importance?.score??50)||a.id.localeCompare(b.id,'en');
   const votedOrder=(a,b)=>(window.ATLAS_VOTES?.score(b.id)||0)-(window.ATLAS_VOTES?.score(a.id)||0)||importanceOrder(a,b);
   const catalogueOrder=(a,b)=>(areaPositions.get(a.area)??Infinity)-(areaPositions.get(b.area)??Infinity)||votedOrder(a,b);
   function rebuildVoteRanks(){
@@ -72,7 +73,9 @@
   function importanceBadge(c){
     return voteRanks.has(c.id)?`<span class="importance-badge">#${num(voteRanks.get(c.id))} in category</span>`:'';
   }
-  const publicNotes=c=>window.ATLAS_COMMUNITY?.notesHTML(c.id)||'';
+  const selectionColor=c=>window.ATLAS_SELECTION?.color(c)||c.selection?.color||'red';
+  const target=a=>data.meta.final_selection?.targets?.[a.group]||(a.group==='large'?25:10);
+  const selectedByFilter=c=>!$('selection-filter').value||selectionColor(c)===$('selection-filter').value;
   function renderCompactCard(c){
     const r=c.references?.[0],draft=c.evidence!=='reviewed';
     const raw=(c.statement_review?c.formal:c.source_formulation?.text)||c.formal||c.title;
@@ -85,7 +88,7 @@
     const progress=(c.progress||[]).map(p=>`<p>${esc(p.date)} · ${esc(p.text)}${cite(c,p.citation)}</p>`).join('');
     const savedQuestion=(c.working_summary||c.statement_review)&&draft?`<h3>Saved question</h3>${paragraphs(raw,c.source_formulation?'source-statement':'compact-question')}`:'';
     const expanded=draft?`${c.answer_criterion?'<h3>Answer criterion</h3>'+paragraphs(c.answer_criterion):''}${c.source_formulation?paragraphs(c.formal):''}${c.context?'<h3>Saved context</h3>'+paragraphs(c.context):''}${c.why?'<h3>Why it matters</h3>'+paragraphs(c.why):''}`:`<h3>Full statement</h3>${paragraphs(c.formal,'formal')}<h3>What would settle it</h3>${paragraphs(c.answer_criterion)}<h3>Context</h3>${paragraphs(c.context)}<h3>Why it matters</h3>${paragraphs(c.why)}`;
-    return `<article class="problem-card compact-card" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">${esc(c.id)}</a><span>${esc(cardAreaLabel(c))}</span>${importanceBadge(c)}</div><div class="card-heading"><h2>${esc(c.title)}</h2></div>${window.ATLAS_VOTES?.html(c.id)||''}${statementNotice(c)}${c.statement_review?paragraphs(text,'formal'):c.working_summary?workingSummary(c):duplicated?'':paragraphs(text,c.source_formulation?'source-statement':'compact-question')}<div class="compact-caption">${source}<p class="compact-status">${esc(note)}</p></div><details class="card-details"><summary>Details</summary><div class="details-body">${savedQuestion}${expanded}${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${progress?'<h3>Saved progress</h3>'+progress:''}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}<p class="small muted">${esc(c.status_note||'')} ${esc(c.review_note||'')}</p></div></details>${relatedProblems(c)}${publicNotes(c)}<div class="card-footer"><button type="button" data-public-note="${esc(c.id)}">Add public note</button>${canonicalLink(c)}</div></article>`;
+    return `<article class="problem-card compact-card selection-${selectionColor(c)}" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">${esc(c.id)}</a><span class="card-area">${esc(cardAreaLabel(c))}</span>${importanceBadge(c)}</div><div class="card-heading"><h2>${esc(c.title)}</h2></div>${window.ATLAS_SELECTION?.html(c)||''}${window.ATLAS_VOTES?.html(c.id)||''}${statementNotice(c)}${c.statement_review?paragraphs(text,'formal'):c.working_summary?workingSummary(c):duplicated?'':paragraphs(text,c.source_formulation?'source-statement':'compact-question')}<div class="compact-caption">${source}<p class="compact-status">${esc(note)}</p></div><details class="card-details"><summary>Details</summary><div class="details-body">${savedQuestion}${expanded}${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${progress?'<h3>Saved progress</h3>'+progress:''}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}<p class="small muted">${esc(c.status_note||'')} ${esc(c.review_note||'')}</p></div></details>${relatedProblems(c)}<div class="card-footer">${canonicalLink(c)}</div></article>`;
   }
   function renderCard(c){
     if($('view').value==='compact')return renderCompactCard(c);
@@ -99,7 +102,7 @@
     const context=c.context_blocks?.length?c.context_blocks.map(b=>`<p>${esc(b.text)}${b.citation?cite(c,b.citation):''}</p>`).join(''):paragraphs(c.context);
     const questionLabel=({yes_no:'Yes / no',asymptotic_complexity:'Asymptotic complexity',exact_value:'Exact value',numerical_value:'Numerical value',function:'Function / curve'})[c.question_type]||'Answer';
     const resolution=c.answer_criterion?`<section class="card-section resolution"><h3>What would settle it · ${questionLabel}</h3>${paragraphs(c.answer_criterion)}</section>`:'';
-    return `<article class="problem-card" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><span>${esc(c.id)}</span><span>${esc(cardAreaLabel(c))}</span></div>${importanceBadge(c)}<div class="card-heading"><h2>${esc(c.title_cs||c.title)}</h2></div>${window.ATLAS_VOTES?.html(c.id)||''}<p class="subtitle">${c.title_cs?esc(c.title)+' · ':''}${esc(c.year||'Undated')}${mainRef?.authors?' · '+esc(mainRef.authors):''}</p>${statementNotice(c)}${workingSummary(c)}<section class="card-section"><h3>Problem statement</h3>${formal}${source}</section>${resolution}<section class="card-section"><h3>Context</h3>${context}</section><section class="card-section why"><h3>Why it matters</h3>${paragraphs(c.why)}</section><div class="status-line"><strong>${statuses[c.status]||esc(c.status)}</strong> · ${esc(c.status_note||'')}</div><details class="card-details"><summary>Progress, definitions & references</summary><div class="details-body">${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${c.context_excerpt?`<blockquote class="source-statement">${esc(c.context_excerpt.text)}<span class="source-caption">${esc(c.context_excerpt.caption)}${cite(c,c.context_excerpt.citation)}</span></blockquote>`:''}<h3>Documented progress</h3><div class="progress">${progress||'<p>An individual progress review has not yet been completed.</p>'}</div>${related}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}${c.review_note?'<p class="small muted">'+esc(c.review_note)+'</p>':''}</div></details>${relatedProblems(c)}${publicNotes(c)}<div class="card-footer"><button type="button" data-public-note="${esc(c.id)}">Add public note</button><a href="#${encodeURIComponent(c.id)}" data-action="permalink">Link to card ↗</a>${canonicalLink(c)}${mainRef?link(mainRef,'Primary source ↗'):''}</div></article>`;
+    return `<article class="problem-card selection-${selectionColor(c)}" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><span>${esc(c.id)}</span><span class="card-area">${esc(cardAreaLabel(c))}</span></div>${importanceBadge(c)}<div class="card-heading"><h2>${esc(c.title_cs||c.title)}</h2></div>${window.ATLAS_SELECTION?.html(c)||''}${window.ATLAS_VOTES?.html(c.id)||''}<p class="subtitle">${c.title_cs?esc(c.title)+' · ':''}${esc(c.year||'Undated')}${mainRef?.authors?' · '+esc(mainRef.authors):''}</p>${statementNotice(c)}${workingSummary(c)}<section class="card-section"><h3>Problem statement</h3>${formal}${source}</section>${resolution}<section class="card-section"><h3>Context</h3>${context}</section><section class="card-section why"><h3>Why it matters</h3>${paragraphs(c.why)}</section><div class="status-line"><strong>${statuses[c.status]||esc(c.status)}</strong> · ${esc(c.status_note||'')}</div><details class="card-details"><summary>Progress, definitions & references</summary><div class="details-body">${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${c.context_excerpt?`<blockquote class="source-statement">${esc(c.context_excerpt.text)}<span class="source-caption">${esc(c.context_excerpt.caption)}${cite(c,c.context_excerpt.citation)}</span></blockquote>`:''}<h3>Documented progress</h3><div class="progress">${progress||'<p>An individual progress review has not yet been completed.</p>'}</div>${related}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}${c.review_note?'<p class="small muted">'+esc(c.review_note)+'</p>':''}</div></details>${relatedProblems(c)}<div class="card-footer"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">Link to card ↗</a>${canonicalLink(c)}${mainRef?link(mainRef,'Primary source ↗'):''}</div></article>`;
   }
   const math=root=>window.ATLAS_MATH.render(root);
   function loadMore(){const batch=state.matches.slice(state.shown,state.shown+state.batch);if(!batch.length)return;const wrap=document.createElement('div');wrap.innerHTML=batch.filter(c=>!document.getElementById(c.id)).map(renderCard).join('');while(wrap.firstChild){const c=wrap.firstChild;$('cards').appendChild(c);math(c);}state.shown+=batch.length;$('more').hidden=state.shown>=state.matches.length;}
@@ -108,21 +111,23 @@
     const terms=norm($('search').value).trim().split(/\s+/).filter(Boolean);
     const benchmark=$('benchmark').value,b=benchmarks[benchmark];
     // Rank the whole category before narrowing by search or category filters.
-    const pool=data.cards.filter(c=>isActive(c)&&(!b||inBenchmark(c,benchmark)));
+    const pool=data.cards.filter(c=>isActive(c)&&selectedByFilter(c)&&(!b||inBenchmark(c,benchmark)));
     state.matches=pool.filter(c=>(!state.areas.size||state.areas.has(c.area))&&terms.every(t=>searchIndex.get(c.id).includes(t))).sort(catalogueOrder);
     state.shown=0;$('cards').replaceChildren();
     $('result-count').textContent=b?`${num(state.matches.length)} of ${num(pool.length)} problems · ${b.label}`:`${num(state.matches.length)} problems`;
     $('empty').hidden=state.matches.length>0;$('more').hidden=!state.matches.length;$('collapse').hidden=true;
     const url=new URL(location.href);
     if(b)url.searchParams.set('benchmark',benchmark);else url.searchParams.delete('benchmark');
+    if($('selection-filter').value)url.searchParams.set('selection',$('selection-filter').value);else url.searchParams.delete('selection');
     if($('view').value==='full')url.searchParams.set('view','full');else url.searchParams.delete('view');
     if(url.href!==location.href)history.replaceState(null,'',url);
     const chips=data.areas.filter(a=>state.areas.has(a.area)).map(a=>`<button class="filter-chip" data-area="${esc(a.area)}" aria-label="Remove category filter: ${esc(a.label)}">${esc(a.label)} ×</button>`);
+    if($('selection-filter').value)chips.push(`<button class="filter-chip" data-filter="selection">${$('selection-filter').value==='green'?'Green':'Red'} ×</button>`);
     if(b)chips.push(`<button class="filter-chip" data-filter="benchmark">${b.label} ×</button>`);
     $('active-filters').innerHTML=chips.join('');
     loadMore();if(scroll)$('feed').scrollIntoView({behavior:'smooth',block:'start'});
   }
-  function clear(){state.areas.clear();$('benchmark').value='';$('search').value='';renderAreas();filter();}
+  function clear(){state.areas.clear();$('benchmark').value='';$('selection-filter').value='';$('search').value='';renderAreas();filter();}
   async function go(id){
     const c=cardsById.get(id);if(!isActive(c)){toast('This problem is not in the active catalogue.');return;}
     if(!state.matches.some(x=>x.id===id))clear();
@@ -149,22 +154,29 @@
     el.classList.add('focused');setTimeout(()=>el.classList.remove('focused'),2500);
   }
   function updateStats(){$('stats').textContent=`${num(data.cards.filter(isActive).length)} problems · ${data.areas.length} categories`;}
+  function selectionCounts(){
+    const green=new Map(),total=new Map();
+    for(const c of data.cards)if(isActive(c)){
+      total.set(c.area,(total.get(c.area)||0)+1);
+      if(selectionColor(c)==='green')green.set(c.area,(green.get(c.area)||0)+1);
+    }
+    return {green,total};
+  }
   function renderAreas(){
     $('area-count').textContent=data.areas.length;
-    const benchmark=$('benchmark').value,counts=new Map();
-    for(const c of data.cards)if(isActive(c)&&(!benchmark||inBenchmark(c,benchmark)))counts.set(c.area,(counts.get(c.area)||0)+1);
-    $('areas').innerHTML=data.areas.map(a=>`<label class="area-option"><input type="checkbox" value="${esc(a.area)}" ${state.areas.has(a.area)?'checked':''}><span>${esc(a.label)}</span><span class="count">${num(counts.get(a.area)||0)}</span></label>`).join('');
+    const {green,total}=selectionCounts(),selected=[...green.values()].reduce((a,b)=>a+b,0),goal=data.areas.reduce((n,a)=>n+target(a),0);
+    $('selection-total').textContent=`${num(selected)} green / target ${num(goal)}`;
+    $('areas').innerHTML=data.areas.map(a=>`<label class="area-option"><input type="checkbox" value="${esc(a.area)}" ${state.areas.has(a.area)?'checked':''}><span>${esc(a.label)}</span><span class="count ${(green.get(a.area)||0)===target(a)?'on-target':'off-target'}" title="${green.get(a.area)||0} green / target ${target(a)}; ${total.get(a.area)||0} total cards">${green.get(a.area)||0} / ${target(a)}</span></label>`).join('');
   }
   function updateCoverage(){
-    const active=data.cards.filter(isActive),counts=new Map();
-    for(const c of active)counts.set(c.area,(counts.get(c.area)||0)+1);
-    const selections=Object.keys(benchmarks).map(name=>{const summary=benchmarkSummary(name),b=benchmarks[name];return `${b.tentative?'The legacy '+b.label+' view':b.label} uses the first ${b.quotas.large} problems per large category and ${b.quotas.small} per small category: ${num(summary.total)} of ${num(summary.target)} places filled${summary.reserved_target?`, including ${num(summary.reserved_target)} places reserved for future categories`:''}.`;});
-    $('selection-plan').textContent=selections.join(' ')+' Within each category, thumbs up minus thumbs down determines both order and selection; ties use the catalogue priority. Top 100 is contained in Top 500, which is contained in Top 1000. Search and category filters narrow these selections without filling their places with other problems.';
-    $('coverage-table').innerHTML=`<table><thead><tr><th>Category</th>${Object.values(benchmarks).map(b=>`<th>${b.tentative?'Possible ':''}${b.label}</th>`).join('')}<th>Active problems</th></tr></thead><tbody>${data.areas.map(a=>`<tr><th scope="row"><button class="category-link" data-area="${esc(a.area)}">${esc(a.label)}</button></th>${Object.values(benchmarks).map(b=>`<td>${b.quotas[a.group]}</td>`).join('')}<td>${num(counts.get(a.area)||0)}</td></tr>`).join('')}</tbody></table>`;
+    const {green,total}=selectionCounts();
+    $('selection-plan').textContent=`${data.areas.filter(a=>a.group==='large').length} large categories × 25 and ${data.areas.filter(a=>a.group==='small').length} small categories × 10. Category counts always include all green cards, even when search or color filters hide some of them.`;
+    $('coverage-table').innerHTML=`<table><thead><tr><th>Category</th><th>Green</th><th>Target</th><th>All cards</th></tr></thead><tbody>${data.areas.map(a=>`<tr><th scope="row"><button class="category-link" data-area="${esc(a.area)}">${esc(a.label)}</button></th><td>${green.get(a.area)||0}</td><td>${target(a)}</td><td>${num(total.get(a.area)||0)}</td></tr>`).join('')}</tbody></table>`;
   }
   updateStats();renderAreas();updateCoverage();
   $('coverage-table').addEventListener('click',e=>{const b=e.target.closest('[data-area]');if(!b)return;clear();state.areas.add(b.dataset.area);renderAreas();filter(true);});
-  $('active-filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.area)state.areas.delete(b.dataset.area);if(b.dataset.filter==='benchmark')$('benchmark').value='';renderAreas();filter();});
+  $('active-filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.area)state.areas.delete(b.dataset.area);if(b.dataset.filter==='benchmark')$('benchmark').value='';if(b.dataset.filter==='selection')$('selection-filter').value='';renderAreas();filter();});
+  $('selection-filter').addEventListener('change',()=>filter());
   $('benchmark').addEventListener('change',()=>{renderAreas();filter();});
   $('areas').addEventListener('change',event=>{const e=event.target;if(!e.matches('input[type=checkbox]'))return;e.checked?state.areas.add(e.value):state.areas.delete(e.value);filter();});
   let debounce;$('search').addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(()=>filter(),160);});
@@ -198,10 +210,11 @@
   for(const key of ['detail','group','collection','scope','status','sort','reason','year','saved','new'])params.delete(key);
   history.replaceState(null,'',url);
   if(benchmarks[params.get('benchmark')])$('benchmark').value=params.get('benchmark');
+  if(['green','red'].includes(params.get('selection')))$('selection-filter').value=params.get('selection');
   $('view').value=params.get('view')==='full'?'full':'compact';
   rebuildVoteRanks();renderAreas();filter();updateCoverage();const hash=decodeURIComponent(location.hash.slice(1));if(cardsById.has(hash))go(hash);else revealSection(hash);
   let voteFrame=0;
-  document.addEventListener('atlas:votes',event=>{
+  function refreshChoices(event){
     cancelAnimationFrame(voteFrame);
     voteFrame=requestAnimationFrame(()=>{
       const focused=document.activeElement;
@@ -210,8 +223,9 @@
       const anchor=visible?{id:visible.id,top:visible.getBoundingClientRect().top}:null;
       const existing=new Map([...$('cards').children].map(el=>[el.id,el])),shown=state.shown;
       const terms=norm($('search').value).trim().split(/\s+/).filter(Boolean),benchmark=$('benchmark').value,b=benchmarks[benchmark];
+      if(event.type==='atlas:selection')for(const c of data.cards)searchIndex.set(c.id,searchable(c));
       rebuildVoteRanks();
-      const pool=data.cards.filter(c=>isActive(c)&&(!b||inBenchmark(c,benchmark)));
+      const pool=data.cards.filter(c=>isActive(c)&&selectedByFilter(c)&&(!b||inBenchmark(c,benchmark)));
       state.matches=pool.filter(c=>(!state.areas.size||state.areas.has(c.area))&&terms.every(t=>searchIndex.get(c.id).includes(t))).sort(catalogueOrder);
       state.shown=Math.min(shown||state.batch,state.matches.length);
       const selected=new Set(state.matches.slice(0,state.shown).map(c=>c.id));
@@ -221,6 +235,7 @@
         if(!selected.has(c.id))continue;
         let el=existing.get(c.id);
         if(!el){const wrap=document.createElement('div');wrap.innerHTML=renderCard(c);el=wrap.firstChild;math(el);}
+        const label=el.querySelector('.card-area');if(label)label.textContent=cardAreaLabel(c);
         const badge=el.querySelector('.importance-badge');if(badge)badge.textContent=`#${num(voteRanks.get(c.id))} in category`;
         fragment.appendChild(el);
       }
@@ -231,7 +246,9 @@
       renderAreas();updateCoverage();
       if(anchor&&document.getElementById(anchor.id))window.scrollBy(0,document.getElementById(anchor.id).getBoundingClientRect().top-anchor.top);else window.scrollTo(0,scrollY);
     });
-  });
+  }
+  document.addEventListener('atlas:votes',refreshChoices);
+  document.addEventListener('atlas:selection',refreshChoices);
   let currentVersion=data.meta.version||'',polling=false;
   async function applyPublication(update){
     if(!update?.version||!Array.isArray(update.cards)||!Array.isArray(update.areas))throw new Error('Invalid publication');
@@ -256,8 +273,9 @@
     const positions=new Map(data.cards.map((c,i)=>[c.id,i]));
     for(const c of changes){if(positions.has(c.id))data.cards[positions.get(c.id)]=c;else data.cards.push(c);cardsById.set(c.id,c);}
     data.meta=update.meta;data.areas=update.areas;areasByName=new Map(data.areas.map(a=>[a.area,a]));
-    // A metadata-only rename changes search terms even when every card is unchanged.
-    for(const c of areasChanged?data.cards:changes)searchIndex.set(c.id,searchable(c));
+    window.ATLAS_SELECTION?.applyToData();
+    // Shared moves and metadata renames both change category search terms.
+    for(const c of data.cards)searchIndex.set(c.id,searchable(c));
     for(const a of state.areas)if(!areasByName.has(a))state.areas.delete(a);
     rebuildVoteRanks();updateStats();renderAreas();updateCoverage();
     $('cards').classList.add('publishing');
