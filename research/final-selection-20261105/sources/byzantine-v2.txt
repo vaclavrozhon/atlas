@@ -1,0 +1,1928 @@
+                                         From Few to Many Faults: Optimal Adaptive Byzantine
+                                         Agreement
+                                         ANDREI CONSTANTINESCU, ETH Zurich, Switzerland
+                                         MARC DUFAY, ETH Zurich, Switzerland
+                                         ANTON PARAMONOV, ETH Zurich, Switzerland
+                                         ROGER WATTENHOFER, ETH Zurich, Switzerland
+arXiv:2505.19989v2 [cs.DC] 17 Feb 2026
+
+
+
+
+                                         Achieving agreement among distributed parties is a fundamental task in modern systems, underpinning
+                                         applications such as consensus in blockchains, coordination in cloud infrastructure, and fault tolerance in
+                                         critical services. However, this task can be intensive, often requiring a large number of messages to be
+                                         exchanged as well as many rounds of communications, especially in the presence of Byzantine faults. This
+                                         makes efficiency a central challenge in the design of practical agreement protocols.
+                                            In this paper, we study the problem of Binary Agreement and give protocols that are simultaneously optimal
+                                         in both message and round complexity, parameterized by the actual number of Byzantine faults. In contrast to
+                                         previous works, we demonstrate that optimal message complexity can be achieved without sacrificing latency.
+                                         Concretely, for a system of 𝑛 parties tolerating up to 𝑡 Byzantine faults, out of which only 𝑓 ≤ 𝑡 are actually
+                                         faulty, we give the following results:
+                                                • When 𝑡 = Ω(𝑛), in the synchronous (resp. partially synchronous) setting, with optimal resiliency
+                                                  𝑡 < 𝑛/2 (resp. 𝑡 < 𝑛/3), we describe a deterministic protocol with optimal communication complexity
+                                                  O (𝑛 · (𝑓 + 1)) and optimal round complexity O (𝑓 + 1).
+                                                • Building upon this previous result, when 𝑡 = 𝑜 (𝑛), for both the synchronous and partially synchronous
+                                                  setting, we describe a deterministic protocol with near-optimal communication complexity O   e(𝑛 +𝑡 · 𝑓 )
+                                                  and near-optimal round complexity O     e(𝑓 + 1). Our approach relies on a novel use of dispersers to
+                                                  efficiently disseminate a value.
+                                                • For the asynchronous setting, we show a Ω(𝑛 + 𝑡 2 ) lower bound in expectation and provide a random-
+                                                  ized protocol with near-optimal O e(𝑛 + 𝑡 2 ) communication complexity and O (1) round complexity in
+                                                  expectation.
+                                         CCS Concepts: • Theory of computation → Distributed algorithms; • Networks → Logical / virtual
+                                         topologies; • Security and privacy → Network security; Distributed systems security.
+                                         Additional Key Words and Phrases: Byzantine Agreement, Communication Complexity, Adaptive Communi-
+                                         cation Complexity, Resilience
+
+
+
+
+                                         Authors’ Contact Information: Andrei Constantinescu, ETH Zurich, Switzerland, aconstantine@ethz.ch; Marc Dufay,
+                                         ETH Zurich, Switzerland, mdufay@ethz.ch; Anton Paramonov, ETH Zurich, Switzerland, aparamonov@ethz.ch; Roger
+                                         Wattenhofer, ETH Zurich, Switzerland, wattenhofer@ethz.ch.
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                                                1
+
+
+1   Introduction
+Achieving agreement in a distributed setting is fundamental to blockchain systems. Modern
+blockchains often comprise thousands of nodes attempting to reach consensus [2, 22, 23, 34].
+Under the widely accepted resilience model in which up to 𝑡 ≈ 𝑛/3 validators may be Byzantine,
+and in light of the classical Dolev–Reischuk lower bound of Ω(𝑡 2 ) messages for agreement [17],
+such systems must exchange millions of messages. This communication burden translates into high
+latency and limited scalability.
+   This work tackles the problem through two key contributions.
+   First, we design adaptive1 algorithms, i.e., algorithms whose performance improves as the actual
+number of faults in a given execution, 𝑓 , decreases (while 𝑡 naturally stays fixed). In particular,
+we present the first synchronous and partially synchronous Byzantine Agreement algorithms
+that simultaneously achieve adaptive communication O (𝑛𝑓 ) and adaptive latency O (𝑓 ),2 while
+maintaining optimal resilience. This is significantly lighter than the worst-case Ω(𝑡 2 ) = Ω(𝑛 2 )
+communication suggested by [17], and is especially relevant in practice, where the number of
+misbehaving nodes is almost always negligibly small.
+   Second, we argue that systems’ robustness is governed not by the relative fraction of corruptions
+tolerated, but by the absolute number of failures a system can withstand. For example, it may be easier
+for an adversary to corrupt a system with 3,001 nodes that tolerates 1,000 faults than one with 10,000
+nodes tolerating 2,000 faults. Motivated by this perspective, we design an algorithm that decouples 𝑛
+and 𝑡, yielding improved performance when 𝑡 ≪ 𝑛 and enabling unprecedented scaling in the total
+number of nodes. To get a taste of it, imagine a protocol achieving O (𝑛+𝑡 2 ) communication. Using it,
+system designers can first choose a failure threshold 𝑡 such that disseminating 𝑡 2 messages remains
+feasible, and subsequently scale 𝑛 up to 𝑡 2 without incurring additional asymptotic communication
+overhead.
+   Combining these two insights, we circumvent the Dolev–Reischuk lower bound and obtain the
+first synchronous and partially synchronous Byzantine Agreement algorithms with near-optimal
+communication complexity O     e(𝑛 +𝑡 · 𝑓 ) and round complexity O
+                                                                 e(𝑓 ), where O e hides polylogarithmic
+factors.
+   We also contribute to asynchronous agreement. Whereas existing approaches typically incur
+O (𝑛 ·𝑡) communication, our asynchronous algorithm achieves communication complexity O         e(𝑛 +𝑡 2 ).
+   Finally, we show that adaptive communication is impossible in the asynchronous setting. Specifi-
+cally, we prove an Ω(𝑛 +𝑡 2 ) lower bound for any algorithm that guarantees almost-sure termination.
+This result implies that our asynchronous protocol is optimal up to logarithmic factors.
+
+2   Related Work
+   Synchrony. Optimizing the communication complexity of Byzantine Agreement (BA) has been
+the focus of extensive research, particularly in synchronous networks.
+   Cohen et al. [15] present a deterministic solution for Weak Byzantine Agreement and Byzantine
+Broadcast (BB) in synchronous settings, achieving a communication complexity of O (𝑛 · 𝑓 ). Conse-
+quently, Elsheimy et al. [21] and Civit et al. [13] independently developed deterministic protocols for
+Byzantine Agreement with O (𝑛 · 𝑓 ) communication complexity, maintaining resilience 𝑡 < ( 12 − 𝜀)𝑛.
+   This line of research culminated in the work of Civit et al. [11], which extends to Multi-Valued
+Byzantine Agreement (MVBA), where processes can propose arbitrary values and not just 0 or 1, and
+Interactive Consistency which ensures that the output is a vector of proposals from honest processes,
+1 Not to be confused with algorithms tolerating an adaptive adversary.
+2We note that, when we write O (𝑛𝑓 ) or O ( 𝑓 ) we do not imply that with 𝑓 = 0 our algorithm results in 0 communication
+
+and 0 rounds. Not to overload notation with ( 𝑓 + 1)-s everywhere, we will assume that 𝑓 is at least 1 in all the complexities.
+2                                 Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+while also supporting External Validity, meaning the decided value must satisfy a predetermined
+predicate. The bit communication complexity of this protocol is O (𝐿𝑜 𝑛 + 𝑛(𝑓 + 1)𝜅), where 𝐿𝑜 is
+the bit-length of the output (e.g., 𝐿𝑜 = 1 for Binary BA), and 𝜅 is a security parameter. Notably, [11]
+uses a heavy cryptography primitive called Multiverse Threshold Signature Scheme (MTSS) [3, 25]
+and poses the question of whether adaptive BA can be implemented with lighter cryptography,
+which the present work answers affirmatively.
+   All aforementioned protocols have a round complexity of Ω(𝑛) in the worst case, even if 𝑓 is small.
+Another area of research is early stopping protocols, like the one by Lenzen and Sheikholeslami [27],
+which solves BA with round complexity O (𝑓 ), having, however, O (𝑛𝑡) communication complexity
+and 𝑡 < 𝑛/3 resilience.
+   On the impossibility front, the classical lower bound by Dolev and Reischuk [17] establishes that
+any synchronous algorithm solving Byzantine Agreement must incur a message complexity of
+Ω(𝑓 2 ). This foundational result was further refined by Spiegelman [35], who demonstrated a lower
+bound of Ω(𝑛 + 𝑡 𝑓 ). Expanding on these results, Abraham et al. [1] proved that even randomized
+algorithms are constrained by the Ω(𝑓 2 ) message complexity in synchronous settings when facing
+a highly adaptive adversary, one capable of performing after-the-fact removal of messages.
+   As for round complexity, the classical result by Dolev and Strong [18] establishes the lower
+bound of min{𝑓 + 2, 𝑡 + 1} rounds for achieving byzantine agreement.
+   Partial Synchrony. Research on Byzantine Agreement in partially synchronous networks has led to
+significant advancements. Civit et al. [10] were the first to achieve O (𝑛 2 ) communication complexity
+for BA in this setting. Later, Civit et al. [12] proposed the Oper framework, which provides a general
+method for transforming any synchronous BA protocol into a partially synchronous one while
+preserving the worst-case per-process bit complexity. However, when applied to the protocol from,
+e.g., [11], Oper only guarantees a total communication complexity of O (𝑛 2 ) rather than the adaptive
+O (𝑛 · 𝑓 ) due to the Ω(𝑛) per-process bit complexity in the original protocol.
+   The worst case round complexity of [10] and [11] is Θ(𝑡) and Θ(𝑛) respectively.
+   Beyond standard Byzantine Agreement, State Machine Replication (SMR) is a closely related
+problem that requires External Validity. One of the prominent SMR protocols in partial synchrony
+is HotStuff [37]. HotStuff progresses through a sequence of views, each led by a designated leader,
+and agreement is reached once all honest processes stay in the same view for a sufficient duration.
+The complexity of achieving view synchronization in HotStuff heavily depends on the clock
+assumptions of the participating processes. If processes have perfectly synchronized clocks, views
+can be defined as fixed time intervals, making synchronization trivial. However, in practical settings,
+clock synchronization may be imperfect. Although HotStuff [37] does not explicitly specify a clock
+model, it relies on exponential back-off as a mechanism to mitigate clock deviations—an approach
+that is theoretically sound but practically inefficient. Recent work on view synchronization [28–30]
+introduces a more robust method, ensuring consistent views among processes under partial initial
+clock synchronization. This approach achieves an O (𝑛 · 𝑓 ) communication complexity and, when
+integrated with HotStuff, allows the protocol to maintain the same complexity in partial synchrony.
+Notably, under the assumption of perfectly synchronized clocks, one-shot HotStuff directly achieves
+O (𝑛 · 𝑓 ) communication complexity without any additional synchronization overhead.
+   Finally, Spiegelman et al. [35] established that in partially synchronous networks, any protocol
+must incur an unbounded number of messages if messages sent before the Global Stabilization
+Time (GST) are counted. Therefore, when talking about the communication complexity of partially
+synchronous protocols, we refer only to the messages sent after GST.
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                                                    3
+
+
+  Asynchrony. The well-known FLP impossibility result [24] establishes that Byzantine Agreement
+cannot be deterministically solved in asynchronous networks if even a single process can fail.
+However, the use of randomness provides a way to circumvent this limitation.
+  For example, Cachin et al. [8] present a protocol that achieves strong BA in asynchrony, ensuring
+Agreement and Validity unconditionally while guaranteeing Termination with probability 1. This
+protocol operates with a communication complexity of O (𝑛 2 ).
+  Further improving on message complexity while allowing a negligible probability of failure,
+Cohen et al. [14] propose a solution for binary BA in asynchrony. Their protocol achieves Agreement,
+Validity, and Termination with high probability (w.h.p.) and has an expected communication
+complexity of O (𝑛 · log2 𝑛). In parallel, Blum et al. [5] were able to achieve BA in asynchrony
+with overwhelming probability and expected communication complexity O (𝑛 · 𝜅 4 ). Their protocol
+requires an initial setup phase, which they prove is necessary for subquadratic communication
+complexity.
+  All these protocols enjoy constant expected latency.
+  Table 1 summarizes the existing results and the contribution of the present work.
+
+ Paper                  Problem    Communication                    Rounds          Resilience       Det. PKI Properties
+                                                           Synchrony
+ Civit et al. [11]      MVBA, IC   O (𝐿𝑜 𝑛 + 𝑛 · 𝑓 )                O (𝑛)           𝑡 < 𝑛/2          Yes   Yes   A;T;V;IC
+ Lenzen et al. [27]     BA         O (𝑛𝑡)                           O (𝑓 )          𝑡 < 𝑛/3          Yes   No    A;T;V
+ This paper             BA         O (𝑛𝑓 )                          O (𝑓 )          𝑡 < 𝑛/2          Yes   Yes   A;T;V
+ This paper             BA         O ((𝑛 · log 𝑡 + 𝑡 𝑓 ) · log 𝑛)   O (𝑓 )          𝑡 < 𝑛/2          Yes   Yes   A;T;V
+ Spiegelman [35]        BA         Ω(𝑛 + 𝑡 𝑓 )                      Any             Any              Yes   Yes   A;T;V
+ Abraham et al.[1]      BA         E(Ω(𝑓 2 ))                       Any             Any              No    Yes   A;T;V
+                                                      Partial Synchrony
+ Yin et al. [29, 37]∗   SMR        O (𝑛 · 𝑓 )                       O (𝑓 )          𝑡 < 𝑛/3          Yes   Yes   A;T;EV
+ Civit et al. [12]      BA         O (𝑛 2 )                         O (𝑛)           𝑡 < 𝑛/3          Yes   No    A;T;V
+ This paper             BA         O (𝑛𝑓 )                          O (𝑓 )          𝑡 < 𝑛/3          Yes   Yes   A;T;V
+ This paper             BA         O ((𝑛 + 𝑡 · 𝑓 ) · log 𝑛 · log 𝑡) O (𝑓 · log 𝑛)   𝑡 < 𝑛/3          Yes   Yes   A;T;V
+ Spiegleman [35]        BA         Ω(∞) §                           Any             Any              Yes   No    A;T;V
+                                                          Asynchrony
+ Cachin et al. [8]      BA         E[O (𝑛 2 )]                      E[𝑂 (1)]        𝑡 < 𝑛/3          No    Yes   A;T‡ ;V
+ Cohen et al. [14]      BA         O (𝑛 · log2 𝑛) †                 E[𝑂 (1)]        𝑡 < ( 13 − 𝜀)𝑛   No    Yes   A† ;T† ;V†
+ Blum et al. [5]        BA         E[O (𝑛 · 𝜅 4 )]                  E[𝑂 (1)]        𝑡 < ( 13 − 𝜀)𝑛   No    Yes   A†† ;T†† ;V††
+ This paper             BA         E[O ((𝑛 + 𝑡 2 ) · log 𝑛)]        E[𝑂 (1)]        𝑡 < 𝑛/3          No    Yes   A;T‡ ;V
+ This paper             BA         E[Ω(𝑛 + 𝑡 2 )]                   Any             Any              No    Yes   A;T‡ ;V
+
+
+Table 1. Comparison of Byzantine Agreement Protocols. When a communication is stated with Ω, it indicates
+a lower bound result.
+∗ - HotStuff [37] measures communication and round complexity up to the point where all honest processes
+decide the value, not terminate. For termination, without additional modifications, complexities are 𝑂 (𝑛 2 )
+and 𝑂 (𝑛) respectively. Also, [29] uses random leader election, but can be derandomized, maintaining its
+characteristics.
+A - Agreement, T - Termination, V - Strong Validity, IC - Interactive Consistency, EV - External Validity.
+§ - unlimited messages before GST, † - with high probability, †† - with overwhelming probability, ‡ - with
+probability 1, E - in expectation.
+
+
+
+  On the use of communication graphs. Even in an all-to-all network, it can be useful to restrict
+communication to a communication graph to bound total communication. While promising, this
+approach remains relatively underexplored for distributed agreement tasks.
+4                                 Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+   Among the works we are aware of, Elsheimy et al. [20] use an expander-based communication
+pattern to obtain adaptive O (𝑛𝑓 ) communication for Byzantine Agreement; however, their method
+inherently has worst-case round complexity Ω(𝑛). Communication graphs have also been used
+for leader election, e.g., via bipartite samplers and expanders in [4, 26]. These results, however,
+guarantee agreement only among most of the honest parties rather than all of them. Notably, the
+work by Chlebus et al. [9] utilizes expander graphs to disseminate a value known to a subgroup
+of nodes to the rest of √ the system. However, their approach is only applicable in synchronous
+networks where 𝑡 = O ( 𝑛).
+
+3    Results Overview
+In this section, we formally state our results and outline the main ideas behind them.
+   Our results are organized along two orthogonal dimensions. First, we consider three standard
+network models: the synchronous model, the partially synchronous model, and the asynchronous
+model. Second, we distinguish between two fault regimes: the classical setting where 𝑡 = Θ(𝑛), and
+the large-scale setting where 𝑡 ≪ 𝑛.
+   These regimes capture two different bottlenecks. When 𝑡 = Θ(𝑛), the central goal is to obtain
+adaptive Byzantine Agreement while still achieving optimal resilience. When 𝑡 ≪ 𝑛, there is an
+additional challenge: we aim to decouple the dependence on 𝑛 and 𝑡, so that systems can scale to
+many participants without paying a quadratic communication cost in 𝑛.
+   Optimal Resilience Adaptive Algorithms. For synchronous and partially synchronous settings, we
+present Byzantine Agreement algorithms with optimal resilience and optimal adaptive communica-
+tion and round complexities.
+  Theorem 3.1. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/2 byzantine faults
+and, given a PKI, solves Byzantine Agreement in synchrony with communication complexity O (𝑛 · 𝑓 )
+and round complexity O (𝑓 ).
+
+   Theorem 3.2. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/3 byzantine faults
+and, given a PKI, solves Byzantine Agreement in partial synchrony with communication complexity
+O (𝑛 · 𝑓 ) and round complexity O (𝑓 ).
+    Interestingly, we show that in asynchrony, adaptiveness is impossible.
+  Theorem 3.3. Let A be a protocol solving asynchronous byzantine agreement resilient to 𝑡 byzantine
+parties with almost sure termination. A is allowed to have access to 𝑃𝐾𝐼 , to shared randomness, and
+run any kind of setup, regardless of its message complexity, before parties acquire their input value.
+Let 𝑀 be the number of messages exchanged after setup to reach agreement, then there exists an input
+configuration and a message scheduling protocol such that E[𝑀] = Ω(𝑡 2 ) without any byzantine
+party. This lower bound holds even if the adversary is static, i.e, it can only corrupt parties at the
+beginning of the protocol.
+  A notable contribution of this result — beyond the fact that it holds under a very weak adversary
+and a strong algorithmic setting — is that, to the best of our knowledge, it establishes the first lower
+bound of Ω(𝑡 2 ), in contrast to the Ω(𝑓 2 ) bounds shown in [1, 17].
+   Large-Scale 𝑡 ≪ 𝑛 Algorithms. In synchrony, partial synchrony, and asynchrony, we provide
+algorithms whose communication and round complexities have near-optimal dependence on 𝑛, 𝑡,
+and 𝑓 .
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                          5
+
+
+  Theorem 3.4. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/2 Byzantine
+faults and, given a PKI, solves Byzantine Agreement in synchrony with communication complexity of
+O ((𝑛 · log 𝑡 + 𝑡 · 𝑓 ) · log 𝑛) and round complexity of 𝑂 (𝑓 ).
+
+  Theorem 3.5. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/3 Byzantine faults
+and, given a PKI, solves Byzantine Agreement in partial synchrony with communication complexity of
+O ((𝑛 + 𝑡 · 𝑓 ) · log 𝑡 · log 𝑛) and round complexity 𝑂 (𝑓 log 𝑛).
+
+   Theorem 3.6. There exists a randomized algorithm that tolerates up to 𝑡 < 𝑛/3 Byzantine faults
+and, given a PKI, solves Byzantine Agreement in asynchrony with expected communication complexity
+of 𝑂 ((𝑛 + 𝑡 2 ) · log 𝑛) and expected round complexity 𝑂 (1).
+  Note that although non-adaptive, the communication complexity of 𝑂 ((𝑛 + 𝑡 2 ) · log 𝑛) is optimal
+up to a logarithmic factor due to the infeasibility in Theorem 3.3.
+   Techniques. We build on two simple ideas: (I) broadcasting a value from a small group of nodes, and
+(II) assigning nodes to committees. While both ideas have been used extensively in the theoretical
+and practical literature, we substantially strengthen what is known: we provide a deterministic
+scheme that is therefore secure even against an adaptive adversary. To the best of our knowledge,
+prior approaches either rely on randomness and/or assume weaker adversaries that cannot corrupt
+parties on the fly.
+   In particular, we leverage dispersers, defined in Section 6, to obtain robust committee assignment
+(note that parties can be in multiple committees):
+   Definition 3.7. We call a committee compromised if it contains at least one byzantine party.
+   For a given assignment of parties to committees and a given set of byzantine parties, we say that
+a party is blocked if all committees it is assigned to are compromised.
+
+  Theorem 3.8. Given 𝑛 parties and an integer 𝑓ˆ, there is a way to assign parties to committees such
+that:
+   (1) There are at most 𝑂 ( 𝑓ˆ log 𝑛) committees.
+   (2) Every party is assigned to at most 𝑂 (log 𝑛) committees.
+   (3) An adversary, after seeing the assignment, can make up to 𝑓ˆ arbitrary parties byzantine.
+       Nonetheless, no matter the adversarial choice of which parties to corrupt, the number of blocked
+       parties is at most 𝑐𝑏 · 𝑓ˆ for some constant 𝑐𝑏 .
+   We would like to remark that Theorem 3.8 leverages a disperser graph whose existence was only
+proven non-constructively with probabilistic methods. Using explicit dispersers that can be con-
+structed deterministically in polynomial time results in a bigger polylog factor in the communication
+complexity of our algorithms.
+
+4   Preliminaries
+We consider a set of 𝑛 parties P = {𝑝 1, . . . , 𝑝𝑛 } running a distributed protocol in a fully connected
+network. Channels are authenticated, meaning that when receiving a message, a party knows who
+sent it.
+Network Setting: We consider 3 different network settings:
+     • Synchronous network: We assume there is a known Δ > 0 such that when sending a message,
+         a party has the guarantee that this message will be received within Δ units of time. This
+         allows protocols to be expressed in rounds where each round takes Δ units of time.
+6                                   Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+      • Asynchronous network: There is no guarantee on the delay between a party sending a
+         message and it being received. The only guarantee is that a message sent is eventually
+         received.
+      • Partially synchronous network: We assume the setting of [19]: There is a known Δ > 0
+         and an unknown Global Stabilization Time (GST), such that a messages sent at time 𝑡 are
+         received by time at most max{𝑡, 𝐺𝑆𝑇 } + Δ.
+Byzantine Behavior: We assume that a set of at most 𝑡 parties can exhibit arbitrary malicious
+behavior when running the protocol. In particular, an adversary is able to control these parties,
+and the protocol must be resilient to this setting. Parties that are not corrupted are called honest.
+In the rest of this paper, we will also consider 𝑓 , the number of actual byzantine parties during an
+execution of a protocol: 0 ≤ 𝑓 ≤ 𝑡 ≤ 𝑛.
+   Moreover, we assume that for the asynchronous setting as well as the partially synchronous
+setting before GST, the adversary has full control over the scheduler and can delay or reorder any
+messages as long as they are eventually received.
+   Our protocols are resilient against a dynamic adversary. This means that the adversary is allowed
+to observe messages being sent before deciding which parties to corrupt.
+Clocks and Views: For our partially synchronous protocols, we adopt a ubiquitous concept of a
+view. A view refers to a logical phase of the protocol during which a specific process is designated
+as the leader responsible for driving progress. Each view is associated with a unique view number,
+and all correct nodes share a common function leader(𝑖) that defines a leader of the 𝑖-th view. If
+the leader fails to make progress — due to crashes, equivocation, or network delays — the protocol
+initiates a view change, advancing to the next view with a new leader. With this approach, different
+nodes might be in different views, ignoring leaders other than those of their view, hence preventing
+them from obtaining enough votes/signatures/etc. to drive the progress.
+   The view abstraction must satisfy the following property: eventually after GST, all honest nodes
+stay in the view with an honest leader for long enough. Here, the “long enough” part is protocol-
+specific, and in our partially synchronous protocols, this always refers to a time period of Θ(Δ).
+   Note that implementing a view abstraction is a straightforward process if nodes have perfectly
+synchronized clocks. In this case, one can define an 𝑖-th view to be a time period of, for instance,
+[4𝑖 · Δ, 4(𝑖 + 1) · Δ], hence making each view span a time period of 4Δ. An alternative to a perfect
+clocks assumption is a Partial Initial Clock Synchronization assumption [29], which states that there
+is a known time period Γ such that at least 𝑡 honest processes start a protocol within time Γ after
+the first honest process starts it. Under this assumption, Fever [29] implements a view change in a
+way that at most O (𝑛 + 𝑛 · 𝑓 ) words are sent before all honest nodes stay in the same view with
+an honest leader for long enough. We remark that Fever can be made to send only O (𝑛 + 𝑡 · 𝑓 )
+words by making only 2𝑡 + 1 instead of 𝑛 processes sending a 𝑣𝑖𝑒𝑤 message to the leader. Another
+common clock assumption is to say that local clocks of the processes can drift arbitrarily before
+GST, but do not drift after [12].
+   In our partially synchronous algorithms, we abstract out both the clocks and the internals of a
+view change.
+Byzantine Agreement: In this paper, we focus on solving the problem of Strong Binary Byzantine
+Agreement, which we call just Byzantine Agreement for simplicity. In this problem, each honest
+party can propose a value (either 0 or 1) and can decide a value. The Byzantine Agreement is defined
+by the following properties.
+      • Termination: Every honest party eventually decides a value.
+      • Agreement: If two honest parties 𝑝 1 and 𝑝 2 respectively decide values 𝑣 1 and 𝑣 2 , then 𝑣 1 = 𝑣 2 .
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                                                7
+
+
+      • Strong Unanimity:3 If all honest parties propose the same value, then this value must be
+        decided.
+For the synchronous and partially synchronous setting, we say that a protocol satisfies Byzantine
+Agreement (BA) if it satisfies Termination, Agreement, and Strong Unanimity. Because of the FLP
+impossibility result [24] stating that Byzantine Agreement with aforementioned properties can
+not be solved in asynchrony, for the asynchronous setting, we replace the Termination with a
+Probabilistic Termination property:
+      • Probabilistic termination: Every honest party eventually decides a value almost surely.
+Cryptographic Primitive: In some of our protocols, we will assume the presence of a public-key
+infrastructure (PKI). For a party 𝑝, the interface of PKI consists of functions sign𝑝 and verify such
+that:4
+      • For a given party 𝑝 and message 𝑚, sign𝑝 (𝑚) returns a signature 𝑠.
+      • For a given party 𝑝, value 𝑠 and message 𝑚, verify(𝑚, 𝑠, 𝑝) returns 𝑡𝑟𝑢𝑒 if and only if
+        𝑠 = sign𝑝 (𝑚).
+Moreover, for some protocols, we will also assume the presence of a threshold signature scheme
+[7]. A threshold signature scheme is parameterized by two quantities: 𝑘 - the threshold, and 𝑛 - the
+number of parties participating in the scheme. Each party 𝑝 that participates in the scheme is given
+functions tsign𝑝 , tcombine, and tverify such that:
+      • For a given party 𝑝 and message 𝑚, tsign𝑝 (𝑚) returns a partial signature 𝜌 𝑝 .
+      • For given message 𝑚, a set 𝑃 ⊆ P such that |𝑃 | = 𝑘 and tuple (𝜌 𝑝 )𝑝 ∈𝑃 such that ∀𝑝 ∈
+        𝑃, 𝜌 𝑝 = tsign𝑝 (𝑚), a call tcombine 𝑚, (𝜌 𝑝 )𝑝 ∈𝑃 returns a threshold signature 𝜎.
+      • For a given message 𝑚 and threshold signature 𝜎, tverify(𝑚, 𝜎) returns 𝑡𝑟𝑢𝑒 if and
+        only if there exists a tuple    of partial signatures (𝜌 𝑝 )𝑝 ∈𝑃 with |𝑃 | = 𝑘 such that
+        𝜎 = tcombine 𝑚, (𝜌 𝑝 )𝑝 ∈𝑃 .
+Except when mentioned otherwise, the threshold signature will be used with parameter 𝑘 = 𝑛 − 𝑡
+in this paper.
+   We will also use aggregate signature scheme [6], which, for simplicity of presentation, we define
+to be a threshold signature scheme5 with 𝑘 = 𝑛.
+Communication Complexity. We define the communication complexity of an algorithm as the
+number of words sent by honest nodes, where each word contains a constant number of signatures
+and a logarithmic number of bits. In our protocols, all messages contain a constant number of
+words, so we use word complexity and message complexity interchangeably.
+   As pointed out by Spiegelman et al. [35], there does not exist a partially synchronous algorithm
+that solves BA sending a bounded number of messages when counting messages sent before
+GST. Therefore, when speaking about the communication complexity of partially synchronous
+algorithms, we refer only to messages sent after GST.
+Round Complexity. We define the round complexity of a synchronous Byzantine Agreement
+algorithm to be the first round by which all honest nodes have decided a value. The round complexity
+of asynchronous algorithms is defined assuming they run in synchrony from the start. Finally,
+for partially synchronous algorithms, the round complexity is the first round by which all honest
+nodes have decided a value minus the round when GST is reached.
+3 In the literature, this property is also called Strong Validity.
+4 As is standard in cryptography, here and in similar contexts, we assume only party 𝑝 can invoke sign (·), but all parties
+                                                                                                      𝑝
+can invoke verify(·, ·, 𝑝 ).
+5 The original definition is more general; it allows parties to sign different messages. We do not need this versatility in our
+
+results.
+8                                 Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+5     High-Level Structure of the Algorithms
+All our algorithms that decouple 𝑛 and 𝑡 in the communication complexity have the same high-level
+structure, which we now present in this section. It goes as follows. First, we pick a Quorum of
+𝑂 (𝑡) nodes and run agreement among those using some efficient agreement algorithm. We call
+this phase of the protocol quorum agreement. The second phase is disseminating the decided value
+from quorum nodes to the rest of the system. This phase we call Quorum to All Broadcast or QAB
+for short.
+
+5.1    Quorum Agreement
+The first step in our protocol is to reach agreement among a quorum. The specific agreement
+mechanism depends on the network model. In the asynchronous setting, we use the protocol of
+Cachin et al. [8]. For synchronous and partially synchronous networks, however, prior work did
+not provide algorithms that simultaneously achieve our targets for adaptive communication and
+round complexity. We therefore present new algorithms meeting these requirements.
+  We use a view-based approach based on Spiegelman’s byzantine agreement protocol for external
+validity [35], but with many abstractions and modifications to make it fit for strong agreement in
+both the synchronous and partially synchronous setting with optimal efficiency:
+     • Proofs and threshold signature: The original protocol relies on creating multiple proofs
+        based on (𝑛 − 𝑡)-threshold signatures, each stronger than the precedent, until getting a
+        commit proof, which satisfies agreement. We change the threshold from 𝑛−𝑡 to ⌈(𝑛+𝑡 +1)/2⌉,
+        similar to what is used in [16]. This has no impact in the partially synchronous setting
+        but guarantees that we get the same intersection properties for the synchronous setting. A
+        consequence of this is that if 𝑓 ≥ ⌊(𝑛 − 𝑡 − 1)/2⌋, which can happen in the synchronous
+        setting, then it is not guaranteed that a value will be decided, even if the leader is honest.
+     • Abstracting the valid input: In external validity, we assume each party to hold an input
+        that (1) is valid to agree on and (2) each party can locally check that this value can be agreed
+        on. We abstract this further to work with strong unanimity by assuming that parties no
+        longer hold such input at the beginning of the protocol, but instead have at their disposal
+        a retrieval sub-protocol which can retrieve such input at the cost of some additional
+        communication complexity and rounds. We also assume that this sub-protocol can fail and
+        return ⊥. This way, the only difference between the synchronous and partially synchronous
+        settings on this part of the algorithm is the retrieval protocol implementation.
+     • Always making progress in synchrony: In the synchronous settings, because of the
+        high resiliency requirement 𝑡 < 𝑛/2, it might happen that no proof can be generated if
+        the honest parties’ input is evenly distributed between 0 and 1. To handle this setting, we
+        make small progress every time the leader is honest with a simple observation: If the leader
+        cannot make a proof, then the leader knows that both 0 and 1 can be decided.
+     • Complaining round: We note that the original paper’s round complexity is O (𝑛). To
+        reduce the round complexity to O (𝑓 ), we add a complaining round inside each view. This
+        idea is similar to the catch-up mechanism from the DARE to agree protocol [11]. In essence,
+        as long as a party has not decided a value, it will complain to the leader at every view. This
+        ensures that every honest party will have decided after a view where the leader is honest
+        while only having a O (𝑛 · 𝑓 ) overhead.
+     • Synchronous fallback: As stated above, if 𝑓 < ⌊(𝑛 − 𝑡 − 1)/2⌋ in the synchronous setting,
+        our previous approach is guaranteed to terminate. Otherwise, we remark that 𝑓 = Ω(𝑛)
+        and we use the same technique as [16], which is to detect this situation and run a fallback
+        agreement protocol with quadratic message complexity. We make improvements to this
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                         9
+
+
+        approach to ensure no honest party will send any messages after O (𝑛) rounds and by
+        simplifying the fallback call.
+
+5.2   Quorum to All Broadcast
+The second step is to efficiently broadcast the value agreed upon from quorum nodes to the rest of
+the system: to perform a QAB.
+   The formal definition of the primitive goes as follows. A QAB instance is defined with respect to
+a group of dedicated nodes called quorum. Every honest node 𝑢 in the quorum starts an instance
+with a value 𝑣𝑖𝑛 (common among all quorum nodes) and a proof 𝑝𝑟𝑜𝑜 𝑓𝑢 . We assume that all the
+honest nodes in the system possess a predicate verify(·, ·) such that verify(𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) is true only if
+𝑣 = 𝑣𝑖𝑛 and for any honest quorum node 𝑢, verify(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓𝑢 ) is true. QAB exposes the following
+interface:
+     • InitiateQAB() - start the protocol for any party.
+     • StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) - provide a value and proof to a quorum node.
+     • Decide(𝑣) - decide value 𝑣.
+   QAB is defined by the following property that encapsulates classical Agreement, Termination,
+and Validity.
+  Property 1 (Complete Correctness). Every honest node eventually decides 𝑣𝑖𝑛 .
+  In our applications, it is crucial that quorum nodes might not possess 𝑣𝑖𝑛 at the beginning of
+the execution, but acquire it at some arbitrary point in time. Hence, our QABs support quorum
+nodes invoking StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) at different times. This motivates us to define the
+round complexity of QAB as the number of rounds between the last honest quorum node invokes
+StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) and all honest nodes decide the value.
+  As for non-quorum nodes, there is no specific reason for them to invoke InitiateQAB() later;
+hence, they invoke it at the very beginning. This brings another challenge: we need to make sure
+that non-quorum nodes do not exchange a lot of messages before the problem can even be solved,
+that is, before any quorum node invokes StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ).
+   QAB Phase. The main building block common among our QABs in different network models
+is called a QAB Phase. It is a procedure parameterized by a value 𝑓ˆ. On a high level, a QAB phase
+with parameter 𝑓ˆ is guaranteed to succeed in disseminating a quorum value to all parties if the
+actual number of faults 𝑓 is no larger than 𝑓ˆ. We now give a description of a QAB phase.
+   We restrict the communication between nodes to a specific graph, which we call a communication
+graph. If there is an edge between two nodes in this graph, we say that these two nodes are linked.
+   We construct the communication graph 𝐺 as follows. First, we assign parties to committees
+according to Theorem 3.8 with parameters 𝑛 and 𝑓ˆ. This way, we obtain a set C of 𝑂 ( 𝑓ˆ log 𝑛)
+committees with each party being assigned to 𝑂 (log 𝑛) committees. For each committee 𝐶 ∈ C, we
+choose (arbitrarily) a node in 𝐶 “responsible” for this committee and call such a node a relayer for
+𝐶, denoted 𝑟𝑒𝑙𝑎𝑦𝑒𝑟 (𝐶). Hence, we have 𝑂 ( 𝑓ˆ log 𝑛) relayers. In the communication graph, we then
+link every party to the relayer of each committee this party is assigned to. That is {(𝑢, 𝑟𝑒𝑙𝑎𝑦𝑒𝑟 (𝐶)) |
+𝑢 ∈ 𝐶, 𝐶 ∈ C} ⊆ 𝐸 (𝐺). We also link every relayer to every quorum node.
+   Given the communication graph, the high-level description of our QAB phase with parameter 𝑓ˆ
+is as follows. The pseudocode for the procedure can be found in Section 8.
+    (1) Quorum-Relayers-Parties. Each quorum node, upon invoking 𝑆𝑡𝑎𝑟𝑡𝑄𝑢𝑜𝑟𝑢𝑚(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ),
+         broadcasts (𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) to every relayer. Upon receiving and verifying (𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ), each
+         relayer then broadcasts it among the parties linked to them.
+10                                   Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+                             Quorum                Relayers             Parties
+
+
+
+
+                             3∙𝑡+1              𝒪 𝑓መ ∙ log 𝑛               𝑛
+
+Fig. 1. The communication graph for communications with relayers. Nodes are assigned three roles (non-
+exclusive): parties, relayers and quorum with respective sizes of 𝑛, 𝑂 ( 𝑓ˆ log 𝑛) and 3𝑡 + 1. Each party is only
+linked to 𝑂 (log 𝑛) relayers, and each relayer is linked to each quorum node.
+
+
+    (2) Parties-Relayers-Quorum. Every committee has an aggregate signature setup. After
+        receiving (𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) from a relayer and verifying it, each party produces a partial signature
+        for a message saying that it knows 𝑣𝑖𝑛 and sends it back to the relayer. After receiving a
+        valid partial signature from every party linked to them for a given committee, a relayer
+        aggregates the signatures into a single one and sends it to all the quorum nodes from whom
+        it received 𝑣𝑖𝑛 .
+    (3) Quorum-Undecided. Each quorum node 𝑢 maintains a set 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑𝑢 , initially empty,
+        of nodes of whom 𝑢 is aware that they know 𝑣𝑖𝑛 . Once 𝑢 receives and verifies an aggregated
+        signature for a committee 𝐶 from a 𝑟𝑒𝑙𝑎𝑦𝑒𝑟 (𝐶), 𝑢 knows that all the parties in 𝐶 know
+        𝑣𝑖𝑛 and hence it updates 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑𝑢 = 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑𝑢 ∪ 𝐶. Once |𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑𝑢 | ≥
+        |𝑛 − 𝑐𝑏 · 𝑓ˆ| where 𝑐𝑏 is a constant from Theorem 3.8, 𝑢 sends 𝑣𝑖𝑛 directly to the nodes in
+        P \ 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑𝑢 and terminates.
+  As a remark, note that in the last step, when 𝑢 is sending 𝑣𝑖𝑛 to the parties in P \ 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑𝑢 ,
+this happens not according to the communication graph. For P \ 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑𝑢 is determined
+dynamically. This is the only such place; all other messages are sent according to the graph.
+
+5.3   Putting it all together
+The final step is to show that using a regular byzantine agreement along with a QAB protocol, one
+can obtain an improved protocol for byzantine agreement which decouples 𝑛 and 𝑡:
+  Theorem 5.1. Given a network setting, we assume there is a 𝐵𝐴 protocol for binary agreement
+with message complexity Messages𝐵𝐴 (𝑛, 𝑓 ) supporting with resiliency 𝑡 < 𝑛/3 and round complexity
+Rounds𝐵𝐴 (𝑓 ) which outputs a proof that a value was decided along with the value. We assume as
+well there exists 𝑄𝐴𝐵 protocol with message complexity Messages𝑄𝐴𝐵 (𝑛, 𝑡, 𝑓 , 𝑙), where 𝑙 is an upper
+bound on the number of rounds before every honest quorum node calls StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ),
+and round complexity Rounds𝑄𝐴𝐵 (𝑛, 𝑓 ).
+  Then there exists a 𝐵𝐴 protocol with resiliency 𝑡 < 𝑛/3, message complexity Messages𝐵𝐴 (𝑡, 𝑓 ) +
+Messages𝑄𝐴𝐵 (𝑛, 𝑡, 𝑓 , Rounds𝐵𝐴 (𝑓 )) and round complexity Rounds𝐵𝐴 (𝑓 ) + Rounds𝑄𝐴𝐵 (𝑓 ).
+  Proof. Our protocol DecoupledBA, whose pseudocode is available below relies on running the
+BA protocol on 3𝑡 + 1 parties which make up the quorum nodes, then to use the QAB protocol to
+spread the output of this BA along with its proof to every party.
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                           11
+
+
+       DecoupledBA
+    𝐵𝐴 protocol with decoupled 𝑛 and 𝑡 for a party 𝑝 with input 𝑣𝑖𝑛
+     1: in parallel do
+     2:     Call QABInitiate()
+     3:     When QAB decides a value 𝑣, decide 𝑣
+     4:
+     5: Let 𝑄 be the set of the 3𝑡 + 1 parties with lowest IDs
+     6: if 𝑝 ∈ 𝑄 then
+     7:     (𝑣𝑎𝑙𝑢𝑒, 𝑝𝑟𝑜𝑜 𝑓 ) ← Π𝐵𝐴,𝑄 (𝑣𝑖𝑛 )
+     8:     Call StartQuorum(𝑣𝑎𝑙𝑢𝑒, 𝑝𝑟𝑜𝑜 𝑓 )
+     9: end if
+
+   The round complexity of DecoupledBA is Rounds𝐵𝐴 (𝑓 ) + Rounds𝑄𝐴𝐵 (𝑓 ), moreover,
+all honest quorum nodes will call StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) at most Rounds𝐵𝐴 (𝑓 ) rounds
+after the start of the protocol. Therefore, the message complexity is Messages𝐵𝐴 (𝑡, 𝑓 ) +
+Messages𝑄𝐴𝐵 (𝑛, 𝑡, 𝑓 , Rounds𝐵𝐴 (𝑓 )). Because of the BA termination and agreement, all honest
+quorum nodes will call StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) with the same 𝑣𝑖𝑛 and a proof for it, where 𝑣𝑖𝑛
+satisfies strong unanimity because of the BA validity. Because of QAB complete correctness, all
+parties will therefore all eventually decide the same value 𝑣𝑖𝑛 . So termination, agreement and
+validity are satisfied.
+                                                                                               □
+
+6    Disperser
+The core building block in all our algorithms is a disperser graph.
+   Definition 6.1. Consider a bipartite graph 𝐺 = (𝐿 ⊔ 𝑅, 𝐸) where each node on the left has degree
+𝑑. 𝐺 is a (𝑘, 𝜀) disperser if for every 𝑆 ⊆ 𝐿 of size at least 𝑘, it holds that |𝑁 (𝑆)| ≥ (1 − 𝜀)|𝑅|.
+   Here 𝑁 (𝑆) is a neighborhood of 𝑆, namely 𝑁 (𝑆) = {𝑣 ∈ 𝑅 | (𝑢, 𝑣) ∈ 𝐸 for some 𝑢 ∈ 𝑆 }.
+  Informally, a bipartite graph is a disperser if any large enough subset on the left almost covers
+the whole right part. Yet, this property alone can be trivially achieved by a complete bipartite graph.
+Also, it is not interesting if the subset on the left covers the right part just because it is huge itself.
+Therefore, what’s challenging is to achieve the defining disperser property with few edges (ideally
+with 𝑑 = 𝑂 (log 𝑛)) and for subsets small enough compared to the right side.
+  Fortunately, graphs satisfying these conditions exist. The following is a known fact (see, e.g.,
+Theorem 1.10 in [32]).
+   Theorem 6.2. For any 𝑛, 𝑚, 𝑚 ≤ 𝑛, there exists a (𝑘, 1/2) bipartite disperser 𝐺 (𝐿 ⊔ 𝑅, 𝐸) with
+                                                          𝑚
+|𝐿| = 𝑛, |𝑅| = 𝑚, left degree 𝑑 = 𝑂 (log 𝑛) and 𝑘 = 𝑂 ( log 𝑛 ).
+  However, the existence of bipartite dispersers in Theorem 6.2 has only been demonstrated non-
+constructively to date. Known explicit bipartite dispersers, e.g., those given by Ta-Shma et al. [36],
+result in polylogarithmically worse guarantees:
+  Theorem 6.3 (Theorem 1.4 [36]). There exists a deterministic polynomial time algorithm that for
+any 𝑛, 𝑚, 𝑚 ≤ 𝑛 outputs a (𝑘, 1/2) bipartite disperser 𝐺 (𝐿 ⊔ 𝑅, 𝐸) with |𝐿| = 𝑛, |𝑅| = 𝑚, left degree
+                               𝑚 log3 𝑛
+𝑑 = 𝑂 (poly(log 𝑛)) and 𝑘 = 𝑂 ( 𝑑 ).
+   For the rest of the paper, we will use bipartite dispersers stated by Theorem 6.2. Switching
+to the explicit version of Theorem 6.3 would result in additional multiplicative polylogs in the
+communication complexity of our algorithms.
+12                                  Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+   Let us now discuss a central theorem that paves the way for using bipartite dispersers in
+distributed computing. At its core, the theorem shows how to assign parties to committees so
+that, even if the adversary chooses which parties to corrupt after seeing the assignment, most
+committees contain no byzantine parties.
+   We will need the following definitions.
+   Definition 3.7. We call a committee compromised if it contains at least one byzantine party.
+   For a given assignment of parties to committees and a given set of byzantine parties, we say that
+a party is blocked if all committees it is assigned to are compromised.
+     Now, the theorem can be stated as follows:
+  Theorem 3.8. Given 𝑛 parties and an integer 𝑓ˆ, there is a way to assign parties to committees such
+that:
+   (1) There are at most 𝑂 ( 𝑓ˆ log 𝑛) committees.
+   (2) Every party is assigned to at most 𝑂 (log 𝑛) committees.
+   (3) An adversary, after seeing the assignment, can make up to 𝑓ˆ arbitrary parties byzantine.
+       Nonetheless, no matter the adversarial choice of which parties to corrupt, the number of blocked
+       parties is at most 𝑐𝑏 · 𝑓ˆ for some constant 𝑐𝑏 .
+   Proof. We construct the stated assignment according to the bipartite disperser graph, inter-
+preting left nodes of the graph as parties, right nodes as committees, and an edge as a party being
+assigned to a committee.
+   To give a precise argument, we need to unpack constants hidden by O-notation in Theorem 6.2.
+In particular, Theorem 6.2 states that there are constants 𝑐𝑑 and 𝑐𝑘 such that for all integers 𝑁 , 𝑀
+with 𝑀 ≤ 𝑁 there exists a (𝑘, 12 ) disperser with 𝑁 nodes on the left, 𝑀 nodes on the right, left
+degree 𝑑 ≤ 𝑐𝑑 · log 𝑁 and 𝑘 ≤ 𝑐𝑘 · log𝑀𝑁 .
+   Now, consider such a disperser for 𝑁 = 𝑛 and 𝑀 = 4𝑐𝑑 · 𝑓ˆ · log 𝑛.
+  Applying the definition of a bipartite disperser, we get:
+    Observation I. Any subset of parties of size at least 𝑘 = 4𝑐𝑘 𝑐𝑑 · 𝑓ˆ is assigned to at least 𝑀/2 =
+                   2𝑐𝑑 · 𝑓ˆ · log 𝑛 committees.
+  Observation II. Furthermore, since one Byzantine party compromises at most 𝑑 committees, and
+                     there are at most 𝑓ˆ Byzantine parties, the number of compromised committees
+                     is at most 𝑓 · 𝑑 = 𝑐𝑑 · 𝑓ˆ · log 𝑛.
+   As a final step, assume for contradiction that there exists a set 𝑆 of parties of size at least 4𝑐𝑘 𝑐𝑑 · 𝑓
+in which every party is blocked. However, by Observation I, parties in 𝑆 are assigned to at least
+2𝑐𝑑 · 𝑓 · log 𝑛 committees, and by Observation II, at most 𝑐𝑑 · 𝑓 · log 𝑛 committees are compromised;
+therefore, some party in 𝑆 is assigned to a non-compromised committee, contradicting that all
+parties in 𝑆 are blocked. Letting 𝑐𝑏 := 4𝑐𝑘 𝑐𝑑 completes the proof.                                        □
+
+7     Leader-Based Agreement
+In this section, we present a protocol relying on a leader-based approach to achieve an adaptive
+communication complexity of O (𝑛 · 𝑓 ). This protocol assumes the existence of what we call a
+retrieval protocol, defined below, which allows a leader to get a proof that a value can be decided.
+Our protocol only assumes a partially synchronous setting. In fact, by using different retrieval
+procedure, we can get optimal resiliency for strong unanimity in both the synchronous and partially
+synchronous setting. Our algorithm is based on a modified version of Spiegelman’s byzantine
+agreement protocol for external validity [35], which itself uses Hotstuff’s view synchronization
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                        13
+
+
+[37] technique. While inspired by Spiegelman’s protocol for network-agnostic settings [35], our
+work departs significantly in both design and guarantees. We eliminate the asynchronous and
+randomized components of the original protocol and instead strengthen the synchronous part
+with additional checks, enabling it to function effectively in partial synchrony after GST. This
+modification allows us to achieve O (𝑛 · 𝑓 ) message complexity for external validity without relying
+on full synchrony.
+   Crucially, by allowing parties to selectively share their commit proofs upon request, we ensure
+termination in O (𝑓 ) rounds while keeping the message complexity at O (𝑛 · 𝑓 ).
+   We provide an overview of each step and property of the algorithm. For detailed pseudocode,
+please refer to Appendix B.1.
+   The protocol is organized in views. Each view has a leader, who is chosen in a round-robin way.
+As a consequence of Lemma B.6, if 𝑓 ≤ ⌊ 𝑛−𝑡2 −1 ⌋, the algorithm is guaranteed to succeed after at
+most 2𝑓 + 1 views after GST.
+  Definition 7.1. We consider two subprotocols RetrieveLeader and RetrieveParty(𝑣𝑖𝑛 ).
+RetrieveLeader is called by a leader while RetrieveParty is called by every honest party.
+We assume parties know who the leader is and if the leader is honest, then all honest parties
+call RetrieveParty at most one round after the leader called RetrieveLeader. A call to
+RetrieveLeader along with its associated RetrieveParty is called an instance. We say that
+(RetrieveLeader, RetrieveParty(𝑣𝑖𝑛 )) is a retrieval procedure if it satisfies the following
+properties
+     • RetrieveLeader either returns ⊥ or a tuple (𝑣, 𝑝𝑟𝑜𝑜 𝑓 ).
+     • In the case the leader returns a tuple (𝑣, 𝑝𝑟𝑜𝑜 𝑓 ). 𝑣 should be a value (0 or 1) that satisfies
+       strong unanimity with 𝑣𝑖𝑛 and 𝑝𝑟𝑜𝑜 𝑓 can be used by any honest party to locally verify
+       that 𝑣 can be decided (similar to external validity). Moreover, the output must fit within a
+       constant number of words, i.e 𝑝𝑟𝑜𝑜 𝑓 should only contain a constant amount of signatures
+       and/or threshold signatures.
+     • An instance has a O (𝑛) message complexity.
+     • When called after GST, the protocol returns within 2 rounds if the leader is honest.
+     • If called after GST by 𝑓 + 1 different honest leaders, this protocol will at least once not
+       return ⊥.
+  Let 𝑘 = ⌈ 𝑛+𝑡2+1 ⌉. The choice of 𝑘 is made so that any two sets of 𝑘 parties have at least one honest
+party in common. After the model-specific retrieval phase, each party keeps track of the following
+values:
+     • Key (initially ⊥): the key is expressed as a value, a view number, and a proof ((𝑛, 𝑘)-threshold
+        signature). It indicates a value that is safe to choose.
+     • Lock (initially ⊥): similar to the key, the lock is expressed as a value, a view number, and a
+        proof. It is used to check the key value proposed by a leader.
+     • Commit (initially ⊥): the commit is expressed as a value and a proof. We will prove that at
+        most one commit value can be created when running the protocol, and that if a commit
+        value is created, this value will eventually be decided by all honest parties.
+  The algorithm for a single view consists of 4 phases of a leader asking and other parties responding.
+A leader proceeds to the next phase once it get the appropriate 𝑘 partial signatures to generate
+the proof for the next step. After 4 phases pass successfully, the leader obtains a commit value and
+broadcasts it.
+  We give a brief overview of the role of each phase in a view:
+14                                 Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+     • Suggestion phase: The leader requests a value, and the parties respond with a commit
+       value, then a key with the highest view number if they have no commit value, or nothing if
+       they have no commit and no key value. Parties also run the retrieval protocol for the leader
+       to get a valid value to agree on or ⊥.
+       The purpose of this phase is to enable the leader to determine whether any party has already
+       decided (via a commit proof) or was close to deciding (via a key proof). If neither is the case,
+       the leader falls back to the value given by the retrieval protocol. If the retrieval protocol
+       also returns ⊥, the leader stays silent for the rest of the view.
+     • Key phase: The leader proposes either a key with the highest view it observed, or if no key
+       was observed, the value returned by the retrieval protocol, which we assume is not ⊥ as the
+       leader would otherwise be silent. A party accepts the proposal if it has no lock, or if the
+       proposal includes a key and their current lock has a lower view number than the proposed
+       key. The leader then aggregates the positive responses to generate a key proof.
+       The purpose of this phase is to ensure that the value proposed by the leader is consistent
+       with the information parties obtained in earlier rounds. Note that parties compare the
+       proposed key to the lock they have, not to another key; this is to ensure agreement after
+       GST.
+     • Lock phase: The leader broadcasts a key proof, parties verify and respond with their
+       accepts, and by aggregating those, the leader creates a lock proof.
+       The goal of this phase is for parties to learn about the key proof, which may be used for the
+       following views to ensure agreement.
+     • Commit phase: The leader broadcasts a lock proof, parties verify and respond with their
+       accepts, and by aggregating those, the leader creates a commit proof.
+       The goal of this phase is for parties to learn the lock proof, which is used to check the value
+       proposed by the leader in the key phase.
+     • Commit broadcast: The leader broadcasts the commit proof to every party, who can decide
+       it upon receiving.
+
+
+
+
+Fig. 2. Evolution of a single view in our partially synchronous Byzantine Agreement protocol, assuming an
+honest leader L and that the system is after GST.
+
+  This algorithm, to which we refer as ViewByzantineAgreement and which is described in
+Section B.1, solves Byzantine Agreement assuming the actual number of byzantine 𝑓 is low enough:
+  Theorem 7.2. Assuming 𝑓 ≤ 𝑛 − 𝑘 (i.e 𝑓 ≤ ⌊ 𝑛−𝑡2 −1 ⌋) and the existence of a retrieval protocol, then
+ViewByzantineAgreement achieves agreement, termination and validity. It also returns a proof which
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                      15
+
+
+can only be obtained for the decided value and has message complexity O (𝑛𝑓 ) and round complexity
+O (𝑓 ).
+
+8     Quorum-to-All Phase
+We now give proper definition of a Quorum-to-All (QAB) phase which is used for all 𝑛 − 𝑓 honest
+node to learn the decided value from the quorum of size 3𝑡 + 1. A QAB phase is characterized by a
+parameter 𝑓ˆ. The main idea is that if the phase is ran and 𝑓 ≤ 𝑓ˆ, then by the end of the phase, all
+honest nodes will have decided while using only O (𝑛 log 𝑛 + 𝑡 · 𝑓 · log 𝑛) words and spending a
+constant amount of rounds.
+  As said previously, nodes can assume multiple roles including the ones of party, relayer and
+quorum node. In particular, a single node may be the relayer for multiple committees. We now give
+an implementation of the QABInitiate() procedure as well as the pseudocode used for parties
+(QABParty), relayers (QABRelayer) and quorum nodes (QABQuorum).
+       QABInitiate
+    Protocol for QAB initialization for a party 𝑝
+     1: Run QABParty in parallel
+     2: for every committee 𝐶 where 𝑝 is the relayer do
+     3:     Run QABRelayer(𝐶) in parallel
+     4: end for
+
+
+       QABParty
+    Protocol for a party 𝑝 running in a QAB phase
+     1: for Each committee 𝐶 which 𝑝 is a part of, with relayer 𝑟 do
+     2:     upon once Receiving valid (𝐴𝐺𝐺𝑅𝐸𝐺𝐴𝑇 𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) from 𝑟 do
+     3:        Send (𝐴𝐶𝐾, 𝑠𝑖𝑔𝑛𝐶 (𝐴𝐶𝐾)) to 𝑟
+     4:        if 𝑝 has not yet decided then
+     5:            Decide 𝑣
+     6:        end if
+     7: end for
+
+     8: upon once Receiving valid (𝐷𝐸𝐶𝐼𝐷𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) do
+     9:    if 𝑝 has not yet decided then
+    10:        Decide 𝑣
+    11:    end if
+
+       QABRelayer
+    Protocol for a relayer 𝑟 of a committee 𝐶
+     1: 𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 ← ⊥
+     2: 𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 ← ∅
+     3: 𝑊 𝑎𝑖𝑡𝑖𝑛𝑔 ← ∅
+     4: upon once Receiving valid (𝐷𝐼𝑆𝑃𝐸𝑅𝑆𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) do
+     5:     for Party 𝑝 ∈ 𝐶 do
+     6:         Send (𝐴𝐺𝐺𝑅𝐸𝐺𝐴𝑇 𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) to 𝑝
+     7:     end for
+
+     8: upon Receiving valid (𝐷𝐼𝑆𝑃𝐸𝑅𝑆𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) from a quorum node 𝑞 for the first time do
+16                                      Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+      9:       if 𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 ≠ ⊥ then
+     10:           Send (𝐶𝑂𝑀𝑃𝐿𝐸𝑇 𝐸𝐷, 𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒) to 𝑞
+     11:       else
+     12:           𝑊 𝑎𝑖𝑡𝑖𝑛𝑔 ← 𝑊 𝑎𝑖𝑡𝑖𝑛𝑔 ∪ {𝑞}
+     13:       end if
+
+     14: upon Receiving valid (𝐴𝐶𝐾, 𝑠𝑖𝑔𝑛) from a committee party 𝑝 for the first time do
+     15:    𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 ← 𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 ∪ {𝑠𝑖𝑔𝑛}
+     16:    if |𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 | = |𝐶 | then
+     17:        𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 ← 𝑎𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 (𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠)
+     18:        for 𝑞 ∈ 𝑊 𝑎𝑖𝑡𝑖𝑛𝑔 do
+     19:            Send (𝐶𝑂𝑀𝑃𝐿𝐸𝑇 𝐸𝐷, 𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒) to 𝑞
+     20:        end for
+     21:    end if
+
+           QABQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 , phase parameter 𝑓ˆ)
+     Protocol for a quorum node 𝑞
+      1: 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ← ∅
+      2: upon Receiving valid (𝐶𝑂𝑀𝑃𝐿𝐸𝑇 𝐸𝐷, 𝑠𝑖𝑔𝑛) from relayer 𝑟 of committee 𝐶 for the first time do
+      3:    𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ← 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ∪ 𝐶
+      4:    if |𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 | ≥ 𝑛 − 𝑐𝑏 · 𝑓ˆ then
+      5:        for party 𝑝 ∈ P \ 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 do
+      6:            Send (𝐷𝐸𝐶𝐼𝐷𝐸, 𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) to 𝑝
+      7:        end for
+      8:        We successfully disseminated our value
+      9:        return
+     10:    end if
+
+     11: for Every relayer 𝑟 do
+     12:     Send (𝐷𝐼𝑆𝑃𝐸𝑅𝑆𝐸, 𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ) to 𝑟
+     13: end for
+
+     We now give multiple properties of this protocol:
+     Lemma 8.1. An honest party can only decide 𝑣𝑖𝑛 .
+  Proof. An honest party only decides a value 𝑣 if it receives a proof for it along with it. Because
+by assumption, a proof can only exist for 𝑣𝑖𝑛 , an honest party can only decide 𝑣𝑖𝑛 .             □
+     Lemma 8.2. At most O (𝑛 log 𝑛) messages are exchanged between parties and relayers in a phase.
+   Proof. A relayer sends at most one message to a party in its committee and a party answers
+at most once to such message for each committee it is part of. Because committees were made
+using Theorem 3.8, a party is part of at most O (log 𝑛) committees. There are 𝑛 parties hence the
+O (𝑛 log 𝑛) message bound.                                                                      □
+     Lemma 8.3. At most O (𝑡 · 𝑓ˆ · log 𝑛) messages are exchanged between relayers and quorum nodes.
+  Proof. Each of the O (𝑡) quorum node sends at most one message to the O ( 𝑓ˆ log 𝑛) relayers,
+which answer at most once after they get an aggregate signature. Therefore, the total message
+complexity is O (𝑡 · 𝑓ˆ · log 𝑛).                                                            □
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                         17
+
+
+  Lemma 8.4. At most O (𝑡 · 𝑓ˆ) messages are exchanged between quorum nodes and parties.
+   Proof. A quorum node sends a message directly to a party only when |𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 | ≥ 𝑛 −𝑐𝑏 𝑓ˆ,
+and it does this only once per party missing in 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑. Therefore, it sends at most 𝑐𝑏 𝑓ˆ =
+O ( 𝑓ˆ) messages to parties. Because there are 3𝑡 + 1 quorum nodes, the total message complexity is
+O (𝑡 · 𝑓ˆ).                                                                                      □
+  Lemma 8.5. A whole QAB phase has message complexity O ((𝑛 + 𝑡 · 𝑓ˆ) · log 𝑛).
+  Proof. We consider all kinds of messages sent by honest parties:
+   (1) Messages exchanged between parties and relayers, which is O (𝑛 log 𝑛) using Lemma 8.2.
+   (2) Messages exchanged between relayers and quorum nodes, which is O (𝑡 · 𝑓ˆ · log 𝑛) using
+       Lemma 8.3.
+   (3) Messages sent by quorum nodes to parties, which is at most O (𝑡 · 𝑓ˆ) using Lemma 8.4.
+Putting all of it together, we get a total message complexity of O ((𝑛 + 𝑡 · 𝑓ˆ) · log 𝑛).    □
+  Lemma 8.6. If no honest quorum node runs QABQuorum, then this phase has message complexity
+O ((𝑛 + 𝑓 · 𝑓ˆ) · log 𝑛).
+   Proof. The O (𝑛 log 𝑛) messages come from Lemma 8.2. We note that if no honest quorum node
+starts QABQuorum, then any message sent by a quorum node is sent by a byzantine node. Only
+relayers react to messages sent by quorum nodes and send back a message at most once. As such,
+the up to 𝑓 byzantine quorum nodes can only trigger an additional O (𝑓 · 𝑓ˆ · log 𝑛) messages being
+sent by honest relayers. By summing these two kinds of messages, we get the total complexity. □
+  Lemma 8.7. If an honest quorum node reports having successfully disseminated its value, then all
+parties will have decided within one round.
+   Proof. If a quorum node 𝑞 reports it has successfully disseminated its value, it means it sent
+its value to all parties with were not included in 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑. Because a party 𝑝 gets added to
+𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 only if the leader receives an aggregate which 𝑝 must have partially signed, and
+𝑝 is guaranteed to have decided when sending this message, this guarantees all honest parties in
+𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 have already decided.
+   We remark that 𝑞 then sends a decide message to all parties not in 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑, which are
+then guaranteed to decide the value when receiving it if they have not done so already. It takes one
+round for these parties to receive the message, which proves the lemma.                            □
+  Lemma 8.8. If an honest quorum node starts QABQuorum and 𝑓 ≤ 𝑓ˆ, then it will receive acknowl-
+edgments from at least 𝑛 − 𝑐𝑏 · 𝑓ˆ parties and report having successfully disseminated its value within 4
+rounds.
+   Proof. If an honest quorum node starts QABQuorum, the following will happen in each round
+(or already have happened if another party, being honest or byzantine sent a valid message before):
+    (1) 1st round: The quorum node sends a message to every relayer
+    (2) 2nd round: Each relayer relays the message to every party in its committee.
+    (3) 3rd round: Every honest party receives the value, decides it if not already done, signs an
+        acknowledgment and sends it to its relayer.
+    (4) 4th round: Every relayer which receives a partial signature from all of its committee members
+        aggregate them and send the aggregate signature to the quorum node.
+    (5) End of 4th round: The quorum node receives all aggregate signatures.
+18                                   Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+We note that if 𝑓 ≤ 𝑓ˆ, because committees are formed using Theorem 3.8, at most 𝑐𝑏 · 𝑓ˆ parties
+will be blocked. If a party is not blocked, it means it is part of a committee entirely made of honest
+parties, so the relayer will be able to acquire an aggregate signature and send it to the quorum node
+within 4 rounds. Therefore, after 4 rounds, in the worst case, the quorum node will be missing
+the signature of the up to 𝑐𝑏 · 𝑓ˆ blocked parties (we note that by definition, byzantine parties are
+always blocked). Therefore we will have |𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 | ≥ 𝑛 − 𝑐𝑏 𝑓ˆ so the quorum node will send
+its value to the remaining parties and report having successfully disseminated its value.           □
+
+9     Asynchronous Byzantine Agreement
+As a warm-up, we begin with our result for asynchronous Byzantine agreement, which is concep-
+tually the simplest and already illustrates the main ingredients of our approach.
+  For the quorum agreement in asynchrony, we use a probabilistic protocol from Cachin et al. [8]
+which has quadratic communication complexity, resulting in 𝑂 (𝑡 2 ) communication for us.
+
+9.1     Asynchronous QAB
+The asynchronous QAB which we call QABAsync consists of a single QAB phase with parameter 𝑡,
+its implementation of StartQuorum is given here:
+       StartQuorumAsync(𝑣𝑖𝑛 , proof )
+     Implementation of StartQuorum in the asynchronous setting for a quorum node
+      1: Run QABQuorum(𝑣𝑖𝑛 , proof , 𝑡)
+
+
+  Theorem 9.1. QABAsync protocol solves QAB in asynchrony in the presence of at most 𝑡 Byzantine
+faults with communication complexity of O ((𝑛 + 𝑡 2 ) · log 𝑛) and round complexity O (1).
+  Proof. We need to prove round and communication complexity, as well as Complete Correctness.
+  Round complexity. Because there are 3𝑡 + 1 quorum nodes, at least 2𝑡 + 1 ≥ 1 quorum node will
+be honest. Therefore, as a consequence of Lemmas 8.7 and 8.8, the round complexity is O (1).
+  Communication complexity. This is a direct consequence of Lemma 8.5 with 𝑓ˆ = 𝑡.
+  Complete correctness Termination is already guaranteed by the round complexity. Lemma 8.1
+guarantees all parties decide 𝑣𝑖𝑛 .                                                          □
+
+9.2     Complete Algorithm
+We are now ready to prove Theorem 3.6.
+   Theorem 3.6. There exists a randomized algorithm that tolerates up to 𝑡 < 𝑛/3 Byzantine faults
+and, given a PKI, solves Byzantine Agreement in asynchrony with expected communication complexity
+of 𝑂 ((𝑛 + 𝑡 2 ) · log 𝑛) and expected round complexity 𝑂 (1).
+   Proof. We start by describing an algorithm that implements BA in asynchrony, and then we show
+its correctness, round complexity, and message complexity. Our algorithm uses an asynchronous
+Byzantine Agreement from Cachin et al. [8], which we refer to as 𝐶, and asynchronous QAB. The
+algorithm goes as follows.
+   We use Theorem 5.1 with the asynchronous BA algorithm from Cachin et al. [8], which has
+expected round complexity O (1) and expected message complexity O (𝑛 2 ). We note that this
+protocol does not return a proof for the value decided. This can be simply worked around by having
+each party broadcast a (𝑛, 𝑡 + 1)-partial signature for the value 𝑣 they decided, then wait for 𝑡 + 1
+of these signatures to make a threshold signature which serves as a proof. This takes 1 round and
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                          19
+
+
+𝑛 2 message complexity. Because this threshold signature requires the partial signature of at least
+one honest party, which only do it for 𝑣, this indeed works as a proof.
+   For the QAB protocol, we use the one described above which has O ((𝑛 + 𝑡 2 ) · log 𝑛) message
+complexity and O (𝑓 ) round complexity. Using Theorem 5.1, we get a protocol for BA with resiliency
+𝑡 < 𝑛/3, expected round complexity O (1) + O (1) = O (1) and expected message complexity
+O (𝑡 2 ) + O ((𝑛 + 𝑡 2 ) · log 𝑛) = O ((𝑛 + 𝑡 2 ) · log 𝑛).                                       □
+
+9.3 Infeasibility in Asynchrony
+On the infeasibility side, in the asynchronous setting, we show that any algorithm must incur
+a communication complexity of at least Ω(𝑡 2 ). This leaves essentially no room for adaptivity in
+asynchronous algorithms and makes the algorithm described earlier in the section nearly optimal.
+  Theorem 3.3. Let A be a protocol solving asynchronous byzantine agreement resilient to 𝑡 byzantine
+parties with almost sure termination. A is allowed to have access to 𝑃𝐾𝐼 , to shared randomness, and
+run any kind of setup, regardless of its message complexity, before parties acquire their input value.
+Let 𝑀 be the number of messages exchanged after setup to reach agreement, then there exists an input
+configuration and a message scheduling protocol such that E[𝑀] = Ω(𝑡 2 ) without any byzantine
+party. This lower bound holds even if the adversary is static, i.e, it can only corrupt parties at the
+beginning of the protocol.
+  We give a proof for this theorem in Appendix A.
+
+10     Adaptive Byzantine Agreement in Synchrony
+10.1    Quorum Agreement
+We first start by describing a retrieval protocol for the synchronous setting with optimal resiliency
+𝑡 < 𝑛/2. The main idea for this retrieval protocol is that parties send a partial signature of their
+input to the leader. If the leader is not able to form a 𝑡 + 1 threshold signature for either 0 or 1, then
+it knows that both 0 and 1 can be decided (although it cannot prove it to other parties). In this case
+the leader sets its own value to ⊥ and sends partial signatures for both 0 and 1 in the following
+rounds. We show that using this approach a proper proof can always be obtained after having 𝑓 + 1
+distinct honest leaders.
+       RetrievalLeaderSync
+  Retrieval protocol for the leader in synchrony
+     Wait for 2Δ units of time
+     if there exists value ∈ {0, 1} which received at least 𝑡 + 1 partial signatures (𝜌𝑝 ) then
+         proof ← 𝑡𝑐𝑜𝑚𝑏𝑖𝑛𝑒 (value, (𝜌 𝑝 ))
+         return (value, proof)
+     else
+         𝑣𝑖𝑛 ← ⊥
+         return ⊥
+     end if
+
+       RetrievalPartySync(𝑣𝑖𝑛 )
+  Retrieval protocol for parties in synchrony
+     if 𝑣𝑖𝑛 ≠ ⊥ then
+         Send (𝑣𝑖𝑛 , 𝑡𝑠𝑖𝑔𝑛(𝑣𝑖𝑛 )) to the leader
+     else
+20                                   Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+        Send both (0, 𝑡𝑠𝑖𝑔𝑛(0)) and (1, 𝑡𝑠𝑖𝑔𝑛(1)) to the leader
+     end if
+
+
+   Lemma 10.1. If an honest party sets its input to ⊥, then both 0 and 1 can be decided according to
+strong unanimity.
+   Proof. We first note that the input value 𝑣𝑖𝑛 of an honest party can only be changed to ⊥ in
+one way. Therefore, if an honest party has input 𝑣𝑖𝑛 ∈ {0, 1}, it will always send a partial signature
+for 𝑣𝑖𝑛 when running the retrieval protocol.
+  We consider the case where a party sets its input to ⊥, it means it could not get a 𝑡 + 1 signatures
+for either 0 or 1. Using the previous part, it implies that at most 𝑡 honest parties had 0 as input and
+that the same holds for 1. Because 𝑛 ≥ 2𝑡 + 1, we have 𝑛 − 𝑡 > 𝑡 so it implies that not all honest
+parties had the same input (which can only be 0 or 1). Therefore, according to strong unanimity,
+any value can be decided.                                                                             □
+  Lemma 10.2. If RetrievalLeaderSync returns a non-⊥ value, then this value satisfies strong
+unanimity and the proof can be used to check it.
+   Proof. Assume that the retrieval protocol returns (𝑣, 𝑝𝑟𝑜𝑜 𝑓 ). The proof shows that 𝑡 + 1 parties
+sent a partial signature to the leader with the value 𝑣. This implies that an honest party sent a
+partial signature for the value 𝑣. This can only happen if its input 𝑣𝑖𝑛 is 𝑣, in which case 𝑣 satisfies
+strong unanimity, or if it is ⊥, in which case using Lemma 10.1, 𝑣 also satisfies strong unanimity. □
+  Lemma 10.3. After the retrieval protocol is called by 𝑓 + 1 distinct honest leaders, it will return a
+non-⊥ value at least once.
+   Proof. Let 𝑛𝑏 0 (resp. 𝑛𝑏 1 ) be the number of partial signatures that an honest leader would
+receive for 0 (resp. 1) from honest parties. Because every honest party starts by sending a threshold
+signature for either 0 or 1, at the beginning, we have 𝑛𝑏 0 + 𝑛𝑏 1 = 𝑛 − 𝑓 . If an honest party becomes
+leader for the first time and returns ⊥, it will start sending partial signatures for both 0 and 1 instead
+of only its input value in subsequent calls. Thus 𝑛𝑏 0 + 𝑛𝑏 1 will increment.
+   We now look at the state of honest parties after 𝑓 distinct honest leaders have been using the
+retrieval protocol. If any of them returned a non-⊥ value, we are done. Otherwise, because 𝑛𝑏 0 +𝑛𝑏 1
+starts at 𝑛 − 𝑓 and increases by 1 every time a new honest leader returns ⊥, it means that by the
+time the (𝑓 + 1)-th honest leader run the protocol, we will have 𝑛𝑏 0 + 𝑛𝑏 1 ≥ 𝑛 − 𝑓 + 𝑓 = 𝑛 ≥ 2𝑡 + 1.
+Just looking at honest partial signatures, we will have at least 2𝑡 + 1 such signatures for either 0 or
+1, so one of the two will have at least 𝑡 + 1 signatures and we will be able to get a proof and return
+a value.                                                                                                 □
+   Theorem 10.4. The pair (RetrievalLeaderSync, RetrievalPartySync) is a valid retrieval proto-
+col in synchrony with resiliency 𝑡 < 𝑛/2.
+   Proof. Every party only sends one or two messages, so the message complexity is O (𝑛). If the
+leader is honest, the protocol will return within exactly 2 rounds. Using Lemma 10.2, if a non-⊥
+value is returned, then it satisfies strong unanimity and the proof certifies it. Using Lemma 10.3,
+when called by 𝑓 + 1 distinct honest leaders, it will not always return ⊥. Therefore, it is a valid
+retrieval protocol.                                                                               □
+  Using this retrieval protocol with our view-based protocol, as a consequence of Theorem 7.2, we
+obtain the following result:
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                        21
+
+
+   Theorem 10.5. In the synchronous setting, with 𝑡 < 𝑛/2 and using the retrieval protocol
+(RetrievalLeaderSync, RetrievalPartySync), ViewByzantineAgreement achieves agreement
+and validity. Moreover, if 𝑓 < ⌊ 𝑛−𝑡2 −1 ⌋, it also satisfies termination within O (𝑓 ) rounds and uses
+O (𝑛 · (𝑓 + 1)) messages.
+   We remark that if 𝑓 ≤ ⌊ 𝑛−𝑡2 −1 ⌋ ≈ 𝑛/4, this protocol satisfies byzantine agreement. However, in
+the other case, some parties may never be able to decide because getting a 𝑘-threshold certificate is
+impossible if byzantine parties do not cooperate. We remark that in this latter case, 𝑓 = Ω(𝑛), and
+use the same technique as [16], which is to detect this case and use a fallback protocol A 𝑓 𝑎𝑙𝑙𝑏𝑎𝑐𝑘
+with quadratic complexity O (𝑛 2 ). The fallback protocol used is the one by Ren and Momose [31]
+which has quadratic message complexity, O (𝑛) round complexity, as proven in Theorem B.15 and
+optimal resiliency 𝑡 < 𝑛/2. We also simplify the fallback detection approach used by Cohen et al.
+While their protocol may cause honest parties to still send messages an arbitrary amount of time
+after the start of the algorithm, our approach guarantees that no message will be sent by honest
+parties after O (𝑛) rounds, so this protocol does not have to run infinitely. Moreover, while Cohen
+et al. have to run the the fallback protocol with a message delay 𝛿 twice as big as the original one,
+our approach does not have this issue. We give the full pseudocode and proof in Section B.3.
+  Theorem 3.1. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/2 byzantine faults
+and, given a PKI, solves Byzantine Agreement in synchrony with communication complexity O (𝑛 · 𝑓 )
+and round complexity O (𝑓 ).
+
+10.2    QAB in Synchrony
+In this section, we describe and analyze our synchronous QAB protocol, which we call QAB-
+Sync. It relies on O (log 𝑡) QAB phases and a specific implementation of StartQuorum called
+StartQuorumSync.
+  Protocol Description. In synchronous Quorum to All Broadcast, we aim for the 𝑂 (𝑛 + 𝑡 𝑓 ) com-
+munication complexity and 𝑂 (𝑓 ) rounds latency. However, the challenge is that processes do not
+know the value of 𝑓 . To account for this, we do an exponential search for 𝑓 . That is, we try to solve
+the problem assuming 𝑓 is no more than 1, then if it fails, we assume 𝑓 is no more than 2, then 4, 8,
+and so on up to 2 ⌈log 𝑡 ⌉ . We will denote the current guess on 𝑓 with 𝑓ˆ. The synchronous QAB then
+consists of launching QAB phase for every guess 𝑓ˆ until one successfully terminates:
+       StartQuorumSync(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 )
+  Implementation of StartQuorum in the synchronous setting for a quorum node
+   1: for 𝑖 ∈ {0, 1, . . . , ⌈log 𝑡⌉} do
+   2:     𝑓ˆ ← 2𝑖
+   3:     Run QABQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 , 𝑓ˆ) for 4 rounds
+   4:     if the quorum node successfully disseminated its value then
+   5:         return
+   6:     end if
+   7: end for
+
+
+  Protocol Analysis.
+  Theorem 10.6. QABSync solves QAB in synchrony in the presence of at most 𝑡 Byzantine faults
+with communication complexity of O ((𝑛 log 𝑡 + 𝑡 · 𝑓 ) · log 𝑛) and round complexity O (log 𝑓 ).
+22                                    Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+    Proof. Round complexity. Let 𝑓ˆ = 2 ⌈log 𝑓 ⌉ , we have 𝑓ˆ ≥ 𝑓 , so as a consequence of Lemma 8.8,
+if an honest quorum runs the QAB phase with parameter 𝑓ˆ, it will report having successfully
+disseminated its value within 4 rounds and therefore won’t run any QAB phase with higher
+parameter. Because there is at least one honest quorum node (the quorum size is 3𝑡 + 1), it will
+therefore report having successfully disseminated its value by after at most ⌈log 𝑓 ⌉ + 1 QAB phases,
+so using Lemma 8.7, all honest parties will have decided within round 4( ⌈log 𝑓 ⌉ + 1) + 1. So the
+round complexity is O (log 𝑓 ). We need to prove round and communication complexity, as well as
+Complete Correctness.
+    Communication complexity. We saw that all honest quorum nodes stop the protocol by phase
+2 𝑓 ⌉ , each of these phases has message complexity O ((𝑛 + 𝑡 · 𝑓ˆ) · log 𝑛) with 𝑓ˆ being the phase
+  ⌈log
+
+parameter according to Lemma 8.5, so the overall message complexity of this part is:
+                     ⌈log
+                      ∑︁𝑓 ⌉
+                               O ((𝑛 + 𝑡 · 2𝑖 ) · log 𝑛) = O ((𝑛 · log 𝑓 + 𝑡 · 𝑓 ) · log 𝑛)
+                       𝑖=0
+We note that byzantine parties may still trigger messages to be sent by honest parties in the upper
+phases, but using Lemma 8.6, at most O ((𝑛 + 𝑓 · 𝑓ˆ) log 𝑛) such messages are sent for phase parameter
+𝑓ˆ, summing over all possible phases, we get:
+                      ⌈log
+                       ∑︁𝑡 ⌉
+                               O ((𝑛 + 𝑓 · 2𝑖 ) log 𝑛) = O ((𝑛 · log 𝑡 + 𝑓 · 𝑡) · log 𝑛)
+                       𝑖=0
+Putting these two together, we get the expected message complexity.
+  Complete correctness Termination is already guaranteed by the round complexity. Lemma 8.1
+guarantees all parties decide 𝑣𝑖𝑛 .                                                      □
+
+10.3    Complete Algorithm
+We can now compose our BA protocol and QAB to obtain an almost-optimal adaptive consensus.
+  Theorem 3.4. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/2 Byzantine
+faults and, given a PKI, solves Byzantine Agreement in synchrony with communication complexity of
+O ((𝑛 · log 𝑡 + 𝑡 · 𝑓 ) · log 𝑛) and round complexity of 𝑂 (𝑓 ).
+   Proof. First, we remark that if 𝑡 ≥ 𝑛/3 (or more generally if 𝑡 = Ω(𝑛)), then the protocol from
+Theorem 3.1 has the correct message and round complexity.
+   We can now assume that 𝑡 < 𝑛/3. We will apply Theorem 5.1. We use the BA protocol from
+Theorem 3.2 which has resiliency 𝑡 < 𝑛/3, message complexity O (𝑛 · 𝑓 ) and round complexity
+O (𝑓 ) (we note that this is a protocol for the partially synchronous setting, but as a consequence, it
+also works in the synchronous setting). We use the QAB described above from Theorem 10.6 which
+has message complexity O ((𝑛 log 𝑡 + 𝑡 · 𝑓 ) · log 𝑛) (regardless of when quorum nodes get their
+value) and round complexity O (log 𝑓 ). With Theorem 5.1, we get a protocol for BA with message
+complexity O (𝑛 · 𝑓 + (𝑛 log 𝑡 + 𝑡 · 𝑓 ) · log 𝑛) = O ((𝑛 log 𝑡 + 𝑡 · 𝑓 ) · log 𝑛) and round complexity
+O (𝑓 + log 𝑓 ) = O (𝑓 ).                                                                              □
+
+11     Adaptive Byzantine Agreement in Partial Synchrony
+11.1    Quorum Agreement
+We now describe a protocol to achieve O (𝑛·(𝑓 +1)) message complexity in the partially synchronous
+setting. Our protocol uses the same approach as in the synchronous setting. We note that, because
+we only support 𝑡 < 𝑛/3 instead of 𝑡 < 𝑛/2, our protocol becomes much simpler. For example, the
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                         23
+
+
+view-based approach only terminates if 𝑓 ≤ ⌊ 𝑛−𝑡2 −1 ⌋. However, if 𝑡 < 𝑛/3, then 𝑡 ≤ ⌊ 𝑛−𝑡2 −1 ⌋, so the
+view-based approach always terminates and a fallback is not necessary.
+   We start with the retrieval protocol. This retrieval protocol is relatively easy: each party sends a
+(𝑡 + 1)-threshold partial signature for their input value to the leader. Because 𝑛 ≥ 3𝑡 + 1, the leader
+is guaranteed to be able to get a full threshold signature for either 0 or 1:
+       RetrievalLeaderGST
+  Retrieval protocol for the leader in partial synchrony
+    Wait for 𝑛 − 𝑡 valid partial signatures
+    Let value ∈ {0, 1} a value with at least 𝑡 + 1 partial signatures (𝜌𝑝 )
+    proof ← 𝑡𝑐𝑜𝑚𝑏𝑖𝑛𝑒 (value, (𝜌 𝑝 )) return (value, proof)
+
+
+       RetrievalPartyGST(𝑣𝑖𝑛 )
+  Retrieval protocol for parties in partial synchrony
+    Send (𝑣𝑖𝑛 , 𝑡𝑠𝑖𝑔𝑛(𝑣𝑖𝑛 )) to the leader
+
+
+   Theorem 11.1. The pair (RetrievalLeaderGST, RetrievalPartyGST) form a valid retrieval pro-
+tocol in partial synchrony with resiliency 𝑡 < 𝑛/3.
+   Proof. We remark that RetrievalLeaderGST always return a value-proof tuple. Moreover, the
+proof is a (𝑡 + 1)-threshold signature of parties certifying they have the same input value 𝑣. This
+implies that at least one honest party has this value and therefore that 𝑣 can be decided.
+   For the message and round complexity, we observe that its message complexity is O (𝑛). Moreover,
+after GST, the leader will have to wait at most 1 round before receiving 𝑛 − 𝑡 inputs from honest
+parties.
+   Finally, after 𝐺𝑆𝑇 , if the leader is honest, then it will receive 𝑛 − 𝑡 suggestions. We remark
+that 3𝑡 + 1 ≤ 𝑛 so the leader will receive at least 2𝑡 + 1 partial signatures for either 0 or 1. As a
+consequence, either 0 or 1 will receive at least 𝑡 + 1 partial signatures and the leader will be able to
+make a proof.                                                                                          □
+   Using this retrieval protocol along with the view-based result from Theorem 7.2. Because 𝑡 < 𝑛/3
+implies 𝑓 ≤ 𝑡 ≤ ⌊ 𝑛−𝑡2 −1 ⌋, we immediately get an optimal protocol for the partially synchronous
+setting:
+   Theorem 3.2. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/3 byzantine faults
+and, given a PKI, solves Byzantine Agreement in partial synchrony with communication complexity
+O (𝑛 · 𝑓 ) and round complexity O (𝑓 ).
+
+11.2    QAB in Partial Synchrony
+In this section, we present an algorithm that solves QAB sending O ((𝑛 + 𝑡 𝑓 ) log 𝑡 · log 𝑛) words
+after GST in the partially synchronous setting with round complexity O (𝑓 ).
+   Our algorithm uses the QAB protocol for synchrony and adapts it to the partially synchronous
+setting by making two major modifications: running all phases in parallel and running them
+slowly:
+      • In parallel: The serial approach used in synchrony does not work for the partially synchro-
+        nous setting, as a phase 𝑓ˆ may fail to disseminate its value if ran before GST, even if 𝑓ˆ ≥ 𝑓 .
+        Instead, we run all log 𝑡 phases in parallel. We note that the last phase has communication
+24                                  Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+       complexity Ω(𝑡 2 ). In order not to reach this point, we use our second trick to ensure that
+       higher phases never get to run in their entirety.
+     • Slowly: Instead of sending the value and proof to all relayers at once, we do it one at a
+       time. To be more precise, every two rounds, we send the value and proof to a new relayer
+       (if we sent the value to all relayers, we start again from the beginning). Similarly, instead of
+       sending the value to the remaining 𝑐 𝐵 · 𝑓ˆ parties all at once, we do it one party per round.
+       Doing so, we can ensure that quorum nodes and relayers together only send O (𝑡 log 𝑡)
+       messages each round. By then showing that the protocol finishes within O (𝑓 log 𝑛), we get
+       immediately the message complexity as a bonus.
+  To do this, we run O (log 𝑡) custom QAB phases, where QABRelayer is replaced QABRelayerGST
+and QABQuorum is replaced QABQuorumGST. Along with the implementation of StartQuorum
+given below, we call the resulting protocol QABPartialSync. These protocols are described in
+Section C. We note that this only changes the pace at which messages are exchanged between
+quorum nodes on one side and relayers and parties on the other side. As such, properties on a
+quorum phase which do not address message or round complexity, or are about the interaction
+between relayers and parties are still preserved.
+       StartQuorumGST(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 )
+  Implementation of StartQuorum in the partially synchronous setting for a quorum node
+     1: in parallel for 𝑖 = 0, 1, . . . , ⌈log 𝑡⌉ do
+     2:     𝑓ˆ ← 2𝑖
+     3:     Run QABQuorumGST(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 , 𝑓ˆ)
+     4:
+     5: Stop all QAB quorum protocols once one of them is done disseminating its value
+
+
+     Lemma 11.2. QABPartialSync protocol has O (𝑓 log 𝑛) round complexity.
+   Proof. The adaptive BA algorithm used has O (𝑓 ) round complexity. Let 𝑓ˆ = 2 ⌈log 𝑓 ⌉ ≥ 𝑓 . As
+stated in Lemma 8.8, after running the phase with parameter 𝑓ˆ, the quorum node is missing the
+proof that at most 𝑐 𝐵 · 𝑓ˆ = O (𝑓 ) parties received the value. After GST, to gather all aggregate
+signature for phase 𝑓ˆ, because the proof is distributed to relayers one every two rounds and no
+guarantee can be made to attempts made before GST, the number of rounds taken is directly
+proportional to the number of relayers, which is O ( 𝑓ˆ log 𝑛) = O (𝑓 log 𝑛). After getting all of these
+proofs, the quorum node knows that at most 𝑐 𝐵 · 𝑓ˆ = O (𝑓 ) parties are missing a proof. Because it
+sends the proof to parties one at a time, this takes an additional O (𝑓 ) rounds. Therefore, the phase
+with parameter 𝑓ˆ is guaranteed to be done within O (𝑓 log 𝑛) after GST. We note that another phase
+may be done before, but in any case, if a phase is done for an honest quorum node, then using
+Lemma 8.7, all honest parties will decide within 1 round (or 1 round after GST if it has not been
+reached yet, which would give a round complexity of 1).                                               □
+   Lemma 11.3. At most O (𝑡 log 𝑡) messages are sent every 2 rounds by quorum nodes and by relayers
+to quorum nodes.
+  Proof. We look inside a phase 𝑓ˆ. We remark that by design, every 2 rounds, a single relayer
+will accept messages from quorum nodes (in a circular way) and sends at most one message per
+quorum node 2 rounds later. Because this is the only kind of message relayers send to honest
+parties and the quorum has size O (𝑡), this in total amounts to 𝑡 messages from relayers to quorum
+node. Looking at a single quorum node, every 2 rounds, it sends one message to a relayer and two
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                              25
+
+
+decide messages to parties, so their total message complexity is also O (𝑡). When summing it over
+all O (log 𝑡) phases, we get the expected O (𝑡 log 𝑡) messages.                                □
+  Lemma 11.4. QABPartialSync protocol has O ((𝑛 + 𝑡 𝑓 ) log 𝑡 · log 𝑛 + 𝑙 · 𝑡 · log 𝑡) word complexity,
+where 𝑙 is the number of rounds after GST for the first quorum node to call StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ).
+   Proof. As stated in Lemma 8.2, at most O (𝑛 log 𝑛) messages are exchanged per phase between
+parties and relayers. There are O (log 𝑡) phases which gives a O (𝑛 log 𝑛 log 𝑡) message complexity
+for this part. All other messages are accounted by Lemma 11.3 which proves that at most O (𝑡 log 𝑡)
+are sent every 2 rounds. Because of Lemma 11.2, quorum nodes finish running their phase protocol
+within O (𝑙 + 𝑓 log 𝑛) rounds, which gives in total a O (𝑡 log 𝑡 · (𝑙 + 𝑓 log 𝑛)) message complexity. We
+note that even after honest quorum nodes are done, byzantine quorum nodes can still ask relayers
+for an aggregate value. However the relayer will only respond once per quorum node, so the total
+overhead from this is O ( 𝑓ˆ log 𝑛 · 𝑓 ) per phase sp O (𝑡 log 𝑛 · 𝑓 ) when summing over all phases.
+Summing all of these together, we get the expected round complexity.                                   □
+  Lemma 11.5. QABPartialSync protocol is a valid QAB protocol.
+  Proof. Lemma 11.2 covers termination while Lemma 8.1 covers validity of the QAB protocol. □
+
+11.3    Complete Algorithm
+  Theorem 3.5. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/3 Byzantine faults
+and, given a PKI, solves Byzantine Agreement in partial synchrony with communication complexity of
+O ((𝑛 + 𝑡 · 𝑓 ) · log 𝑡 · log 𝑛) and round complexity 𝑂 (𝑓 log 𝑛).
+   Proof. We will use Theorem 5.1. We consider our BA protocol from Theorem 3.2 which has
+round complexity O (𝑓 ) and message complexity O (𝑛 · 𝑓 ), along with the previous QAB protocol
+which according to Lemmas 11.2, 11.4 and 11.5 has round complexity O (𝑓 log 𝑛) and message
+complexity O ((𝑛 + 𝑡 𝑓 ) log 𝑡 · log 𝑛 + 𝑙 · 𝑡 · log 𝑡) where 𝑙 is the number of rounds after GST for the
+first quorum node to call StartQuorum(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 ).
+   Using Theorem 5.1, we obtain a BA protocol with resiliency 𝑡 < 𝑛/3, round complexity O (𝑓 ) +
+O (𝑓 log 𝑛) = O (𝑓 log 𝑛), and message complexity O (𝑡 𝑓 ) + O ((𝑛 +𝑡 𝑓 ) log 𝑡 · log 𝑛 + O (𝑓 ) ·𝑡 · log 𝑡) =
+O ((𝑛 + 𝑡 𝑓 ) log 𝑡 · log 𝑛).                                                                                □
+
+12     Conclusion
+In this work, we study the communication and round complexity of deterministic binary Byzantine
+Agreement across all major timing models: synchronous, partially synchronous, and asynchronous
+networks.
+   Our main contribution is twofold. First, we present optimal adaptive algorithms that simultane-
+ously achieve optimal communication and round complexity with optimal resilience. Second, for
+the high-scale regime where the total number of nodes significantly exceeds the tolerable faults,
+we achieve near-optimal communication and round complexity.
+   A key technical ingredient is a deterministic committee assignment scheme obtained via bipartite
+dispersers. This approach enables efficient information dissemination while remaining robust
+against adaptive adversaries.
+   Our work opens natural directions for future research. One is to remove the polylogarithmic
+factors and achieve truly optimal complexity, which likely requires fundamentally new techniques
+beyond current disperser constructions. Another is to extend our results to multi-valued Byzantine
+Agreement.
+26                                       Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+References
+ [1] Ittai Abraham, T.-H. Hubert Chan, Danny Dolev, Kartik Nayak, Rafael Pass, Ling Ren, and Elaine Shi. 2019. Communi-
+     cation Complexity of Byzantine Agreement, Revisited, See [33], 317–326. https://doi.org/10.1145/3293611.3331629
+ [2] Avalanche. 2025. Avalanche Validators Dashboard. https://subnets.avax.network/validators/dashboard/ Accessed:
+     2025-05-16.
+ [3] Leemon Baird, Sanjam Garg, Abhishek Jain, Pratyay Mukherjee, Rohit Sinha, Mingyuan Wang, and Yinuo Zhang.
+     2023. Threshold signatures in the multiverse. In 2023 IEEE Symposium on Security and Privacy (SP). IEEE, 1454–1470.
+     https://doi.org/10.1109/SP46215.2023.10179436
+ [4] Amey Bhangale, Chen-Da Liu-Zhang, Julian Loss, Kartik Nayak, and Sravya Yandamuri. 2025. Leader election with
+     poly-logarithmic communication per party. In Annual International Cryptology Conference. Springer, 37–68.
+ [5] Erica Blum, Jonathan Katz, Chen-Da Liu-Zhang, and Julian Loss. 2020. Asynchronous Byzantine Agreement with
+     Subquadratic Communication. In TCC 2020, Part I (LNCS, Vol. 12550), Rafael Pass and Krzysztof Pietrzak (Eds.). Springer,
+     Cham, 353–380. https://doi.org/10.1007/978-3-030-64375-1_13
+ [6] Dan Boneh, Craig Gentry, Ben Lynn, and Hovav Shacham. 2003. Aggregate and Verifiably Encrypted Signatures
+     from Bilinear Maps. In EUROCRYPT 2003 (LNCS, Vol. 2656), Eli Biham (Ed.). Springer, Berlin, Heidelberg, 416–432.
+     https://doi.org/10.1007/3-540-39200-9_26
+ [7] Dan Boneh, Ben Lynn, and Hovav Shacham. 2004. Short Signatures from the Weil Pairing. Journal of Cryptology 17, 4
+     (Sept. 2004), 297–319. https://doi.org/10.1007/s00145-004-0314-9
+ [8] Christian Cachin, Klaus Kursawe, and Victor Shoup. 2005. Random Oracles in Constantinople: Practical Asynchronous
+     Byzantine Agreement Using Cryptography. Journal of Cryptology 18, 3 (July 2005), 219–246. https://doi.org/10.1007/
+     s00145-005-0318-0
+ [9] Bogdan Chlebus, Dariusz Rafal Kowalski, and Jan Olkowski. 2023. Deterministic fault-tolerant distributed computing
+     in linear time and communication. In Proceedings of the 2023 ACM Symposium on Principles of Distributed Computing.
+     344–354.
+[10] Pierre Civit, Muhammad Ayaz Dzulfikar, Seth Gilbert, Vincent Gramoli, Rachid Guerraoui, Jovan Komatovic, and
+     Manuel Vidigueira. 2022. Byzantine Consensus is Θ(𝑛 2 ): The Dolev-Reischuk Bound is Tight even in Partial Synchrony!.
+     In 36th International Symposium on Distributed Computing (DISC 2022). 14:1–14:21. https://doi.org/10.4230/LIPIcs.DIS
+     C.2022.14
+[11] Pierre Civit, Muhammad Ayaz Dzulfikar, Seth Gilbert, Rachid Guerraoui, Jovan Komatovic, and Manuel Vidigueira.
+     2024. DARE to Agree: Byzantine Agreement With Optimal Resilience and Adaptive Communication. In 43rd ACM
+     PODC, Ran Gelles, Dennis Olivetti, and Petr Kuznetsov (Eds.). ACM, 145–156. https://doi.org/10.1145/3662158.3662792
+[12] Pierre Civit, Muhammad Ayaz Dzulfikar, Seth Gilbert, Rachid Guerraoui, Jovan Komatovic, Manuel Vidigueira, and
+     Igor Zablotchi. 2025. Partial Synchrony for Free: New Upper Bounds for Byzantine Agreement. In Proceedings of the
+     2025 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA). SIAM, 4227–4291. https://doi.org/10.1137/1.9781
+     611978322.144
+[13] Pierre Civit, Seth Gilbert, Rachid Guerraoui, Jovan Komatovic, and Manuel Vidigueira. 2023. Strong byzantine
+     agreement with adaptive word complexity. https://doi.org/10.48550/arXiv.2308.03524
+[14] Shir Cohen, Idit Keidar, and Alexander Spiegelman. 2020. Not a coincidence: Sub-quadratic asynchronous byzantine
+     agreement whp. In 34th International Symposium on Distributed Computing (DISC 2020). 25:1–25:17. https://doi.org/10
+     .4230/LIPIcs.DISC.2020.25
+[15] Shir Cohen, Idit Keidar, and Alexander Spiegelman. 2022. Brief Announcement: Make Every Word Count: Adaptive
+     Byzantine Agreement with Fewer Words. In 41st ACM PODC, Alessia Milani and Philipp Woelfel (Eds.). ACM, 421–423.
+     https://doi.org/10.1145/3519270.3538458
+[16] Shir Cohen, Idit Keidar, and Alexander Spiegelman. 2023. Make every word count: adaptive Byzantine agreement with
+     fewer words. In 26th International Conference on Principles of Distributed Systems (OPODIS 2022). Schloss Dagstuhl–
+     Leibniz-Zentrum für Informatik, 18–1.
+[17] Danny Dolev and Rüdiger Reischuk. 1982. Bounds on Information Exchange for Byzantine Agreement. In 1st ACM
+     PODC, Robert L. Probert, Michael J. Fischer, and Nicola Santoro (Eds.). ACM, 132–140. https://doi.org/10.1145/800220
+     .806690
+[18] Danny Dolev, Ruediger Reischuk, and H Raymond Strong. 1990. Early stopping in Byzantine agreement. Journal of
+     the ACM (JACM) 37, 4 (1990), 720–741.
+[19] Cynthia Dwork, Nancy A. Lynch, and Larry J. Stockmeyer. 1984. Consensus in the Presence of Partial Synchrony
+     (Preliminary Version). In 3rd ACM PODC, Robert L. Probert, Nancy A. Lynch, and Nicola Santoro (Eds.). ACM, 103–118.
+     https://doi.org/10.1145/800222.1599406
+[20] Fatima Elsheimy, Giorgos Tsimos, and Charalampos Papamanthou. 2024. Deterministic byzantine agreement with
+     adaptive o (n· f) communication. In Proceedings of the 2024 Annual ACM-SIAM Symposium on Discrete Algorithms
+     (SODA). SIAM, 1120–1146.
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                                                27
+
+
+[21] Fatima Elsheimy, Giorgos Tsimos, and Charalampos Papamanthou. 2024. Deterministic Byzantine Agreement with
+     Adaptive 𝑂 (𝑛 · 𝑓 ) Communication. In 35th SODA, David P. Woodruff (Ed.). ACM-SIAM, 1120–1146. https://doi.org/
+     10.1137/1.9781611977912.43
+[22] Ethernodes. 2025. Ethereum Nodes Distribution - Countries. https://ethernodes.org/countries Accessed: 2025-05-16.
+[23] Cardano Explorer. 2025. Cardano Stake Pool Explorer. https://cexplorer.io/ Accessed: 2025-05-16.
+[24] Michael J Fischer, Nancy A Lynch, and Michael S Paterson. 1985. Impossibility of distributed consensus with one
+     faulty process. Journal of the ACM (JACM) 32, 2 (1985), 374–382. https://doi.org/10.1145/3149.214121
+[25] Sanjam Garg, Abhishek Jain, Pratyay Mukherjee, Rohit Sinha, Mingyuan Wang, and Yinuo Zhang. 2024. hints:
+     Threshold signatures with silent setup. In 2024 IEEE symposium on security and privacy (SP). IEEE, 3034–3052.
+[26] Valerie King, Jared Saia, Vishal Sanwalani, and Erik Vee. 2006. Scalable leader election. In Proceedings of the seventeenth
+     annual ACM-SIAM symposium on Discrete algorithm. 990–999.
+[27] Christoph Lenzen and Sahar Sheikholeslami. 2022. A recursive early-stopping phase king protocol. In Proceedings of
+     the 2022 ACM Symposium on Principles of Distributed Computing. 60–69.
+[28] Andrew Lewis-Pye. 2022. Quadratic worst-case message complexity for State Machine Replication in the partial
+     synchrony model. arXiv preprint arXiv:2201.01107 (2022).
+[29] Andrew Lewis-Pye and Ittai Abraham. 2024. Fever: optimal responsive view synchronisation. In 27th International
+     Conference on Principles of Distributed Systems (OPODIS 2023). 14:1–14:16. https://doi.org/10.4230/LIPIcs.OPODIS.2023
+     .14
+[30] Andrew Lewis-Pye, Dahlia Malkhi, and Oded Naor. 2023. Optimal Latency and Communication SMR View-
+     Synchronization. https://blog.chain.link/optimal-latency-and-communication-smr-view-synchronization/
+[31] Atsuki Momose and Ling Ren. 2021. Optimal Communication Complexity of Authenticated Byzantine Agreement. In
+     35th International Symposium on Distributed Computing (DISC 2021), Seth Gilbert (Ed.), Vol. 209. 32:1–32:16. https:
+     //doi.org/10.4230/LIPIcs.DISC.2021.32
+[32] Jaikumar Radhakrishnan and Amnon Ta-Shma. 2000. Bounds for dispersers, extractors, and depth-two superconcen-
+     trators. SIAM Journal on Discrete Mathematics 13, 1 (2000), 2–24.
+[33] Peter Robinson and Faith Ellen (Eds.). 2019. 38th ACM PODC. ACM.
+[34] Solana. 2025. Solana Validators Explorer. https://solana.com/validators Accessed: 2025-05-16.
+[35] Alexander Spiegelman. 2021. In Search for an Optimal Authenticated Byzantine Agreement. In 35th International
+     Symposium on Distributed Computing (DISC 2021). 38:1–38:19. https://doi.org/10.4230/LIPIcs.DISC.2021.38
+[36] Amnon Ta-Shma, Christopher Umans, and David Zuckerman. 2007. Lossless condensers, unbalanced expanders, and
+     extractors. Combinatorica 27, 2 (2007), 213–240.
+[37] Maofan Yin, Dahlia Malkhi, Michael K. Reiter, Guy Golan-Gueta, and Ittai Abraham. 2019. HotStuff: BFT Consensus
+     with Linearity and Responsiveness, See [33], 347–356. https://doi.org/10.1145/3293611.3331591
+28                                Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+Appendix
+A    Lower Bound in Asynchrony
+In this section, we prove the lower bound theorem, which implies that no adaptive communication
+complexity is possible in an asynchronous setting.
+  Theorem 3.3. Let A be a protocol solving asynchronous byzantine agreement resilient to 𝑡 byzantine
+parties with almost sure termination. A is allowed to have access to 𝑃𝐾𝐼 , to shared randomness, and
+run any kind of setup, regardless of its message complexity, before parties acquire their input value.
+Let 𝑀 be the number of messages exchanged after setup to reach agreement, then there exists an input
+configuration and a message scheduling protocol such that E[𝑀] = Ω(𝑡 2 ) without any byzantine
+party. This lower bound holds even if the adversary is static, i.e, it can only corrupt parties at the
+beginning of the protocol.
+   Proof. In this proof, by the setup we mean a combination of identities of faulty parties, proposals
+of honest parties, behavior of faulty parties and the schedule of messages. Let 𝑀 be a random
+variable denoting the number of messages sent by the protocol.
+   We will prove that there exists a setup Main in which no party is byzantine and E(𝑀) ≥ 𝑡 2 /4.
+   Main is defined as follows. We partition the parties P into two sets 𝐵 and 𝐶 such that |𝐶 | = 𝑡/2
+and |𝐵| = 𝑛 − 𝑡/2.
+       • All parties in P are honest and have input 0.
+       • Messages between parties in 𝐶 are delayed until after everyone decides.
+       • For every party 𝑝 ∈ 𝐶, the first 𝑡/2 messages sent to 𝑝 from processes in 𝐵 are delayed until
+         after everyone decides.
+       • The other messages are delivered immediately.
+   We want to show that this scheduling is valid for the asynchronous model. I.e., we want to show
+that almost surely, all parties will decide before any of the delayed messages are received.
+   We first prove this for every party in 𝐵. To do that, we consider the setup 𝑆 𝐵 for which we’ll
+show that (i) all processes in 𝐵 must decide and (ii) processes in 𝐵 can not distinguish 𝑆 𝐵 from Main.
+𝑆 𝐵 is defined as follows:
+       • All parties in 𝐵 are honest and have input 0.
+       • All parties in 𝐶 are byzantine. They act as if they were executing A with input 0, but they
+         ignore all messages from other parties in 𝐶 and the first 𝑡/2 messages from parties in 𝐵.
+       • All messages are immediately delivered.
+Clearly, parties in 𝐵 cannot distinguish 𝑆 𝐵 and Main. Moreover, in 𝑆 𝐵 , all messages are eventually
+delivered, and less than 𝑡 parties are byzantine. Therefore, A must ensure probabilistic termination,
+so parties in 𝐵 will eventually decide.
+   Now, let us prove that for every party 𝑝 in 𝐶 it eventually decides in Main. To do so, we introduce
+a family of setups {𝑆𝑄 }, for all 𝑄 ⊆ 𝐵 such that |𝑄 | = 𝑡/2. 𝑆𝑄 is defined as follows:
+       • All parties in 𝐵 \ 𝑄 are honest and have input 0.
+       • 𝑝 is honest and has input 0.
+       • All parties in 𝐶 \ {𝑝} are byzantine. They act as if they were executing A with input 0 but
+         ignore messages from other parties in 𝐶 as well as the first 𝑡/2 messages from parties in 𝐵.
+       • All parties in 𝑄 are byzantine. They act as if they were executing A with input 0 but do not
+         send the first 𝑡/2 messages to 𝑝.
+       • All messages are immediately delivered.
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                      29
+
+
+In setting 𝑆𝑄 , 𝑡/2 + 𝑡/2 − 1 < 𝑡 parties are byzantine and all messages are eventually delivered.
+Therefore, 𝐴 must ensure probabilistic termination so all honest parties, and in particular 𝑝, will
+eventually decide.
+   For any execution of A in Main, there exists a 𝑄 ⊆ 𝐵 such that |𝑄 | = 𝑡/2 and 𝑝 cannot distinguish
+between Main and 𝑆𝑄 . Since there is only a finite number of such setups 𝑆𝑄 and in any of these
+setups 𝑝 eventually decides, it implies that 𝑝 will eventually decide in Main. Therefore, Main is
+covered by protocol A, so the behavior of all parties should satisfy probabilistic termination,
+agreement, and validity. Using validity and the fact that every party has input 0, we obtain that
+every party will eventually decide 0 in Main.
+   We will now show that if for Main the expected number of messages sent is less than 𝑡 2 /4, then
+some party in 𝐶 decides 0 without receiving any message with a non-zero probability.
+   Having E(𝑀) < 𝑡 2 /4 and using Markov’s inequality, we get that:
+                                            P(𝑀 ≥ 𝑡 2 /2) ≤ 0.5
+For a party 𝑝 ∈ 𝐶, let 𝐸𝑝 be the event that no more than 𝑡/2 messages are sent to 𝑝 from 𝐵. We
+            Ñ
+remark that 𝑝 ∈𝐶 𝐸𝑝 ⊂ {𝑀 ≥ 𝑡 2 /2}. Using the previous inequality and by taking the complement,
+we get:
+
+                                              ©Ø ª
+                                             P­     𝐸𝑝 ® ≥ 0.5
+                                              «𝑝 ∈𝐶    ¬
+and by Union bound
+                                             ∑︁
+                                                    P(𝐸𝑝 ) ≥ 0.5.
+                                             𝑝 ∈𝐶
+
+Therefore, there exists 𝑝 ∈ 𝐶 such that P(𝐸𝑝 ) ≥ 1/(2|𝐶 |) = 1/𝑡.
+   Because the first 𝑡/2 messages are delayed after the decision, under the assumption that 𝑝 decides,
+which happens almost surely, this means that 𝑝 will decide its output value with probability at
+least 1/𝑡 > 0 without receiving any message. Conditioning on this event and because deciding
+happens almost surely, this implies that there exists 𝑇 > 0 such that 𝑝 will decide a value within
+time 𝑇 without receiving any message with probability at least 1/𝑡 > 0.
+   We derive a contradiction from this last fact. We consider the following Final setup:
+     • All parties are honest.
+     • Parties in P \ {𝑝} have input 1.
+     • Party 𝑝 has input 0.
+     • All messages are delayed for the first 𝑇 units of time, afterwards they are received immedi-
+        ately.
+We first consider Final’ with the slight difference that 𝑝 is byzantine, but acting as honest with
+input 0. In this case, because of validity, protocol A guarantees that parties in P \ {𝑝} decide 1.
+Moreover, these parties cannot distinguish Final and Final’, so they will also decide 1 in Final.
+However, for the first 𝑇 units of time, 𝑝 cannot distinguish Final and Main. Therefore, it will
+decide 0 with probability at least 1/𝑡 > 0. However, all parties are honest and this breaks the
+agreement with a non-zero probability (one honest party decides 0, the others decide 1), hence the
+contradiction.                                                                                      □
+
+B   Quorum Byzantine Agreement
+In this section, we give a pseudocode as well as formal proofs for out partially synchronous
+agreement algorithm.
+30                                    Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+B.1      View-Based Protocol
+This section provides a pseudocode for view-based byzantine agreement protocol. The protocol
+uses the threshold value 𝑘 = ⌈ 𝑛+𝑡2+1 ⌉ for the threshold signatures.
+   In the protocol, for every message sent, we implicitly bundle along it the view number when it
+was sent. If a message is received by a party with a view number different than the current one, it
+is ignored. This prevents the adversary from using messages from previous views in case a party
+becomes leader multiple times. The only exceptions are the SendCommit message which is always
+accepted if the commit is valid and Suggest((𝐶𝑂𝑀𝑀𝐼𝑇 , −)) message which a party will always
+save and use the next time it becomes a leader.
+       ViewByzantineAgreement(𝑣𝑖𝑛 )
+ Protocol for Byzantine Agreement in partial synchrony
+       key ← ⊥
+       lock ← ⊥
+       commit ← ⊥
+       ⊲ Decide as soon as we get a commit value
+       upon once Receiving valid SendCommit(value, proof) do
+           if commit = ⊥ then
+               commit ← (value, proof)
+               Decide value
+           end if
+       ⊲ Run the view-based protocol
+       for view number 𝑣𝑖𝑒𝑤 ← 0, 1, . . . do
+           if This party is the current leader then
+               if commit = ⊥ then
+                   Run ViewLeaderProtocol() in parallel for duration 11Δ
+               else
+                   upon Receiving (Complain) from a party 𝑣 for the first time do
+                      Send SendCommit(commit) to 𝑣
+               end if
+           end if
+           Run ViewPartyProtocol(𝑣𝑖𝑛 , 𝑣𝑖𝑒𝑤, key, lock, commit) for duration 11Δ
+       end for
+
+
+       ViewLeaderProtocol
+ View-based protocol part exclusive to the leader
+        ⊲ Choose which value to propose
+      1: Broadcast ReqestSuggestion
+      2: Wait for valid Suggest(m) from 𝑘 parties
+      3: if one of the value is a commit 𝐶 with value 𝑣: then
+      4:     value ← 𝑣
+      5:     commit ← 𝐶
+      6:     Jump to broadcasting the commit value
+      7: else if One of the value is a key value: then
+      8:     Let 𝑘𝑒𝑦 be the key with the highest view number and 𝑣 its value
+      9:     value ← 𝑣
+     10:     prop = (𝐾𝐸𝑌, 𝑘𝑒𝑦)
+     11: else
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                   31
+
+
+  12:    Broadcast RunRetrieval
+  13:    (value, proof) ← RetrievalLeader()
+  14:    if value = ⊥ then
+  15:        No value to propose
+  16:        Stay silent for the rest of the round
+  17:    end if
+  18:    prop = (𝐶𝑂𝑀𝐵𝐼 𝑁 𝐸, 𝑝𝑟𝑜𝑜 𝑓 )
+  19: end if
+
+      ⊲ Approve the proposed value and get a key
+  20: Send ProposeKey(value, prop) to every party.
+  21: Wait for valid CheckedKey(𝜌 𝑝 ) from 𝑘 parties
+  22: key_proof ← 𝑡𝑐𝑜𝑚𝑏𝑖𝑛𝑒 ((𝐾𝐸𝑌, value), (𝜌 𝑝 ))
+
+      ⊲ Approve the key and get a lock
+  23: Send ProposeLock(value, key_proof) to every party.
+  24: Wait for valid CheckedLock(𝜌 𝑝 ) from 𝑘 parties
+  25: lock_proof ← 𝑡𝑐𝑜𝑚𝑏𝑖𝑛𝑒 ((𝐿𝑂𝐶𝐾, value), (𝜌 𝑝 ))
+
+      ⊲ Approve the lock and get a commit
+  26: Send ProposeCommit(value, lock_proof) to every party.
+  27: Wait for valid CheckedCommit(𝜌 𝑝 ) from 𝑘 parties
+  28: commit_proof ← 𝑡𝑐𝑜𝑚𝑏𝑖𝑛𝑒 ((𝐶𝑂𝑀𝑀𝐼𝑇 , value), (𝜌 𝑝 ))
+
+      ⊲ Broadcast the commit value
+  29: Send SendCommit(value, commit_proof) to every party.
+
+
+
+     ViewPartyProtocol(input value 𝑣𝑖𝑛 , view number 𝑣𝑖𝑒𝑤, key, lock, commit)
+  View-based protocol part exclusive to parties
+    ⊲ Complain if you have not yet decided
+    if commit = ⊥ then
+        Send (Complain) to the leader
+    end if
+
+    ⊲ Choose which value to propose
+    Wait for a message ReqestSuggestion from the leader
+    if commit ≠ ⊥ then
+        if This party never sent the commit value to the leader then
+            Send Suggest((𝐶𝑂𝑀𝑀𝐼𝑇 , commit)) to the leader
+        end if
+        Wait for the rest of the view
+    else if key ≠ ⊥ then
+        Send Suggest((𝐾𝐸𝑌, key)) to the leader
+    else
+        Send Suggest(()) to the leader
+    end if
+
+    ⊲ Run the retrieval procedure if needed
+    upon Receiving from leader ⟨RunRetrieval |⟩ do
+32                                   Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+          Run RetrievalParty(𝑣 𝐼 𝑁 )
+      ⊲ Check and sign the key
+      Wait for a valid ProposeKey(𝑣, (𝑡𝑦𝑝𝑒, 𝑝𝑟𝑜𝑜 𝑓 )) from the leader
+      if lock ≠ ⊥ then
+          if 𝑡𝑦𝑝𝑒 = 𝐶𝑂𝑀𝐵𝐼 𝑁 𝐸 or 𝑡𝑦𝑝𝑒 = 𝐾𝐸𝑌 with a view number strictly less than the lock view number
+      then
+              Wait for the rest of the view
+          end if
+      end if
+      Send CheckedKey(𝑡𝑠𝑖𝑔𝑛((𝐾𝐸𝑌, 𝑣))) to the leader
+
+      ⊲ Check and sign the lock value
+      Wait for a valid ProposeLock(𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) from the leader
+      key ← (𝑣, 𝑣𝑖𝑒𝑤, 𝑝𝑟𝑜𝑜 𝑓 )
+      Send CheckedLock(𝑡𝑠𝑖𝑔𝑛((𝐿𝑂𝐶𝐾, 𝑣))) to the leader
+
+      ⊲ Check and sign the commit value
+      Wait for a valid ProposeCommit(𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) from the leader
+      lock ← (𝑣, 𝑣𝑖𝑒𝑤, 𝑝𝑟𝑜𝑜 𝑓 )
+      Send CheckedCommit(𝑡𝑠𝑖𝑔𝑛((𝐶𝑂𝑀𝑀𝐼𝑇 , 𝑣))) to the leader
+
+
+B.2     Proofs
+We will prove the correctness and time complexity of the protocol with a series of lemmas:
+     Lemma B.1. During a view, only a single value can get key, lock or commit proofs.
+    Proof. A key, lock or commit is a threshold signature signed by 𝑘 = ⌈ 𝑛+𝑡2+1 ⌉ parties. Therefore,
+if two values 𝑣 1 and 𝑣 2 get a key, lock or commit proof, this means that 𝑘 parties signed each one, so
+at least 𝑛 − 2(𝑛 − 𝑘) = 2𝑘 − 𝑛 parties signed both of them. We remark that 2𝑘 − 𝑛 = 2⌈ 𝑛+𝑡2+1 ⌉ − 𝑛 ≥
+𝑛 + 𝑡 + 1 − 𝑛 ≥ 𝑡 + 1 therefore at least 𝑡 + 1 parties signed 𝑣 1 and 𝑣 2 . This implies that at least one
+honest party did, which implies that 𝑣 1 = 𝑣 2 because an honest party will only sign a single proof
+in a view.                                                                                               □
+  Lemma B.2. During a view, if 𝑘 − 𝑡 honest parties acquire a lock proof for a value 𝑣, then any
+subsequent key, lock or commit proof will be for 𝑣.
+    Proof. We assume that a set 𝑄 of at least 𝑘 − 𝑡 = ⌈ 𝑛+𝑡2+1 ⌉ − 𝑡 = ⌈ 𝑛−𝑡2 +1 ⌉ honest parties got a lock
+proof for a value 𝑣 1 during view 𝑣𝑖𝑒𝑤_1. We will show that all subsequent key proofs generated
+will be for 𝑣 1 , which implies that only lock proofs and then commit proofs can be generated for 𝑣 1
+thereafter, as it requires a key proof for it. Assume by contradiction that a key proof for a different
+key 𝑣 2 ≠ 𝑣 1 is generated and consider the first view 𝑣𝑖𝑒𝑤 2 ≥ 𝑣𝑖𝑒𝑤 1 generating such a proof. We have
+𝑣𝑖𝑒𝑤 2 > 𝑣𝑖𝑒𝑤 1 because of the previous lemma. If we got a key proof for 𝑣 2 , it means 𝑘 parties signed
+it. Because |𝑄 | + 𝑘 ≥ ⌈ 𝑛−𝑡2 +1 ⌉ + ⌈ 𝑛+𝑡2+1 ⌉ ≥ 𝑛 + 1 > 𝑛, it means that the set of parties in 𝑄 and the
+ones which signed the key proof cannot be disjoint. So there exists a party 𝑝 ∈ 𝑄 which signed the
+key proof for 𝑣 2 . By the minimality of 𝑣𝑖𝑒𝑤 2 , 𝑝 still had the lock proof for 𝑣 1 at that point. Therefore,
+for 𝑝 to accept 𝑣 2 , given that 𝑣 2 ≠ 𝑣 1 , this value must come with a key proof with view number
+𝑣𝑖𝑒𝑤 3 ≥ 𝑣𝑖𝑒𝑤 1 . Therefore there is a key proof for 𝑣 2 at time 𝑣𝑖𝑒𝑤 3 with 𝑣𝑖𝑒𝑤 1 ≤ 𝑣𝑖𝑒𝑤 3 < 𝑣𝑖𝑒𝑤 2 .
+This contradicts the minimality of 𝑣𝑖𝑒𝑤 2 , hence the result.                                               □
+     Lemma B.3. During an entire execution, at most one value will get commit proofs.
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                          33
+
+
+  Proof. This is a direct consequence of Lemma B.2. For a commit proof to be created, it needs
+partial signatures from 𝑘 party and for an honest party to create a partial signature for a commit
+proof, it needs to receive a lock proof for the commit value during the same view. This implies that
+𝑘 − 𝑡 honest parties got a lock proof for this value in this view. Therefore, using Lemma B.2, all
+subsequent commit proofs will be for the same value.                                              □
+  Because we only decide on a value which gets a commit proof, this implies agreement. We now
+prove the validity of this protocol:
+  Lemma B.4. If a value has a key, lock or commit proof, then it satisfies strong unanimity.
+  Proof. We note that if a value has a commit proof, then it must have a lock proof which then
+implies that it must have a key proof. So we can assume that a value 𝑣 has a key proof for it. For a
+key proof to be valid, it must come either from:
+     • A previous key proof, which comes from a previous key proof, we recursively look at this
+       key proof until it does not come anymore from a key proof and get to the second case.
+     • A value along with its proof returned from the retrieval sub-protocol. We remark that by
+       definition of the retrieval procedure, the proof must allow any party to locally check that
+       the value satisfies strong unanimity.
+                                                                                                  □
+  Corollary B.5. If a value gets decided, then it satisfies strong unanimity.
+  Finally, we can look at termination:
+  Lemma B.6. After GST, assuming 𝑓 ≤ 𝑛 − 𝑘, if a view start with a leader who is honest then at the
+end of the view, either every honest party gets a commit proof or the leader ran the retrieval protocol
+and it failed (i.e returned ⊥).
+   Proof. After GST, messages are received withing Δ times. Because we assume 𝑓 ≤ 𝑛 − 𝑘, this
+means that 𝑘 honest parties can always sign the value as long as it is valid, which will be the case if
+the leader is honest, and the condition for the key proof is passed. Because a view lasts 11Δ rounds,
+this is enough to make sure all messages get sent and received by honest parties before the view
+ends.
+   If the leader starts the view with a commit proof, then it will not run the leader part of the
+protocol. However, we remark that in this case, every honest party which does not have a commit
+proof yet will send a Complain message to the leader. In turn, the leader will send its commit proof
+(at most once) to each party which sends a complain message. Therefore after two rounds, every
+honest party will have the commit proof.
+   In the case where the leader does not have the commit proof at the beginning of the view, but
+receives at some point a valid Suggest message with a commit proof, then it will broadcast it to all
+parties which ends the proof in this case. Thus we can now assume the leader did not already have
+a commit proof and did not receive a Suggest message with a commit proof.
+   Therefore, the only part left to prove is that all honest parties will sign the suggested value for the
+leader to get a key proof. Assume by contradiction that an honest party 𝑝 does not sign a suggested
+value. It means it has a lock proof and the suggested value has a 𝐶𝑂𝑀𝐵𝐼 𝑁 𝐸 type or comes from a
+lock proof with a strictly smaller view number. However, if a party has a lock proof for a value 𝑣
+and a given view number 𝑣𝑖𝑒𝑤, this means that at least 𝑘 parties got a key proof for 𝑣 with view
+number 𝑣𝑖𝑒𝑤. So at least 𝑘 − 𝑡 = ⌈ 𝑛+𝑡2+1 ⌉ − 𝑡 = ⌈ 𝑛−𝑡2 +1 ⌉ honest parties had at some point a key proof
+for 𝑣 with view number 𝑣𝑖𝑒𝑤. Because the leader waits for 𝑘 parties, he received the suggestion
+from at least 𝑘 of them. We remark that 𝑘 − 𝑡 + 𝑘 = ⌈ 𝑛−𝑡2 +1 ⌉ + ⌈ 𝑛+𝑡2+1 ⌉ ≥ 𝑛 + 1 > 𝑛. Therefore, the
+34                                 Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+leader received a suggestion from an honest party which had previously a key proof for 𝑣 with view
+number 𝑣𝑖𝑒𝑤. Because a party’s key proof can only be replaced by one with a higher view number,
+this means that the leader got a suggestion from 𝑞 with a view number at least 𝑣𝑖𝑒𝑤. Therefore,
+because the leader is honest, according to the protocol, it will suggest a value with a key proof at
+least 𝑣𝑖𝑒𝑤, so 𝑝 would have accepted it, hence the contradiction.                                 □
+  Lemma B.7. Assuming, 𝑓 ≤ 𝑛 − 𝑘, after at most 2𝑓 + 1 views after GST, all honest parties will have
+decided a value.
+   Proof. We consider the first 2𝑓 + 1 views after GST. Because 𝑛 ≥ 2𝑓 + 1, each one of them has a
+different leader and at least 2𝑓 + 1 ≥ 𝑓 + 1 have an honest leader. We remark by definition of the
+retrieval procedure that if it is called with 𝑓 + 1 different honest leaders, it will succeed at least
+once. Therefore, among these 𝑓 + 1 views with different honest leaders, there is one view where
+the leader either did not run the retrieval protocol or ran it and it succeeded. In both cases, using
+Lemma B.6, all honest parties will have a commit proof and thus have decided by the end of the
+view.                                                                                               □
+     Corollary B.8. Assuming 𝑓 ≤ 𝑛 − 𝑘, all honest parties will have decided within O (𝑓 + 1) rounds.
+     We now cover the message complexity of this protocol:
+     Lemma B.9. When ran for a single view, this protocol has message complexity O (𝑛).
+   Proof. This observation comes from the fact that at most O (𝑛) messages are sent by honest
+parties during a view. Indeed, excluding the retrieval procedure, ViewPartyProtocol only sends
+at most 5 messages to the leader for each party, and ViewLeaderProtocol only sends at most 6𝑛
+messages to other parties. Moreover, a property of the retrieval protocol is that it only requires
+O (𝑛) messages in total and it is only ran at most once per view. Therefore a view has message
+complexity O (𝑛).                                                                               □
+  From this previous lemma, we get the following corollary, which reveals itself useful when
+𝑓 > 𝑛 − 𝑘, because in this case, 𝑓 = Ω(𝑛), so O (𝑛 2 ) = O (𝑛 · 𝑓 ).
+     Corollary B.10. When ran for 𝑛 views, this protocol has message complexity O (𝑛 2 ).
+     Lemma B.11. Assuming 𝑓 ≤ 𝑛 − 𝑘, this protocol has message complexity O (𝑛 · (𝑓 + 1)).
+   Proof. We consider the total number of messages sent after GST. We divide the lifetime of the
+protocol in two:
+   During the first 2𝑓 + 1 views after GST: using Lemma B.9, each view has message complexity
+O (𝑛), so the total complexity is O (𝑛 · (𝑓 + 1)).
+   After the first 2𝑓 + 1 views after GST: because we assume 𝑓 ≤ 𝑛 − 𝑘, this implies using
+Lemma B.7 that all honest parties have a commit value and already decide. We look at messages
+that can still be sent by honest parties. First, we remark that all Complain messages at this point
+will come from byzantine parties, as an honest party complain only if it has no commit value,
+which they all have at that point. Because the leader will only respond at most once to a complain
+message from a given party 𝑣 for the entire lifetime of the protocol, the total message complexity
+from complain messages after 2𝑓 + 1 views is at most 𝑓 · (𝑛 − 𝑓 ) = O (𝑛 · 𝑓 ). We remark that other
+than responding to complain messages, a leader which already has a commit value by the start of its
+view does not send any other message. Therefore, at this point, a leader sending any non-complain
+message implies that it is byzantine. Regarding the view party protocol, if an honest party already
+has a commit proof, the only message it can send is the commit suggestion, which it does at most
+once per party and only if receiving a ReqestSuggestion from the leader, which implies that the
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                        35
+
+
+leader is byzantine. Therefore, there is at most 𝑓 · (𝑛 − 𝑓 ) = O (𝑛 · 𝑓 ) commit suggestion messages
+sent after GST. These are the only two messages that can be sent by honest parties when all of
+them have decided, therefore the message complexity for this part is O (𝑛 · 𝑓 ). Taking the messages
+in these two parts into account, the total message complexity for the protocol is thus O (𝑛 · 𝑓 ). □
+  Theorem 7.2. Assuming 𝑓 ≤ 𝑛 − 𝑘 (i.e 𝑓 ≤ ⌊ 𝑛−𝑡2 −1 ⌋) and the existence of a retrieval protocol, then
+ViewByzantineAgreement achieves agreement, termination and validity. It also returns a proof which
+can only be obtained for the decided value and has message complexity O (𝑛𝑓 ) and round complexity
+O (𝑓 ).
+  Proof. This is a direct consequence of Lemmas B.4 and B.11 and Corollaries B.5 and B.8.            □
+
+B.3   Complete synchronous protocol
+We now give the pseudocode for our optimal byzantine agreement SyncBA in the synchronous
+setting with message complexity O (𝑛𝑓 ), round complexity O (𝑓 ) and resiliency 𝑡 < 𝑛/2:
+
+      SyncBA
+  Optimal synchronous agreement protocol
+   1: 𝑓 𝑎𝑙𝑙𝑏𝑎𝑐𝑘_𝑝𝑟𝑜𝑜 𝑓 ← ⊥
+   2: for 𝑛 views do
+   3:      Run ViewByzantineAgreement
+   4: end for
+   5: Let (𝑣𝑎𝑙𝑢𝑒, 𝑐𝑜𝑚𝑚𝑖𝑡_𝑝𝑟𝑜𝑜 𝑓 ) the commit value and proof
+          obtained by ViewByzantineAgreement
+   6: Let lock the lock value obtained by ViewByzantineAgreement
+
+      Round 11𝑛 + 1:
+   7: if 𝑣𝑎𝑙𝑢𝑒 = ⊥ then
+   8:     Broadcast (𝐻𝐸𝐿𝑃, 𝑡𝑠𝑖𝑔𝑛(𝐻𝐸𝐿𝑃)) to every party
+   9: end if
+
+      Round 11𝑛 + 2:
+  10: upon Receiving (𝐻𝐸𝐿𝑃, 𝑡𝑠𝑖𝑔𝑛(𝐻𝐸𝐿𝑃)) from party 𝑝 do
+  11:    if 𝑣𝑎𝑙𝑢𝑒 ≠ ⊥ then
+  12:        Send (𝑃𝑅𝑂𝑂𝐹, 𝑣𝑎𝑙𝑢𝑒, 𝑐𝑜𝑚𝑚𝑖𝑡_𝑝𝑟𝑜𝑜 𝑓 ) to 𝑝
+  13:    end if
+  14: upon once Receiving (𝐻𝐸𝐿𝑃, 𝑡𝑠𝑖𝑔𝑛(𝐻𝐸𝐿𝑃)) from 𝑡 + 1 different parties do
+  15:    Make 𝑓 𝑎𝑙𝑙𝑏𝑎𝑐𝑘_𝑝𝑟𝑜𝑜 𝑓 a (𝑡 + 1)-threshold certificate from the partial signatures
+  16:    Broadcast (𝐹𝐴𝐿𝐿𝐵𝐴𝐶𝐾, 𝑓 𝑎𝑙𝑙𝑏𝑎𝑐𝑘_𝑝𝑟𝑜𝑜 𝑓 ) to every party
+
+      Round 11𝑛 + 3:
+  17: upon Receiving valid (𝑃𝑅𝑂𝑂𝐹, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) do
+  18:    𝑣𝑎𝑙𝑢𝑒 ← 𝑣
+  19:   𝑐𝑜𝑚𝑚𝑖𝑡_𝑝𝑟𝑜𝑜 𝑓 ← 𝑝𝑟𝑜𝑜 𝑓
+  20: upon once Receiving valid (𝐹𝐴𝐿𝐿𝐵𝐴𝐶𝐾, 𝑝𝑟𝑜𝑜 𝑓 ) do
+  21:    𝑓 𝑎𝑙𝑙𝑏𝑎𝑐𝑘_𝑝𝑟𝑜𝑜 𝑓 ← 𝑝𝑟𝑜𝑜 𝑓
+  22:    if 𝑙𝑜𝑐𝑘 ≠ ⊥ then
+  23:         Broadcast (𝐿𝑂𝐶𝐾, 𝑙𝑜𝑐𝑘) to every party
+  24:    end if
+36                                     Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+        Round 11𝑛 + 4 and followings:
+     25: if 𝑣𝑎𝑙𝑢𝑒 = ⊥ then
+     26:      if Received a valid (𝐿𝑂𝐶𝐾, 𝑙𝑜𝑐𝑘) then
+     27:          Let 𝑣 be the lock value received with the highest view number
+     28:          𝑣𝑎𝑙𝑢𝑒 ← 𝑣
+     29:      else
+     30:          𝑣𝑎𝑙𝑢𝑒 ← 𝑣𝑖𝑛
+     31:      end if
+     32: end if
+     33: if 𝑓 𝑎𝑙𝑙𝑏𝑎𝑐𝑘_𝑝𝑟𝑜𝑜 𝑓 ≠ ⊥ then
+     34:      𝑣 ← A 𝑓 𝑎𝑙𝑙𝑏𝑎𝑐𝑘 (𝑣𝑎𝑙𝑢𝑒)
+     35:      if 𝑐𝑜𝑚𝑚𝑖𝑡_𝑝𝑟𝑜𝑜 𝑓 = ⊥ then
+     36:          𝑣𝑎𝑙𝑢𝑒 ← 𝑣
+     37:      end if
+     38: end if
+     39: if The party has not yet decided then
+     40:      Decide 𝑣𝑎𝑙𝑢𝑒
+     41: end if
+
+
+     Lemma B.12. If a fallback proof is created, then 𝑓 ≥ 𝑛 − 𝑘, and in particular 𝑓 = Ω(𝑛).
+   Proof. If a fallback proof is created, it implies that 𝑡 + 1 parties did not get a commit proof
+during 𝑛 views, which implies that one honest party did not decide during 𝑛 ≥ 2𝑡 + 1 ≥ 2𝑓 + 1
+views.
+   However, using Lemma B.7 and the fact that we are in synchrony, so the 𝐺𝑆𝑇 is set at the
+beginning of the algorithm, one honest party not deciding with 2𝑓 + 1 views imply that 𝑓 ≥ 𝑛 − 𝑘 =
+𝑛 − ⌈ 𝑛+𝑡2+1 ⌉ ≈ 𝑛/4. Therefore, 𝑓 = Ω(𝑛).                                                       □
+     Theorem B.13. The protocol has O (𝑓 ) round complexity and O (𝑛 · 𝑓 ) message complexity.
+   Proof. We look at the two cases (𝑓 < 𝑛 − 𝑘 and 𝑓 ≥ 𝑛 − 𝑘) separately:
+   If 𝑓 < 𝑛 − 𝑘 ≈ 𝑛/4: then using Lemma B.11, the view-baed protocol has O (𝑛 · 𝑓 ) message
+complexity. Moreover, using Lemma B.6, because 𝑛 ≥ 2𝑡 + 1 ≥ 2𝑓 + 1, all honest parties will have
+decided within O (𝑓 ) rounds. Moreover, it implies that all honest parties will have a proof by the
+end of the 𝑛 views. Therefore, no honest party will send a 𝐻 𝐸𝐿𝑃 message. Honest parties will
+answer once to each 𝐻 𝐸𝐿𝑃 message, which can thus only be sent the 𝑓 byzantine parties. This
+has message complexity (𝑛 − 𝑓 ) · 𝑓 . We remark that any other message honest parties can send
+is behind a fallback proof check or receiving 𝑡 + 1 partial signatures for help. Because no honest
+party send a partial signature for help, the later case will not happen. And because of Lemma B.12,
+the former cannot happen either. Therefore, the total message complexity is O (𝑛 · 𝑓 ).
+   If 𝑓 ≥ 𝑛 − 𝑘 ≈ 𝑛/4: then 𝑓 = Ω(𝑛). We remark using Corollary B.10 that this part has message
+complexity O (𝑛 2 ) = O (𝑛 · 𝑓 ). Moreover, this runs in O (𝑛) rounds. In the following rounds, each
+honest party will do at most 3 broadcasts and reply to help messages at most once per party. This
+has message complexity 4𝑛 2 = O (𝑛𝑓 ). The only remaining step is to run the fallback protocol.
+We note that it is not guaranteed that all honest parties will run it but Theorem B.15 guarantees
+that it will have O (𝑛) round complexity and O (𝑛 2 ) = O (𝑛𝑓 ) message complexity anyway. So the
+total message complexity is O (𝑛𝑓 ). Moreover, the view-based approach takes O (𝑛) rounds, then
+checking for fallback takes 3 rounds and finally the fallback takes O (𝑛) rounds, after which all
+parties will decide if they have not yet. Therefore, the total round complexity is O (𝑛).          □
+     Theorem B.14. This protocol satisfies agreement and validity.
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                        37
+
+
+   Proof. We look at different cases depending on whether a commit proof was acquired or not.
+We note that the adversary has a lot of power in this protocol. It can for example get a commit
+proof or fallback proof, but keep it for himself on only selectively show it later on. Nevertheless,
+we prove that we always achieve agreement and validity.
+   If at least one honest party has a commit proof by the end of the view-based protocol:
+Then this party will send its commit value to any other party which didn’t have it and sent a help
+request. Therefore, all honest parties will get a commit proof which can only exists for one value,
+as proven in Lemma B.3. They will also all ignore the output of the fallback algorithm if they run
+it and decide this same value which satisfies validity because of Corollary B.5. So we have both
+validity and agreement.
+   We can now assume that no honest party had a commit proof right at the end of the view-based
+part. So they will all send a help partial signature. Because there are at least 𝑡 + 1 honest parties,
+each honest party will be able to combine the messages into a fallback proof. We note that this
+implies that all honest parties will run the fallback protocol. We now have two new cases to look at:
+   If at any point an honest party got a commit proof: We note that this is possible if the
+adversary creates a commit proof but only shares it after honest parties send their help message. A
+commit proof contains a view number. Let 𝑣𝑖𝑒𝑤1 be the view number of one such commit proof
+for value 𝑣. By definition, this proof is made from the partial signatures of 𝑘 parties who got a
+lock proof for 𝑣 at view 𝑣𝑖𝑒𝑤1. So at least 𝑘 − 𝑡 of these parties were honest. We can now use
+Lemma B.2 which guarantees that every subsequent lock proof created will be for 𝑣. We remark
+that 𝑘 − 𝑡 = ⌈ 𝑛+𝑡2+1 ⌉ − 𝑡 > 0, therefore there must be an honest party 𝑝 which got a lock proof for 𝑣
+at round 𝑣𝑖𝑒𝑤1. Because all subsequent lock proofs will also be for 𝑣 and 𝑝 sends its lock proof to
+everyone, it means that all honest party who did not get a commit proof will set their value to 𝑣 as
+the lock proof with the highest view number they receive will be for it because they received it
+from at least 𝑝. Therefore, all honest parties will join the fallback protocol with input either the
+commit value 𝑣 or the highest lock value which is also 𝑣. Because it satisfies validity, its output will
+also be 𝑣. Thus, whether they decide the output of the fallback protocol or their commit value, they
+will decide 𝑣 so we have agreement. Finally, 𝑣 has a commit proof so using Corollary B.5, it satisfies
+validity.
+   If no honest party ever gets a commit proof: Then all honest parties will decide on the
+output of the fallback protocol. Because it satisfies agreement, the decided value will also satisfy
+agreement. Finally we remark that honest parties will join the fallback protocol with either their
+input value, or a lock value which according to Lemma B.4 satisfies validity. So using the fallback
+protocol validity, the output value also satisfies validity.                                          □
+  Theorem 3.1. There exists a deterministic algorithm that tolerates up to 𝑡 < 𝑛/2 byzantine faults
+and, given a PKI, solves Byzantine Agreement in synchrony with communication complexity O (𝑛 · 𝑓 )
+and round complexity O (𝑓 ).
+  Proof. SyncBA satisfies these properties by Theorem B.13 and Theorem B.14.                         □
+
+B.4   Synchronous fallback protocol analysis
+We remark that in the synchronous setting, if 𝑓 ≥ 𝑛/4, we rely on the synchronous BA protocol
+by Momose and Ren [31]. We note that this paper never covers the round complexity of their
+algorithm. For completeness, we prove that it is linear:
+   Theorem B.15. The protocol for for byzantine agreement by Momose and Ren [31] with optimal
+resiliency 𝑡 < 𝑛/2 and quadratic communication complexity has 𝑂 (𝑛) round complexity and O (𝑛 2 )
+message complexity. This is true even if not all honest parties join the protocol.
+38                                   Andrei Constantinescu, Marc Dufay, Anton Paramonov, and Roger Wattenhofer
+
+
+  Proof. We remark that their protocol consists of a recursive algorithm. This algorithm, when
+called on a set of parties of size 𝑚 larger than some constant 𝑀, consists of:
+     • Two recursive calls to the same protocol, with subsets of size ⌈𝑚/2⌉ then ⌊𝑚/2⌋
+     • Two multicasts, each taking a single round
+     • Two calls to a graded byzantine agreement (GBA) procedure
+We remark that the GBA procedure they use takes exactly 4 rounds. Therefore, the total round
+complexity 𝑇 (𝑚) for 𝑚 parties satisfies:
+                                 (
+                                   𝑂 (1),                           if 𝑠 ≤ 𝑀,
+                        𝑇 (𝑚) =
+                                   𝑇 ( ⌊𝑚/2⌋) + 𝑇 ( ⌈𝑚/2⌉) + 𝑂 (1), otherwise.
+For a given 𝑚 ≥ 1, the recursion depth ℎ satisfies ℎ ≤ ⌈log(𝑚/𝑀)⌉ ≤ log(𝑚) + 1. Therefore, we get:
+                                                 ℎ
+                                                ∑︁
+                                      𝑇 (𝑚) ≤         2𝑖 · O (1)
+                                                𝑖=1
+                                             = (2ℎ+1 − 1) · O (1)
+                                             ≤ (4 · 2log 𝑚 − 1) · O (1)
+                                             = O (𝑚)
+As a consequence, the total round complexity of their protocol for 𝑛 parties is O (𝑛). We also remark
+that almost the whole communication scheme (which party sends to which and when) is fixed in
+advance for this protocol. The only exception is in the graded consensus part where a party will
+perform between 1 and 4 multicasts depending on value received, but we remark that this only
+impact the constant factor in the message complexity, given that one multicast is always done.
+Therefore, even if not all honest parties join the protocol, the message complexity will still be O (𝑛 2 )
+while the round complexity will remain O (𝑛).                                                          □
+
+C      QAB Phase in the partially synchronous setting
+In this section, we provide a pseudocode for the QAB Phase procedure in the partially synchronous
+setting. To be more specific, QABRelayerGST replaces QABRelayer while QABQuorumGST
+replaces QABQuorum.
+
+       QABRelayerGST
+    Protocol for a relayer 𝑟 in the 𝑖-th committee 𝐶 ∈ C in partial synchrony
+     1: 𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 ← ⊥
+     2: 𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 ← ∅
+     3: 𝑆𝑒𝑒𝑛 ← ∅
+     4: upon once Receiving valid (𝐷𝐼𝑆𝑃𝐸𝑅𝑆𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 , 𝑠𝑒𝑛𝑑 _𝑡𝑖𝑚𝑒) do
+     5:     for Party 𝑝 ∈ C do
+     6:         Send (𝐴𝐺𝐺𝑅𝐸𝐺𝐴𝑇 𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) to 𝑝
+     7:     end for
+
+      8: upon Receiving valid (𝐷𝐼𝑆𝑃𝐸𝑅𝑆𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) from quorum node 𝑞 ∉ 𝑆𝑒𝑒𝑛 do
+      9:    if ⌊𝑡𝑖𝑚𝑒/(2Δ)⌋ ≡ 𝑖 (mod |𝐶 |) then
+     10:        𝑆𝑒𝑒𝑛 ← 𝑆𝑒𝑒𝑛 ∪ {𝑞}
+     11:        Wait 2Δ units of time
+     12:        if 𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 ≠ ⊥ then
+     13:            Send (𝐶𝑂𝑀𝑃𝐿𝐸𝑇 𝐸𝐷, 𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒) to 𝑞
+From Few to Many Faults: Optimal Adaptive Byzantine Agreement                                       39
+
+
+  14:         end if
+  15:      end if
+
+  16: upon Receiving valid (𝐴𝐶𝐾, 𝑠𝑖𝑔𝑛) from a committee party 𝑝 for the first time do
+  17:    𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 ← 𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 ∪ {𝑠𝑖𝑔𝑛}
+  18:    if |𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠 | = |𝐶 | then
+  19:        𝐴𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 ← 𝑎𝑔𝑔𝑟𝑒𝑔𝑎𝑡𝑒 (𝑆𝑖𝑔𝑛𝑎𝑡𝑢𝑟𝑒𝑠)
+  20:        𝑆𝑒𝑒𝑛 ← ∅
+  21:    end if
+
+        QABQuorumGST(𝑣𝑖𝑛 , 𝑝𝑟𝑜𝑜 𝑓 )
+  Protocol for a quorum node 𝑞 in partial synchrony
+   1: 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ← ∅
+   2: in parallel do
+   3:     loop
+   4:        if 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 = P then
+   5:            We are done disseminating our value
+   6:            return
+   7:        else
+   8:            Let 𝑝 ∈ P \ 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑
+   9:            Send (𝐷𝐸𝐶𝐼𝐷𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) to 𝑝
+  10:            𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ← 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ∪ {𝑝}
+  11:            Wait Δ units of time
+  12:        end if
+  13:     end loop
+  14:
+  15: upon Receiving valid (𝐶𝑂𝑀𝑃𝐿𝐸𝑇 𝐸𝐷, 𝑠𝑖𝑔𝑛) from relayer 𝑟 of committee 𝐶 for the first time do
+  16:    𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ← 𝐴𝑐𝑘𝑛𝑜𝑤𝑙𝑒𝑑𝑔𝑒𝑑 ∪ 𝐶
+
+  17: Wait until 𝑡𝑖𝑚𝑒 is a multiple of 2Δ
+  18: loop
+  19:    𝑖 ← ⌊𝑡𝑖𝑚𝑒/(2Δ)⌋ (mod |C|)
+  20:    Send (𝐷𝐼𝑆𝑃𝐸𝑅𝑆𝐸, 𝑣, 𝑝𝑟𝑜𝑜 𝑓 ) to the relayer of the 𝑖-th committee
+  21:    Wait 2Δ units of time
+  22: end loop
+

@@ -1,0 +1,1127 @@
+                                                              Combining Existential Rules and Transitivity: Next Steps
+
+                                         Jean-François Baget                   Meghyn Bienvenu              Marie-Laure Mugnier                   Swan Rocher
+                                               INRIA &                              CNRS &                         INRIA &                            INRIA &
+                                          Univ. Montpellier II                   Univ. Paris-Sud              Univ. Montpellier II               Univ. Montpellier II
+                                          Montpellier, France                     Orsay, France               Montpellier, France                Montpellier, France
+arXiv:1504.07443v2 [cs.AI] 5 Jan 2017
+
+
+
+
+                                                                    Abstract                                 The addition of existential quantification allows one to as-
+                                                                                                             sert the existence of yet unknown entities and to reason
+                                               We consider existential rules (aka Datalog±) as               about them, an essential feature of ontological languages,
+                                               a formalism for specifying ontologies. In recent              which is also at the core of description logics (DLs). Ex-
+                                               years, many classes of existential rules have been            istential rules generalize the DLs most often considered
+                                               exhibited for which conjunctive query (CQ) entail-            in the OBDA setting, like the DL-Lite and EL families
+                                               ment is decidable. However, most of these classes             [Calvanese et al., 2007; Baader, 2003; Lutz et al., 2009] and
+                                               cannot express transitivity of binary relations, a fre-       Horn DLs [Krötzsch et al., 2007].
+                                               quently used modelling construct. In this paper1,
+                                                                                                                 The fundamental decision problem related to OBDA is
+                                               we address the issue of whether transitivity can be
+                                                                                                             the following: is a Boolean conjunctive query (CQ) entailed
+                                               safely combined with decidable classes of existen-
+                                                                                                             from a KB? This problem has long been known to be unde-
+                                               tial rules. First, we prove that transitivity is incom-
+                                                                                                             cidable for general existential rules (this follows e.g., from
+                                               patible with one of the simplest decidable classes,           [Beeri and Vardi, 1981]). Consequently, a significant amount
+                                               namely aGRD (acyclic graph of rule dependen-
+                                                                                                             of research has been devoted to the issue of finding decidable
+                                               cies), which clarifies the landscape of ‘finite expan-
+                                                                                                             subclasses with a good expressivity / tractability tradeoff. It
+                                               sion sets’ of rules. Second, we show that transitiv-
+                                                                                                             has been observed that most exhibited decidable classes ful-
+                                               ity can be safely added to linear rules (a subclass
+                                                                                                             fill one of the three following properties [Baget et al., 2011a]:
+                                               of guarded rules, which generalizes the description
+                                                                                                             finiteness of a forward chaining mechanism known as the
+                                               logic DL-LiteR ) in the case of atomic CQs, and also
+                                                                                                             chase, which allows inferences to be materialized in the data
+                                               for general CQs if we place a minor syntactic re-
+                                                                                                             (we call such rule sets finite expansion sets, fes); finiteness
+                                               striction on the rule set. This is shown by means
+                                                                                                             of query rewriting into a union of CQs, which allows to the
+                                               of a novel query rewriting algorithm that is spe-
+                                                                                                             rules to be compiled into the query (finite unification sets,
+                                               cially tailored to handle transitivity rules. Third, for
+                                                                                                             fus); tree-like shape of the possibly infinite chase, which al-
+                                               the identified decidable cases, we analyze the com-
+                                                                                                             lows one to finitely encode the result (bounded-treewidth sets,
+                                               bined and data complexities of query entailment.
+                                                                                                             bts). The class of guarded rules [Calı̀ et al., 2008] is a well-
+                                                                                                             known class satisfying the latter property.
+                                        1 Introduction                                                           Known decidable classes are able to express many useful
+                                                                                                             properties of binary relations (e.g., inverses / symmetry) but
+                                        Ontology-based data access (OBDA) is a new paradigm
+                                                                                                             most of them lack the ability to define a frequently required
+                                        in data management, which exploits the semantic informa-
+                                                                                                             property, namely transitivity. This limits their applicability
+                                        tion provided by ontologies when querying data. Briefly,
+                                                                                                             in key application areas like biology and medicine, for which
+                                        the notion of a database is replaced by that of a knowl-
+                                                                                                             transitivity of binary relations (especially the ubiquitous ‘part
+                                        edge base (KB), composed of a dataset and an ontol-
+                                                                                                             of’ relation) is an essential modelling construct. The impor-
+                                        ogy. Existential rules, aka Datalog±, have been pro-
+                                                                                                             tance of transitivity has long been acknowledged in the DL
+                                        posed to represent ontological knowledge in this con-
+                                                                                                             community [Horrocks and Sattler, 1999; Sattler, 2000], and
+                                        text [Calı̀ et al., 2009; Baget et al., 2009; Baget et al., 2011b;
+                                                                                                             many DLs support transitive binary relations. While adding
+                                        Krötzsch and Rudolph, 2011]. These rules are an extension
+                                                                                                             transitivity to a DL often does not increase the complexity
+                                        of function-free first-order Horn rules (aka Datalog), that
+                                                                                                             of CQ entailment (see [Eiter et al., 2009] for some excep-
+                                        allows for existentially quantified variables in rule heads.
+                                                                                                             tions), it is known to complicate the design of query answer-
+                                           1
+                                             This document is an extended and revised version of the IJ-     ing procedures [Glimm et al., 2008; Eiter et al., 2012], due to
+                                        CAI’16 paper with the same title. It contains an appendix with       the fact that it destroys the tree structure of the chase upon
+                                        proofs omitted from the conference version. The most recent re-      which DL reasoning algorithms typically rely. In contrast to
+                                        vision (December 2016) adds a new result about msa (Proposition      the extensive literature on transitivity in DLs, rather little is
+                                        2) and corrects a mistake in the complexity bounds in Theorem 5.     known about the compatibility of transitivity with decidable
+classes of existential rules.2 A notable exception is the result           existential variables: when a term t of the query is unified
+of [Gottlob et al., 2013] on the incompatibility of transitivity           with an existential variable in a rule head, all atoms in which
+with guarded rules, which holds even under strong syntactic                t occurs must also be part of the unification, otherwise the
+restrictions (see Section 3).                                              result is unsound. Thus, instead of unifying one query atom
+   In this paper, we investigate the issue of whether transitiv-           at a time, we have to unify subsets (“pieces”) of the query,
+ity can be safely added to some well-known rule classes and                hence the notion of a piece-unifier defined next. A partition
+provide three main contributions. First, we show that adding               P of a set of terms is said to be admissible if no class of
+transitivity to one of the simplest fes and fus classes (namely            P contains two constants; a substitution σ can be obtained
+aGRD) makes atomic CQ entailment undecidable (Theorem                      from P by selecting an element ei in each class Ci of P ,
+1). We also provide (un)decidability results for the classes               with priority given to constants, and setting σ(t) = ei for all
+swa and msa extended with transitivity, which yields a com-                t ∈ Ci . A piece-unifier of a CQ Q with a rule R = B → H
+plete picture of the impact of transitivity on known fes classes.          is a triple µ = (Q′ , H ′ , Pµ ), where Q′ ⊆ Q, H ′ ⊆ H and Pµ
+Second, we investigate the impact of adding transitivity to                is an admissible partition on the terms of Q′ ∪ H ′ such that:
+linear rules, a natural subclass of guarded rules which gen-                  1. σ(H ′ ) = σ(Q′ ), where σ is any substitution obtained
+eralizes the well-known description logic DL-LiteR . We in-                      from Pµ ;
+troduce a query rewriting procedure that is sound and com-
+                                                                              2. if a class Ci in Pµ contains an existential variable, then
+plete for all rule sets consisting of linear and transitivity rules
+                                                                                 the other terms in Ci are variables from Q′ that do not
+(Theorem 2), and which is guaranteed to terminate for atomic
+                                                                                 occur in (Q \ Q′ ).
+CQs, and for arbitrary CQs if the rule set contains only unary
+and binary predicates or satisfies a certain safety condition,             We say that Q′ is a piece (and µ is a single-piece unifier) if
+yielding decidability for these cases (Theorem 3). Third,                  there is no non-empty subset Q′′ of Q′ such that Pµ restricted
+based on a careful analysis of our algorithm, we establish up-             to Q′′ satisfies Condition 2. From now on, we consider only
+per and lower bounds on the combined and data complexities                 single-piece unifiers, which we simply call unifiers. The (di-
+of query entailment for the identified decidable cases (Theo-              rect) rewriting of Q with R w.r.t. µ is σ(Q \ Q′ ) ∪ σ(B)
+rems 4 and 5). While the addition of transitivity leads to an              where σ is a substitution obtained from Pµ . A rewriting of
+increase in the combined complexity of atomic CQ entailment                Q w.r.t. a set of rules R is a CQ obtained by a sequence
+(which rises from PS PACE-complete to ExpTime-complete),                   Q = Q0 , . . . , Qn (n ≥ 0) where for all i > 0, Qi is a di-
+the obtained data complexity is the lowest that could be ex-               rect rewriting of Qi−1 with a rule from R. For any fact base
+pected, namely, NL-complete.                                               F , we have that F , R |= Q iff there is a rewriting Qn of Q
+                                                                           w.r.t. R such that F |= Qn [König et al., 2013].
+2 Preliminaries                                                            Example 1 Consider the rule R = h(x) → p(x, y) and CQ
+                                                                           Q = q(u) ∧ p(u, v) ∧ p(w, v) ∧ r(w). If p(u, v) is unified
+A term is a variable or a constant. An atom is of the form                 with p(x, y), then v is unified with the existential variable y,
+p(t1 , . . . , tk ) where p is a predicate of arity k, and the ti are      hence p(w, v) has to be part of the unifier. The triple µ =
+terms. We consider (unions of) Boolean conjunctive queries                 ({p(u, v), p(w, v)}, {p(x, y)}, {{x, u, w}{v, y}} is a unifier.
+((U)CQs), which are (disjunctions of) existentially closed                 The direct rewriting of Q associated with the substitution σ =
+conjunctions of atoms. Note however that all results can be                {x 7→ u, w 7→ u, y 7→ v} is h(u) ∧ q(u) ∧ r(u).
+extended to non-Boolean queries. A CQ is often viewed as
+the set of atoms. An atomic CQ is a CQ consisting of a single                 We now define some important kinds of rule sets (see e.g.,
+                                                                           [Mugnier, 2011] for an overview). A model M of a KB K
+atom. A fact is an atom without variables. A fact base is a
+finite set of facts.                                                       is called universal if for any CQ Q, M is a model of Q iff
+   An existential rule (hereafter abbreviated to rule) R is a              K |= Q. A rule set R is a finite expansion set (fes) if any KB
+formula ∀~x∀~y (B[~x, ~y] → ∃~z H[~x, ~z]) where B and H are               (F , R) has a finite universal model. It is a bounded-treewidth
+conjunctions of atoms, resp. called the body and the head of               set (bts) if any KB (F , R) has a (possibly infinite) universal
+R. The variables ~z (resp. ~x), which occur only in H (resp.               model of bounded treewidth. It is a finite unification set (fus)
+in B and in H) are called existential variables (resp. frontier            if, for any CQ Q, there is a finite set S of rewritings of Q
+variables). Hereafter, we omit quantifiers in rules and simply             w.r.t. R such that for any fact base F , we have F , R |= Q iff
+denote a rule by B → H. For example, p(x, y) → p(x, z)                     there is Q′ ∈ S such that F |= Q′ .
+stands for ∀x∀y(p(x, y) → ∃z(p(x, z))). A knowledge base                      A Datalog rule has no existential variables, hence Datalog
+(KB) K = (F , R) consists of a fact base F and a finite set                rule sets are fes. Other kinds of fes rules are considered in the
+of rules R. The (atomic) CQ entailment problem consists in                 next section. A rule B → H is guarded if there is an atom
+deciding whether K |= Q, where K is a KB viewed as a first-                in B that contains all the variables occurring in B. Guarded
+order theory, Q is an (atomic) CQ, and |= denotes standard                 rules are bts. A linear rule has a body composed of a sin-
+logical entailment.                                                        gle atom and does not contain any constant. Linear rules are
+   Query rewriting relies on a unification operation between               guarded, hence bts, moreover they are fus.
+the query and a rule head. Care must be taken when handling                   As a special case of Datalog rules, we have transitivity
+                                                                           rules, of the form p(x, y) ∧ p(y, z) → p(x, z), which are
+   2
+     Since the conference version of this paper, the compatibility of      not fus. A predicate is called transitive if it appears in a tran-
+transitivity with frontier-one rules (a bts class that has close connec-   sitivity rule. If C is a class of rule sets, C+trans denotes the
+tions to Horn DLs) has been shown [Amarilli et al., 2016].                 class obtained by adding transitivity rules to rule sets from C.
+3 Combining fes / fus and Transitivity                               Proposition 1 The classes swa and swa+trans coincide.
+                                                                     Hence, swa+trans is decidable.
+A large hierarchy of fes classes is known (see e.g.,
+[Cuenca Grau et al., 2013] for an overview). Beside Datalog,         Proof: It suffices to note that the addition of transitivity rules
+the simplest classes are weakly-acyclic (wa) sets, which pre-        does not create new edges in the ‘SWA position graph’ from
+vent cyclic propagation of existential variables along predi-        [Cuenca Grau et al., 2013].                                    ✷
+cate positions, and aGRD (acyclic Graph of Rule Dependen-               The only remaining fes class that is not covered by the pre-
+cies) sets, which prevent cyclic dependencies between rules.         ceding results, namely Model Summarizing Acyclicity (msa)
+Datalog is generalized by wa, while wa and aGRD are incom-           from [Cuenca Grau et al., 2013], can be shown to be incom-
+parable. Some classes generalize wa by a finer analysis of           patible with transitivity rules:
+variable propagation (up to super-weakly acyclic (swa) sets).        Proposition 2 Atomic CQ entailment over msa+trans KBs is
+Most other fes classes generalize both wa and aGRD.                  undecidable.
+   We show that aGRD+trans is undecidable even for atomic
+CQs. Since aGRD is both fes and fus, this negative result also          It follows that the effect of transitivity on the currently
+transfers to fes+trans and fus+trans.                                known fes landscape is now quite clear, which is not the
+                                                                     case for fus classes. In the following, we focus on a well-
+Theorem 1 Atomic CQ entailment over aGRD+trans KBs is                known fus class, namely linear rules. We show by means of
+undecidable, even with a single transitivity rule.                   a query rewriting procedure that query entailment over lin-
+                                                                     ear+trans KBs is decidable in the case of atomic CQs, as
+Proof: The proof is by reduction from atomic CQ entailment
+                                                                     well as for general CQs if we place a minor safety condi-
+with general existential rules (which is known to be undecid-
+                                                                     tion on the rule set. Such an outcome was not obvious in the
+able). Let R be a set of rules. We first translate R into an
+                                                                     light of existing results. Indeed, atomic CQ entailment over
+aGRD set of rules Ra . We consider the following new predi-
+                                                                     guarded+trans rules was recently shown undecidable, even
+cates: p (which will be the transitive predicate) and, for each
+                                                                     when restricted to rule sets that belong to the two-variable
+rule Ri ∈ R, predicates ai and bi . Each rule Ri = Bi → Hi
+                                                                     fragment, use only unary and binary predicates, and contain
+is translated into the two following rules:
+                                                                     only two transitive predicates [Gottlob et al., 2013]. More-
+  • Ri1 = Bi → ai (~x, z1 ) ∧ p(z1 , z2 ) ∧ p(z2 , z3 ) ∧ bi (z3 )   over, inclusion dependencies (a subclass of linear rules) and
+  • Ri2 = ai (~x, z1 ) ∧ p(z1 , z2 ) ∧ bi (z2 ) → Hi                 functional dependencies (a kind of rule known to destroy tree
+                                                                     structures, as do transitivity rules) are known to be incompat-
+where z1 ,z2 and z3 are existential variables and ~x are the vari-   ible [Chandra and Vardi, 1985].
+ables in Bi .
+   Let Ra = {Ri1 , Ri2 | Ri ∈ R}, and let GRD(Ra ) be the            4 Linear Rules and Transitivity
+graph of rule dependencies of Ra , defined as follows: the
+                                                                     To obtain finite representations of sets of rewritings involv-
+nodes of GRD(Ra ) are in bijection with Ra , and there is an
+                                                                     ing transitive predicates, we define a framework based on the
+edge from a node R1 to a node R2 if the rule R2 depends on
+                                                                     notion of pattern.
+the rule R1 , i.e., if there is a piece-unifier of the body of R2
+(seen as a CQ) with the head of R1 .                                 4.1    Framework
+   We check that for any Ri ∈ R, Ri1 has no outgoing edge            To each transitive predicate we assign a pattern name. Each
+and Ri2 has no incoming edge (indeed the zj are existential          pattern name has an associated pattern definition P :=
+variables). Hence, in GRD(Ra ) all (directed) paths are of           a1 | . . . |ak , where each ai is an atom that contains the spe-
+length less or equal to one. It follows that GRD(Ra ) has no         cial variables #1 and #2. A pattern is either a standard pat-
+cycle, i.e., Ra is aGRD.                                             tern P [t1 , t2 ] or a repeatable pattern P + [t1 , t2 ], where P is a
+   Let Rt be the rule stating that p is transitive. Let R′ =         pattern name and t1 and t2 are terms. A union of patterned
+R ∪ {Rt }. The idea is that Rt allows to “connect” rules
+  a
+                                                                     conjunctive queries (UPCQ) is a pair (Q, P), where Q is a
+in Ra that correspond to the same rule in R. For any fact            disjunction of conjunctions of atoms and patterns, and P is a
+base F (on the original vocabulary), for any sequence of rule        set of pattern definitions that gives a unique definition to each
+applications from F using rules in R, one can build a se-            pattern name occurring in Q. A patterned conjunctive query
+quence of rule applications from F using rules from R′ , and         (PCQ) Q is a UPCQ without disjunction. For the sake of sim-
+reciprocally, such that both sequences produce the same fact         plicity, we will often denote a (U)PCQ by its first component
+base (restricted to atoms on the original vocabulary). Hence,        Q, leaving the pattern definitions implicit.
+for any F and Q (on the original vocabulary), we have that              An instantiation T of a UPCQ (Q, P) is a node-labelled
+F , R |= Q iff F , R′ |= Q.                                     ✷    tree that satisfies the following conditions:
+Corollary 1 Atomic CQ entailment over fus+trans or                      • the root of T is labelled by Q ∈ Q;
+fes+trans KBs is undecidable.                                           • the children of the root are labelled by the patterns and
+  Most known fes classes that do not generalize aGRD range                  atoms occurring in Q;
+between Datalog and swa (inclusive). It can be easily checked           • each node that is labelled by a repeatable pattern
+that any swa set of rules remains swa when transitivity rules               P + [t1 , t2 ] may be expanded into k ≥ 1 children labelled
+are added (and this is actually true for all known classes be-              respectively by P [t1 , x1 ], P [x1 , x2 ], . . ., P [xk−1 , t2 ],
+tween Datalog and swa).                                                     where the xi are fresh variables;
+                                            Q                             P [ui , ui+1 ] relevant for µ if it is expanded into an atom from
+                                                                          Q′ . Because we consider only single-piece unifiers (cf. Sec.
+             P1+ [a, z]               P2+ [z, b]              s1 (a, b)   2), it follows that if such relevant patterns exist, they form a
+                                                                          sequence P [ui , ui+1 ],P [ui+1 , ui+2 ],. . . , P [uj−1 , uj ]. Terms
+              P1 [a, z]       P2 [z, x1 ]       P2 [x1 , b]               ui and uj are called external to P + [t1 , t2 ] w.r.t. µ; the other
+                                                                          terms occurring in the sequence are called internal. The uni-
+            s2 (a, y0 , z) s2 (x1 , y1 , z)     p2 (x1 , b)               fier µ is said to be internal if all atoms from Q′ are expanded
+                                                                          from a single repeatable pattern, and no external terms are
+                                                                          unified together or with an existential variable; otherwise µ is
+                 Figure 1: Instantiations of a PCQ                        called external.
+                                                                          Example 3 Consider Q2 from Example 2 and the rules
+  • each node labelled by a standard pattern P [t1 , t2 ] may             R1 = s1 (x′ , y ′ ) → p2 (x′ , y ′ ) and R2 = s1 (x′ , y ′ ) →
+    be expanded into a single child whose label is obtained               s2 (x′ , y ′ , z ′ ). The unifier of Q2 with R1 that unifies p2 (x1 , b)
+    from an atom a in the pattern definition of P in P by                 with p2 (x′ , y ′ ) is internal. The unifier of Q2 with R2 that uni-
+    substituting #1 (resp. #2) by t1 (resp. t2 ), and freshly             fies {s2 (a, y0 , z), s2 (x1 , y1 , z)} with s2 (x′ , y ′ , z ′ ) is external
+    renaming the other variables.                                         because it involves two repeatable patterns.
+For brevity, we will often refer to nodes in an instantiation             4.2    Overview of the Algorithm
+using their labels.
+                                                                          Our query rewriting algorithm takes as input a CQ Q and a set
+   The instance associated with an instantiation is the PCQ
+                                                                          of rules R = RL ∪ RT , with RL a set of linear rules and RT
+obtained by taking the conjunction of the labels of its leaves.
+                                                                          a set of transitivity rules, and produces a finite set of Datalog
+An instance of a UPCQ is an instance associated with one
+                                                                          rules and a (possibly infinite) set of CQs. The main steps of
+of its instantiations. An instance is called full if it does not
+                                                                          the algorithm are outlined below.
+contain any pattern, and we denote by f ull(Q, P) the set of
+full instances of (Q, P).                                                 Step 1 For each predicate p that appears in RT , create a pat-
+                                                                          tern definition P := p(#1, #2), where P is a fresh pattern
+Example 2 Let (Q, P) be a PCQ, where Q = P1+ [a, z] ∧                     name. Call the resulting set of definitions P0 .
+P2+ [z, b] ∧ s1 (a, b) and P contains the pattern definitions:            Step 2 Let R+  L be the result of considering all of the rule bod-
+P1 := p1 (#1, #2)|s2 (#1, y, #2) and P2 := p2 (#1, #2)|                   ies in RL and replacing every body atom p(t1 , t2 ) such that p
+s2 (#2, y, #1).                                                           is a transitive predicate by the repeatable pattern P + [t1 , t2 ].
+   Two instantiations of Q are displayed in Figure 1. The
+                                                                          Step 3 (Internal rewriting) Initialize P to P0 and repeat the
+smaller instantiation (within the dotted lines) gives rise to the
+                                                                          following operation until fixpoint: select a pattern definition
+(non-full) instance Q1 = P1 [a, z] ∧ P2 [z, x1 ] ∧ P2 [x1 , b] ∧
+                                                                          P ∈ P and a rule R ∈ R+      L and compute the direct rewriting
+s1 (a, b). By expanding the three nodes labelled by patterns
+                                                                          of P w.r.t. P and R.
+according to the definitions in P, we may obtain the larger in-
+stantation (occupying the entire figure), whose associated in-            Step 4 Replace in Q all atoms p(t1 , t2 ) such that p is a transi-
+stance Q2 = s2 (a, y0 , z) ∧ s2 (x1 , y1 , z) ∧ p2 (x1 , b) ∧ s1 (a, b)   tive predicate by the repeatable pattern P + [t1 , t2 ], and denote
+is a full instance for (Q, P).                                            the result by Q+ .
+                                                                          Step 5 (External rewriting) Initialize Q to {Q+ } and repeat
+   A UPCQ (Q, P) can be translated into a set of Data-
+                                                                          the following operation until fixpoint: choose Qi ∈ Q, com-
+log rules ΠP and a UCQ QQ as follows. For each defi-
+                                                                          pute a direct rewriting of Qi w.r.t. P and a rule from R+        L,
+nition P := a1 (~t1 )| . . . |ak (~tk ) in P, we create the transi-       and add the result to Q (except if it is isomorphic to some
+tivity rule p+ (x, y) ∧ p+ (y, z) → p+ (x, z) and the rules               Qj ∈ Q).
+ai (~ti ) → p+ (#1, #2) (1 ≤ i ≤ k). The UCQ QQ is ob-
+                                                                          Step 6 Let ΠP be the Datalog translation of P, and let QQ be
+tained from Q by replacing each repeatable pattern P + [t1 , t2 ]
+                                                                          the (possibly infinite) set of CQs obtained by replacing each
+by the atom p+ (t1 , t2 ). Observe that ΠP is non-recursive ex-           repeatable pattern P + [t1 , t2 ] in Q by p+ (t1 , t2 ).
+cept for the transitivity rules. The next proposition states that
+(ΠP , QQ ) can be seen as a finite representation of the set of           The rewriting process in Step 3 is always guaranteed to ter-
+full instances of (Q, P).                                                 minate, and in Section 6, we propose a modification to Step
+                                                                          5 that ensures termination and formulate sufficient conditions
+Proposition 3 Let F be a fact base and (Q, P) be a UPCQ.                  that preserve completeness. When QQ is finite (i.e., it is a
+Then F , ΠP |= QQ iff F |= Q for some Q ∈ f ull(Q, P).                    UCQ), it can be evaluated over the fact base saturated by ΠP ,
+    A unifier µ = (Q′ , H, Pu ) of a PCQ is a unifier of one              or alternatively, translated into a set of Datalog rules, which
+of its (possibly non-full) instances such that Q′ is a set of             can be combined with ΠP and passed to a Datalog engine
+(usual) atoms. We distinguish two types of unifiers (internal             for evaluation. Observe that the construction of ΠP is query-
+and external), defined next.                                              independent and can be executed as a preprocessing step.
+    Let T be an instantiation, Q be its associated instance, and
+µ = (Q′ , H, Pu ) be a unifier of Q. Assume T contains a                  5 Rewriting Steps in Detail
+repeatable pattern P + [t1 , t2 ] that is expanded into P [u0 , u1 ],     A PCQ that contains a repeatable pattern has an infinite num-
+. . . , P [uk , uk+1 ], where u0 = t1 and uk+1 = t2 . We call             ber of instances. Instead of considering all instances of a
+PCQ, we consider a finite set of ‘instances of interest’ for                (with the partition {{z1 , y0 , x4 }, {x, t1 , x2 , x5 }, {z2 , x0 , y1 },
+a given rule. Such instances will be used for both the internal             {y, x1 , x3 , t2 }}).
+and external rewriting steps.                                                  Fortunately, we can bound the length of paths to be consid-
+Instances of interest Consider a PCQ (Q, P) and a rule                      ered using both the arity of p and the number of atoms with
+R ∈ R+ L with head predicate p. The instantiations of interest
+                                                                            predicate p in P ’s definition, allowing us to use instances of
+of (Q, P) w.r.t. R are constructed as follows. For each re-                 interest introduced earlier.
+peatable pattern Pi+ [t1 , t2 ] in Q, let ai1 , . . . , aini be the atoms      A direct rewriting P′ of a set of pattern definitions P w.r.t.
+in the definition of Pi with predicate p. If ni > 0, then ex-               a pattern name P and a rule R = B → H ∈ R+           L is the set
+pand Pi+ [t1 , t2 ] into k standard patterns, where 0 < k ≤                 of pattern definitions obtained from P by updating P ’s defi-
+min(arity(p), ni ) + 2, and expand each of these standard                   nition as follows. We consider the PCQ (Q = P + [x, y], P).
+patterns in turn into some aiℓ . An instance of interest is the             We select an instance of interest Q of Q w.r.t. R, an internal
+instance associated with an instantiation of interest.                      unifier µ of Q with H, and a substitution σ associated with
+                                                                            µ that preserves the external terms. Let B ′ be obtained from
+Example 4 Reconsider Q, Q2 and R2 from Examples 2 and                       σ(B) by substituting the first (resp. second) external term by
+3. Q2 is not an instance of interest of Q w.r.t. R2 since                   #1 (resp. #2). If B ′ is an atom, we add it to P ’s definition.
+P2 [x1 , b] is expanded into p(#1, #2) whereas the head pred-               Otherwise, B ′ is a repeatable pattern of the form S + [#1, #2]
+icate of R2 is s2 . If we expand P2 [x1 , b] with s2 (#2, y, #1)            or S + [#2, #1]. Let f be a bijection on {#1, #2}: if B ′ is of
+instead, we obtain the instance of interest Q3 = s2 (a, y0 , z)∧            the form S + [#1, #2], f is the identity, otherwise f permutes
+s2 (x1 , y1 , z) ∧ s2 (b, y2 , x1 ) ∧ s1 (a, b).                            #1 and #2. For all si in the definition of S, we add f (si ) to
+   We next show that the set of unifiers computed on the in-                P ’s definition.
+stances of interest of a PCQ ‘captures’ the set of unifiers com-               Note that the addition of an atom to a pattern definition is
+puted on all of its instances.                                              up to isomorphism (with #1 and #2 treated as distinguished
+                                                                            variables, i.e., #1 and #2 are mapped to themselves).
+Proposition 4 Let (Q, P) be a PCQ and R ∈ R+     L . For every
+instance Q of (Q, P) and unifier µ of Q with R, there exist an              Example 6 Reconsider R, µ, and the definition of P from
+instance of interest Q′ of (Q, P) w.r.t. R and a unifier µ′ of              Example 5. Performing a direct rewriting w.r.t. P using R
+Q′ with R such that µ′ is more general 3 than µ.                            and µ results in adding the atom s(#1, #2) to P ’s definition.
+                                                                            Proposition 5 Let (Q, P) be a PCQ where P + [t1 , t2 ] occurs
+5.1    Internal Rewriting                                                   and R ∈ R+       L . For any instance Q of (Q, P), any classical
+Rewriting w.r.t. internal unifiers is performed ‘inside’ a re-              direct rewriting Q′ of Q with R w.r.t. to a unifier internal to
+peatable pattern, independently of the other patterns and                   P + [t1 , t2 ], and any Q′ ∈ f ull(Q′ , P), there exists a direct
+atoms in the query. We will therefore handle this kind of                   rewriting P′ of P w.r.t. P and R such that (Q, P′ ) has a full
+rewriting in a query-independent manner by updating the pat-                instance that is isomorphic to Q′ .
+tern definitions.
+   To find all internal unifiers between instances under a re-              5.2    External Rewriting
+peatable pattern P + [t1 , t2 ] and a rule head H = p(. . .), one           Let (Q, P) be a PCQ, R ∈ R+         L , T be an instantiation of in-
+may think that it is sufficient to consider each atom ai in P ’s            terest of (Q, P) w.r.t. R, Q be the instance associated with
+definition and check if there is an internal unifier of ai with             T , and µ = (Q′ , H, P ) be an external unifier of Q with R.
+H. Indeed, this suffices when predicates are binary: in an                  From this, several direct rewritings of Q w.r.t. P and R can be
+internal unifier, t1 and t2 are unified with distinct variables,            built. First, we mark all leaves in T that either have the root
+which cannot be existential; thus, the terms in H are frontier              as parent or are labelled by an atom in Q′ , and we restrict
+variables, and a piece must consist of a single atom. If the                T to branches leading to a marked leaf. Then, we consider
+arity of p is greater than 2, the other variables can be existen-           each instantiation Ti that can be obtained from Q as follows.
+tial, so it may be possible to unify a path of atoms from P ’s              Replace each repeatable pattern P + [t1 , t2 ] that has k > 0
+definition, but not a single such atom (see next example).                  children in T by one of the following:
+Example 5 Let R = s(x, y) → r(z1 , x, z2 , y) and P :=                        (i) P + [t1 , x1 ] ∧ X[x1 , x2 ] ∧ P + [x2 , t2 ],
+r(#2, #1, x0 , x1 )| r(#1, x2 , #2, x3 )| r(x4 , x5 , #1, #2).               (ii) P + [t1 , x1 ] ∧ X[x1 , t2 ],
+There is no internal unifier of an atom in P ’s definition with             (iii) X[t1 , x2 ] ∧ P + [x2 , t2 ],
+H = r(z1 , x, z2 , y). However, if we expand P + [t1 , t2 ] into
+a path P [t1 , y0 ]P [y0 , y1 ]P [y1 , t2 ], then expand the ith pat-       (iv) X[t1 , t2 ],
+tern of this path into the ith atom in P ’s definition, the re-             where X[v1 , v2 ] is a sequence P [v1 , y1 ], P [y1 , y2 ], . . . ,
+sulting instance can be unified with H by an internal unifier               P [yk−1 , v2 ]. Let Qi be the instance associated with Ti .
+     3                                                                         If P [x′ , y ′ ] in T has child a(~t), expand in Ti the corre-
+        Consider unifiers µ = (Q, H, Pµ ) and µ′ = (Q′ , H, Pµ′ ), and
+let σ (resp. σ ′ ) be a substitution associated with Pµ (resp. Pµ′ ). We    sponding P [x, y] into a(ρ(~t)) where ρ = {x′ 7→ x, y ′ 7→ y}.
+say that µ′ is more general than µ if there is a substitution h from        If µ′ = (ρ(Q′ ), H, ρ(P )) is still a unifier of Qi with H, we
+σ ′ (Q′ ) to σ(Q) such that h(σ ′ (Q′ )) ⊆ σ(Q) (i.e., h is a homomor-      say that Qi is a minimally-unifiable instance of Q w.r.t. µ. In
+phism from σ ′ (Q′ ) to σ(Q)), and for all terms x and y in Q′ ∪ H,         this case, Q′i = µ′ (Qi ) \ µ′ (H) ∪ µ′ (B) is a direct rewriting
+if σ ′ (x) = σ ′ (y) then σ(h(x)) = σ(h(y)).                                of Q w.r.t. P and R.
+Example 7 Reconsider Q3 and R2 , and let µ =                                  rewritings in Step 5. This modification ensures termination
+({s2 (a, y0 , z), s2 (x1 , y1 , z)}, H2 , {{a, x1 , x′ }, {y0 , y1 , y ′ },   but may comprise completeness. However, we can show that
+{z, z ′}}). First, we consider the instantiation that gener-                  the modified algorithm is complete in the following key cases:
+ated Q3 , and we remove the node labelled P2 [x1 , b] and its                 when the CQ is atomic, when there is no specialization of a
+child s2 (b, y2 , x1 ), since the latter atom is not involved in              transitive predicate, or when all predicates have arity at most
+µ. Next will replace the repeatable pattern P1+ [a, z] (resp.                 two. By further analyzing the latter case, we can formulate a
+P2+ [z, b]) using one of the four cases detailed above, and                   safety condition, defined next, that guarantees completeness
+we check whether µ′ (obtained from µ) is still a unifier.                     for a much wider class of rule sets.
+We obtain in this manner the following minimally-unifiable                    Safe rule sets We begin by defining a specialization rela-
+instances: Q1 = P1+ [a, x2 ]∧ s2 (x2 , y0 , z)∧ s2 (x1 , y1 , z)∧             tionship between predicates. A predicate q is a direct special-
+P2+ [x1 , b]∧ s1 (a, b), and Q2 = s2 (a, y0 , z) ∧ s2 (x1 , y1 , z)           ization of a binary predicate p on positions {~i, ~j} (~i 6= ∅, ~j 6=
+∧ P2+ [x1 , b] ∧ s1 (a, b). Finally, we rewrite Q1 and Q2                     ∅) if there is a rule of the form q(~u) → p(x, y) such that ~i
+into: Q′1 = P1+ [a, x′ ] ∧ s1 (x′ , y ′ )∧ P2+ [x′ , b]∧ s1 (a, b) and        (resp. ~j) contains those positions of ~u that contain the term x
+Q′2 = s1 (a, y ′ )∧ P2+ [a, b]∧ s1 (a, b).                                    (resp. y). It is a specialization of p on positions {~i, ~j} if (a) it
+Proposition 6 Let (Q, P) be a PCQ and R ∈ R+         L . For every            is a direct specialization of p on positions {~i, ~j}, or (b) there
+Q ∈ f ull(Q, P) and every classical direct rewriting Q′ of Q                  is a rule of the form q(~u) → r(~v ) such that r(~v ) is a spe-
+with R w.r.t. an external unifier, there is a direct rewriting Q′             cialization of p on positions {~k, ~l} and the terms occurring in
+of Q w.r.t. P and R that has an instance isomorphic to Q′ .                   positions {~k, ~l} of ~v occur in positions {~i, ~j} of ~u with ~i 6= ∅
+                                                                              and ~j 6= ∅. We say that q is a pseudo-transitive predicate if it
+6 Termination and Correctness                                                 is a specialization of at least one transitive predicate.
+To establish the correctness of the query rewriting algorithm,                   We call a linear+trans rule set safe if it satisfies the follow-
+we utilize Propositions 3, 5 and 6.                                           ing safety condition: for every pseudo-transitive predicate q,
+Theorem 2 Let Q be a CQ, (F , R) be a linear+trans KB,                        there exists a pair of positions {i, j} with i 6= j such that
+and (ΠP ,QQ ) be the (possibly infinite) output of the algorithm.             for all transitive predicates p of which q is a specialization on
+Then: F , R |= Q iff F , ΠP |= Q′ for some Q′ ∈ QQ .                          positions {~i, ~j}, either i ∈ ~i and j ∈ ~j, or i ∈ ~j and j ∈ ~i.
+                                                                                 Note that if we consider binary predicates, the safety con-
+   Regarding termination, we observe that Step 3 (internal                    dition is always fulfilled. Then, specializations correspond
+rewriting) must halt since every direct rewriting step adds a                 exactly to the subroles considered in DLs.
+new atom (using a predicate from R+         L ) to a pattern definition,
+and there are finitely many such atoms, up to isomorphism.                    Example 9 Let R1 = s1 (x, x, y) → p1 (x, y), R2 =
+   By contrast, Step 5 (external rewriting) need not halt, as                 s2 (x, y, z) → p2 (x, y), R3 = s1 (x, y, z) → s2 (z, x, y), and
+the rewritings may grow unboundedly in size. Thus, to ensure                  p1 and p2 be two transitive predicates.
+termination, we will modify Step 5 to exclude direct rewrit-                     The following specializations have to be considered: s1 is
+ings that increase rewriting size. Specifically, we identify the              a direct specialization of p1 on positions {{1, 2}, {3}}, s2
+following ‘problematic’ minimally-unifiable instances:                        is a direct specialization of p2 on positions {{1}, {2}}, s1
+                                                                              is a specialization of p2 on positions {{3}, {1}}. We then
+   • Q′ is composed of atoms expanded from a single pattern                   have two pseudo-transitive predicates: s1 and s2 . By choos-
+      P + [t1 , t2 ], µ′ (t1 ) = µ′ (t2 ), and P + [t1 , t2 ] is replaced
+                                                                              ing the pair {1, 3} for s1 and {1, 2} for s2 , we observe that
+      as in case (i), (ii) or (iii).                                          {R1 , R2 , R3 } satisfies the safety condition.
+   • Q′ is obtained from the expansion of repeatable patterns,                   If we replace R3 by R4 = s1 (x, y, z) → s2 (x, y, z),
+      a term t of Q is unified with an existential variable of the            s1 is a specialization of p2 on positions {{1}, {2}}, and
+      head of the rule, t appears only in repeatable patterns of              {R1 , R2 , R4 } is not safe.
+      form Pi+ [ti , t] (resp. Pi+ [t, ti ]), and all these repeatable
+                                                                              Theorem 3 The modified query rewriting algorithm halts.
+      patterns are rewritten as in case (ii) Pi+ [ti , t′i ] ∧ X[t′i , t]     Moreover, Theorem 2 (soundness and completeness) holds for
+      (resp. as in case (iii) X[t, t′i ] ∧ Pi+ [t′i , ti ]).                  the modified algorithm if either the input CQ is atomic, or the
+We will call a direct rewriting excluded if it is based on such               input rule set is safe.
+a minimally-unifiable instance; otherwise, it is non-excluded.
+Example 8 The rewriting Q′1 from Example 7 is excluded be-                    7 Complexity
+cause it is obtained from the minimally-unifiable instance Q1                 A careful analysis of our query rewriting algorithm allows
+in which the repeatable patterns P1+ [a, z] is expanded as in                 us to provide bounds on the worst-case complexity of atomic
+case (ii) and P2+ [z, b] as in case (iii), and z is unified with              CQ entailment over linear+trans KBs, and of general CQ en-
+the existential variable z ′ .                                                tailment over safe linear+trans KBs. As usual, we consider
+                                                                              two complexity measures: combined complexity (measured
+Proposition 7 Let (Q, P) be a PCQ and R ∈ R+            ′
+                                                L . If Q is a                 in terms of the size of the whole input), and data complexity
+non-excluded direct rewriting of Q with R, then |Q′ | ≤ |Q|.                  (measured in terms of the size of the fact base). The latter is
+  Let us consider the ‘modified query rewriting algorithm’                    often considered more relevant since the fact base is typically
+that is obtained by only performing non-excluded direct                       significantly larger than the rest of the input.
+  With regards to data complexity, we show completeness for        [Baget et al., 2011a] J.-F. Baget, M. Leclère, M.-L. Mugnier,
+NL (non-deterministic logarithmic space), which is the same          and E. Salvat. On rules with existential variables: Walking
+complexity as in the presence of transitivity rules alone.           the decidability line. Art. Intell. (AIJ), 175(9-10):1620–
+                                                                     1654, 2011.
+Theorem 4 Both (i) atomic CQ entailment over linear+trans
+KBs and (ii) CQ entailment over safe linear+trans KBs are          [Baget et al., 2011b] J.-F.   Baget,     M.-L.      Mugnier,
+NL-complete in data complexity.                                      S. Rudolph, and M. Thomazo.           Walking the com-
+                                                                     plexity lines for generalized guarded existential rules. In
+   Regarding combined complexity, we show that both prob-            Proc. of IJCAI, pages 712–717, 2011.
+lems are in ExpTime, and prove that atomic CQ entailment
+over linear+trans KBs is ExpTime-complete. Hence, the ad-          [Beeri and Vardi, 1981] C. Beeri and M. Y. Vardi. The impli-
+dition of transitivity rules increases the complexity of query       cation problem for data dependencies. In Proc. of ICALP,
+entailment for atomic queries. The precise combined com-             volume 115 of LNCS, pages 73–85. Springer, 1981.
+plexity of general CQ entailment over safe linear+trans KBs        [Calı̀ et al., 2008] A. Calı̀, G. Gottlob, and M. Kifer. Tam-
+remains an open issue.
+                                                                     ing the infinite chase: Query answering under expressive
+Theorem 5 Both (i) atomic CQ entailment over linear+trans            relational constraints. In Proc. of KR, pages 70–80, 2008.
+KBs and (ii) CQ entailment over safe linear+trans KBs are in       [Calı̀ et al., 2009] A. Calı̀, G. Gottlob, and T. Lukasiewicz. A
+ExpTime in combined complexity. Furthermore, atomic CQ
+                                                                     general Datalog-based framework for tractable query an-
+entailment over linear+trans KBs is ExpTime-hard in com-
+                                                                     swering over ontologies. In Proc. of PODS, pages 77–86,
+bined complexity.                                                    2009.
+
+8 Conclusion                                                       [Calı̀ et al., 2010] A. Calı̀, G. Gottlob, and A. Pieris. Query
+                                                                     answering under non-guarded rules in Datalog+/-. In Proc.
+In this paper, we made some steps towards a better un-               of RR, pages 1–17, 2010.
+derstanding of the interaction between transitivity and de-
+cidable classes of existential rules. We obtained an unde-         [Calvanese et al., 2007] D. Calvanese, G. De Giacomo,
+cidability result for aGRD+trans, hence for fes+trans and            D. Lembo, M. Lenzerini, and R. Rosati. Tractable rea-
+fus+trans. More positively, we established decidability (with        soning and efficient query answering in description log-
+the lowest possible data complexity) of atomic CQ entailment         ics: The DL-Lite family. J. Autom. Reasoning (JAR),
+over linear+trans KBs and general CQ entailment for safe             39(3):385–429, 2007.
+linear+trans rule sets. The safety condition was introduced        [Chandra and Vardi, 1985] A. K. Chandra and M. Y. Vardi.
+to ensure termination of the rewriting mechanism when pred-          The implication problem for functional and inclusion de-
+icates of arity more than two are considered (rule sets which        pendencies is undecidable. SIAM J. Comput., 14(3):671–
+use only unary and binary predicates are trivially safe). We         677, 1985.
+believe the condition can be removed with a much more in-
+volved termination proof.                                          [Cuenca Grau et al., 2013] B. Cuenca Grau, I. Horrocks,
+   In future work, we plan to explore the effect of tran-            M. Krötzsch, C. Kupke, D. Magka, B. Motik, and
+sitivity on fus rule classes that are incomparable with lin-         Z. Wang. Acyclicity notions for existential rules and their
+ear rules, namely domain-restricted and sticky rule sets             application to query answering in ontologies. J. Art. Intell.
+[Baget et al., 2011a; Calı̀ et al., 2010].                           Res. (JAIR), 47:741–808, 2013.
+                                                                   [Eiter et al., 2009] T. Eiter, C. Lutz, M. Ortiz, and
+Acknowledgements                                                      M. Simkus. Query answering in description logics with
+                                                                      transitive roles. In Proc. of IJCAI, pages 759–764, 2009.
+This work was supported by ANR project PAGODA (contract
+ANR 12 JS02 007 01).                                               [Eiter et al., 2012] T. Eiter, M. Ortiz, M. Simkus, T.-K. Tran,
+                                                                      and G. Xiao. Query rewriting for Horn-SHIQ plus rules.
+References                                                            In Proc. of AAAI, 2012.
+[Amarilli et al., 2016] A. Amarilli, M. Benedikt, P. Bourhis,      [Glimm et al., 2008] B. Glimm, C. Lutz, I. Horrocks, and
+  and M. Vanden Boom Query answering with transitive                 U. Sattler. Conjunctive query answering for the descrip-
+  and linear-ordered data. In Proc. of IJCAI, pages 893–899,         tion logic SHIQ. J. Artif. Intell. Res. (JAIR), 31:157–204,
+  2016.                                                              2008.
+[Baader, 2003] F. Baader. Terminological cycles in a de-           [Gottlob et al., 2013] G. Gottlob, A. Pieris, and L. Ten-
+  scription logic with existential restrictions. In Proc. of IJ-     dera. Querying the guarded fragment with transitivity. In
+  CAI, pages 325–330, 2003.                                          Proc. of ICALP, volume 7966 of LNCS, pages 287–298.
+                                                                     Springer, 2013.
+[Baget et al., 2009] J.-F. Baget, M. Leclère, M.-L. Mugnier,
+  and E. Salvat. Extending decidable cases for rules with          [Horrocks and Sattler, 1999] I. Horrocks and U. Sattler. A
+  existential variables. In Proc. of IJCAI, pages 677–682,           description logic with transitive and inverse roles and role
+  2009.                                                              hierarchies. J. Log. Comput., 9(3):385–410, 1999.
+[König et al., 2013] M. König, M. Leclère, M.-L. Mugnier,      Appendix
+   and M. Thomazo. On the exploration of the query rewrit-
+                                                                  Notations In the following we use several notations that
+   ing space with existential rules. In Proc. of RR, pages 123–
+                                                                  were not included in the main paper for space restrictions. Let
+   137, 2013.
+                                                                  Q1 and Q2 be two CQs, if there is a homomorphism from Q1
+[Krötzsch and Rudolph, 2011] M. Krötzsch and S. Rudolph.        to Q2 , we say that Q1 is more general than Q2 , and we note
+   Extending decidable existential rules by joining acyclicity    Q1 ≥ Q2 . This definition is naturally extended to (U)PCQs:
+   and guardedness. In Proc. of IJCAI, pages 963–968, 2011.       let (Q1 , P1 ) and (Q2 , P2 ) be two (U)PCQs, if for any full in-
+[Krötzsch et al., 2007] M. Krötzsch, S. Rudolph, and P. Hit-    stance Q2 of (Q2 , P2 ) there is a full instance Q1 of (Q1 , P1 )
+   zler. Complexity boundaries for Horn description logics.       such that Q1 ≥ Q2 , we say that (Q1 , P1 ) is more general
+   In Proc. of AAAI, pages 452–457. AAAI Press, 2007.             than (Q2 , P2 ) and we note (Q1 , P1 ) ≥ (Q2 , P2 ).
+                                                                     We recall from the body of the paper that a unifier µ′ =
+[Lutz et al., 2009] C. Lutz, D. Toman, and F. Wolter. Con-
+                                                                  (Q′ , H, Pµ′ ) is more general than µ = (Q, H, Pµ ) if there is
+   junctive query answering in the description logic EL us-       a substitution h from σ ′ (Q′ ) to σ(Q) such that h(σ ′ (Q′ )) ⊆
+   ing a relational database system. In Proc. of IJCAI, pages     σ(Q) (i.e., h is a homomorphism from σ ′ (Q′ ) to σ(Q)), and
+   2070–2075, 2009.                                               for all terms x and y in Q′ ∪ H, if σµ′ (x) = σµ′ (y) then
+[Mugnier, 2011] M.-L. Mugnier. Ontological query answer-          σµ (h(x)) = σµ (h(y)), where σµ and σµ′ are substitutions
+   ing with existential rules. In Proc. of RR, pages 2–23,        associated respectively with Pµ and Pµ′ . In what follows, we
+   2011.                                                          will write µ′ ≥ µ to indicate that µ′ is more general than µ.
+[Sattler, 2000] U. Sattler. Description logics for the repre-
+                                                                  Proposition 2 Atomic CQ entailment over msa+trans KBs is
+   sentation of aggregated objects. In Proc. of ECAI, pages       undecidable.
+   239–243, 2000.
+                                                                  Proof:
+[Bienvenu and Thomazo, 2016] Meghyn Bienvenu and
+                                                                     The proof is by reduction from atomic CQ entailment with
+   Michaël Thomazo. On the complexity of evaluating              general existential rules. Let F be a set of facts, R be a set of
+   regular path queries over linear existential rules. In         rules, and Q be an atomic CQ.
+   Web Reasoning and Rule Systems - 10th International
+                                                                     First we consider a new transitive predicate p, which is the
+   Conference, RR 2016, Aberdeen, UK, September 9-11,
+                                                                  only transitive predicate we use.
+   2016, Proceedings, pages 1–17, 2016.
+                                                                     We next rewrite F into F ′ as follows. For each term
+                                                                  t ∈ terms(F ), we add the atoms p(t, at ) and p(at , t) to F ′ ,
+                                                                  where at is a fresh constant.
+                                                                     Then we rewrite R into a msa set of rules Rm . For each
+                                                                  rule R = B → H, we consider the rule R′ = B ′ → H ′
+                                                                  obtained as follows. Its body B ′ is composed of the atoms of
+                                                                  B as well as the atoms p(t, t) for each term t ∈ terms(B).
+                                                                  Its head H ′ contains the atoms of H as well as two atoms
+                                                                  p(z, xz ) and p(xz , z), where xz is a fresh variable, for each
+                                                                  existential variable z in H. It can be checked that Rm indeed
+                                                                  satisfies the MSA property.
+                                                                     Now, let RT be the rule expressing the transitivity of p. It is
+                                                                  clear that (F , R) |= Q if and only if (F ′ , Rm ∪ {RT }) |= Q.
+                                                                     We conclude that atomic conjunctive query entailment over
+                                                                  MSA+trans knowledge bases is undecidable.
+                                                                                                                                  ✷
+
+                                                                  Proposition 3 Let F be a fact base and (Q, P) be a UPCQ.
+                                                                  Then F , ΠP |= QQ iff F |= Q for some Q ∈ f ull(Q, P).
+                                                                  Proof: We successively prove the two directions.
+                                                                     (⇒) Let T be an instantiation of (Q, P) such that there ex-
+                                                                  ists a homomorphism π from its associated full instance to the
+                                                                  fact base F . Let us consider a node of T labelled by a stan-
+                                                                  dard pattern atom P [t1 , t2 ]. The label r(ρ(~t)) of its child was
+                                                                  obtained by choosing an atom r(~t) in the pattern definition of
+                                                                  P . Thus our Datalog program ΠP contains the rule r(~t) →
+                                                                  p+ (#1, #2) where #1, #2 ∈ ~t. Applying the rule according
+                                                                  to the homomorphism π◦ρ, we can add the atom p+ (t1 , t2 ) to
+                                                                  F . Let us repeat this procedure for every node of T labelled
+                                                                  by a standard pattern atom. Consider next a repeatable pattern
+atom labelled P + [t, t′ ] whose children are respectively la-                k ≤ arity(p) + 2 standard patterns in Q4 , then there is
+belled P [t = t1 , t2 ], P [t2 , t3 ], . . . , P [tk−1 , tk = t′ ]. Accord-   an instance of interest Q′ that expands P + [t1 , t2 ] into ex-
+ing to the rule applications already described, F now contains                actly k standard patterns. Thus, there is an isomorphism
+the atoms p+ (t = t1 , t2 ), p+ (t2 , t3 ), . . . , p+ (tk−1 , tk = t′ ).     π between the atoms expanded under P + [t1 , t2 ] in Q and
+Then, by successive applications of the rule in ΠP expressing                 in Q′ . Assume instead that P + [t1 , t2 ] is expanded in Q
+the transitivity of p+ , we finally add to F the atom p+ (t, t′ ).            into k > arity(p) + 2 standard patterns. We denote
+Repeat this procedure for every node of T labelled by a re-                   by σ a substitution associated with Pu , and by P [t1 =
+peatable pattern atom. Now the root of T is labelled by some                  x0 , x1 ], P [x1 , x2 ], . . . , P [xk−2 , xk−1 ], P [xk−1 , xk = t2 ] the
+Q ∈ Q. The UCQ QQ contains a CQ Q that was obtained                           sequence of standard patterns expanded from P + [t1 , t2 ] in Q,
+from Q by replacing each repeatable pattern P + [t1 , t2 ] by                 and let xs and xe (s < e) be the external terms of P + [t1 , t2 ]
+p+ (t1 , t2 ). Observe that the restriction of π to the terms of Q            w.r.t. µ. The unifier is single-piece (cf. Section 2), thus, for
+is a homomorphism from Q to the fact based obtained from                      every 0 < i < k, σ(xi ) = σ(zi ) for some existential variable
+F by previous rule applications.                                              zi from the head of R.
+    (⇐) Conversely, let us consider a fact base F ′ obtained                     We construct an instance Q′ and function π as fol-
+by saturating the initial fact base F with the rules of ΠP ,                  lows. Starting from Q, we expand every repeatable pattern
+and a homomorphism π from some CQ Q′ in the UCQ                               P + [t1 , t2 ] that is relevant for µ into e − s standard patterns
+QQ to F ′ . Let us now build an instantiation T whose full                    (where e and s are defined as above and depend on the partic-
+instance can be mapped to F thanks to a homomorphism                          ular pattern):
+π ′ . The root node of T is labelled by the UPCQ Q in Q                         P [t1 = x′s , x′s+1 ], P [x′s+1 , x′s+2 ], . . . , P [x′e−1 , x′e = t2 ].
+from which Q′ was obtained. Its children are labelled by
+the atoms and pattern atoms of Q. Now we define the re-                       Then for every s ≤ i ≤ e, we set π(x′i ) = xi , and we expand
+striction of π ′ to the terms of Q as π. Let us now con-                      P [x′i , x′i+1 ] into the atom a′i that is obtained from the the atom
+sider a child of the root labelled by a repeatable pattern atom               ai expanded under P [xi , xi+1 ] in Q by replacing every xj
+P + [t, t′ ]. It follows that p+ (π(t), π(t′ )) is an atom of F ′ .           with x′j . If e − s ≤ arity(p) + 2, we are done. Otherwise,
+Since this atom is not in the initial fact base, it means that it             we will need to remove some patterns in order to satisfy the
+has been obtained by a (possibly empty) sequence of applica-                  definition of instances of interest. To this end, we define a
+tions of the rule expressing the transitivity of p+ on a p+ -path             sequence s < i1 < j1 < . . . < im < jm < e of indices as
+π(t) = t1 , . . . , tk = π(t′ ) such that no atom p+ (ti , ti+1 ) in          follows:
+F ′ has been obtained by a transitivity rule. Then the node                      • We call i < j, with s < i < j < e, a matching pair if
+labelled P + [t, t′ ] has k + 1 children respectively labelled                       ai and in aj , x′i+1 and x′j occur at the same position of
+P [t = x1 , x2 ], . . . , P [xk−1 , xk = t′ ]. For the fresh vari-                   p (hence, σ(xi+1 ) = σ(xj ));
+ables x2 , . . . , xk−1 , we define π ′ (xi ) = ti . Repeat this pro-
+cedure for every repeatable pattern atom in T . Let us next                      • We say that a matching pair i < j is maximal w.r.t. index
+consider a node of T labelled by a standard pattern atom                             ℓ if the following conditions hold:
+P [x, x′ ]. Since that node was obtained in the previous phase,                          – i ≥ ℓ,
+we know that the atom p+ (π ′ (x), π ′ (x′ )) is in F ′ , and that                       – there is no matching pair i′ < j ′ with ℓ ≤ i′ < i
+it was not obtained from the application of a transitivity rule.                         – there is no matching pair i < j ′ with j ′ > j
+Thus, the Datalog rule used to produce that atom is neces-
+sarily a rule obtained from the definition of the pattern P .                    • We let i1 < j1 be the matching pair that is maximal w.r.t.
+                                                                                     index s + 1
+Let r(~t) → p+ (#1, #2), where #1, #2 ∈ ~t, be that rule.
+According to that pattern definition, we can add to the node                     • If ik < jk is already defined, then we let ik+1 < jk+1
+labelled P [x, x′ ] a child labelled r(ρ(~t)). Since the Datalog                     be the matching pair that is maximal w.r.t. index jk , if
+rule was applied according to a homomorphism π ′′ , we de-                           such a pair exists (otherwise, ik < jk is the final pair in
+fine, for every fresh variable ρ(t), π ′ (ρ(t)) = π ′′ (t). Do the                   the sequence).
+same for every standard pattern atom of T . The instance as-                  Now remove from Q′ all of the patterns P [x′ℓ , x′ℓ+1 ] such that
+sociated with T is full, and π ′ is a homomorphism from this                  ig < ℓ < jg for some 1 ≤ g ≤ m, as well as the atoms that
+full instance to the initial fact base.                                  ✷    are expanded from such patterns. We claim that there are now
+                                                                              at most arity(p) + 2 patterns P [x′ℓ , x′ℓ+1 ] below P + [t1 , t2 ] in
+Proposition 4 Let (Q, P) be a PCQ and R ∈ R+     L . For every
+                                                                              Q′ . Indeed, if this were not the case, we could find a matching
+instance Q of (Q, P) and unifier µ of Q with R, there exist an                pair i < j among the remaining patterns. Since i1 < j1 is
+instance of interest Q′ of (Q, P) w.r.t. R and a unifier µ′ of                maximal w.r.t. index s + 1, and there are no further matching
+Q′ with R such that µ′ is more general than µ.                                pairs starting from jm , we know that i ≥ i1 and i < jm .
+                                                                              Moreover, since ai is still present in Q′ , it must be the case
+Proof: Let (Q, P) be a PCQ, R ∈ R+      L be a rule with head
+                                                                              that jg < i < ig+1 for some 1 ≤ g < m. But this contradicts
+p(~t), Q be an instance of (Q, P), and µ = (Q2 , p(~t), Pu ) be               the fact that ig+1 < jg+1 is maximal w.r.t. jg .
+a unifier of Q with R.                                                           4
+                                                                                   Strictly speaking, we mean the instantiation underlying Q, but
+   Consider a repeatable pattern P + [t1 , t2 ] from which some               to simplify the notation, here and later in the appendix, we will often
+atoms in Q2 are expanded. If P + [t1 , t2 ] is expanded into                  refer to instances, leaving the instantiation implicit.
+  In order for the different remaining patterns to form a se-                        belongs to Q2 but not Q′2 . Then α must lie be-
+quence, we will need to perform a renaming of terms. If there                        low a repeatable pattern P + [t1 , t2 ] that is expanded
+are n patterns left under P + [t1 , t2 ], then we will rename these                  into k > arity(p) + 2 standard patterns P [t1 =
+patterns from left to right by:                                                      x0 , x1 ], P [x1 , x2 ], . . . , P [xk−2 , xk−1 ], P [xk−1 , xk =
+                                                                                     t2 ] in Q. In this case, P + [t1 , t2 ] is expanded in Q′ into
+     P [t1 = x′′0 , x′′1 ], P [x′′1 , x′′2 ], . . . , P [x′′n−1 , x′′n = t2 ].
+                                                                                     P [t1 = x′s , x′s+1 ], P [x′s+1 , x′s+2 ], . . . , P [x′e−1 , x′e = t2 ],
+and will rename the atoms underneath these patterns accord-
+ingly. We will also update π by setting π(x′′i ) = π(x′j ) if x′j                    and each P [x′i , x′i+1 ] is expanded into a′i . If e − s ≤
+was renamed into x′′i and there is no x′j ′ with j ′ < j that was                    arity(p) + 2, then the atoms a′i all belong to Q′2 . If
+also renamed into x′′i .                                                             we have α = a′i , then we have π(a′i ) = ai , hence
+                                                                                     σ ′ (α) = σ(π(a′i )) = σ(ai ) ∈ σ(Q2 ). The final pos-
+    Let Q′ be the instance obtained in this manner. We note
+                                                                                     sibility is that e − s > arity(p) + 2, in which case
+that by construction, it is an instance of interest of (Q, P)
+                                                                                     some of the patterns will be removed and the remaining
+w.r.t. R, as we only expand patterns into atoms that use the
+                                                                                     patterns will be renamed (as will be their corresponding
+predicate p from the rule head, and the number of patterns
+                                                                                     atoms). Suppose that α is the atom a′′h below the pattern
+generated from any repeatable pattern is at most arity(p)+2.
+                                                                                     P [x′′ℓ , x′′ℓ+1 ], which was obtained from renaming the pat-
+    Regarding π, note that a term may be shared among sev-
+eral repeatable patterns that are relevant for µ. However, we                        tern P [xh , xh+1 ]. We claim that σ ′ (α) = σ(π(α)) =
+can show that if a term is shared by multiple relevant patterns,                     σ(ah ), hence σ ′ (α) ∈ σ(Q2 ). By examining the way
+then the (partial) mapping associated with those patterns will                       renaming is performed, there are two situations that can
+agree on the shared term, i.e. π is well defined. First note if                      occur:
+a term is shared by two repeatable patterns, then it must ap-                           – π(x′′ℓ ) = xh and π(x′′ℓ+1 ) = xh+1 : in this case,
+pear as one of the distinguished terms (t1 , t2 ) in both patterns.                       π(a′′h ) = ah , hence σ ′ (α) = σ(ah ).
+Moreover, by tracing the above construction, we find that π                             – π(x′′ℓ ) 6= xh : in this case, there must exist a match-
+is the identity on such terms.                                                            ing pair ig < jg such that h = jg , π(x′′ℓ ) = xig +1 ,
+    To complete the definition of π, we extend it to all of the                           and π(x′′ℓ+1 ) = xh+1 . From the definition of
+terms of Q′ by letting π be the identity on all terms that do not                         matching pairs, we know that σ(xig +1 ) = σ(xjg ).
+occur underneath a developed repeatable pattern (i.e., terms                              It follows that σ ′ (x′′ℓ ) = σ(π(x′′ℓ )) = σ(xig +1 ) =
+that appear in a repeatable pattern that is not expanded, or in                           σ(xh ) and σ ′ (x′′ℓ+1 ) = σ(π(x′′ℓ+1 )) = σ(xh+1 ).
+one of the standard atom of Q). Observe that π is an injective                            We can thus conclude that σ ′ (α) = σ(ah ).
+function, so its inverse π −1 is well-defined.
+    Now let Q′2 consist of all atoms in Q′ ∩ Q2 that are not                       • for a contradiction, suppose the class C ′ in Pu′ contains
+expanded from a repeatable pattern (i.e., they are standard                          an existential variable z from H and either a constant or
+atoms from Q) as well as all atoms in Q′ that lie under a                            a variable that occurs in Q′ \ Q′2 . If it contains a con-
+repeatable pattern.                                                                  stant c, then the corresponding class C in Pu will con-
+    Note that by construction every term t in Q′2 is such that                       tain both z and c, i.e., C is not a valid class. Next sup-
+π(t) appears in Q2 . We can thus define a partition Pu′ of the                       pose that C ′ contains a variable x that occurs in Q′ \ Q′2 ,
+terms in Q′2 ∪ H by taking every class C in Pu and replac-                           which means that the corresponding class C in Pu con-
+ing every term t from Q2 by π −1 (t), if such a term exists,                         tains π(x). Since x that occurs in Q′ \ Q′2 , it must either
+and otherwise deleting t; terms from p(~t) are left untouched.                       appear in a standard atom of Q′ that does not appear un-
+Moreover, by the injectivity of π, every term appears in at                          der any repeatable pattern or in a repeatable pattern that
+most one class, i.e., Pu′ is indeed a partition.                                     is not developed in Q′ . In the former case, the same
+                                                                                     atom appears in Q \ Q2 , and in the latter case, since Q
+    We aim to show that µ′ = (Q′2 , p(~t), Pu′ ) is the desired                      is full, there is an atom in Q that is developed from the
+unifier, We first show that µ′ is a unifier of Q′ with R. In what                    repeatable pattern and contains π(x), but which does not
+follows, it will prove convenient to extend π to the terms in                        participate in Q2 . In both cases, we obtain a contradic-
+the head atom p(~t), by letting π be the identity on such terms.                     tion.
+We will let σ be a substitution associated with µ, and let σ ′
+be the corresponding substitution for µ′ defined by setting                        Finally, we show that µ′ is more general than µ:
+σ ′ (t) = σ(π(t)).                                                                 • σ ′ (Q′2 )) ⊆ σ(Q2 ): proven above.
+  • Pu′ is admissible: since π is the identity on constants, if                    • if σ ′ (u1 ) = σ ′ (u2 ), then u1 , u2 belong to the same class
+    a class in Pu′ contains two constants c, d, then the corre-                      in Pu′ , and so π(u1 ) and π(u2 ) must belong to the same
+    sponding class in Pu must also contain c, d (a contradic-                        class in Pu .
+    tion).                                                                       We have thus shown that Q′ is an instance of interest of
+  • σ ′ (p(~t)) = σ ′ (Q′2 ): since σ ′ (p(~t)) = σ(p(~t)) (due to               (Q, P) w.r.t. R such that there is a unifier µ′ of Q′ with R
+    our choice of σ ′ ), it suffices to prove that σ ′ (Q′2 ) ⊆                  with µ′ ≥ µ.                                               ✷
+    σ(Q2 ). First take some atom α that belongs to Q′2 ∩ Q2 .
+    Then we have π(α) = α, so σ ′ (α) = σ(π(α)) ∈                                Proposition 5 Let (Q, P) be a PCQ where P + [t1 , t2 ] occurs
+    σ(Q2 ). Next consider the case of an atom α that                             and R ∈ R+ L . For any instance Q of (Q, P), any classical
+direct rewriting Q′ of Q with R w.r.t. to a unifier internal to               Q2 with R. We denote by σ (resp. σ ′ ) a substitution associ-
+P + [t1 , t2 ], and any Q′ ∈ f ull(Q′ , P), there exists a direct             ated with µ (resp. µ′ ).
+rewriting P′ of P w.r.t. P and R such that (Q, P′ ) has a full                   For any repeatable pattern P + [t1 , t2 ] in Q, build A, Al , Am
+instance that is isomorphic to Q′ .                                           and Ar as in the proof of Proposition 5 using the instance Q2
+Proof: Let (Q, P) be a PCQ where P + [t1 , t2 ] occurs, R =                   and unifier µ′ . Assume t1 (or t2 ) is unified with an existential
+(B → H) ∈ RL                +
+                               , Q be an instance of (Q, P), µ =              variable, then from the condition on external unifiers, either
+(Q2 , H, Pu ) be a unifier internal to P + [t1 , t2 ] of Q with R,            Al or Ar is empty. Consider the minimally-unifiable instance
+Q′ be the classical direct rewriting of Q with R w.r.t. µ, and                QM of Q w.r.t. µ′ that replaces P + [t1 , t2 ] by: (i) Am if Al =
+Q′ be a full instance of (Q′ , P).                                            Ar = ∅; (ii) P + [t1 , xs ], Am if Ar = ∅ and Al 6= ∅; or (iii)
+   Since µ is internal to P + [t1 , t2 ], all atoms in Q2 are ex-             Am , P + [xe , t2 ] if Al = ∅ and Ar 6= ∅. In case (ii) (resp.
+panded from P + [t1 , t2 ] in Q, and do not unify t1 with t2 , nor            (iii)), since all atoms in Al (resp. Ar ) are not involved in µ′ ,
+t1 (resp. t2 ) with an existential variable from H. We denote                 xs (resp. xe ) is not unified with an existential variable (or the
+by P [t1 = x0 , x1 ], P [x1 , x2 ], . . . , P [xk−1 , xk = t2 ] the se-       piece condition on unifiers would not be satisfied). Therefore,
+quence of standard patterns expanded under P + [t1 , t2 ] in Q,               µ′ is a unifier of QM with R. We let Q′ be the direct rewriting
+xs and xe (s < e) the external terms of P + [t1 , t2 ] w.r.t. µ,              of QM w.r.t. µ′ and R.
+and ai the atom expanded under P [xi , xi+1 ]. From Prop. 4,                     Note that each repeatable pattern P + [t1 , t2 ] in Q′ expands
+there is a unifier µ′ of an instance of interest Q3 of Q with R               into Al ∧ σ(B) ∧ Ar , and in Q′ there is a P + [t1 , xs ] (resp.
+with µ′ ≥ µ. Since xs and xe are not unified with existential                 P + [xe , t2 ]) iff Al (resp. Ar ) is not empty. Thus consider Q′′
+variables, let Q4 be the CQ obtained from Q3 by removing                      obtained from Q′ by expanding P + [t1 , xs ] (resp. P + [xe , t2 ])
+all atoms and patterns that are not relevant for µ′ . Obviously               into k standard patterns where k = |Al | (resp. k = |Ar |), and
+Q4 is an instance of interest of a PCQ of form P + [t1 , t2 ]. Let            choose the same atoms as in A′l (resp. A′r ). Since µ′ ≥ µ,
+P′ be the direct rewriting of P w.r.t. µ′ , obtained from Q4 .                there is an homomorphism π from σ ′ (Qu′ ) to σ(Qu ). Note
+   Let Al = {P [xi , xi+1 ] | 0 ≤ i < s}, Am =                                that if we restrict π to terms in σ ′ (B), π is an isomorphism.
+{P [xi , xi+1 ] | s ≤ i < e}, Ar = {P [xi , xi+1 ] | e ≤ i < k},              Furthermore, we can extend π to Q′′ in the same way as we
+and A = Al ∪ Am ∪ Ar . Further let A′l (resp. A′m , A′r , A′ ) be             did in the previous proof. Thus Q′′ is isomorphic to Q′ . ✷
+the set of atoms expanded under Al (resp. Am , Ar , A) in Q.                  Proposition 7 Let (Q, P) be a PCQ and R ∈ R+            ′
+                                                                                                                              L . If Q is a
+   Initialize Q′′ to Q \ A′ ∪ {P + [t1 , t2 ]}. One can see that                                                                 ′
+                                                                              non-excluded direct rewriting of Q with R, then |Q | ≤ |Q|.
+Q is an instance of both (Q, P) and (Q, P′ ). If B is a
+  ′′
+                                                                                                                                            +
+not a repeatable pattern, let ℓ = 1, otherwise let S be the                   Proof: Let (Q, P) be a PCQ, R = (B → H) ∈ RL                    , Q be
+repeatable pattern in B, and S[x′0 , x′1 ], . . . , S[x′ℓ−1 , x′ℓ ] be        a non-excluded minimally-unifiable instance of (Q, P), µ =
+the sequence expanded from S + [x′0 , x′ℓ ] in Q′ . We denote                 (Q′ , H, Pu ) be an external unifier of Q with R, and σ the
+by a′i the atom expanded under S[x′i , x′i+1 ]. Then expand                   substitution induced by Pu .
+                                                                                 Note that all repeatable patterns P + [t1 , t2 ] are at most re-
+P + [t1 , t2 ] in Q′′ into k ′ = |Al | + |Ar | + ℓ standard patterns:
+                                                                              placed by the sequence S needed by the unifier (i.e., S ⊆ Q′ ),
+P [t1 = x′′0 , x′′1 ], . . . , P [x′′k−1 , x′′k′ = t2 ]. Let π be the func-
+                                                                              plus a single repeatable pattern P + [t1 , x1 ] (or P + [xk , t2 ]).
+tion defined as follows:
+                                                                              Indeed, the only situation that would lead us to introduce
+   • for all 0 ≤ i ≤ s, π(x′′i ) = xi ;                                       more than one more repeatable pattern (i.e., as in External
+   • for all s < i < s + ℓ, π(x′′i ) = x′i−s ;                                Rewriting case (i)) is when either t1 or t2 is unified with an
+   • for all s + ℓ ≤ i ≤ k ′ , π(x′′i ) = xi−ℓ+(e−s) .                        existential variable. However, if t1 (or t2 ) is unified with an
+                                                                              existential variable, because of the piece condition on uni-
+Note that π is injective, so its inverse exists. Expand all                   fiers, no unifier of P + [t1 , x1 ] ∧ S ∧ P + [xk , t2 ] can be found.
+P [x′′i , x′′i+1 ] with 0 ≤ i < s or s + ℓ ≤ i < k (resp.                        Since |B| = 1, we have to show that all atoms that were
+s ≤ i < s + ℓ) into π −1 (ai ) (resp. π −1 (a′i )). Finally, for              introduced when replacing a repeatable pattern are erased by
+all terms u in Q′′ for which π is not defined (i.e., those terms              the direct rewriting of Q w.r.t. µ.
+appearing in atoms that were not expanded from the pattern                       If Q′ consists of at least one atom that is not expanded from
+P + [t1 , t2 ]), we set π(u) = u.                                             a pattern, the direct rewriting of Q w.r.t. µ erases this atom.
+   By construction, Q′′ is still an instance of (Q, P′ ) and π is                Next assume Q′ consists only of atoms expanded from
+an isomorphism between Q′ and Q′′ .                                      ✷    repeatable patterns. If Q′ = {P + [t1 , t2 ]} and neither t1
+                                                                              nor t2 is unified with an existential variable, then σ(t1 ) =
+Proposition 6 Let (Q, P) be a PCQ and R ∈ R+         L . For every            σ(t2 ), so the only non-excluded minimally-unifiable instance
+Q ∈ f ull(Q, P) and every classical direct rewriting Q′ of Q                  of Q w.r.t. µ replaces P + [t1 , t2 ] only by the sequence S
+with R w.r.t. an external unifier, there is a direct rewriting Q′             needed by the unifier (see the first condition on non-excluded
+of Q w.r.t. P and R that has an instance isomorphic to Q′ .                   minimally-unifiable instances). Thus, the direct rewriting
+                                                                +
+Proof: Let (Q, P) be a PCQ, R = (B → H) ∈ RL                      ,           erases P + [t1 , t2 ].
+Q ∈ f ull(Q, P), µ = (Qu , H, Pu ) be an external unifier of                     Otherwise, we know that at least one P + [t1 , t2 ] from Q
+Q with R, and Q′ be the classical direct rewriting of Q with                  is replaced by the sequence S involved in the unifier (see
+R w.r.t. µ.                                                                   the second condition on non-excluded minimally-unifiable
+   From Proposition 4, there is an instance of interest Q2 of                 instances), thus there is at least one P + [t1 , t2 ] erased by the
+(Q, P) such that there is a unifier µ′ = (Qu′ , H, Pu′ ) ≥ µ of               direct rewriting.                                                   ✷
+   We will break the proof of Theorem 2 into the following                    Q′ obtained from a sequence of classical direct rewritings of
+five lemmas.                                                                  Q with R, there is a PCQ (Q, P) with Q ∈ Q and a full
+Lemma 1 Let Q be a CQ, R ∈ RT , P0 be the initial set of                      instance Q′′ of (Q, P) s.t. Q′′ is isomorphic to Q′ .
+pattern definitions relative to RT (see Step 1 of the algorithm               Proof: Let Q = Q0 , µ1 , Q1 , µ2 , Q2 , . . . , µk , Qk = Q′ be a
+overview), and Q+ be obtained from Q by replacing all atoms                   sequence of classical direct rewritings from Q to Q′ , and let
+p(t1 , t2 ) such that p is a transitive predicate by P + [t1 , t2 ]. If       R1 , . . . , Rk be the associated sequence of rules from R.
+there is a classical direct rewriting Q′ of Q with R, then there                 We show the desired property, by induction on 0 ≤ i ≤ k.
+is a full instance Q′′ of (Q+ , P0 ) that is isomorphic to Q′ .               For the base case (i = 0), we can set Q0 = Q+ , since Q0 =
+                                                                              Q is clearly a full instance of (Q0 , P).
+Proof: Let p(t1 , t2 ) be the atom of Q that is rewritten to ob-
+                                                                                 For the induction step, suppose that we have Qi−1 ∈ Q
+tain Q′ . Since p is a transitive predicate, it occurs in a pattern
+                                                                              and a full instance Q′′i−1 of (Qi−1 , P) that is isomorphic to
+definition P0 in P, and Q+ contains the atom P + [t1 , t2 ]. In
+                                                                              the CQ Qi−1 . There are two cases to consider, depending on
+Q′ , p(t1 , t2 ) is rewritten into p(t1 , x1 ) ∧ p(x1 , t2 ). Let Q′′
+                                                                              the type of the rule Ri .
+be the full instance of (Q+ , P0 ) that expands all repeatable
+                                                                                 If Ri is a transitivity rule, then from Lemma 1, we know
+patterns but P + [t1 , t2 ] into a single standard pattern, expands
+                                                                              that Q+  i−1 (obtained from Qi−1 by replacing every transitive
+P + [t1 , t2 ] into two standard patterns P [t1 , x′1 ], P [x′1 , t2 ], and
+then further expands the standard patterns using the unique                   predicate p by pattern P + ) is such that there is a full instance
+atom in each of the pattern definitions. It is clear that Q′′ is              Q+             +
+                                                                                i−1 of (Qi−1 , P) that is isomorphic to Qi . Furthermore, we
+isomorphic to Q′ (simply map x′1 to x1 and all other terms to                 know that Qi−1 cannot contain any standard atoms with tran-
+themselves).                                                              ✷   sitive predicates, since every PCQ produced in Step 5 con-
+                                                                              tains patterns for the transitive predicates. Thus, we may ap-
+Lemma 2 Let P be a set of pattern definitions, P0 ⊆ P be                      ply Lemma 2 and infer that Q+      i−1 is isomorphic to some full
+the initial set of patterns definitions built from the set RT                 instance Q′′i−1 of (Qi−1 , P). Therefore, Q′′i−1 is isomorphic
+of transitivity rules, (Q, P) be a PCQ that does not contain                  to Qi .
+any standard atom using a transitive predicate, Q be a full                      If Ri is not a transitive rule, since Qi−1 is isomorphic to
+instance of (Q, P), and Q+ be obtained from Q by replacing                    some full instance Q′′i−1 of (Qi−1 , P), let µ′′i be the unifier
+all atoms p(t1 , t2 ) with p transitive by P + [t1 , t2 ].                    of Q′′i−1 with Ri obtained from µ and the isomorphism be-
+   Then, for every full instance Q′ of (Q+ , P0 ), there is a full            tween Qi−1 and Q′′i−1 . If µ′′i is internal to some repeatable
+instance Q′′ of (Q, P) such that Q′′ is isomorphic to Q′ .                    pattern, then from Proposition 5, we know that there is an in-
+Proof: We build the instance Q′′ as follows. Initialize Q′′ to                stance Q′i of (Qi−1 , P) that is isomorphic to Qi . Otherwise,
+the atoms and repeatable patterns occurring in Q. Next, for all               from Proposition 6, there exists µ′i and a direct rewriting Qi
+repeatable patterns Pi+ [t1 , t2 ] in the instantiation underlying            of Qi−1 with µ′i such that there is an instance Q′i of (Qi , P)
+Q consider each of the atom that is expanded from a child of                  that is isomorphic to Qi .
+Pi+ [t1 , t2 ] in turn, working from left to right. If the atom p(~t)            We have thus completed the inductive argument and can
+under Pi [u, v] is being considered, then do the following:                   conclude that there is a PCQ (Q, P) with Q ∈ Q and a full
+                                                                              instance Q′′ of (Q, P) s.t. Q′′ is isomorphic to Q′ = Qk . ✷
+   • if p is not a transitive predicate, then add a single child
+      Pi [u, v] to Pi+ [t1 , t2 ], and expand it into p(~t).                  Lemma 4 Let Q be a CQ, (F , R) be a linear+trans KB, and
+                                                                              (ΠP ,QQ ) be the output of the algorithm. If F , R |= Q then
+   • if p is transitive, then p(~t) has been replaced in Q+                   F , ΠP |= Q′ for some Q′ ∈ QQ .
+      by P + [~t]. We also know that ~t consists of the
+                                                                              Proof: Since F , R |= Q, there is a (finite) classical rewriting
+      terms u, v from Pi [u, v]. We suppose that p(~t) =                      Q′ of Q with R such that F |= Q′ . From Proposition 3, there
+      p(u, v) (hence P + [~t] = P + [u, v]); a similar argu-                  is there is a PCQ (Q, P) with Q ∈ Q and a full instance Q′′
+      ment can be used if the positions are reversed. Let                     of (Q, P) s.t. Q′′ is isomorphic to Q′ . Therefore, F |= Q′′ .
+      P [u = x0 , x1 ], . . . , P [xk−1 , xk = v] be the children             We conclude by Proposition 3.                                 ✷
+      of P + [u, v] in Q′ , and aℓ be the atom expanded un-
+      der P [xℓ , xℓ+1 ] (0 ≤ ℓ < k). In place of the child                   Lemma 5 Let Q be a CQ, (F , R) be a linear+trans KB, and
+                                                                              (ΠP ,QQ ) be the output of the algorithm. If F , ΠP |= QQ then
+      Pi+ [u, v] in Q+ , we will add k children to Pi+ [t1 , t2 ] in
+                                                                              F , R |= Q.
+      Q′′ : Pi [u = x0 , x1 ], . . . , Pi [xk−1 , xk = v], and expand
+      Pi [xj , xj+1 ] into aj . Note that we may assume that the              Proof: Let P be the set of pattern definitions computed in
+      terms xi (0 < i < k) are fresh, i.e., they do not already               Step 3 of the algorithm, and ΠP the corresponding set of Dat-
+      appear in Q′′ .                                                         alog rules. Consider the CQ Q++ obtained from Q by replac-
+It can be verified that the resulting full instance Q′′ is iso-               ing every atom p(t1 , t2 ) such that p is transitive by the atom
+morphic to Q′ . Indeed, all atoms in Q′ that are also in Q are                p+ (t1 , t2 ). The following claim establishes the soundness of
+present in Q′′ . All other atoms belong to a sequence of transi-              the internal rewriting mechanism in Step 3:
+tive atoms, which we have reproduced (modulo renaming of                      Claim 1 If F , ΠP |= Q++ , then F , R |= Q.
+variables) in Q′′ .                                                ✷          Proof of claim. Let P0 , P1 , . . . , Pk = P be the sequence of
+Lemma 3 Let Q be a CQ and R be a set of linear+trans                          sets of pattern definitions that led to P in Step 3, with Pi+1
+rules, and let (Q, P) be the output of the algorithm. For any                 being obtained from Pi by a single direct (internal) rewriting
+step. We prove by induction two distinct properties expressed             Since ΠP0 contains a transitivity rule for p+ , we can further
+at rank 0 ≤ j ≤ k:                                                        infer that
+P1 every rule in ΠPj is a semantic consequence of ΠP0 ∪ R.                 ΠP0 |= p+ (x1 , x2 ) ∧ . . . ∧ p+ (xk−1 , #2) → p+ (#1, #2)
+P2 for every fact base F ′ and CQ Q′ (over the original vo-
+                                                                          By chaining together the preceding entailments, we obtain
+     cabulary):
+                                                                          ΠP0 , R |= (B ′ → p+ (#1, #2)), as desired.
+               F ′ , ΠPj |= (Q′ )++       ⇒     F ′ , R |= Q′             Case 2: The other possibility is that B ′ is a repeatable pattern
+In the second property, (Q′ )++ denotes the CQ obtained by                of the form S + [#1, #2] or S + [#2, #1]. Let f be a bijec-
+replacing every atom p(t1 , t2 ) such that p is transitive by the         tion on {#1, #2}: if B ′ is of the form S + [#1, #2], f is the
+atom p+ (t1 , t2 ). Observe that P2 at rank k yields the claim:           identity, otherwise f permutes #1 and #2. Then for all sℓ
+we simply take F ′ = F and Q′ = Q.                                        in the definition of S, we add f (sℓ ) to P ’s definition, and we
+                                                                          add the corresponding rules f (sℓ ) → p+ (#1, #2) to ΠPi .
+   Base case (i = 0): property P1 is obviously verified.
+                                                                          Consider one such rule rule f (sℓ ) → p+ (#1, #2).
+For property P2, we note that P0 consists of the following
+                                                                             Let a1 , . . . , ak and a′1 , . . . , a′k be defined as in Case 1.
+rules for every transitive predicate p: the transitivity rule
+p+ (x, y) ∧ p+ (y, z) → p+ (x, z) and the initialization rule             Since there is a rewriting of {aj | 0 < j ≤ k} with R ∈ R+         L
+p(x, y) → p+ (x, y). Clearly, if F , ΠP0 |= (Q′ )++ , then                into B ′ , and since the rule R was obtained from a rule R′ in
+we have F , R |= Q′ , since if we can derive p+ (a, b) using              R by replacing the transitive predicate s in the rule head by
+F , ΠP0 , then we can also derive p(a, b) from F , R using the            the repeatable pattern S + , it follows that
+transitivity rule for p in R.                                                          R |= f (s(#1, #2)) → a1 ∧ . . . ∧ ak
+   Induction step for P1: we assume property P1 holds for                 Arguing as in Case 1, we obtain
+some rank 0 ≤ i < k and show that it holds also for i + 1.
+   Suppose that Pi+1 is obtained from Pi by a single direct                         ΠP0 , R |= f (s(#1, #2)) → p+ (#1, #2)
+rewriting step w.r.t. pattern name P and the rule R = B →                 From the induction hypothesis, we know that that the rules
+H ∈ R+                      +
+         L . Let Q = P [x, y], Q be the considered instance               sℓ → s+ (#1, #2) are entailed from ΠP0 , R, and the same
+of interest of Q w.r.t. R, µ = (Q′ , H, Pu ) be the considered            obviously holds for the rules f (sℓ ) → f (s+ (#1, #2)). By
+internal unifier of Q with H, and σ be the considered sub-                combining the preceding entailments, we obtain ΠP0 , R |=
+stitution associated with µ that preserves the external terms.            f (sℓ ) → p+ (#1, #2).
+Finally, let B ′ be obtained from σ(B) by substituting the first
+(resp. second) external term by #1 (resp. #2).                               Induction step for property P2: we assume P2 holds for
+   Since we know that µ is an internal unifier, the external              some rank 0 ≤ i < k and show that it holds also for i + 1.
+terms of Q′ cannot be unified together or with an existential                Suppose now that F ′ , ΠPi+1 |= (Q′ )++ , for some fact base
+variable. Thus by considering Q′′ and Pu′ obtained from Q′                F and CQ Q′ (over the original predicates). This means that
+                                                                            ′
+
+and Pu by substituting the first (resp. second) external term by          there is a finite derivation sequence F ′ = F0++ , . . . , Fm  ++
+                                                                                       ++         ′ ++
+#1 (resp. #2), it is clear that µ′ = (Q′′ , H, Pu′ ) is a unifier of      such that Fm |= (Q )           and such that for all 0 ≤ ℓ < m,
+                                                                            ++
+Q′′ with R such that σ ′ (B) = B ′ , where σ ′ is the substitution        Fℓ+1   is obtained from Fℓ++ either (i) by a sequence of appli-
+associated with µ′ that preserves the special terms #1 and                cations of rules from ΠPi or (ii) by a sequence of applications
+#2.                                                                       of rules from ΠPi+1 \ ΠPi .
+   We consider two cases depending on the nature of B ′ .                    In case (i), we have Fℓ++ , ΠPi |= Fℓ+1++ . Letting Fr
+Case 1: The first possibility is that B ′ is an atom (as opposed          be the fact base obtained by replacing every predicate p+ in
+to a repeatable pattern), in which case we add the following              Fr++ by the corresponding predicate p, and recalling that ΠPi
+rule to ΠPi : B ′ → p+ (#1, #2).                                          contains the rule p(x, y) → p+ (x, y), we have Fℓ , ΠPi |=
+   Let a1 , . . . , ak be the atoms of Q′′ , and let a′j be the atom        ++
+                                                                          Fℓ+1  . Applying the induction hypothesis (treating Fℓ+1  ++
+                                                                                                                                        as a
+in P ’s definition from which aj is obtained. Since there is              CQ), we obtain Fℓ , R |= Fℓ+1 .
+a rewriting of {aj | 0 < j ≤ k} with R into B ′ (using the                   In case (ii), we have Fℓ++ , (ΠPi+1 \ ΠPi ) |= Fℓ+1  ++
+                                                                                                                                     . From
+unifier µ′ ), and the rule R appears in the original set of rules                                       ++                 ++
+R, it follows that                                                        property P1, we obtain Fℓ , ΠP0 , R |= Fℓ+1 . Using the
+                                                                          rule p(x, y) → p+ (x, y) (that is present in ΠP0 ), the latter
+                       R |= B ′ → a1 ∧ . . . ∧ ak                                                   ++
+                                                                          yields Fℓ , ΠP0 , R |= Fℓ+1  . Finally, we note that if we can de-
+From the induction hypothesis, we know that the rules a′j →                      +
+                                                                          rive p (a, b) from Fℓ , ΠP0 , R, then we can also infer p(a, b)
+p+ (#1, #2) (0 < j ≤ k) are entailed by ΠP0 , R. We also                  from Fℓ , R by using the transitivity rule for p instead of using
+know that for all 1 < j ≤ k, the atoms aj−1 and aj share                  p(x, y) → p+ (x, y) and the transitivity rule for p+ . Thus, we
+a variable corresponding respectively to #2 in a′j−1 and to               have Fℓ , R |= Fℓ+1 .
+#1 in a′j . Thus, by applying the rules a′j → p+ (#1, #2)                    We have thus shown that for every 0 ≤ ℓ < m, Fℓ , R |=
+(0 < j ≤ k) to the conjunction a1 ∧ . . . ∧ ak , we obtain                Fℓ+1 . Since F ′ = F0 , by chaining these implications to-
+p+ (#1, x1 ) ∧ p+ (x1 , x2 ) ∧ . . . ∧ p+ (xk−1 , #2). Hence:             gether, we obtain F ′ , R |= Fm . Using the same reasoning as
+                                                                                                                    ++
+                                                                          above, we can infer Fm |= Q′ from Fm          |= (Q′ )++ . Then,
+             ^
+             k
+ΠP0 , R |=         aj → p+ (#1, x1 )∧p+ (x1 , x2 )∧. . .∧p+ (xk−1 , #2)   by combining these statements, we obtain F ′ , R |= Q′ . (end
+             j=0                                                          proof of claim)
+   Now let Q be the set of queries computed in Step 5 by               Suppose that F , ΠP |= QQi+1 . From Proposition 3, it
+performing all possible external direct rewritings w.r.t. P and     follows that there is a full instance Qi+1 of (Qi+1 , P) such
+rules from R+                      +
+              L , starting from Q , and let QQ be the set           that F |= Qi+1 . By Claim 2, there is a full instance Qi
+of CQs associated with Q (defined as in Step 6). We start           of (Qi , P) such that Qi+1 is obtained from a sequence of
+by proving the following claim, which relates external direct       classical rewritings from Qi . Thus (from the correctness
+rewriting steps to sequences of classical direct rewritings.        of the classical rewriting), there is a fact base F ′ such that
+Claim 2 Let Qi+1 be a direct rewriting of Qi w.r.t. P.              F , R |= F ′ and F ′ |= Qi . Applying Proposition 3, we ob-
+Then every full instance of (Qi+1 , P) is obtained from a se-       tain F ′ , ΠP |= QQi . Now from our induction hypothesis, it
+quence of (classical) direct rewritings of some full instance of    follows that F ′ , R |= Q, hence F , R |= Q. (end proof of
+(Qi , P).                                                           claim)                                                       ✷
+Proof of claim. Let (Qi+1 , P) be obtained from an external         Theorem 2 Let Q be a CQ, (F , R) be a linear+trans KB,
+rewriting of (Qi , P) with rule R = B → H. This means               and (ΠP ,QQ ) be the output of the algorithm. Then: F , R |=
+that there is a minimally unifiable instance Qe and a unifier       Q iff F , ΠP |= Q′ for some Q′ ∈ QQ .
+µ = (X, H, Pu ) of Qe with H (with associated substitution          Proof: Follows from Lemma 4 and Lemma 5.                   ✷
+σ) such that Qi+1 = σ(Qe \ X) ∪ σ(B).
+   Let us consider a partial instance QP                               The following two lemmas show that the non-excluded
+                                          i+1 of (Qi+1 , P) that
+fully instantiates σ(Qe \ X) but does not instantiate σ(B)          minimally-unifiable instances are sufficient to ensure com-
+(we say that it is a σ(B)-excluding instance). Note that QP         pleteness when the input query is atomic or when the input
+                                                             i+1
+can be built equivalently by choosing a full instance Qe of         rule set satisfies the safety condition.
+(Qe , P), removing the atoms of X, then by applying the sub-        Lemma 6 Let (Q, P) be a PCQ, R ∈ RL          +
+                                                                                                                   , Q be an instance
+stitution σ and adding σ(B). We can see that the classical          of interest of (Q, P) and µ = (Q′ , H, Pu ) be an external uni-
+direct rewriting of Qe according to µ produces QP     i+1 . More-   fier of Q with R such that two external terms w.r.t. µ from
+over, since every full instance of (Qe , P) is a full instance of   a given pattern P + [t1 , t2 ] are unified together and with no
+(Qi , P), we know that Qe is an instance of (Qi , P).               existential variable.
+   Now consider any full instance Qi+1 of (Qi+1 , P). Note             Every minimally-unifiable instance (Q, P) w.r.t. µ that re-
+that it is a full instance of some σ(B)-excluding instance          places P + [t1 , t2 ] as in the External Rewriting cases (i), (ii),
+(QP i+1 , P). There are two cases to consider:                      or (iii) will lead to a direct rewriting (Q′i , P) that is more
+  • If σ(B) is an atom, then Qi+1 = QP     i+1 and thus Qi+1 is
+                                                                    specific than (Q, P). Furthermore, for any classical direct
+     obtained from a classical direct rewriting of an instance      rewriting Q′′i of Q′i with R, either (Q, P) ≥ (Q′′i , P) or there
+     of (Qi , P).                                                   is a classical direct rewriting Q′ of the minimally-unifiable
+  • Otherwise, if σ(B) is a repeatable pattern, then Qi+1 is        instance of Q that replaces P + [t1 , t2 ] as in case (iv) with R
+     obtained from (QP                                              and (Q′ , P) ≥ (Q′′i , P).
+                         i+1 , P) by expanding σ(B) into a se-
+     quence of k standard patterns, and expanding each of           Proof: Without loss of generality, let us write Q = q[t1 , t2 ] ∧
+     them into some atom aℓ . Let Bk = {aℓ | 1 ≤ ℓ ≤ k}.            P + [t1 , t2 ] where q[t1 , t2 ] denotes a set of atoms where t1 and
+     Then, σ(B) is generated in forward chaining from Bk            t2 may occur. We denote by xs and xe (s < e) the external
+     with a sequence of applications of rules: k applications       terms of P + [t1 , t2 ] w.r.t. µ, and by A[xs , xe ] the sequence
+     of transitivity rules, and k applications of the rules en-     of atoms expanded from P + [t1 , t2 ] involved in the unifier.
+     coded in P, each one stemming from a finite sequence           Since we assume that no existential variable is unified with
+     of applications of rules of R (see Claim 1). Thus from         variables xs and xe , no atom from q can be part of the unifier.
+     the completeness of classical rewriting, Bk can be ob-         Consider the following minimally-unifiable instances:
+     tained from a sequence of classical direct rewritings
+                                                                      1. Q1 = q[t1 , t2 ] ∧ P + [t1 , xs ] ∧ A[xs , xe ] ∧ P + [xe , t2 ]
+     from σ(B), and thus Qi+1 is obtained from a sequence
+     of classical direct rewritings of an instance of (Qi , P).       2. Q2 = q[t1 , t2 ] ∧ [t1 = xs , xe ] ∧ P + [xe , t2 ]
+(end proof of claim)                                                  3. Q3 = q[t1 , t2 ] ∧ P + [t1 , xs ] ∧ X[xs , xe = t2 ]
+  The following claim shows the soundness of the external           By unifying xs and xe together, we obtain the following in-
+rewriting in Step 5 and completes the proof of the lemma.           stances:
+Claim 3 If F , ΠP |= QQ , then F , R |= Q.                            1. q[t1 , t2 ] ∧ P + [t1 , xs ] ∧ A[xs , xs ] ∧ P + [xs , t2 ]
+Proof of claim. Suppose that F , ΠP |= QQ with Q ∈ Q.                 2. q[t1 , t2 ] ∧ A[t1 , t1 ] ∧ P + [t1 , t2 ]
+We know that the PCQ Q is obtained from a finite sequence
+                                                                      3. q[t1 , t2 ] ∧ P + [t1 , t2 ] ∧ A[t2 , t2 ]
+Q0 = Q+ , Q1 , . . . , Qk = Q of PCQs such that for all 0 ≤
+j < k, (Qj+1 , P) is a direct external rewriting of (Qj , P).       Let Q′i be the direct rewriting of Qi w.r.t. µ with R. It is easy
+We will show by induction on j that F , ΠP |= QQj implies           to see that Q ⊆ Q′2 and Q ⊆ Q′3 , thus, (Q′2 , P) and (Q′3 , P)
+F , R |= Q for every 0 ≤ j ≤ k.                                     are more specific than (Q, P).
+   The base case (j = 0) is a direct consequence of Claim 1.           Let Q1 be a full instance of (Q′1 , P). We construct a full
+For the induction step, we assume the property is true at           instance Q of (Q, P) as follows. First note that q[t1 , t2 ] is
+rank i, and we show that it is true at rank i + 1.                  common to both Q′1 and Q, so we will expand all patterns in
+q[t1 , t2 ] exactly as in Q1 . Now let k1 (resp. k2 ) be the num-               notationally involved, if this assumption is not made.) Let us
+ber of children of P + [t1 , xs ] (resp. P + [xs , t2 ]) in the instan-         use t2 for this shared term. Then we can write Q as follows:
+tiation of Q1 , and expand P + [t1 , t2 ] in Q into k = k1 + k2                                                          ^
+children: P [t1 = x0 , x1 ], . . . , P [xk−1 , xk = t2 ]. Expand                             Q = q[t11 , . . . , tk1 ] ∧   Pi+ [ti1 , t2 ]
+each P [xi , xi+1 ] with i < k1 as is expanded the ith child of                                                        1≤i≤k
+P + [t1 , xs ] in Q1 ; and each P [xi , xi+1 ] with k1 ≤ i < k as               Note that t2 cannot occur in q.
+is expanded the (i − k1 + 1)th child of P + [xs , t2 ] in Q1 . By                 Because we have chosen the second term to be shared
+construction, there is an homomorphism from Q to Q1 . We                        in all repeatable patterns, we only need to consider the
+have thus shown that (Q, P) ≥ (Q′1 , P).                                        minimally-unifiable instance QM of (Q, P) w.r.t. µ that re-
+    Furthermore, let Q′′i be a classical direct rewriting of Q′i                places each Pi+ [ti1 , t2 ] by Pi+ [ti1 , xis ], Ai [xis , xie = t2 ], i.e.
+with a rule R′ = B ′ → H ′ w.r.t. unifier µ′ = (Q′ , H ′ , Pu′ ),
+                                                                                External Rewriting case (ii). Thus, we have
+where 1 ≤ i ≤ 3. If at least one atom involved in µ′ occurs                                                     ^
+in Q′i \ σ(B) (where σ is the substitution associated with µ),                     QM = q[t11 , . . . , tk1 ] ∧     (Pi+ [ti1 , xis ] ∧ Ai [xis , t2 ]).
+then, let µ′′ = {Q′′ , H ′ , Pu′′ } where Q′′ = Q′ \ σ(B) and                                                  1≤i≤k
+Pu′′ is the restriction of Pu′ to terms occurring in Q′′ ∪ H ′ .
+Since Q′′ 6= ∅ and all terms from σ(B) cannot connect two                       Let σ be the substitution associated with µ. From the safety
+different terms from q[t1 , t2 ] (indeed, the only term shared                  condition (see Section 6), we know that there is a pair of posi-
+between σ(B) and q[t1 , t2 ] is either t1 or t2 ), σ(B) can be                  tions {p1 , p2 } for the predicate p of H, such that for all atoms
+seen as a loop on t1 (or t2 ), therefore we can remove σ(B)                     p(~t) occurring in a pattern definition the terms #1 and #2
+while preserving the unifier, i.e., µ′′ is a unifier of Q with                  occurs in positions {p1 , p2 }. We further note that the external
+R′ . Moreover, since Pu′′ and Q′′ are only restrictions of Pu′                  terms in the concerned patterns are t2 (which unifies with an
+and Q′ respectively, it holds that µ′′ ≥ µ′ . Then, we denote                   existential variable in H) and the terms xis (which unify with
+by Q′′ the direct rewriting of Q with R′ w.r.t. µ′′ and obtain                  a non-existential variable), and each of these external terms
+Q′′ ≥ Q′i . The other possibility is that all atoms involved in                 must be obtained by instantiating term #1 or #2. Since the
+µ′ occur in σ(B), then, Q′′2 (resp. Q′′3 ) is more specific than Q              Ai [xis , t2 ] are unified together, and share the same predicate
+since Q ⊆ Q′′2 (resp. Q ⊆ Q′′3 ). Moreover, for any instance                    p, it follows that all of the xis must occur in the same posi-
+Q′′1 of Q′′1 , one can easily build an instance Q′ of Q in the                  tion (either p1 or p2 ) of p; t2 will occur in the other position
+same way as above, and see that Q′ ≥ Q′′1 . Thus, we have                       among p1 and p2 . We therefore obtain;
+(Q, P) ≥ (Q′′i , P).                                                 ✷
+                                                                                              σ(x1s ) = σ(x2s ) = . . . = σ(xks ) = x′ ,
+Lemma 7 Let (Q, P) be a PCQ, R ∈ R+           L , Q be an instance
+of interest of (Q, P) and µ = (Q′ , H, Pu ) be an external uni-                 where x′ is the term in B that unifies with all of the xis . (Note
+fier of Q with R such that one external term w.r.t. µ from a                    that if Q is an atomic query, there is a single Ai , so the previ-
+given pattern P + [t1 , t2 ] is unified with an existential vari-               ous statement obviously holds, even without the safety con-
+able, and where all atoms in Q′ are obtained from the expan-                    dition.) Thus, QM becomes:
+sion of a repeatable pattern.                                                                                   ^
+                                                                                        q[t11 , . . . , tk1 ] ∧   (Pi+ [ti1 , x′ ] ∧ Ai [x′ , t2 ]).
+   If Q is atomic, or if RL is a set of safe linear rules, then
+                                                                                                           1≤i≤k
+every minimally-unifiable instance of (Q, P) w.r.t. µ that re-
+places all Pi+ [t1 , t2 ] as in the External Rewriting cases (ii)               There is an isomorphism from Q to QM \ {Ai | 1 ≤ i ≤ k}
+or (iii) will lead to a direct rewriting (Q′i , P) that is more spe-            that maps t2 to x′ . We then observe that {Ai | 1 ≤ i ≤ k}
+cific than (Q, P). Furthermore, for any direct rewriting Q′′i                   is exactly the set of atoms that will be erased in the direct
+of Q′i with R, either Q ≥ Q′′i or there is a direct rewriting Q′                rewriting Q′M = QM \ {Ai | 1 ≤ i ≤ k} ∪ σ(B), where σ is
+of a minimally-unifiable instance of Q w.r.t. µ that replaces at                a substitution associated with µ. Therefore, Q is isomorphic
+least one repeatable pattern as in case (iv) and is such that                   to Q′M \ σ(B), hence (Q, P) ≥ (Q′M , P). One can see that
+Q′ ≥ Q′′i .                                                                     the same reasoning as in the previous proof can be applied
+Proof: Let (Q, P), R, Q and µ be as in the lemma statement,                     here to show that any further direct rewriting Q′′M of Q′M will
+                                                                                lead to more specific queries.                              ✷
+and let P1+ [t11 , t12 ], . . . , Pk+ [tk1 , tk2 ] be the repeatable patterns
+that are relevant for µ. For each 1 ≤ i ≤ k, we denote by                       Theorem 3 The modified query rewriting algorithm halts.
+Pi [ti1 = xi0 , xi1 ], . . . , Pi [xik−1 , xiki = ti2 ] the sequence of stan-   Moreover, Theorem 2 (soudness and completeness) holds for
+dard patterns expanded from Pi+ [ti1 , ti2 ], and we let xisi and               the modified algorithm if either the input CQ is atomic, or the
+xiei (si < ei ) be the external terms of Pi+ [ti1 , ti2 ] w.r.t. µ. We          input rule set is safe.
+                                                                                Proof: From Lemma 4, we know that if we do not exclude any
+assume without loss of generality that it is xiei that is unified
+                                                                                rewriting the algorithm is sound and complete, and Lemma 6
+with an existential variable, and let Ai [xisi , xiei = ti2 ] denote            and 7 show that for any rewriting Q that we exclude, there
+the atoms expanded from Pi [xij , xij+1 ] with si ≤ j < ei .                    is another rewriting Q′ obtainable using only non-excluded
+   Since the unifier µ is single-piece, all repeatable patterns                 direct rewritings that is more general than Q. Therefore, the
+relevant for µ have to share some variable. For simplicity, we                  modified algorithm (in case of an atomic CQ, or a safe rule
+assume that they all share their second term, i.e. ti2 = tj2 for                set) is complete. Furthermore, excluding rewritings cannot
+all 1 ≤ i, j ≤ k. (The argument is entirely similar, just more                  comprise the soundness of the rewriting mechanism.           ✷
+Theorem 4 Both (i) atomic CQ entailment over linear+trans             (iii) we can saturate F with ΠP into F ∗ in polynomial time
+KBs and (ii) CQ entailment over safe linear+trans KBs are                   in the size of ΠP and F , and the resulting set of facts is
+NL-complete in data complexity.                                             of polynomial size in F ;
+Proof: Consider a CQ Q, a linear+trans rule set R, and a fact         (iv) QQ can be evaluated over F ∗ in exponential time.
+base F . Suppose that either Q is atomic or R satisfies the
+safety condition. Using Theorem 3, we can compute a finite               We denote by r the maximum arity of a predicate in R,
+set ΠP of Datalog rules and a finite set QQ of CQs with the           by p the number of predicates occurring in R and by t the
+property that F , R |= Q iff F , ΠP |= Q′ for some Q′ ∈ QQ .          number of transitive predicates.
+As ΠP and QQ do not depend on the fact base F , they can be              Let us consider the construction of ΠP . Since all rules
+computed and stored using constant space w.r.t. |F |.                 generated in this step are linear rules and given a predicate
+   To test whether F , ΠP |= Q′ for some Q′ ∈ QQ , we pro-            s the number of non-isomorphic atoms using s is bounded
+ceed as follows. For each rewriting Q′ ∈ QQ , we can con-             by an exponential in r, for each transitive predicate there can
+sider every possible mapping π from the variables of Q′ to            be only exponentially many generated rules. Thus |ΠP | =
+the terms of F . We then check whether the facts in π(Q′ )            O(t × p × rr ). For the first point, it remains to show that
+are entailed from F , ΠP . For every atom α ∈ Q′ over one of          ΠP can be built in exponential time. Consider the following
+the original predicates, we can directly check if π(α) ∈ F ,          algorithm: for each pattern definition P , repeat until fixpoint:
+since the rules in ΠP can only be used to derive facts over the       choose a rule R = (B, H) ∈ RL , compute all instances of
+new predicates p+ . For every atom p+ [t1 , t2 ] ∈ Q′ where           interest of P w.r.t. R, and if there is an internal unifier, add
+p+ is a new predicate, we need to check whether F , ΠP |=             the corresponding rewriting to P ’s definition. The repeat-
+p+ (π(t1 ), π(t2 )). Because of the shape of the rules in ΠP ,        able pattern P + [t1 , t2 ] can be expanded into at most r + 2
+the latter holds just in the case that there is a path of constants   standard patterns (by the definition of instances of interest),
+c1 , . . . , cn with c1 = π(t1 ) and cn = π(t2 ) such that for ev-    and thus there are r + 2 possible sizes for the instances of
+ery 1 ≤ i < n, there is a rule ρi = Bi → p+ (#1, #2) and              interest. Then for each of these standard patterns, we can
+substitution σi of the variables in Bi by constants in F such         choose an atom from P ′ s definition that uses the predicate of
+that σi (#1) = ci , σi (#2) = ci+1 , and σi (Bi ) ∈ F . To check      H. Since there are at most rr possible choices for instantiat-
+for the existence of such a path, we guess the constants ci in        ing a standard pattern, and there are at most r + 2 standard
+the path one at a time, together with the witnessing rule ρi          patterns to expand, we obtain the following bound: there are
+                                                                                                         2
+and substitution σi , using a counter to ensure that the number       O((r + 2) × (rr )r+2 ) = O(rr ) different instances of inter-
+of guessed constants does not exceed the number of constants          est for a given pattern definition and a given rule. Therefore
+in F . Note that we need only logarithmically many bits for           each step of the algorithm can be processed in exponential
+the counter, so the entire procedure runs in non-deterministic        time. Since there are only exponentially many different pos-
+logarithmic space.                                                    sible rewritings, the fixpoint is reached in at most exponential
+   Hardness for NL can be shown by an easy reduction from             time. Hence, Point (i) runs in exponential time.
+the NL-complete directed reachability problem.                   ✷       The argument for Point (ii) proceeds similarly. The only
+                                                                      difference comes from the fact that since Q might not be
+Theorem 5 Both (i) atomic CQ entailment over linear+trans             atomic, we apply the rewriting step to conjunctive queries.
+KBs and (ii) CQ entailment over safe linear+trans KBs are in          However, from Proposition 7, we know that all rewritten
+ExpTime in combined complexity. Furthermore, atomic CQ                queries have size bounded by the size of Q. Therefore, by
+entailment over linear+trans KBs is ExpTime-hard in com-              using the same argument as for Point (i), we know that this
+bined complexity.                                                     step is exponential in both the maximum arity and in the size
+  The proof of Theorem 5 is provided in the following two             of the initial query Q.
+lemmas.                                                                  Regarding Point (iii), a single breadth-first step with all
+                                                                      non-transitive rules in ΠP followed by the computation of the
+Lemma 8 Both (i) atomic CQ entailment over linear+trans               transitive closure is enough to build F ∗ . While there are ex-
+KBs and (ii) CQ entailment over safe linear+trans KBs are             ponentially many non-transitive rules, each can be applied
+in ExpTime in combined complexity.                                    in polynomial time (since the body of each rule is atomic).
+Proof: Consider a CQ Q, a linear+trans rule set R = RL ∪              Since each rule only creates atoms with transitive predicates,
+RT , with RL a set of linear rules and RT a set of transitivity       the resulting set of facts is of size |terms(F )|2 × p. Now the
+rules, and a set of facts F . Suppose that either condition (i) or    transitive closure adds at most a quadratic number of atoms
+(ii) of the lemma statement holds. It follows from Theorem 3          (for each transitive predicate), and can be computed in poly-
+that the modified query rewriting algorithm halts and returns         nomial time in the size of F . Therefore, ΠP can be built in
+a finite set ΠP of Datalog rules and a finite set QQ of CQs           exponential time in r and is of polynomial size in |F |.
+such that (F , R) |= Q iff (F , ΠP ) |= Q′ for some Q′ ∈ QQ .            It remains to show that point (iv) can be done in exponen-
+   To prove membership in ExpTime, we show that:                      tial time. Observe that since each query Q′ ∈ QQ is of size
+                                                                      bounded by the initial query Q (Proposition 7), its evalua-
+ (i) ΠP is of exponential size and can be built in exponential        tion can be computed in N P , thus in exponential time. Since
+     time;                                                            there are only exponentially many queries in QQ , this step is
+(ii) QQ is a set of exponential size, that can be built in expo-      also done in exponential time.
+     nential time, and any Q′ ∈ QQ is of linear size in Q;               Therefore, we can conclude that the entailment problem
+                                                                                                      ...
+over linear+trans sets of rules with atomic query, and over
+safe linear+trans sets of rules is in ExpTime.           ✷
+Lemma 9 Atomic CQ entailment over linear+trans KBs is                                ...                               ...
+ExpTime-hard in combined complexity.
+Proof: To prove hardness, we can rely on a proof from
+                                                                            ...              ...               ...              ...
+[Bienvenu and Thomazo, 2016]. In this paper, they prove that
+Regular Path Query (RPQ) entailment over linear knowledge
+bases is ExpTime-hard. The problem is not a subproblem of              Figure 2: Reduction from ATM simulation to atomic CQ en-
+ours, nor the contrary. However the proof uses only a partic-          tailment over linear+trans knowledge bases. Edges stand for
+ular RPQ of the form p+ (t1 , t2 ). This RPQ is entailed from          p-atoms and arrays stand for configuration atoms, with the
+(F , RL ) if and only if the atomic CQ p(t1 , t2 ) is entailed         first and last elements corresponding to the begin and end
+from (F , RL ∪ {trans(p)}). Nevertheless, we recall below              terms.
+the main lines of the proof, while reformulating it in terms
+of our problem. Note that the linear rules have a non-atomic
+head to simplify the explanations, but can be decomposed into             Then, the query just asks whether the begin of the initial
+atomic-headed without loss of generality.                              configuration can be linked to the end of the initial configura-
+   The reduction is from the simulation of any Alternat-               tion (i.e., Q = p(b, e)).
+ing Turing Machine (ATM) that runs in polynomial space.                   This reduction shows that atomic CQ entailment over lin-
+More specifically, the problem they consider is the follow-            ear+trans sets of rules is ExpTime-hard.                      ✷
+ing ExpTime-complete problem: given a PSpace ATM M ,
+and a word x, does M accept x? Without loss of generality,
+they consider ATM where each non-final universal state has
+exactly two existential state successors, and each non-final
+existential state has exactly two universal state successors.
+   The proof uses a single transitive predicate that we call p.
+Given an ATM M with input x, we create a predicate of arity
+polynomial in x and M , that encodes the current configura-
+tion of the machine (its tape and the current state and head
+position). Furthermore, each atom encoding a configuration
+also uses a term as a “begin” and another as an “end” (re-
+spectively the first and last position of the predicate), these
+are used later by the transitivity rules. Linear rules are used
+to generate the transitions of the ATM. First, for each transi-
+tion in the ATM, there is a linear rule that generates the two
+next configurations, and depending on the type of the current
+state different transitive atoms are generated as illustrated by
+Figure 2.
+   The initial configuration contains two special constants b
+and e as begin and end, and the set of facts contains only the
+atom encoding this configuration.
+   When the state of the current configuration s is existential,
+four atoms using predicate p are generated in the next step, the
+first two being used to link the begin of s to the begin of the
+two next configurations (since the ATM is non-deterministic
+by nature), and the last two atoms being used to link the end
+of the two next configurations to the end of s.
+   When the state of the current configuration s is universal,
+three atoms using p are generated, the first one links the begin
+of s to the begin of the first next configuration, the second one
+links the end of the first next configuration to the begin of the
+second next configuration, and finally the last one links the
+end of the last next configuration to the end of s.
+   Finally, when the state of the current configuration s is ac-
+cepting, an atom using p linking the begin of s with the end
+of s is generated.
+   The idea is that linear rules simulate the run of the machine,
+and that transitivity rules connect the initial begin to the initial
+end if and only if M accepts x.
+

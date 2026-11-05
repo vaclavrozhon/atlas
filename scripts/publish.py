@@ -16,7 +16,7 @@ from categories import BY_KEY
 from catalog_exports import atomic, jsdump, write_catalog_exports, write_live_updates
 from importance import apply_importance, validate_importance
 from taxonomy import apply_taxonomy
-from card_activity import read_inactive, active_card_paths
+from card_activity import read_inactive, active_card_paths, eligible_candidate
 from related_problems import apply_related_problems
 
 BASE, SITE, CARDS = ROOT, BUILD, DATA / 'cards'
@@ -77,7 +77,7 @@ def validate_record(card, path, criteria):
         raise ValueError(f'{identifier}: invalid evidence level')
     if card['status'] not in {'open', 'source_open', 'uncertain', 'resolved', 'excluded'}:
         raise ValueError(f'{identifier}: invalid status')
-    if card['status'] in {'resolved', 'excluded'} or card.get('scope_exclusion'):
+    if not eligible_candidate(card):
         raise ValueError(f'{identifier}: archive this inactive card with scripts/archive_cards.py')
     importance = card['importance']
     if importance.get('method') == 'editorial':

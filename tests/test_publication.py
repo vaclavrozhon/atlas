@@ -58,7 +58,7 @@ def assert_export_parity(site, payload, *, independent_build=False):
         assert subset['subbenchmark'] == data['meta']['benchmarks'][name]
         quotas = subset['subbenchmark']['quotas']
         assert subset['cards'] == [card for card in data['cards']
-            if card['status'] not in ('resolved', 'excluded')
+            if eligible_candidate(card)
             and card['importance_rank'] <= quotas[card['selection_group']]]
     top = read_json(site / 'top100.json')
     statements = read_json(site / 'top100-statements.json')
@@ -84,7 +84,7 @@ with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
     import import_cards
     import catalog_exports
     import archive_cards
-    from card_activity import INDEX, ARCHIVED_CARDS, read_inactive
+    from card_activity import INDEX, ARCHIVED_CARDS, read_inactive, eligible_candidate
     from card_schema import canonical_record, reader_record, OBSOLETE_FIELDS, DERIVED_FIELDS
 
     def hashes():

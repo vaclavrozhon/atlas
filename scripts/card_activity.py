@@ -7,10 +7,30 @@ scientific status (open, uncertain, resolved, etc.) is a separate property.
 
 import json
 import re
+import datetime
 
 from paths import CARDS, ARCHIVE, ARCHIVED_CARDS
 
 INDEX = ARCHIVE / 'index.json'
+
+
+def eligible_candidate(card):
+    """Scientific resolution after the benchmark cutoff does not retire a card."""
+    if card.get('scope_exclusion') or card.get('status') == 'excluded':
+        return False
+    if card.get('status') != 'resolved':
+        return True
+    record = card.get('benchmark_eligibility', {})
+    if record.get('cutoff') != '2026-01-01' or record.get('open_at_cutoff') is not True:
+        return False
+    try:
+        date = datetime.date.fromisoformat(record.get('resolution_first_public_on', ''))
+    except (TypeError, ValueError):
+        return False
+    return (date >= datetime.date(2026, 1, 1)
+            and date <= datetime.date.today()
+            and bool(record.get('source_url', '').startswith(('https://', 'http://')))
+            and bool(record.get('reason', '').strip()))
 
 
 def read_inactive():

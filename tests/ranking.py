@@ -28,18 +28,13 @@ for area in data['areas']:
     assert [c['importance_rank'] for c in cards] == list(range(1, len(cards) + 1))
     assert all(c['importance_count'] == len(cards) for c in cards)
     assert area['importance_assessed'] + area['importance_provisional'] == len(cards)
-    resolved = False
-    previous = {}
+    previous = 100
     for card in cards:
-        if card['status'] == 'resolved':
-            resolved = True
-        else:
-            assert not resolved, 'A remaining candidate follows a resolved record'
-        status_group = card['status'] == 'resolved'
+        assert eligible(card)
         score = card['importance']['score']
         if not card.get('benchmark_focus'):
-            assert score <= previous.get(status_group, 100)
-            previous[status_group] = score
+            assert score <= previous
+            previous = score
 
 heads = {a['area']: next((c['id'] for c in data['cards'] if c['area'] == a['area']), None) for a in data['areas']}
 # The reviewed focus prefix precedes the score-ordered remainder.
@@ -49,7 +44,6 @@ for area in data['areas']:
     if not candidates:
         assert area['count'] == 0 and heads[area['area']] is None
         continue
-    active = [c for c in candidates if c['status'] != 'resolved'] or candidates
     expected = [entry['id'] for entry in selection[area['area']]['selected']]
     assert [c['id'] for c in candidates[:len(expected)]] == expected
     assert all(c.get('benchmark_focus') for c in candidates[:len(expected)])
@@ -116,15 +110,27 @@ example = copy.deepcopy(next(c for c in changed['cards'] if c['id'] == 'TCS-6498
 example.update(id='TCS-999998', rank=10**30, importance=dict(score=55, method='editorial', reason='Focused test question.'))
 changed['cards'].append(example)
 retired = copy.deepcopy(example)
-retired.update(id='TCS-999999', status='resolved', importance=dict(score=100, method='editorial', reason='Historical landmark test.'))
+retired.update(id='TCS-999999', status='resolved', importance=dict(score=100, method='editorial', reason='Historical landmark test.'),
+    benchmark_eligibility=dict(cutoff='2026-01-01', open_at_cutoff=True,
+        resolution_first_public_on='2026-01-01', source_url='https://example.org/result', reason='Post-cutoff fixture.'))
 changed['cards'].append(retired)
 next(a for a in changed['areas'] if a['area'] == example['area'])['count'] += 2
 apply_importance(changed)
 cards = [c for c in changed['cards'] if c['area'] == example['area']]
 assert cards[0]['id'] == 'TCS-6498'
-assert cards[-1]['status'] == 'resolved'
+assert eligible(retired)
+assert next(c for c in cards if c['id'] == retired['id'])['importance_rank'] < next(c for c in cards if c['id'] == example['id'])['importance_rank']
 assert next(c for c in cards if c['id'] == retired['id'])['importance']['score'] == 100
-assert all(c['status'] == 'resolved' for c in cards if c['importance_rank'] > retired['importance_rank'])
+
+# Publication date is not enough: resolution must be publicly available on or
+# after the cutoff, with evidence. Boundary dates and invalid claims are rejected.
+for changes in [dict(resolution_first_public_on='2025-12-31'),
+                dict(resolution_first_public_on='2099-01-01'),
+                dict(resolution_first_public_on='invalid'), dict(open_at_cutoff=False),
+                dict(source_url=''), dict(reason=''), dict(cutoff='2025-01-01')]:
+    candidate = copy.deepcopy(retired)
+    candidate['benchmark_eligibility'].update(changes)
+    assert not eligible(candidate), changes
 
 # Formal resolution or an archive decision invalidates a focus choice without
 # restoring it, changing its historical score or silently certifying a replacement.
@@ -152,7 +158,7 @@ assert f"Unreviewed focus places in {complexity['area']}: 1" in changed['meta'][
 print(json.dumps(dict(categories=len(data['areas']), records=len(ids), assessed=data['meta']['importance']['assessed'],
     checks=['idempotent ranking', 'all category positions including empty categories', 'new categories preserve provisional assessments',
             'date-independent importance', 'new detailed cards do not jump the queue',
-            'resolved records last without losing historical score', 'CSV and offline parity', 'all-category overview',
+            'post-cutoff resolved records retain importance; earlier or unevidenced claims excluded', 'CSV and offline parity', 'all-category overview',
             'editorial focus prefixes and explicit unreviewed places', 'nested Top 100, Top 500 and possible Top 1000 exports',
             'shared category and problem order across all three targets', 'explicit quota shortfalls',
             'resolved and archived focus choices invalidated', 'removed choices clear stale promotions'])))

@@ -1,10 +1,11 @@
 """Publish an undirected graph of editorially related active problems."""
 
 import re
+from card_activity import eligible_candidate
 
 
 def is_active(card):
-    return not card.get('scope_exclusion') and card['status'] not in {'resolved', 'excluded'}
+    return eligible_candidate(card)
 
 
 def apply_related_problems(cards, inactive=()):

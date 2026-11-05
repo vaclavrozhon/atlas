@@ -18,14 +18,14 @@ METHOD = ('Importance ordering is an editorial assessment of foundational signif
           'and 50/20 category places respectively, all from the same ranking. '
           'Category positions include all candidates and remain fixed when filtering. '
           'Publication date, source date, and card detail do not increase importance. '
-          'Inactive cards, including resolved records, are archived outside the ranking '
+          'Inactive cards are archived outside the ranking. Problems first resolved '
+          'on or after 1 January 2026 can remain eligible, with dated evidence, '
           'without changing their historical importance score. Importance review '
           'does not establish that a saved question is still open.')
 
 
 def importance_key(card):
-    return (card.get('status') == 'resolved',
-            card.get('benchmark_focus', {}).get('position', float('inf')),
+    return (card.get('benchmark_focus', {}).get('position', float('inf')),
             -card['importance']['score'], card['id'])
 
 
@@ -62,7 +62,7 @@ def apply_importance(data):
         area['importance_assessed'] = sum(c['importance']['method'] == 'editorial' for c in groups[area['area']])
         area['importance_provisional'] = area['count'] - area['importance_assessed']
     data['meta']['importance'] = dict(version=3, default_sort='importance',
-        categories=len(data['areas']), resolved_last=True,
+        categories=len(data['areas']), resolved_last=False,
         assessed=sum(c['importance']['method'] == 'editorial' for c in data['cards']),
         provisional=sum(c['importance']['method'] == 'unassessed' for c in data['cards']))
     data['meta']['methodology'] = [p for p in data['meta'].get('methodology', [])
@@ -99,8 +99,7 @@ def ranking_exports(data):
             f"{targets}; candidates: {area['count']}; importance assessed: "
             f"{area['importance_assessed']}; provisional: {area['importance_provisional']}.", '',
             '| Category position | Problem | Editorial priority |', '| --- | --- | --- |'])
-        selected = [c for c in cards if c['area'] == area['area']
-                    and c['status'] != 'resolved'][:10]
+        selected = [c for c in cards if c['area'] == area['area']][:10]
         for c in selected:
             lines.append(f"| {c['importance_rank']} | [{md(c['title'])}](index.html#{c['id']}) | {c['importance']['score']} |")
         lines.append('')

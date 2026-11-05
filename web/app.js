@@ -15,7 +15,7 @@
   const areaLabel=area=>areasByName.get(area)?.label||area||'';
   const cardAreaLabel=c=>areaLabel(c.area);
   const benchmarks={top100:{label:'Top 100',quotas:{large:5,small:2}},top500:{label:'Top 500',quotas:{large:25,small:10}},top1000:{label:'Top 1000',tentative:true,quotas:{large:50,small:20}}};
-  const isActive=c=>!!c&&!c.scope_exclusion&&!['resolved','excluded'].includes(c.status);
+  const isActive=c=>!!c&&!c.scope_exclusion&&c.status!=='excluded'&&(c.status!=='resolved'||c.benchmark_eligibility?.open_at_cutoff===true);
   let voteRanks=new Map(),areaPositions=new Map();
   const inBenchmark=(c,name)=>isActive(c)&&(voteRanks.get(c.id)||Infinity)<=(benchmarks[name]?.quotas[areasByName.get(c.area)?.group]||0);
   const benchmarkSummary=name=>{
@@ -59,7 +59,7 @@
     const kinds={question:'Question',conjecture:'Conjecture',research_direction:'Research direction'};
     return `<section class="textbook-notes"><h3>Questions recorded in textbooks and surveys</h3><p class="small muted">Dated paraphrases; definitions and assumptions are at the cited locations. A source note does not override a later review of this card.</p><ol>${c.textbook_notes.map(n=>`<li><p><strong>${esc(kinds[n.kind]||n.kind)}.</strong> ${esc(n.summary)}</p><p class="small">${esc(n.reference.authors)} · ${esc(n.reference.year)} · ${link(n.reference)} · ${esc(n.reference.locator)} · ${link({url:n.reference.pdf_url},'Original PDF ↗')}</p><p class="small muted">${esc(n.status_note)}</p>${n.caution?`<p class="small muted">Source caveat: ${esc(n.caution)}</p>`:''}</li>`).join('')}</ol></section>`;
   }
-  const importanceOrder=(a,b)=>Number(a.status==='resolved')-Number(b.status==='resolved')||(a.benchmark_focus?.position??Infinity)-(b.benchmark_focus?.position??Infinity)||(b.importance?.score??50)-(a.importance?.score??50)||a.id.localeCompare(b.id,'en');
+  const importanceOrder=(a,b)=>(a.benchmark_focus?.position??Infinity)-(b.benchmark_focus?.position??Infinity)||(b.importance?.score??50)-(a.importance?.score??50)||a.id.localeCompare(b.id,'en');
   const votedOrder=(a,b)=>(window.ATLAS_VOTES?.score(b.id)||0)-(window.ATLAS_VOTES?.score(a.id)||0)||importanceOrder(a,b);
   const catalogueOrder=(a,b)=>(areaPositions.get(a.area)??Infinity)-(areaPositions.get(b.area)??Infinity)||votedOrder(a,b);
   function rebuildVoteRanks(){

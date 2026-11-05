@@ -2,6 +2,7 @@
 
 import json
 from paths import DATA
+from card_activity import eligible_candidate
 
 BASE = DATA
 QUOTAS = {'top100': {'large': 5, 'small': 2},
@@ -15,7 +16,7 @@ GOAL = ('Our primary goal is a benchmark of 500 problems. Top 100 is a priority 
 
 
 def eligible(card):
-    return not card.get('scope_exclusion') and card['status'] not in ('resolved', 'excluded')
+    return eligible_candidate(card)
 
 
 def read_selection():

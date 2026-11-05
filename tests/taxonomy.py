@@ -8,7 +8,7 @@ sys.path.insert(0, str(BASE / 'scripts'))
 from categories import BIG, SMALL, NAMES, CATEGORIES
 from taxonomy import apply_taxonomy
 from importance import apply_importance
-from card_activity import read_inactive
+from card_activity import read_inactive, eligible_candidate
 
 data = json.loads((BASE / 'build/catalog.json').read_text())
 original = copy.deepcopy(data)
@@ -25,7 +25,7 @@ assert not {c['id'] for c in data['cards']} & read_inactive().keys()
 assert not {p.stem for p in (BASE / 'data/cards').glob('*.json')} & read_inactive().keys()
 for card in data['cards']:
     assert card['area'] in NAMES and not card.get('scope_exclusion')
-    assert card['status'] not in {'resolved', 'excluded'}
+    assert eligible_candidate(card)
     assert card['selection_group'] == ('large' if card['area'] in BIG else 'small')
     assert card['selection_target'] == (50 if card['area'] in BIG else 20)
 fixture = copy.deepcopy(data)

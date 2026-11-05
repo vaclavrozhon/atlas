@@ -233,8 +233,14 @@ summaries neither certify current openness nor promote evidence levels.
 An individually justified disposition can set `review_outcome.complete` without
 inventing a theorem for an invalid extraction, subjective request or duplicate.
 Do not use this for a genuine problem that is merely difficult to formulate.
-Resolved and excluded records belong in the inactive archive. Deactivation
-preserves the complete card using the activity workflow below.
+Excluded records belong in the inactive archive. The 5 November 2026 benchmark
+decision allows problems open at the beginning of 2026 even when subsequently
+resolved. A resolved active card records `benchmark_eligibility`: cutoff
+`2026-01-01`, `open_at_cutoff: true`, the first public resolution date, a primary
+source URL and the reason for admission. A 2026 conference date alone is not
+enough when the result was public earlier. Preserve scientific status and proof
+review caveats. Deactivation preserves the complete card using the activity
+workflow below.
 
 ## Categories
 
@@ -253,6 +259,8 @@ split of Structural graph theory and Graph algorithms adds one small category;
 merging Differential privacy into Cryptography removes one small category.
 The total and the large/small quotas are unchanged. Generate counts and
 category reports from data instead of copying mutable inventories into instructions.
+The subsequent split of algebra into two small categories is offset by merging
+Automated reasoning into the large logic/verification category.
 
 Apply these accepted boundaries using the registry's current display labels:
 
@@ -304,11 +312,24 @@ Apply these accepted boundaries using the registry's current display labels:
   their scientific statements, status and importance scores preserved. The
   combined category uses one large-category quota and the existing five
   cryptographic focus choices; privacy candidates enter the shared ranking.
-- **General combinatorics:** largely excluded, with no dedicated category or
-  quota to fill. Selected computationally motivated exceptions may use a
-  suitable specialist category or Miscellaneous with a specific rationale.
-  The accepted graph scope is not permission to restore all combinatorics;
-  noisy combinatorial source labels are not grounds for blanket removal either.
+- **Algebraic algorithms:** retain the `algebra` ID and `Algebraic computation`
+  key for matrix/integer multiplication, factorization, computational algebra,
+  identity testing and algebraic decision algorithms.
+- **Algebraic complexity:** a separate small category for VP/VNP, arithmetic
+  circuits/formulas/branching programs, tensor-rank lower bounds, algebraic
+  representation complexity and closure of complexity classes.
+- **Logic, verification and automated reasoning:** retain the `semantics`
+  ID/key; merge automated reasoning, rewriting and unification into it. General
+  finite-model theory and descriptive complexity also belong here. Automata
+  and formal languages remains a separate large category.
+- **Database theory:** retain the `database` ID and historical key. Focus on
+  database queries, joins, enumeration, uncertain/inconsistent data, integrity
+  constraints and database-specific computation. General finite-model logic
+  moves to the combined logic category.
+- **General combinatorics and adjacent fields:** the user now explicitly
+  requests diverse broadly TCS-relevant candidates, including topics that could
+  plausibly interest STOC. Use a suitable specialist category or Miscellaneous;
+  do not confine additions to sunflowers, Shannon capacity or partial orders.
 - **Geometry, games and optimization:** computational topology belongs with
   geometry; voting and preference aggregation with game theory/social choice.
   Optimization includes numerics and information-based complexity. A central
@@ -320,17 +341,19 @@ Apply these accepted boundaries using the registry's current display labels:
   belong to the family without being single fixed-template PCSPs. Structural
   coloring, partial-coloring objectives and proof-system bounds need their own
   category assessment.
-- **Beyond worst-case and average-case analysis:** includes smoothed, planted,
-  semi-random, average-case hardness, instance-optimal and prediction-based
-  models. General statistical sample complexity, cryptographic assumptions and
-  quantum questions keep their specialist homes.
+- **Average-case analysis:** retain the `beyond` ID and historical key. Includes
+  random-input/order, smoothed, planted, semi-random and average-case-hardness
+  models. Purely instance-optimal or prediction-based targets without an
+  average-case model move to their natural specialist categories. General
+  statistical sample complexity, cryptographic assumptions and quantum
+  questions keep their specialist homes.
 - **Retired knowledge representation:** preserve topics according to their main
   target: representation size in complexity; equivalence, negation and symbolic
   operations in automated reasoning; ontology queries in databases; output
   enumeration in counting/enumeration.
 - **Miscellaneous:** last in the registry, for worthwhile cross-disciplinary or
   unusual questions difficult to place elsewhere. It is neither a replacement
-  for formulation review nor a route to restore general combinatorics.
+  for formulation review nor a requirement to fill the quota with weak candidates.
 
 The user retained TCS-6674 in game theory because of incentives and TCS-6637 in
 constraint satisfaction because of its promise. TCS-6725 and TCS-3984 follow the

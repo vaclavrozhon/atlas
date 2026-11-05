@@ -7,7 +7,7 @@
   if(!ctx){$('map-loading').textContent='This browser cannot display the map. Please use the catalogue.';return;}
   const math=window.ATLAS_MATH,esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=s=>math.plain(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  const active=c=>c&&!c.scope_exclusion&&!['resolved','excluded'].includes(c.status);
+  const active=c=>c&&!c.scope_exclusion&&c.status!=='excluded'&&(c.status!=='resolved'||c.benchmark_eligibility?.open_at_cutoff===true);
   const number=n=>n.toLocaleString('en');
   let data=window.TCS_ATLAS,nodes=[],links=[],byId=new Map(),areas=new Map(),neighbors=new Map();
   let width=1,height=1,transform=d3.zoomIdentity,simulation=null,hovered=null,pinned=false,dragging=false;
