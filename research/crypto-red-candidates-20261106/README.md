@@ -113,4 +113,12 @@ identifies where additional thematic variety is useful.
 
 ## Validation and publication
 
-Recorded after checks and deployment in `validation.json`.
+Published from the isolated `codex/crypto-red-20261106` branch in
+`/home/vasek/atlas-crypto-red-20261106`, excluding a concurrent problem-age UI
+change. The canonical additions are also present in the category worktree.
+
+`make check`, formula validation, and rendering all 1,151 cards in both layouts
+passed (86,140 browser formula renderings, zero errors). All 14 service tests
+passed. The service manifest adds exactly three red cards and changes no prior
+card defaults or category options. All 63 durable manual choices remained
+identical after deployment. Detailed receipts are in `validation.json`.
