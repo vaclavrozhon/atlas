@@ -52,3 +52,12 @@ all 14 service tests and its production build, and the browser selection suite
 covering shared edits, category moves, persistence, conflicts, publication
 compatibility, counters and mobile layouts. No existing editorial selection
 default changed. Live verification follows deployment.
+
+Published and verified: reader `2c72889a5fabe7dab811`, service manifest
+`cc6207338e9591d8c34d`, Sites version 12, and successful GitHub Pages run
+42187463960. The new card is durably green at shared revision 1, with the
+Algorithms move button visible and enabled. All 21 prior shared choices were
+unchanged by the explicit green write, including TCS-6173 remaining red.
+The live card passed compact/full checks at 320, 390 and 1440 pixels with no
+math errors, page errors, or viewport overflow. Browser verification made no
+selection writes. The shared catalogue reports 503 green cards after this addition.
