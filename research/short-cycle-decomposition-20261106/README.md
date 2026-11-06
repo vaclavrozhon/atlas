@@ -19,6 +19,12 @@ same running time; this is not silently imposed. An optional clarification
 about these two variants was offered, and the baseline was stated as the
 working choice while the work continued.
 
+The owner subsequently explicitly confirmed this baseline on 6 November 2026:
+`(n+m) polylog(n)` time, edge-disjoint cycles of length `polylog(n)`, and at
+most `n polylog(n)` uncovered edges. The published TCS-7525 statement already
+has these exact bounds, so this confirmation requires no card rewrite or
+selection change. The earlier clarification is resolved.
+
 Primary sources checked on 6 November 2026:
 
 - Chu et al., FOCS 2018, [arXiv:1805.12051](https://arxiv.org/abs/1805.12051):
