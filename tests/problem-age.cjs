@@ -1,0 +1,17 @@
+'use strict';
+const assert = require('node:assert/strict');
+const age = require('../web/problem-age.js');
+assert.equal(age.label({precision:'year', year:1971}, 2026), 'Origin: 1971 · ~55 years');
+assert.equal(age.label({precision:'circa', year:1970}, 2026), 'Origin: c. 1970 · ~56 years');
+assert.equal(age.label({precision:'range', year:1971, end_year:1980}, 2026), 'Origin: c. 1971–1980 · ~46–55 years');
+assert.equal(age.label({precision:'by', year:2014}, 2026), 'Documented by 2014 · at least ~12 years');
+assert.equal(age.label({precision:'year', year:2026}, 2026), 'Origin: 2026 · under 1 year');
+assert.equal(age.label({precision:'year', year:2025}, 2026), 'Origin: 2025 · ~1 year');
+assert.equal(age.label({precision:'unknown', year:null}, 2026), 'Origin date uncertain');
+assert.equal(age.html({}), '');
+const html = age.html({problem_origin:{precision:'by',year:2020,note:'A <later> variant & its ancestor.',reviewed_on:'2026-11-06',references:[{title:'<source>',url:'javascript:alert(1)',locator:'§ 2'}]}}, 2026);
+assert.ok(html.includes('<summary>Documented by 2020 · at least ~6 years</summary>'));
+assert.ok(html.includes('A &lt;later&gt; variant &amp; its ancestor.'));
+assert.ok(html.includes('href="#"'));
+assert.ok(!html.includes('javascript:'));
+console.log('Problem age: historical labels, bounds, missing metadata and escaping passed.');

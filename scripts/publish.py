@@ -19,6 +19,7 @@ from taxonomy import apply_taxonomy
 from card_activity import read_inactive, active_card_paths, eligible_candidate
 from related_problems import apply_related_problems
 from final_selection import apply_final_selection
+from problem_origin import validate_origin
 
 BASE, SITE, CARDS = ROOT, BUILD, DATA / 'cards'
 
@@ -111,6 +112,8 @@ def validate_record(card, path, criteria):
         if key in seen_reviews:
             raise ValueError(f'{identifier}: duplicate community review')
         seen_reviews.add(key)
+    if 'problem_origin' in card:
+        validate_origin(card['problem_origin'])
     summary = card.get('working_summary')
     if summary:
         sentences = summary.get('sentences', [])
@@ -205,7 +208,7 @@ def _publish(site=SITE):
     update_metadata(data, now)
     site.mkdir(parents=True, exist_ok=True)
     # A complete build works offline and needs no previously generated files.
-    for name in ['index.html', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js', 'style.css',
+    for name in ['index.html', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js', 'problem-age.js', 'style.css',
                  'map.html', 'map.js', 'map.css', '.nojekyll']:
         atomic(site / name, (WEB / name).read_text())
     shutil.copytree(WEB / 'vendor', site / 'vendor', dirs_exist_ok=True)

@@ -34,7 +34,7 @@ def snapshot(destination):
         catalogue = json.loads((SITE / 'catalog.json').read_text())
         if catalogue['meta']['version'] != version:
             raise ValueError('Incomplete publication: catalogue and version marker disagree')
-        for name in ['index.html', 'style.css', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js',
+        for name in ['index.html', 'style.css', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js', 'problem-age.js',
                      'map.html', 'map.js', 'map.css', 'vendor/d3.min.js', 'data.js', '.nojekyll']:
             if not (SITE / name).is_file():
                 raise ValueError(f'Missing reader asset: {name}')

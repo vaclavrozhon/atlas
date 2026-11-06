@@ -1,0 +1,11 @@
+from assessment import add, save
+add('7529',1994,'year','Papadimitriou introduced PPAD and explicitly asked about its polynomial-time tractability in the 1994 foundational paper.',('pap1994',))
+add('7530',1994,'year','Papadimitriou introduced PPP and its circuit pigeonhole search principle in 1994.',('pap1994',))
+add('7526',1988,'circa','Exponential lower bounds for general perfect secret sharing have been a central question since general access-structure constructions in the late 1980s.',('primary','survey'))
+add('7527',1995,'circa','The two-server polylogarithmic-communication target dates to the private-information-retrieval programme introduced in 1995.',('primary',))
+add('7528',1980,'circa','The sub-two-thirds balanced inversion target asks to beat the scale of Hellman’s 1980 time–memory tradeoff for random functions.',('primary','model'))
+add('1138',2023,'year','The polynomial-time verifier target for computationally sound exact counting is explicitly posed in the 2023 derandomization paper.',('primary',))
+add('0196',2010,'by','The six-and-more-variable finite-generation frontier is explicit after the 2010 five-variable rank-inequality classification; the 2022 seminar restates it.',('five','primary'))
+add('1011',1999,'circa','The beyond-Johnson Reed–Solomon question was sharpened by Guruswami–Sudan’s late-1990s list-decoding breakthrough. This card fixes full-length codes and combinatorial list size.',('primary',))
+add('0954',2016,'by','The below-two subquadratic-query target is explicitly recorded in the 2016 problem entry, following the earlier nearly-two estimate from MST weight approximation.',('primary','mst'))
+save()

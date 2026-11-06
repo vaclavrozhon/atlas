@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='atlas-pages-test-') as directory:
     (source / 'working-note.txt').write_text('Local unpublished work')
     pages.git(source, 'add', 'working-note.txt')
     index = (source / '.git/index').read_bytes()
-    for name in ['index.html', 'style.css', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js',
+    for name in ['index.html', 'style.css', 'app.js', 'community.js', 'votes.js', 'selection.js', 'math.js', 'problem-age.js',
                  'map.html', 'map.js', 'map.css', 'vendor/d3.min.js', 'data.js', '.nojekyll', 'old-file.txt']:
         (site / name).parent.mkdir(parents=True, exist_ok=True)
         (site / name).write_text('' if name == '.nojekyll' else 'Fixture')
@@ -40,7 +40,7 @@ with tempfile.TemporaryDirectory(prefix='atlas-pages-test-') as directory:
         pages.main()
         first = head()
         files = pages.git(remote, 'ls-tree', '-r', '--name-only', first).splitlines()
-        assert {'index.html', 'map.html', 'map.js', 'map.css', 'vendor/d3.min.js', '.nojekyll'} <= set(files)
+        assert {'index.html', 'problem-age.js', 'map.html', 'map.js', 'map.css', 'vendor/d3.min.js', '.nojekyll'} <= set(files)
         assert 'working-note.txt' not in files and not any(name.startswith('site/') for name in files)
         pages.main()
         assert head() == first, 'Unchanged content must not create a deployment commit'

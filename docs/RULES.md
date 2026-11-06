@@ -481,6 +481,18 @@ focus are derived. Legacy `rank`, `classification_method` and top-level
 `importance_method` are obsolete. The nested `importance.method` remains required.
 Do not maintain override layers or edit generated catalogues to change content.
 
+The 6 November 2026 age-annotation request covers every shared green card and
+the first five red cards in each category in the reader's current vote/priority
+order. Store assessments in `problem_origin`: `year`, `precision` (`year`,
+`circa`, `range`, `by`, or `unknown`), optional `end_year` for ranges, an explanatory
+`note`, historical `references`, and `reviewed_on`. Do not replace the card's
+existing source `year`. A `by` date means the question is documented by that year,
+not that it originated then; its age is a lower bound. Explain older parent
+questions and newer exact variants separately. Approximate dates are editorial
+estimates, not claims of a verified first publication. Display origin and age in
+both card layouts, with the evidence available on expansion. Keep annotations
+when colors or categories change; such changes do not alter a problem's history.
+
 Keep stable IDs and historical source-key mappings in `data/id_registry.json`.
 Inactive IDs and keys remain reserved. Use `scripts/archive_cards.py` with an ID
 and specific reason to deactivate a card: it moves the complete file to

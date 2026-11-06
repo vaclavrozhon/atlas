@@ -28,6 +28,8 @@ check:
 	$(PYTHON) scripts/check.py
 
 check-web: publish
+	node tests/problem-age.cjs
+	node tests/problem-age-browser.cjs
 	node tests/map.cjs
 	node tests/math.cjs
 	node tests/math-browser.cjs
