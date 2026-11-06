@@ -16,6 +16,11 @@ and 37 retain their existing targets. Already binary cards outside this
 candidate set did not need rewriting. This was a formulation review, not the
 deferred catalogue-wide search for newly solved problems.
 
+The final live-selection check also inspected six subsequently green cards:
+TCS-6612, TCS-6613, TCS-7220, TCS-7223 and TCS-7507 already have binary targets;
+TCS-7210 is a direct interference-channel capacity function with the approved
+0.01 criterion. No further statement edits were needed for these six.
+
 ## Revised targets
 
 Thirty-one cards now ask a concrete yes/no question. These include matrix
