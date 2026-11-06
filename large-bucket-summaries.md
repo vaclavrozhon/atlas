@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-501 five-sentence working summaries, based on saved source material.
+503 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (66)
+## Computational complexity (68)
 
 ### TCS-0001 — P versus NP
 
@@ -95,6 +95,20 @@ Does some NEXP language escape all polynomial-size constant-depth majority circu
 
 [Read in atlas](index.html#TCS-7161) · [Non-Uniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-ccc.pdf) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/) · [Almost-Everywhere Near-Cubic Wire Lower Bounds for SYM ∘ THR and \(\mathrm{THR} \circ  \mathrm{THR}\)](https://eccc.weizmann.ac.il/report/2026/167/) · [Near-Maximum Circuit Lower Bounds for Exponential Time with Merlin-Arthur Queries](https://eccc.weizmann.ac.il/report/2026/118/)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7529 — PPAD versus FP
+
+PPAD contains total search problems whose existence guarantee comes from the parity of endpoints in a directed graph. Its complete End-of-Line problem gives short predecessor and successor circuits for a potentially exponential graph. The question asks whether one uniform deterministic polynomial-time algorithm always finds a valid endpoint witness from those full circuit descriptions. The answer also determines polynomial-time tractability of exact mixed Nash equilibrium computation in rational two-player games. Known completeness results and oracle-model lower bounds do not settle this unconditional question.
+
+[Read in atlas](index.html#TCS-7529) · [On the Complexity of the Parity Argument and Other Inefficient Proofs of Existence](https://doi.org/10.1016/S0022-0000(05)80063-7) · [The Complexity of Gradient Descent: CLS = PPAD ∩ PLS](https://arxiv.org/abs/2011.01929) · [Settling the Complexity of Computing Two-Player Nash Equilibria](https://arxiv.org/abs/0704.1678) · [TFNP in the Random Oracle Model](https://arxiv.org/abs/2611.05308)
+Existing status: `source_open` · Summary written: 2026-11-06
+
+### TCS-7530 — PPP versus FP
+
+PPP contains total search problems guaranteed by the pigeonhole principle. Its complete circuit problem asks for either an input mapped to zero or two distinct inputs mapped to the same output. The question is whether one uniform deterministic algorithm always finds such a witness in polynomial time from the full circuit description. A positive answer would solve all PPAD problems as well and would rule out one-way permutations and collision-resistant hash families. Completeness and oracle-model results illuminate these connections without deciding the ordinary-model equality with FP.
+
+[Read in atlas](index.html#TCS-7530) · [On the Complexity of the Parity Argument and Other Inefficient Proofs of Existence](https://doi.org/10.1016/S0022-0000(05)80063-7) · [PPP-Completeness with Connections to Cryptography](https://arxiv.org/abs/1808.06407) · [TFNP in the Random Oracle Model](https://arxiv.org/abs/2611.05308)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0016 — Exponential circuit lower bounds for 3-SAT
 

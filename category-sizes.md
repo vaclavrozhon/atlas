@@ -6,7 +6,7 @@ Counts are saved candidate records, not verified distinct open problems.
 
 | Group | Category | Top 100 | Top 500 | Legacy Top 1000 | Candidates |
 | --- | --- | ---: | ---: | ---: | ---: |
-| large 1 | Computational complexity | 5 | 25 | 50 | 66 |
+| large 1 | Computational complexity | 5 | 25 | 50 | 68 |
 | large 2 | Algorithms | 5 | 25 | 50 | 34 |
 | large 3 | Automata and formal languages | 5 | 25 | 50 | 40 |
 | large 4 | Logic, verification and automated reasoning | 5 | 25 | 50 | 80 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory | 2 | 10 | 20 | 16 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 12 |
 
-Candidate pool: 1151. Inactive records: 6376 (excluded from active work).
+Candidate pool: 1153. Inactive records: 6376 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.
