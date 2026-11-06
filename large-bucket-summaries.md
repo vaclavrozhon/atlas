@@ -1807,10 +1807,10 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4763 — Work-efficient parallel approximate flow
 
-The question concerns parallel approximation of single-commodity flow in undirected graphs. It asks for an algorithm for at least one of two full classes: edge-capacitated flow under a cost budget, or vertex-capacitated maximum flow. The output must be a feasible flow with value within a factor of one plus the requested inverse-polylogarithmic error of optimum. The target combines nearly-linear total work with polylogarithmic depth, improving on general results with subpolynomial overhead. The checked 2026 expander result addresses a restricted case and does not settle this general graph question.
+The question concerns parallel approximation of maximum flow in undirected graphs with vertex capacities. Each vertex limits the total traffic through it, and the algorithm must explicitly output a feasible flow between the two named terminals. The flow value must be within a factor of one plus the requested inverse-polylogarithmic error of optimum. The target combines nearly-linear total processor work with polylogarithmic parallel depth. The ordinary edge-capacitated version has such an algorithm; this card asks only for the vertex-capacitated version.
 
-[Read in atlas](index.html#TCS-4763) · [Parallel (1+ε)-Approximate Multi-Commodity Min-Cost Flow in Almost Optimal Depth and Work](https://doi.org/10.1109/FOCS63196.2025.00099) · [Parallel (1+ε)-Approximate Multi-Commodity Mincost Flow in Almost Optimal Depth and Work](https://arxiv.org/abs/2510.20456v1) · [Parallel Approximate Maximum Flows in Near-Linear Work and Polylogarithmic Depth](https://doi.org/10.1137/1.9781611977912.140) · [Back in the Saddle: Toward Parallel Approximate Minimum-Cost Flow](https://doi.org/10.4230/LIPIcs.ICALP.2026.136) · [Parallel Minimum Cost Flow in Near-Linear Work and Square Root Depth for Dense Instances](https://arxiv.org/abs/2503.13274)
-Existing status: `source_open` · Summary written: 2026-09-16
+[Read in atlas](index.html#TCS-4763) · [Parallel (1+ε)-Approximate Multi-Commodity Min-Cost Flow in Almost Optimal Depth and Work](https://doi.org/10.1109/FOCS63196.2025.00099) · [Parallel (1+ε)-Approximate Multi-Commodity Mincost Flow in Almost Optimal Depth and Work](https://arxiv.org/abs/2510.20456v1) · [Parallel Approximate Maximum Flows in Near-Linear Work and Polylogarithmic Depth](https://doi.org/10.1137/1.9781611977912.140)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-5795 — One-pass semi-streaming depth-first search
 
