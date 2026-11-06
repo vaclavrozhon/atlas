@@ -27,6 +27,7 @@ const dir=path.resolve(__dirname,'../research/final-selection-20261105/ui/genera
       active:ATLAS_DEBUG.data.cards.filter(ATLAS_DEBUG.isActive).map(c=>c.id),
       inactive:ATLAS_DEBUG.data.cards.filter(c=>!ATLAS_DEBUG.isActive(c)).map(c=>c.id),
       areas:ATLAS_DEBUG.data.areas.map(a=>a.label),
+      green:ATLAS_DEBUG.data.meta.final_selection.green,
       top100:ATLAS_DEBUG.data.meta.benchmarks.top100.total,
       top500:ATLAS_DEBUG.data.meta.benchmarks.top500.total,
       top1000:ATLAS_DEBUG.data.meta.benchmarks.top1000.total
@@ -35,7 +36,7 @@ const dir=path.resolve(__dirname,'../research/final-selection-20261105/ui/genera
     assert.deepEqual(new Set(await ids()),new Set(inventory.active));
     assert.equal(await page.locator('#areas .area-group').count(),0);
     assert.deepEqual(await page.locator('#areas label > span:nth-child(2)').allTextContents(),inventory.areas);
-    assert.equal((await page.locator('#areas .count').allTextContents()).reduce((n,s)=>n+Number(s.split('/')[0].trim()),0),500);
+    assert.equal((await page.locator('#areas .count').allTextContents()).reduce((n,s)=>n+Number(s.split('/')[0].trim()),0),inventory.green);
     const removed=['area-search','saved-only','advanced-filters','new-only','textbook-only','evidence','status','scope','group','reason','year','random','export','export-community','sort','live-status','benchmark-note','coverage'];
     for(const id of removed)assert.equal(await page.locator(`#${id}`).count(),0,id);
     assert.equal(await page.locator('.save,[data-note],.pill,[data-action="note"],[data-action="copy"]').count(),0);
@@ -79,7 +80,7 @@ const dir=path.resolve(__dirname,'../research/final-selection-20261105/ui/genera
     assert.equal(await page.locator('#methodology a').count(),0);
     assert.equal(await page.locator('#methodology #coverage-table tbody tr').count(),inventory.areas.length);
     assert((await page.locator('#selection-plan').textContent()).includes('10 large categories × 25 and 25 small categories × 10'));
-    assert.match(await page.locator('#benchmark-goal').textContent(), /initial proposal selects 500 green problems/);
+    assert.match(await page.locator('#benchmark-goal').textContent(), /selection target is 500 green problems/);
 
     await page.locator('#new-problem').click();
     assert.equal(await page.locator('#problem-fields input,#problem-fields select,#problem-fields textarea').count(),4);

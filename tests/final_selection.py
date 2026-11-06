@@ -18,9 +18,12 @@ assert collections.Counter(a['group'] for a in areas.values()) == {'large': 10, 
 source = json.loads((ROOT / 'data/final_selection.json').read_text())
 assert set(source['cards']) == {c['id'] for c in data['cards']}
 counts = collections.Counter(c['area'] for c in data['cards'] if c['selection']['color'] == 'green')
-assert sum(counts.values()) == 500
+# The user explicitly added a green card after the balanced 500-card proposal.
+# Targets are not caps: adding it must not silently turn another card red.
+assert sum(counts.values()) == 501
 for area, metadata in areas.items():
-    assert counts[area] == (25 if metadata['group'] == 'large' else 10), area
+    target = 25 if metadata['group'] == 'large' else 10
+    assert counts[area] == target + (area == 'Fine-grained complexity'), area
 for c in data['cards']:
     selection = c['selection']
     assert selection['color'] in {'green', 'red'}
@@ -35,6 +38,10 @@ assert data['meta']['community_public'] is False
 assert manifest['cards']['TCS-6511']['color'] == 'green'  # General Exact Matching.
 assert manifest['cards']['TCS-0611']['color'] == 'red'  # Bipartite special case.
 assert manifest['cards']['TCS-7376']['color'] == 'green'  # Existing streaming MST proposal.
+assert manifest['cards']['TCS-7523'] == {
+    'color': 'green', 'area': 'Fine-grained complexity',
+    'area_options': ['Fine-grained complexity', 'Algorithms & data structures'],
+}  # Explicit user addition: genuine subexponential Circuit-SAT.
 assert manifest['cards']['TCS-6168']['color'] == 'red'
 assert 'TCS-4786' in manifest['cards']['TCS-6168']['upvoted_red_reason']
 assert any(c['status'] == 'resolved' and c['selection']['color'] == 'green' for c in data['cards'])

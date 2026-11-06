@@ -1,0 +1,11 @@
+# Subexponential Circuit-SAT addition — 6 November 2026
+
+The user requested a new card for a genuinely subexponential Circuit-SAT algorithm and explicitly selected it green. Added **TCS-7523**, *Subexponential-time Circuit-SAT*, to **Fine-grained complexity**, with **Algorithms** as its single alternate UI category. The source proposal now has 501 green and 646 red cards across 35 categories; the fine-grained category has 11 greens against its target of 10. No existing card was removed from the green proposal.
+
+The target is one uniform deterministic machine taking `2^o(n) poly(L)` bit time on general explicitly encoded Boolean circuits: `n` counts input variables, and `L` is the entire encoding length. The polynomial exponent is fixed across all gate counts. TCS-7270 instead asks for a fixed exponential saving at each fixed linear gate density; it remains a separate card.
+
+Primary-source checks covered the 2013 Dagstuhl discussion and Williams's March 2024 revision of *Self-Improvement for Circuit-Analysis Problems*. We also read the abstract and Theorem 1.1 of OpenAI's October 2026 *The Exponential Time Hypothesis is False* preprint. Its stated target is fixed-width formula counting. The usual gate-variable conversion does not on its own yield the requested bound in original circuit inputs for arbitrary gate counts. This addition does not certify the new SAT proofs, and it does not resume the deferred catalogue-wide status/numerical audit.
+
+Validation passed: isolated `make check`; all 39,610 active-card math expressions parsed by the bundled KaTeX; 12 service tests and its production build; browser selection checks covering anonymous edits, moves, filters, counts, cross-visitor persistence, conflicts, retries, publication preservation and mobile layouts. The browser test now waits for the reader's scheduled animation-frame refresh before checking post-edit category counts. The methodology wording describes 500 as a target, so it remains accurate when the actual green count differs.
+
+The service manifest and reader must be published together. Existing shared selections are persistent service rows, independent of the default proposal. Deployment and live verification details are recorded alongside this report.
