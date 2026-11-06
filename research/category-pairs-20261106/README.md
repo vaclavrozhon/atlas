@@ -4,7 +4,10 @@ The owner expected a large proportion of green cards to offer an up/down move.
 The shared-state snapshot at the start of this review had 500 green cards, only
 188 of them paired (37.6%). This pass adds 255 individually chosen alternatives,
 bringing coverage to 443/500 (88.6%) and the total number of paired cards of
-either color to 477. The static proposal still contains 502 green cards; shared
+either color to 477. During the review the owner additionally selected TCS-0519
+and TCS-4763 green; both also receive their natural Graph algorithms option.
+The resulting coverage is 445/502 (88.6%), with 257 additions and 479 pairs in
+total. The static proposal still contains 502 green cards; shared
 human choices determine the different live total.
 
 Each option connects exactly one large and one small category. Existing pairs,
@@ -40,6 +43,7 @@ of the 255 new pairs in both directions with both colors: 1,530 successful local
 writes. No test wrote a shared live choice. Results are in `service-checks.json`
 and `ui-checks.json`.
 
-The backend manifest and reader must both be published for these new moves to be
+The two later additions receive the same service validation separately. The
+backend manifest and reader must both be published for these new moves to be
 available. Publication metadata and a read-only live verification are recorded
 alongside this report after deployment.
