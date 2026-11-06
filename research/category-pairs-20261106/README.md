@@ -47,3 +47,12 @@ The two later additions receive the same service validation separately. The
 backend manifest and reader must both be published for these new moves to be
 available. Publication metadata and a read-only live verification are recorded
 alongside this report after deployment.
+
+Production verification succeeded on reader `1d09f7ccf87de07910fc` and service
+manifest `36dc49cbcb490f59d0af`. The live reader reports 445 paired green cards
+out of 502, with 479 pairs overall. Thirty-seven representative move buttons
+were visible and enabled; long labels and both later additions were checked
+in compact/full views at 320, 390, and 1440 pixels without overflow. No browser
+errors or attempted selection writes occurred. All 21 saved choices present
+before the final publication were returned completely unchanged afterward.
+GitHub Pages run 42177882021 and Sites version 11 both deployed successfully.
