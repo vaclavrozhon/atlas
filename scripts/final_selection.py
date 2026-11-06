@@ -43,7 +43,8 @@ def apply_final_selection(data):
         green=sum(c['color']=='green' for c in manifest['cards'].values()),
         red=sum(c['color']=='red' for c in manifest['cards'].values()),
         unreviewed_ids=unreviewed)
-    data['meta']['community_public'] = False
+    data['meta']['community_public'] = False  # Archived feedback stays outside the reader.
+    data['meta']['public_comments'] = True
     return manifest
 
 

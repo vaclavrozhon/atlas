@@ -39,6 +39,19 @@ subsequent accepted posts. CORS allows the Atlas GitHub Pages origin and this
 service's origin. `NOTES_ALLOWED_ORIGINS` is only needed for local development.
 Notes are plain text, escaped by the reader. No login or cookies are required.
 
+## Current public comments
+
+The restored reader uses `GET/POST /api/comments` and
+`DELETE /api/comments/<id>`, with the same request, response, pagination,
+retry, moderation and rate-limit rules as notes above. The response keys remain
+`notes` (list) and `note` (submission). These endpoints use a separate
+`public_comments` table. No legacy note, GitHub issue, editorial review or archived
+feedback is imported. The original `/api/notes` API and its stored records remain
+unchanged for compatibility; they are not a source for the current reader.
+
+The browser also uses separate comment cache, ownership and draft keys. Local
+private notes and old note drafts are never prefilled into the public form.
+
 ## Votes
 
 The same database stores shared thumbs-up/down votes. `GET /api/votes` returns
@@ -109,5 +122,6 @@ color, category or revision. The existing origin policy still applies.
 Retired card rows remain in storage, but disappear from public reads until restored.
 
 Deployment preserves the existing site, D1 binding, notes, proposals and votes.
-The final catalogue reader no longer displays community feedback; the preserved
-feedback archive is maintained separately in the Atlas research directory.
+The final catalogue reader displays only the separate public-comment stream.
+The preserved feedback archive remains in the Atlas research directory and is
+excluded from reader exports.

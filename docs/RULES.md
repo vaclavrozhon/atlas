@@ -528,8 +528,11 @@ the pool. Candidate-pool reduction is distinct from the nested benchmark quotas;
 do not silently change or redistribute those quotas during pruning.
 For the current finalization, develop the green selection with importance and
 broad coverage. Top 100/500/1000 are retained ranking views and do not control green
-membership. Keep community feedback outside the final reader; its separate archive
-preserves the original contributions. Defer the whole-catalogue solvedness and
+membership. Keep archived community feedback and internal notes outside the final
+reader; their separate archive preserves the original contributions. The 6 November
+request restores public comments on cards using a separate comment store. Do not
+import the legacy notes service, GitHub feedback, `community_reviews`, browser-local
+private notes or old note drafts into that stream. Defer the whole-catalogue solvedness and
 remaining catalogue-wide numerical-precision audit until the user finalizes the green cards, then remind
 them to perform it. Targeted research for new or explicitly restored candidates
 remains in scope. The subsequent 6 November instruction separately authorizes

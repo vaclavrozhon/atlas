@@ -22,7 +22,7 @@ const http=require('node:http');
   async function routes(context){
     await context.route('https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/selection',route=>route.fulfill({json:{version:JSON.parse(fs.readFileSync(root+'/catalog.json')).meta.final_selection.version,choices:[]}}));
     await context.route('https://api.github.com/**',route=>route.fulfill({json:[]}));
-    await context.route('https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/notes**',route=>route.fulfill({json:{notes:[],next:null}}));
+    await context.route('https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/comments**',route=>route.fulfill({json:{notes:[],next:null}}));
     await context.route('**/version.json',route=>route.fulfill({json:{version:JSON.parse(fs.readFileSync(root+'/version.json')).version}}));
     await context.route('https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/votes',async route=>{
       if(unavailable)return route.fulfill({status:503,json:{error:'Offline for test.'}});

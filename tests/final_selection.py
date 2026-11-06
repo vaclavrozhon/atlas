@@ -35,6 +35,7 @@ for c in data['cards']:
         assert {areas[a]['group'] for a in options} == {'large', 'small'}
     assert 'community_reviews' not in c
 assert data['meta']['community_public'] is False
+assert data['meta']['public_comments'] is True
 assert manifest['cards']['TCS-6511']['color'] == 'green'  # General Exact Matching.
 assert manifest['cards']['TCS-0611']['color'] == 'red'  # Bipartite special case.
 assert manifest['cards']['TCS-7376']['color'] == 'green'  # Existing streaming MST proposal.

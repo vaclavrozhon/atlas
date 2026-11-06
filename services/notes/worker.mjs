@@ -11,7 +11,9 @@ const proposalColumns = 'seq, id, title, category, statement, sources, author, c
 async function initialize(db) {
   if (!initialized.has(db)) {
     const pending = db.batch([
-      db.prepare(`CREATE TABLE IF NOT EXISTS notes (
+      // New public comments never import legacy notes or the editorial archive.
+      ...['notes', 'public_comments'].flatMap(table => [
+        db.prepare(`CREATE TABLE IF NOT EXISTS ${table} (
         seq INTEGER PRIMARY KEY AUTOINCREMENT,
         id TEXT NOT NULL UNIQUE,
         problem_id TEXT NOT NULL,
@@ -21,7 +23,8 @@ async function initialize(db) {
         owner_hash TEXT NOT NULL,
         deleted INTEGER NOT NULL DEFAULT 0
       )`),
-      db.prepare('CREATE INDEX IF NOT EXISTS notes_problem ON notes(problem_id, seq)'),
+        db.prepare(`CREATE INDEX IF NOT EXISTS ${table}_problem ON ${table}(problem_id, seq)`),
+      ]),
       db.prepare(`CREATE TABLE IF NOT EXISTS note_limits (
         fingerprint TEXT PRIMARY KEY, window INTEGER NOT NULL, count INTEGER NOT NULL
       )`),
@@ -125,6 +128,9 @@ async function postLimit(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url), origin = request.headers.get('origin');
+    // Table names come only from this fixed allowlist, never from request data.
+    const noteTable = /^\/api\/comments(?:\/|$)/i.test(url.pathname) ? 'public_comments' : 'notes';
+    const noteCollection = url.pathname === '/api/notes' || url.pathname === '/api/comments';
     const allowed = new Set(['https://vaclavrozhon.github.io', url.origin]);
     // Development origins must be supplied explicitly in the local test server.
     for (const item of (env.NOTES_ALLOWED_ORIGINS || '').split(',')) if (item.trim()) allowed.add(item.trim());
@@ -259,15 +265,15 @@ export default {
         if (saved.vote.revision !== input.revision || saved.vote.value !== input.value) return reply({error: 'Your vote changed in another tab. Please try again.', ...saved}, 409);
         return reply(saved);
       }
-      if (url.pathname === '/api/notes' && request.method === 'GET') {
+      if (noteCollection && request.method === 'GET') {
         const raw = url.searchParams.get('before');
         const before = raw === null ? Number.MAX_SAFE_INTEGER : Number(raw);
         if (!Number.isSafeInteger(before) || before < 1) return reply({error: 'Invalid page cursor.'}, 400);
-        const result = await env.DB.prepare(`SELECT ${publicColumns} FROM notes WHERE deleted = 0 AND seq < ? ORDER BY seq DESC LIMIT 201`).bind(before).all();
+        const result = await env.DB.prepare(`SELECT ${publicColumns} FROM ${noteTable} WHERE deleted = 0 AND seq < ? ORDER BY seq DESC LIMIT 201`).bind(before).all();
         const notes = result.results.slice(0, 200);
         return reply({notes, next: result.results.length > 200 ? notes.at(-1).seq : null});
       }
-      if (url.pathname === '/api/notes' && request.method === 'POST') {
+      if (noteCollection && request.method === 'POST') {
         if (!tokenPattern.test(env.NOTES_ADMIN_TOKEN || '')) return reply({error: 'Notes are temporarily unavailable.'}, 503);
         const input = await bodyJSON(request);
         if (!input || typeof input !== 'object' || Array.isArray(input)) return reply({error: 'Invalid note data.'}, 400);
@@ -276,7 +282,7 @@ export default {
         if (typeof input.text !== 'string' || !input.text.trim() || input.text.length > 20000) return reply({error: 'Enter a note of at most 20,000 characters.'}, 400);
         if (input.author !== undefined && (typeof input.author !== 'string' || input.author.length > 80)) return reply({error: 'Use a name of at most 80 characters.'}, 400);
         const text = input.text.trim(), author = input.author?.trim() || 'Anonymous', ownerHash = await digest(input.edit_token);
-        const existing = await env.DB.prepare('SELECT * FROM notes WHERE id = ?').bind(input.id).first();
+        const existing = await env.DB.prepare(`SELECT * FROM ${noteTable} WHERE id = ?`).bind(input.id).first();
         if (existing) {
           if (existing.deleted) return reply({error: 'This note has been removed.'}, 410);
           if (!equal(ownerHash, existing.owner_hash) || existing.text !== text || existing.author !== author || existing.problem_id !== input.problem_id) return reply({error: 'This submission identifier has already been used.'}, 409);
@@ -292,24 +298,24 @@ export default {
         const created = new Date().toISOString();
         await env.DB.batch([
           env.DB.prepare('DELETE FROM note_limits WHERE window < ?').bind(window - 1),
-          env.DB.prepare('INSERT INTO notes(id, problem_id, author, text, created_at, owner_hash) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING')
+          env.DB.prepare(`INSERT INTO ${noteTable}(id, problem_id, author, text, created_at, owner_hash) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING`)
             .bind(input.id, input.problem_id, author, text, created, ownerHash),
         ]);
-        const note = await env.DB.prepare('SELECT * FROM notes WHERE id = ?').bind(input.id).first();
+        const note = await env.DB.prepare(`SELECT * FROM ${noteTable} WHERE id = ?`).bind(input.id).first();
         // Concurrent retries must not turn a conflicting request into success.
         if (note.deleted || !equal(note.owner_hash, ownerHash) || note.text !== text || note.author !== author || note.problem_id !== input.problem_id) return reply({error: 'This submission identifier has already been used.'}, 409);
         return reply({note: publicNote(note)}, 201);
       }
-      const match = url.pathname.match(/^\/api\/notes\/([0-9a-f-]+)$/i);
+      const match = url.pathname.match(/^\/api\/(?:notes|comments)\/([0-9a-f-]+)$/i);
       if (match && request.method === 'DELETE') {
         if (!uuid.test(match[1])) return reply({error: 'Invalid note identifier.'}, 400);
         const token = request.headers.get('authorization')?.replace(/^Bearer /, '') || '';
         if (!tokenPattern.test(token)) return reply({error: 'You cannot remove this note.'}, 403);
-        const row = await env.DB.prepare('SELECT owner_hash FROM notes WHERE id = ?').bind(match[1]).first();
+        const row = await env.DB.prepare(`SELECT owner_hash FROM ${noteTable} WHERE id = ?`).bind(match[1]).first();
         if (!row) return reply({error: 'Note not found.'}, 404);
         const admin = tokenPattern.test(env.NOTES_ADMIN_TOKEN || '') && equal(token, env.NOTES_ADMIN_TOKEN);
         if (!admin && !equal(await digest(token), row.owner_hash)) return reply({error: 'You cannot remove this note.'}, 403);
-        await env.DB.prepare("UPDATE notes SET deleted = 1, text = '', author = '' WHERE id = ?").bind(match[1]).run();
+        await env.DB.prepare(`UPDATE ${noteTable} SET deleted = 1, text = '', author = '' WHERE id = ?`).bind(match[1]).run();
         return reply({removed: true});
       }
       return reply({error: 'Not found.'}, 404);

@@ -25,6 +25,7 @@ const http=require('node:http');
   let lost=false,offline=false,pauseReads=false,legacyMismatch=false,feedbackRequests=0;
   async function routes(context){
     await context.route('https://api.github.com/**',route=>{feedbackRequests++;return route.fulfill({json:[]});});
+    await context.route('**/api/comments**',route=>route.fulfill({json:{notes:[],next:null}}));
     await context.route('**/api/notes**',route=>{feedbackRequests++;return route.fulfill({json:{notes:[],next:null}});});
     await context.route('**/api/votes',route=>route.fulfill({json:{votes:[],mine:[]}}));
     await context.route('**/version.json',route=>route.fulfill({json:{version:JSON.parse(fs.readFileSync(root+'/version.json')).version}}));
@@ -64,7 +65,7 @@ const http=require('node:http');
     assert.equal(await page.locator('#areas .count').count(),35);
     assert.equal(await page.locator('#selection-total').innerText(),`${initialGreens} green / target 500`);
     assert.equal(await page.locator('[data-selection-action="color"]').count(),await page.locator('.problem-card').count(),'Every card immediately offers a color change');
-    assert.equal(await page.locator('[data-public-note],.public-notes').count(),0);
+    assert(await page.locator('[data-public-note]').count()>0);
     assert(await page.locator('#community').isHidden());assert.equal(feedbackRequests,0);
     assert(await page.evaluate(()=>TCS_ATLAS.cards.every(c=>c.selection&&['green','red'].includes(c.selection.color))));
     await page.locator('#selection-filter').selectOption('green');
@@ -154,7 +155,7 @@ const http=require('node:http');
     assert(await page.locator(`#${id} [data-selection-action="color"]`).isEnabled());
     assert.equal(await page.evaluate(()=>sessionStorage.getItem('tcs-atlas-selection-editor-v1')),null);
     assert.equal(errors.length,0,errors.join('\n'));
-    const report={initialGreens,initialReds,checks:['complete green/red proposal','current green count and 35 category counters','all/green/red filters','upvoted red explanation','immediate anonymous editing without login or editor mode','shared color and two-way category edits','quota deviations','reload persistence','independent visitors','stale edit conflict','lost-response retry across publication','manual choice survives publication','reader/service version skew','older service retries without changing edit intent','new visitor and map during publication','map shows shared colors and category moves','full and compact controls','320–1440px layout','outage preservation','feedback not loaded or rendered'],errors};
+    const report={initialGreens,initialReds,checks:['complete green/red proposal','current green count and 35 category counters','all/green/red filters','upvoted red explanation','immediate anonymous editing without login or editor mode','shared color and two-way category edits','quota deviations','reload persistence','independent visitors','stale edit conflict','lost-response retry across publication','manual choice survives publication','reader/service version skew','older service retries without changing edit intent','new visitor and map during publication','map shows shared colors and category moves','full and compact controls','320–1440px layout','outage preservation','legacy feedback not loaded or rendered; public comment controls retained'],errors};
     fs.writeFileSync(artifact+'/checks.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
   }finally{await browser.close();await new Promise(resolve=>server.close(resolve));db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

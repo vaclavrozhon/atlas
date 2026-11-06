@@ -43,11 +43,16 @@ rendering and the initial catalogue also work offline. Live publication uses
 Resolved cards with documented January 1, 2026 eligibility remain visible; inactive
 cards do not. See [the rules](../docs/RULES.md).
 
-Community feedback is preserved separately and is neither fetched nor rendered
-by the final reader. Publication strips `community_reviews` from reader exports
-without changing the canonical source or archive. `community.js` retains the
-GitHub problem proposal form and its browser-local draft migration. Existing notes,
-proposals, votes and deletion ownership remain intact in the separate service.
+Archived community feedback is neither fetched nor rendered by the final reader.
+Publication strips `community_reviews` from exports without changing the canonical
+source or archive. `community.js` restores per-card public comments through the
+separate `/api/comments` store, with no login required. Comment caches, ownership
+and drafts have separate keys; legacy caches, local private notes and old note
+drafts are never imported. The reader preserves the GitHub proposal form and its
+browser-local draft migration. Existing notes, proposals and votes remain intact.
+Both layouts expose Add comment, comment counts and refresh; authors can delete
+their own comments from the submitting browser. Network errors preserve drafts,
+and exact pending submissions can be retried without creating duplicate comments.
 
 Both layouts show related active problems by title and stable ID, without inline
 explanations. The first five are visible and longer lists can be expanded.
