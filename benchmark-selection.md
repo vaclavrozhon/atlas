@@ -423,7 +423,7 @@ Previous prefix: TCS-0007, TCS-0005.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Matrix multiplication exponent two](index.html#TCS-0007) (TCS-0007) | Matrix multiplication exponent | 100 | This exponent measures the asymptotic arithmetic cost of a fundamental operation and governs many other algebraic and graph algorithms. Determining its value would locate the limit of savings from shared computation. |
-| 2 | [Integer multiplication below n log n time](index.html#TCS-7174) (TCS-7174) | Bit complexity of integer multiplication | 88 | One of the most basic unresolved limits of exact computation, affecting fast arithmetic throughout algorithms. |
+| 2 | [Logarithmic exponent of integer multiplication](index.html#TCS-7174) (TCS-7174) | Bit complexity of integer multiplication | 88 | One of the most basic unresolved limits of exact computation, affecting fast arithmetic throughout algorithms. |
 
 Candidates considered: TCS-0007, TCS-7113, TCS-6614, TCS-6641, TCS-7174, TCS-0055, TCS-6615, TCS-6642, TCS-6677, TCS-6898, TCS-7223, TCS-2039, TCS-5921, TCS-6903, TCS-0046, TCS-0047, TCS-1151, TCS-4523, TCS-7224, TCS-7372, TCS-0095, TCS-2077, TCS-2718, TCS-4350, TCS-4490, TCS-5739.
 

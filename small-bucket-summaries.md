@@ -3308,11 +3308,11 @@ Matrix multiplication computes all entries of the product of two input matrices.
 [Read in atlas](index.html#TCS-0007) · [Gaussian elimination is not optimal](https://doi.org/10.1007/BF02165411) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Limits on the Universal Method for Matrix Multiplication](https://arxiv.org/abs/1812.08731) · [More Asymmetry Yields Faster Matrix Multiplication](https://doi.org/10.1137/1.9781611978322.63) · [Improving the matrix multiplication exponent with modern optimization and AlphaEvolve](https://arxiv.org/abs/2608.16884v1) · [More Asymmetry Yields Faster Matrix Multiplication — August 2026 revision](https://arxiv.org/abs/2404.16349v3)
 Existing status: `source_open` · Summary written: 2026-11-06
 
-### TCS-7174 — Integer multiplication below n log n time
+### TCS-7174 — Logarithmic exponent of integer multiplication
 
-The inputs are two binary integers and the output is their exact product. Time counts elementary transitions of a fixed multitape Turing machine. The question asks whether the worst-case running time can be little-o of n log n. Near-linear O(n log n) multiplication alone does not answer this stronger question. Arithmetic instructions on unbounded integers and random-access machines are different models.
+The inputs are two binary integers and the output is their exact product. Time counts elementary transitions of one fixed deterministic multitape Turing machine. The requested exponent is the infimum of attainable powers of the logarithmic overhead beyond linear time. This exponent lies between zero and one and must be determined to absolute accuracy 0.01. A machine attaining the infimum and matching iterated-logarithmic factors are not required.
 
-[Read in atlas](index.html#TCS-7174) · [Integer multiplication in time \(O(n \log  n)\)](https://doi.org/10.4007/annals.2021.193.2.4) · [Wikipedia: Multiplication algorithm](https://en.wikipedia.org/wiki/Multiplication_algorithm) · [Wikipedia revision used for discovery](https://en.wikipedia.org/w/index.php?oldid=1372948294) · [Integer multiplication in time \(O(n \log  n)\): publisher abstract](https://annals.math.princeton.edu/2021/193-2/p04) · [Integer multiplication is at least as hard as matrix transposition](https://arxiv.org/abs/2503.22848) · [Upper and lower bounds on the OBDD-width of a special integer multiplication](https://arxiv.org/abs/2608.30664)
+[Read in atlas](index.html#TCS-7174) · [Integer multiplication in time \(O(n \log  n)\): publisher abstract](https://annals.math.princeton.edu/2021/193-2/p04) · [Integer multiplication is at least as hard as matrix transposition](https://arxiv.org/abs/2503.22848)
 Existing status: `open` · Summary written: 2026-11-06
 
 ### TCS-7113 — Derandomizing polynomial identity testing

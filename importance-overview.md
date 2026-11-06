@@ -472,7 +472,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Matrix multiplication exponent two](index.html#TCS-0007) | 100 |
-| 2 | [Integer multiplication below n log n time](index.html#TCS-7174) | 88 |
+| 2 | [Logarithmic exponent of integer multiplication](index.html#TCS-7174) | 88 |
 | 3 | [Derandomizing polynomial identity testing](index.html#TCS-7113) | 96 |
 | 4 | [Deterministic polynomial-time factorization over finite fields](index.html#TCS-6614) | 92 |
 | 5 | [Word problem for one-relation monoids](index.html#TCS-6641) | 88 |
