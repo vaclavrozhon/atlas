@@ -34,3 +34,11 @@ math expressions parse, and the selection/taxonomy checks retain 504 static
 green and 645 red cards, 35 categories and 480 category pairs. The selection
 manifest remains `d51d7cb1b88fe12850c9`; the reader version is
 `8f3ea5b38615c789e0c4`.
+
+Published and verified on the live reader after GitHub Pages run 42190029747
+completed successfully. The card is green, uses the specified quantified
+lower bound and offers its String algorithms category move. Compact and full
+views pass at 320, 390 and 1440 pixels with no math errors, page errors or
+viewport overflow. All 22 existing shared decisions are unchanged, and the
+browser check performed no selection writes. Live verification is recorded
+in `live-check.json` and `shared-selection-check.json`.
