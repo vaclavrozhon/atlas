@@ -7,7 +7,7 @@
   const $=id=>document.getElementById(id),online=['http:','https:'].includes(location.protocol);
   const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
   const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}};
-  let loaded=false,loading=null,generation=0,compatible=true;
+  let loaded=false,loading=null,generation=0,serviceVersion='';
   let choices=new Map();
   const busy=new Set(),errors=new Map();
   const version=()=>data.meta.final_selection?.version||'';
@@ -36,10 +36,10 @@
     const value=choice(c.id),waiting=pending(c.id),green=value.color==='green';
     const options=c.selection?.area_options||[c.selection?.area||c.area];
     const alternate=options.find(a=>a!==value.area),target=data.areas.find(a=>a.area===alternate);
-    const disabled=!online||!loaded||!compatible||busy.has(c.id)||!!waiting;
+    const disabled=!online||!loaded||busy.has(c.id)||!!waiting;
     const status=busy.has(c.id)?'Saving…':waiting?'Change not confirmed.':errors.get(c.id)||'';
     const buttons=`<button type="button" data-selection-action="color" ${disabled?'disabled':''}>Mark ${green?'red':'green'}</button>${target?`<button type="button" data-selection-action="move" class="selection-move" ${disabled?'disabled':''} title="Move to ${esc(target.label)}; keep this color">${target.group==='large'?'↑':'↓'} ${esc(target.label)}</button>`:''}`;
-    const retry=waiting&&online&&loaded&&!busy.has(c.id)&&compatible?'<button type="button" data-selection-action="retry">Retry</button>':'';
+    const retry=waiting&&online&&loaded&&!busy.has(c.id)?'<button type="button" data-selection-action="retry">Retry</button>':'';
     const reason=!green&&c.selection?.upvoted_red_reason?`<p class="selection-exception"><strong>Initial proposal · red despite an upvote:</strong> ${esc(c.selection.upvoted_red_reason)}</p>`:'';
     return `<div class="selection-actions"><span class="selection-badge ${value.color}">${green?'Green · selected':'Red · not selected'}</span>${buttons}<span class="selection-card-status" role="status">${esc(status)}</span>${retry}</div>${reason}`;
   }
@@ -68,20 +68,31 @@
     }finally{clearTimeout(timer);}
   }
   function accept(result,id){
-    if(result.version!==version()||!valid(result.choice)||result.choice.problem_id!==id)throw new Error('Invalid selection response.');
+    if(typeof result.version!=='string'||!result.version||!valid(result.choice)||result.choice.problem_id!==id)throw new Error('Invalid selection response.');
+    serviceVersion=result.version;
     choices.set(id,result.choice);
   }
   async function send(id,payload){
-    if(busy.has(id)||!online||!loaded||!compatible)return;
+    if(busy.has(id)||!online||!loaded)return;
     busy.add(id);generation++;errors.delete(id);render();
     try{
-      const result=await request('',{method:'POST',body:JSON.stringify(payload)});
+      const post=value=>request('',{method:'POST',body:JSON.stringify(value)});
+      let result;
+      try{result=await post(payload);}
+      catch(error){
+        // Older service versions reject a catalogue hash changed during save.
+        // Retry once with their hash, preserving the exact requested edit.
+        if(error.status!==409||error.result?.choice||typeof error.result?.version!=='string'||!error.result.version||error.result.version===payload.version)throw error;
+        serviceVersion=error.result.version;payload={...payload,version:serviceVersion};
+        if(!write(pendingPrefix+id,payload))throw error;
+        result=await post(payload);
+      }
       accept(result,id);forget(id);
     }catch(error){
       if(error.status===409&&error.result?.choice){
         accept(error.result,id);forget(id);errors.set(id,'Changed by another editor. Review the current choice before trying again.');
       }else if(error.status===409){
-        compatible=false;forget(id);notice('The catalogue has changed. Reload this page before editing.');
+        errors.set(id,'The catalogue is updating. Retry this change.');
       }else if(error.status===403){
         errors.set(id,'The change was not accepted. Reload the page and retry.');
       }else if(error.status===400){forget(id);errors.set(id,error.message);}
@@ -95,13 +106,13 @@
     loading=(async()=>{
       try{
         const result=await request();
-        if(result.version!==version()){
-          compatible=false;notice('The catalogue is being updated. Reload this page before editing.');render();return;
-        }
-        if(!Array.isArray(result.choices)||!result.choices.every(valid))throw new Error('Invalid shared choices.');
+        if(typeof result.version!=='string'||!result.version||!Array.isArray(result.choices)||!result.choices.every(valid))throw new Error('Invalid shared choices.');
         if(epoch!==generation||busy.size)return;
         const old=JSON.stringify([...choices.values()]);
-        choices=new Map(result.choices.map(v=>[v.problem_id,v]));loaded=true;compatible=true;
+        // Catalogue and service deployments are independent. Stable card IDs
+        // and per-card revisions let shared editing continue across versions.
+        serviceVersion=result.version;
+        choices=new Map(result.choices.map(v=>[v.problem_id,v]));loaded=true;
         for(const [id,v] of choices){
           const p=pending(id);
           if(p&&v.revision>=p.revision){
@@ -118,10 +129,11 @@
   }
   document.addEventListener('click',event=>{
     const button=event.target.closest('[data-selection-action]'),slot=button?.closest('[data-selection-controls]');
-    if(!slot||button.disabled||event.detail>1||!online||!loaded||!compatible)return;
+    if(!slot||button.disabled||event.detail>1||!online||!loaded)return;
     const id=slot.dataset.selectionControls,c=card(id);if(!c||busy.has(id))return;
     const waiting=pending(id);if(waiting){send(id,waiting);return;}
-    const current=choice(id),payload={problem_id:id,color:current.color,area:current.area,revision:current.revision+1,version:version()};
+    const current=choice(id),payload={problem_id:id,color:current.color,area:current.area,revision:current.revision+1,
+      previous:{color:current.color,area:current.area},version:serviceVersion||version()};
     if(button.dataset.selectionAction==='color')payload.color=current.color==='green'?'red':'green';
     else if(button.dataset.selectionAction==='move')payload.area=c.selection.area_options.find(a=>a!==current.area);
     else return;

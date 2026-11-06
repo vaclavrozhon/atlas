@@ -29,7 +29,7 @@
       const response=await fetch('https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/selection',{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(12000)});
       if(!response.ok)return;
       const result=await response.json();
-      if(result.version!==data.meta.final_selection?.version||!Array.isArray(result.choices))return;
+      if(!Array.isArray(result.choices))return;
       if(!result.choices.every(c=>typeof c.problem_id==='string'&&['green','red'].includes(c.color)&&typeof c.area==='string'))return;
       const signature=JSON.stringify(result);
       if(signature===sharedVersion)return;
