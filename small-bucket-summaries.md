@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-634 five-sentence working summaries, based on saved source material.
+635 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (32)
@@ -618,7 +618,7 @@ Given the complete truth table of a Boolean function, the task is to compute the
 [Read in atlas](index.html#TCS-1845) · [The Hardness of Decision Tree Complexity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2025.66) · [The hardness of decision tree complexity](https://eccc.weizmann.ac.il/report/2024/034/)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-## Fine-grained complexity (27)
+## Fine-grained complexity (28)
 
 ### TCS-6595 — Strong Exponential Time Hypothesis
 
@@ -633,6 +633,13 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 [Read in atlas](index.html#TCS-0557) · [The Open Problems Project: 3SUM Hard Problems](https://topp.openproblem.net/p11) · [Higher Lower Bounds from the 3SUM Conjecture](https://arxiv.org/abs/1407.6756) · [Preprocessed 3SUM for Unknown Universes with Subquadratic Space](https://arxiv.org/abs/2602.11363)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7523 — Subexponential-time Circuit-SAT
+
+The input is an explicitly listed Boolean circuit with no depth or sharing restriction. The task is to decide exactly whether some assignment to its input variables makes the output true. One deterministic algorithm must run in \(2^{o(n)}\operatorname{poly}(L)\) time, where \(n\) counts input variables and \(L\) is the full encoding length. The polynomial overhead is fixed for all circuit sizes, so a result only for linear-size circuits or fixed-width formulas does not establish the target. A complete Lean-checked proof of the existence claim or its unconditional negation is required.
+
+[Read in atlas](index.html#TCS-7523) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time (Dagstuhl Seminar 13331)](https://www.dagstuhl.de/en/seminars/seminar-calendar/seminar-details/13331) · [Self-Improvement for Circuit-Analysis Problems](https://eccc.weizmann.ac.il/report/2023/082/revision/1/download/) · [The Exponential Time Hypothesis is False](https://github.com/openai/math/blob/main/preprints/The-Exponential-Time-Hypothesis-is-False-October-25-2026/paper.pdf)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-6503 — Online matrix–vector multiplication conjecture
 
