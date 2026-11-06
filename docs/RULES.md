@@ -60,7 +60,10 @@ may be formalized after selection. Completed cards still require precise targets
 Accepted answers require a complete, mathematically correct proof checked in
 Lean. Its theorem must match the card's assumptions, model, quantifiers and
 answer criterion. Questions may ask for a proposition, a number, or a function
-or curve; there is no preference for a binary answer.
+or curve. For green cards about asymptotic or algorithmic bounds, the user's
+6 November 2026 instruction prefers a meaningful binary target when a natural
+conjecture or bound is available. This does not apply to direct values and
+capacities or the separately approved exact BB(6) target.
 
 By default, for a numerical target, including an integer, the Lean benchmark
 requires absolute error at most 0.01, represented exactly as 1/100. Explicitly
@@ -101,17 +104,26 @@ determination of the curve.
 
 When the intended answer is a numerical growth or complexity exponent, that
 exponent is a numerical target and uses the same absolute 1/100 tolerance.
-For example, TCS-0154 asks for the infimum of real r >= 0 for which the
-worst-case state count s(n) is O(n^r), to that precision. Define the model,
+For example, TCS-6683 asks for the infimum of real a >= 0 for which the
+excluded-grid treewidth threshold f(r) is O(r^a), to that precision, with r
+the grid side length. Define the model,
 quantifiers and exponent explicitly; do not assume the infimum is attained
 or that an ordinary logarithmic growth limit exists. An exponent does not
 determine logarithmic factors or settle a stronger exact threshold conjecture.
-This records the user's clarification of 5 November 2026.
+This records the user's clarification of 5 November and explicit Excluded Grid
+instruction of 6 November 2026. TCS-0154 subsequently returned to its sourced
+logarithmic-state conjecture under the binary-target instruction.
 
-An asymptotic question explicitly targeting an entire function up to constant
-factors retains that criterion; 0.01 is not an additive error on big-O notation.
-That distinction must not be used to exempt a numerical exponent from the
-numerical-answer rule. Infinite values, where allowed, require proof of infinitude. Partial
+When no natural binary endpoint is available, retain the numerical optimum
+with absolute 1/100 accuracy instead of inventing an intermediate threshold.
+For polynomial growth, prefer a clearly defined finite exponent to an entire
+function including all logarithmic factors. For example, an approximation
+ratio in a known interval remains a numerical optimum; do not arbitrarily
+replace it with the existence of a 0.45-approximation. The tolerance applies
+to the number or exponent, not to big-O notation. A multiparameter tradeoff
+or potentially superpolynomial profile may need further specification before
+it can honestly become one finite numerical target; do not silently fix an
+arbitrary parameter regime. Infinite values, where allowed, require proof of infinitude. Partial
 advances and special cases count only if they meet the entire answer criterion.
 
 Sources, tools and human involvement in solution attempts are unrestricted.
@@ -149,11 +161,12 @@ the Top 100 as its priority subset: the first five/two selected problems in each
 large/small category. Record individual
 outcomes and unresolved choices; do not automatically promote a batch of drafts.
 
-Give each card one main mathematical target with explicit quantifiers. Prefer
-“determine this number/function” when the scientific target is an optimal
-exponent, ratio, extremal function or tradeoff curve. Keep genuine existence,
-decidability and class-comparison questions binary when that is their natural
-target. The supported `question_type` values are:
+Give each card one main mathematical target with explicit quantifiers. Apply
+the binary-target and numerical-precision rules above: natural algorithmic
+or asymptotic conjectures may be binary, and remaining numerical optima use
+absolute 1/100 accuracy. Keep genuine existence, decidability and
+class-comparison questions binary when that is their natural target. The
+supported `question_type` values are:
 
 - `yes_no`: specify inputs, promises, model, guarantees and parameter dependence.
   State what proof or refutation establishes. A universal asymptotic claim's
@@ -201,7 +214,12 @@ and specializations against their sources. The user-authorized review of
 12 September 2026 permits broadening a binary threshold conjecture to determine
 its underlying quantity or function. Record that change explicitly and retain
 the original conjecture as sourced context, without presenting the new target
-as equivalent to it. If the intended target cannot be
+as equivalent to it. The later user-authorized review of 6 November 2026 also
+permits the reverse change for green algorithmic and asymptotic cards: select
+a meaningful binary target, preserving the model and explicitly recording
+any specialization. If no natural endpoint exists, retain the optimum to
+absolute 1/100 accuracy. These decisions supersede the earlier default
+preference for full optimal functions. If the intended target cannot be
 recovered, mark `statement_review.status` as `needs_specification` and identify
 its `remaining_issue`. Do not certify an invented replacement.
 
@@ -493,6 +511,8 @@ For the current finalization, develop the green selection with importance and
 broad coverage. Top 100/500/1000 are retained ranking views and do not control green
 membership. Keep community feedback outside the final reader; its separate archive
 preserves the original contributions. Defer the whole-catalogue solvedness and
-numerical-precision audit until the user finalizes the green cards, then remind
+remaining catalogue-wide numerical-precision audit until the user finalizes the green cards, then remind
 them to perform it. Targeted research for new or explicitly restored candidates
-remains in scope. This does not authorize an automatic new research pass.
+remains in scope. The subsequent 6 November instruction separately authorizes
+the green-card binary-target and numerical-exponent formulation review described
+above. It does not resume the deferred catalogue-wide solvedness search.
