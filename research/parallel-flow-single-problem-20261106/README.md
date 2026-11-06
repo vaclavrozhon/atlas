@@ -32,3 +32,12 @@ all 14 service tests plus the service build. The source proposal contains
 504 green and 645 red cards across 35 categories; its manifest is
 `d51d7cb1b88fe12850c9`. Sites version 13 was successfully deployed before the
 reader update. Only this card's source-default color changed.
+
+Live verification passed after successful GitHub Pages run 42189283357.
+Reader `cfa494d3693afa90473c` shows the single vertex-capacitated problem,
+green at shared revision 1. The Mark red and Graph algorithms move buttons
+are visible and enabled in compact/full views at 320, 390 and 1440 pixels;
+there are no math errors, page errors or viewport overflow. All 22 pre-existing
+shared decisions survived the service publication unchanged. Verification
+performed no selection writes. The live shared total remains 503 green because
+this card was already green in shared state before its source default changed.
