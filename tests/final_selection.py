@@ -20,10 +20,10 @@ assert set(source['cards']) == {c['id'] for c in data['cards']}
 counts = collections.Counter(c['area'] for c in data['cards'] if c['selection']['color'] == 'green')
 # The user explicitly added green cards after the balanced 500-card proposal.
 # Targets are not caps: additions must not silently turn another card red.
-assert sum(counts.values()) == 503
+assert sum(counts.values()) == 504
 for area, metadata in areas.items():
     target = 25 if metadata['group'] == 'large' else 10
-    assert counts[area] == target + (area in {'Fine-grained complexity', 'Computational complexity', 'Graph algorithms'}), area
+    assert counts[area] == target + (area in {'Fine-grained complexity', 'Computational complexity', 'Graph algorithms', 'Distributed, parallel and sublinear algorithms'}), area
 for c in data['cards']:
     selection = c['selection']
     assert selection['color'] in {'green', 'red'}
