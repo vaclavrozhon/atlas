@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-503 five-sentence working summaries, based on saved source material.
+506 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (68)
+## Computational complexity (71)
 
 ### TCS-0001 — P versus NP
 
@@ -110,6 +110,13 @@ PPP contains total search problems guaranteed by the pigeonhole principle. Its c
 [Read in atlas](index.html#TCS-7530) · [On the Complexity of the Parity Argument and Other Inefficient Proofs of Existence](https://doi.org/10.1016/S0022-0000(05)80063-7) · [PPP-Completeness with Connections to Cryptography](https://arxiv.org/abs/1808.06407) · [TFNP in the Random Oracle Model](https://arxiv.org/abs/2611.05308)
 Existing status: `source_open` · Summary written: 2026-11-06
 
+### TCS-7531 — PPA versus FP
+
+PPA collects total search problems whose existence guarantee comes from undirected parity: the number of odd-degree vertices is even. Its complete Leaf problem describes a potentially exponential graph using a short circuit and asks for another leaf or an inconsistent neighbour declaration. FP means that a uniform deterministic polynomial-time algorithm can select a valid answer on every input. The question asks whether all PPA problems admit such algorithms when the complete circuit descriptions are available. Known completeness results for fair division and oracle-model lower bounds do not settle this ordinary-model question.
+
+[Read in atlas](index.html#TCS-7531) · [On the Complexity of the Parity Argument and Other Inefficient Proofs of Existence](https://doi.org/10.1016/S0022-0000(05)80063-7) · [The Classes PPA-k: Existence from Arguments Modulo k](https://arxiv.org/abs/1912.03729) · [The Complexity of Necklace Splitting, Consensus-Halving, and Discrete Ham Sandwich](https://doi.org/10.1137/20M1312678)
+Existing status: `source_open` · Summary written: 2026-11-06
+
 ### TCS-0016 — Exponential circuit lower bounds for 3-SAT
 
 The question asks whether n-variable 3-SAT requires Boolean circuits of size at least two to a positive constant times n at every sufficiently large n. Inputs are complete incidence vectors for all clauses of width at most three, giving Theta(n cubed) input bits. The circuit model permits every two-input Boolean gate, arbitrary sharing and independent nonuniform designs at each length. Known restricted-circuit lower bounds and randomized exponential-time improvements do not settle this unrestricted lower-bound target. A complete answer must prove the eventual exponential bound or its exact quantified negation in Lean.
@@ -165,6 +172,20 @@ Does every polynomial-space decision problem lie in the polynomial hierarchy? PH
 
 [Read in atlas](index.html#TCS-7158) · [Computational Complexity: A Modern Approach (Internet draft)](https://theory.cs.princeton.edu/complexity/book.pdf) · [Completeness in the Polynomial Hierarchy and PSPACE for many natural problems derived from NP](https://arxiv.org/abs/2602.12350) · [The SPARSE-Relativization Framework and Applications to Optimal Proof Systems](https://arxiv.org/abs/2602.02294)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7532 — Containment of PPAD in PLS
+
+PPAD captures directed parity search, while PLS captures search for a state whose proposed move does not improve a finite cost. The question asks whether every PPAD relation reduces to a PLS relation by uniform deterministic polynomial-time many-one search reductions. Equivalently, one must transform any End-of-Line instance into a Localopt instance and translate every Localopt solution back into an End-of-Line solution. The known identity CLS = PPAD ∩ PLS makes the proposed containment equivalent to CLS = PPAD. This asks for a relation between classes, independently of whether either class has polynomial-time solution algorithms.
+
+[Read in atlas](index.html#TCS-7532) · [On the Complexity of the Parity Argument and Other Inefficient Proofs of Existence](https://doi.org/10.1016/S0022-0000(05)80063-7) · [The Complexity of Gradient Descent: CLS = PPAD ∩ PLS](https://arxiv.org/abs/2011.01929) · [The Classes PPA-k: Existence from Arguments Modulo k](https://arxiv.org/abs/1912.03729)
+Existing status: `source_open` · Summary written: 2026-11-06
+
+### TCS-7533 — PPAD hardness from one-way functions
+
+A one-way function is efficiently computable but cannot be inverted with non-negligible success on uniformly random inputs by any uniform probabilistic polynomial-time algorithm. PPAD is the total-search class defined by polynomial-time reductions to the directed endpoint task End-of-Line. The question asks whether existence of a one-way function already implies that no uniform deterministic polynomial-time algorithm solves every End-of-Line instance. The requested conclusion concerns worst-case hardness and does not demand an efficiently samplable distribution of hard PPAD instances. Restricted black-box barriers and hardness in a random-oracle model do not settle this unrestricted ordinary-model implication.
+
+[Read in atlas](index.html#TCS-7533) · [TFNP in the Random Oracle Model](https://arxiv.org/abs/2611.05308) · [One-Way Functions vs. TFNP: Simpler and Improved](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.50) · [The Complexity of Gradient Descent: CLS = PPAD ∩ PLS](https://arxiv.org/abs/2011.01929)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0018 — P versus NP intersect coNP
 
