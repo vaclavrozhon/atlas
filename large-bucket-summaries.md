@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-497 five-sentence working summaries, based on saved source material.
+498 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (65)
+## Computational complexity (66)
 
 ### TCS-0001 — P versus NP
 
@@ -60,6 +60,13 @@ The polynomial hierarchy classifies decision languages by a fixed number of alte
 
 [Read in atlas](index.html#TCS-6532) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Polynomial-Time Hierarchy](https://research.ibm.com/publications/the-polynomial-time-hierarchy) · [The Polynomial Hierarchy, Random Oracles, and Boolean Circuits](https://www.cs.columbia.edu/~rocco/Public/sigact15.pdf) · [An Average-Case Depth Hierarchy Theorem for Boolean Circuits](https://arxiv.org/abs/1504.03398) · [Upper and Lower Bounds for the Linear Ordering Principle](https://eccc.weizmann.ac.il/report/2025/142/)
 Existing status: `source_open` · Summary written: 2026-09-14
+
+### TCS-7524 — NEXP versus coNEXP
+
+NEXP consists of languages accepted by a uniform nondeterministic machine in time exponential in a polynomial of the input length. coNEXP consists of the complements of those languages. The question is whether these two classes are equal. A complement machine may use a different fixed polynomial in its exponent, but it receives no advice or oracle. A complete Lean-checked proof of equality or unconditional separation is required.
+
+[Read in atlas](index.html#TCS-7524) · [Basic Complexity Theory](https://flolac.iis.sinica.edu.tw/2023/com_note.pdf) · [A Note on First-Order Spectra with Binary Relations](https://arxiv.org/abs/1706.08691v5) · [On the consistency of stronger lower bounds for NEXP](https://arxiv.org/html/2504.03320v4)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0020 — Polynomial-size circuits for EXP
 
