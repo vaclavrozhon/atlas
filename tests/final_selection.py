@@ -18,12 +18,12 @@ assert collections.Counter(a['group'] for a in areas.values()) == {'large': 10, 
 source = json.loads((ROOT / 'data/final_selection.json').read_text())
 assert set(source['cards']) == {c['id'] for c in data['cards']}
 counts = collections.Counter(c['area'] for c in data['cards'] if c['selection']['color'] == 'green')
-# The user explicitly added a green card after the balanced 500-card proposal.
-# Targets are not caps: adding it must not silently turn another card red.
-assert sum(counts.values()) == 501
+# The user explicitly added green cards after the balanced 500-card proposal.
+# Targets are not caps: additions must not silently turn another card red.
+assert sum(counts.values()) == 502
 for area, metadata in areas.items():
     target = 25 if metadata['group'] == 'large' else 10
-    assert counts[area] == target + (area == 'Fine-grained complexity'), area
+    assert counts[area] == target + (area in {'Fine-grained complexity', 'Computational complexity'}), area
 for c in data['cards']:
     selection = c['selection']
     assert selection['color'] in {'green', 'red'}
@@ -42,6 +42,10 @@ assert manifest['cards']['TCS-7523'] == {
     'color': 'green', 'area': 'Fine-grained complexity',
     'area_options': ['Fine-grained complexity', 'Algorithms & data structures'],
 }  # Explicit user addition: genuine subexponential Circuit-SAT.
+assert manifest['cards']['TCS-7524'] == {
+    'color': 'green', 'area': 'Computational complexity',
+    'area_options': ['Computational complexity'],
+}  # Explicit user addition: NEXP versus coNEXP.
 assert manifest['cards']['TCS-6168']['color'] == 'red'
 assert 'TCS-4786' in manifest['cards']['TCS-6168']['upvoted_red_reason']
 assert any(c['status'] == 'resolved' and c['selection']['color'] == 'green' for c in data['cards'])
