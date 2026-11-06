@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-498 five-sentence working summaries, based on saved source material.
+501 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (66)
@@ -2819,7 +2819,7 @@ The question asks how many real-valued reports are needed to recover an arbitrar
 [Read in atlas](index.html#TCS-0689) · [Open Problem: Property Elicitation and Elicitation Complexity](https://proceedings.mlr.press/v49/frongillo16.html) · [Elicitation Complexity of Statistical Properties](https://doi.org/10.1093/biomet/asaa093) · [Recent Trends in Information Elicitation](https://sigecom.org/exchanges/volume_22/1/FRONGILLO.pdf)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-## Cryptography and differential privacy (46)
+## Cryptography and differential privacy (49)
 
 ### TCS-0022 — One-way functions from \(\mathrm{P} \ne  \mathrm{NP}\)
 
@@ -2863,12 +2863,33 @@ Do classical one-way functions exist without an unproved hardness assumption? A 
 [Read in atlas](index.html#TCS-7167) · [The Tale of One-Way Functions](https://doi.org/10.1023/A:1023634616182) · [The Tale of One-way Functions](https://arxiv.org/abs/cs/0012023v5) · [On One-way Functions and Kolmogorov Complexity](https://eccc.weizmann.ac.il/report/2020/052/) · [A Sharp Characterization of Pessiland](https://eccc.weizmann.ac.il/report/2026/052/) · [Research Interests: Randomness and Computation](https://www.cs.bu.edu/fac/lnd/research/ps-r.htm)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-7526 — Exponential share-size lower bounds for perfect secret sharing
+
+Secret sharing distributes a secret so that prescribed groups can reconstruct it and all other groups learn nothing. The question asks whether some policy at every sufficiently large participant count forces a positive exponential number of bits in at least one share. The secret is one bit, and all finite, perfectly private schemes are allowed. Known exponential lower bounds for restricted schemes do not settle this unrestricted question. A resolution would identify a basic storage limit of information-theoretic access control.
+
+[Read in atlas](index.html#TCS-7526) · [Towards an Exponential Lower Bound for Secret Sharing](https://eprint.iacr.org/2019/174) · [Secret-Sharing Schemes for General Access Structures: An Introduction](https://eprint.iacr.org/2025/518) · [The Power of Multislices in Monotone Computation](https://eccc.weizmann.ac.il/report/2026/213/)
+Existing status: `source_open` · Summary written: 2026-11-06
+
 ### TCS-7168 — Existence of public-key encryption
 
 Can public-key encryption be proved computationally secure without an unproved hardness assumption? An efficient correct scheme with negligible IND-CPA advantage against every uniform classical PPT adversary, or a proof that none exists. Constructions from lattice and other hardness assumptions are known. No checked result proves an appropriate hardness assumption or establishes unconditional existence. Would give a mathematical foundation for secret communication using only an authenticated public key.
 
 [Read in atlas](index.html#TCS-7168) · [Foundations of Cryptography, Volume 2: Basic Applications](https://www.wisdom.weizmann.ac.il/~oded/foc-vol2.html) · [Encryption Schemes: draft chapter for Foundations of Cryptography](https://www.wisdom.weizmann.ac.il/~oded/PSBookFrag/enc.ps) · [On Lattices, Learning with Errors, Random Linear Codes, and Cryptography](https://cims.nyu.edu/~regev/papers/qcrypto.pdf) · [Post-Quantum Cryptography from Quantum Stabilizer Decoding](https://arxiv.org/abs/2603.19110)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7527 — Polylogarithmic communication for two-server private information retrieval
+
+A user wants one bit from a database replicated at two servers that do not communicate. Each individual server must learn nothing about which bit was requested. The question asks whether one round can use only a fixed power of the logarithm of the database size in total bits. Correctness and privacy are perfect, while local computation is unrestricted. The known subpolynomial protocols leave a substantial gap to this communication target.
+
+[Read in atlas](index.html#TCS-7527) · [2-Server PIR with sub-polynomial communication](https://arxiv.org/abs/1407.6692) · [Fourier Sparsity of Delta Functions and Matching Vector PIRs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.68) · [Exponentially Fewer-Server PIR from Sparser \(S\)-Decoding Polynomials](https://arxiv.org/abs/2607.22033)
+Existing status: `source_open` · Summary written: 2026-11-06
+
+### TCS-7528 — Sub-two-thirds exponent for random-function inversion
+
+Preprocessing sees a randomly chosen function and stores a short string before an inversion challenge arrives. The decoder then evaluates the function at adaptively chosen inputs and tries to find any preimage of the challenge. The question asks for a fixed positive improvement below exponent \(2/3\) in both advice length and oracle queries. Success is required on half the inputs for half the functions, with no restriction on preprocessing or local computation. This isolates a longstanding limit of generic cryptanalysis with preprocessing.
+
+[Read in atlas](index.html#TCS-7528) · [The Function-Inversion Problem: Barriers and Opportunities](https://people.eecs.berkeley.edu/~henrycg/pubs/function-inversion/) · [Lower Bounds on the Time/Memory Tradeoff of Function Inversion](https://arxiv.org/abs/2105.00761) · [Dynamic and Optimal Function Inversion in the Small-Time Regime](https://arxiv.org/abs/2609.20240)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0506 — Private PAC sample complexity from VC and Littlestone dimensions
 
