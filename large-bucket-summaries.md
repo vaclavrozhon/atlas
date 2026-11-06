@@ -553,19 +553,19 @@ Hypergraph isomorphism asks whether a relabeling of vertices makes two explicitl
 [Read in atlas](index.html#TCS-3346) · [Graph Isomorphism in Quasipolynomial Time Parameterized by Treewidth](https://doi.org/10.4230/LIPIcs.ICALP.2020.103)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-6783 — Optimal size of four-additive graph spanners
+### TCS-6783 — Four-additive spanners with four-thirds-power size
 
-An additive spanner keeps original graph edges while limiting the increase in every pairwise distance. This card fixes the increase to at most four and asks for the optimal worst-case number of edges. The target is the complete asymptotic function up to universal constant factors. The familiar candidate is \(n^{4/3}\), while recent constructions still have exponent \(7/5\) up to logarithmic factors. This gap is a fundamental unresolved regime of distance compression, and the variable-error linear-size tradeoff has its own card.
+A spanner retains a subset of graph edges while approximately preserving distances. This card permits an additive increase of at most four edges for every vertex pair. It asks whether the retained subgraph always needs only a constant times n to the four-thirds edges. Only original unweighted edges may be retained. The statement is an existence question independent of construction time.
 
 [Read in atlas](index.html#TCS-6783) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152) · [Finding 4-Additive Spanners: Faster, Stronger, and Simpler](https://arxiv.org/abs/2510.17262) · [The \(4/3\) Additive Spanner Exponent is Tight](https://arxiv.org/abs/1511.00700)
-Existing status: `source_open` · Summary written: 2026-09-12
+Existing status: `source_open` · Summary written: 2026-11-06
 
-### TCS-6785 — Optimal additive error of linear-size spanners
+### TCS-6785 — Additive-error exponent of linear-size spanners
 
-A linear-size spanner retains only a constant number of edges per vertex on average. For arbitrary graphs, this severe sparsity budget can force shortest paths to become longer. The source asks for the smallest additive error that can always be guaranteed under that budget. The error may grow with graph size, unlike a fixed additive approximation target. The project seeks matching constructions and lower bounds describing the exact amount of metric accuracy necessarily lost when a graph is compressed to linear edge count.
+A sparse subgraph can increase distances even when all connected components are preserved. The card fixes a constant multiple of the vertex count as the edge budget. It asks for the exponent of the smallest worst-case additive distance error. Every fixed budget coefficient has an answer to absolute accuracy 0.01. New edges and hidden logarithmic increases in the edge budget are not allowed.
 
-[Read in atlas](index.html#TCS-6785) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6785) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152) · [New Additive Spanner Lower Bounds by an Unlayered Obstacle Product](https://arxiv.org/abs/2207.11832) · [Almost-Optimal Sublinear Additive Spanners](https://arxiv.org/abs/2303.12768)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-1012 — Explicit binary codes with efficient list decoding up to capacity
 
@@ -709,12 +709,12 @@ Existing status: `open` · Summary written: 2026-09-12
 
 ## Automata and formal languages (40)
 
-### TCS-6558 — Maximum reset threshold of synchronizing automata
+### TCS-6558 — Černý conjecture
 
-A reset word drives a finite automaton to one common state regardless of its initial state. The target is the maximum shortest reset-word length among all complete synchronizing n-state automata. A real-valued approximation with Lean-certified absolute error at most 0.01 for every n meets the benchmark criterion. The Černý conjecture proposes the formula \((n- 1)^{2}\). Arbitrary finite alphabets are permitted, and no endpoint, connectivity or algorithmic restriction is added.
+A synchronizing automaton has an input word that sends all states to one common state. This word resets the system without observing its unknown initial state. The Černý conjecture bounds the shortest reset word by the square of one less than the number of states. The assertion covers every complete deterministic automaton and every finite alphabet. Known extremal examples explain the exact quadratic threshold.
 
 [Read in atlas](index.html#TCS-6558) · [Synchronizing Automata: Open Problems](https://arxiv.org/abs/2608.24245) · [Synchronization of finite automata](https://doi.org/10.4213/rm10005e) · [List of Results on the Černý Conjecture and Reset Thresholds for Synchronizing Automata](https://arxiv.org/abs/2508.15655) · [Improving the Upper Bound on the Length of the Shortest Reset Word](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2018.56) · [An Improvement to a Recent Upper Bound for Synchronizing Words of Finite Automata](https://doi.org/10.25596/jalc-2019-367) · [The Černý Conjecture for One-Cluster Automata via Annular Spectral Descent](https://arxiv.org/abs/2607.19675)
-Existing status: `source_open` · Summary written: 2026-09-12
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-6560 — Sakoda–Sipser problem
 
@@ -781,10 +781,10 @@ Existing status: `source_open` · Summary written: 2026-10-23
 
 ### TCS-0154 — Separating words problem
 
-The problem asks how many states a deterministic finite automaton needs to distinguish two binary words of the same length. For each length, take the hardest pair after choosing the smallest separating automaton separately for each pair. The numerical target is the infimum exponent for which that worst-case state count has a polynomial upper bound. A benchmark answer must locate this exponent within absolute error 0.01 with a Lean-checked proof. Determining the exponent does not require matching logarithmic factors or proving the source’s stronger logarithmic-state conjecture.
+Two distinct binary strings are given at the same length. A separating deterministic finite automaton must accept exactly one of them. The question asks whether a logarithmic number of states always suffices. The automaton may depend on both strings and has no restriction on other inputs. This is stronger than merely asking whether the polynomial growth exponent is zero.
 
 [Read in atlas](index.html#TCS-0154) · [Automata Exchange](https://automata.exchange/19.04-separating-words-problem/) · [Separating Words with Automata in the Half-adversarial Case](https://arxiv.org/abs/2608.28385) · [An Elementary Proof of the \(\widetilde O(n^{1/3})\) Bound for Separating Words](https://arxiv.org/abs/2609.08191)
-Existing status: `source_open` · Summary written: 2026-11-05
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0167 — Primitive words and context-freeness
 
@@ -814,12 +814,12 @@ A local rule updates every site of a two-sided infinite configuration. Surjectiv
 [Read in atlas](index.html#TCS-7409) · [Periodic Points for Onto Cellular Automata](https://www.math.umd.edu/~mboyle/papers/automata20oct98.pdf) · [Conservation of some dynamical properties for operations on cellular automata](https://doi.org/10.1016/j.tcs.2009.05.004)
 Existing status: `source_open` · Summary written: 2026-10-23
 
-### TCS-0128 — State complexity of complementing unambiguous automata
+### TCS-0128 — Exponential complementation lower bounds for unambiguous automata
 
-An unambiguous finite automaton has at most one accepting run for each word. For a binary alphabet, this card asks for the worst-case number of states in a smallest nondeterministic automaton accepting its complement. The input has at most n states, while the output may be ambiguous and may have multiple initial states. Known binary lower bounds are quasipolynomial and known general upper bounds are exponential; stronger unary results concern a different alphabet. The requested answer gives matching multiplicative constant-factor bounds on the state count, proved in Lean.
+An unambiguous automaton has at most one accepting run for each word. Its complement must accept exactly the words that the input automaton rejects. The card asks whether some binary inputs require exponentially many complement states at arbitrarily large sizes. The output is allowed to be an arbitrary nondeterministic automaton. The target concerns representation size rather than the time to build the complement.
 
 [Read in atlas](index.html#TCS-0128) · [Unambiguity in Automata Theory — Better bounds on complementing unambiguous automata](https://doi.org/10.4230/DagRep.11.10.57) · [A Superpolynomial Lower Bound for the Size of Non-Deterministic Complement of an Unambiguous Automaton](https://doi.org/10.4230/LIPIcs.ICALP.2018.138) · [Lower Bounds for Unambiguous Automata via Communication Complexity](https://arxiv.org/abs/2109.09155) · [On complementing unambiguous automata and graphs with many cliques and cocliques](https://doi.org/10.1016/j.ipl.2022.106270) · [Languages given by finite automata over the unary alphabet](https://doi.org/10.1016/j.jcss.2025.103634)
-Existing status: `source_open` · Summary written: 2026-09-13
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0146 — Polynomial-time universality for unambiguous context-free grammars
 
@@ -1826,12 +1826,12 @@ The input graph is also the communication network, and each edge carries at most
 [Read in atlas](index.html#TCS-6206) · [Detecting Cliques in CONGEST Networks](https://doi.org/10.4230/LIPIcs.DISC.2018.16) · [Tight Distributed Listing of Cliques](https://doi.org/10.1137/1.9781611976465.171) · [Detecting cliques in CONGEST networks](https://doi.org/10.1007/s00446-019-00368-w)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-7337 — Register space of obstruction-free set agreement
+### TCS-7337 — Sharp register lower bound for obstruction-free set agreement
 
-Each process proposes a value and must decide one of the values proposed by participating processes. At most k distinct values may be decided, and a process must finish if it continues alone long enough. The resource is the number of atomic read/write registers, whose individual capacities are unrestricted. Known bounds range from the ceiling of n/k to n-k+1; consensus and (n-1)-set agreement have exact values. The target is the full register-space function for all n>k>=1, with the atlas's pointwise 1/100-register acceptance tolerance.
+Set agreement lets processes decide at most k distinct values that were actually proposed. Obstruction-freedom guarantees completion when one process eventually runs alone. The question asks whether n minus k plus one shared registers are always necessary. It concerns one invocation, named processes and arbitrarily large read/write registers. The matching known upper bound makes this a sharp space conjecture.
 
 [Read in atlas](index.html#TCS-7337) · [Revisionist Simulations: A New Approach to Proving Space Lower Bounds](https://epubs.siam.org/doi/10.1137/20M1322923) · [Revisionist Simulations: A New Approach to Proving Space Lower Bounds (preprint)](https://arxiv.org/abs/1711.02455v5) · [Anonymous Obstruction-Free \((n,k)\)-Set Agreement with \(n-k+1\) Atomic Read/Write Registers](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2015.18) · [Solving Tasks with Fewer Registers Than Processes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2025.21) · [How Exhaustive Does an Extension-Based Proof Need to Be?](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2025.29)
-Existing status: `source_open` · Summary written: 2026-09-16
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0519 — Bipartite maximal matching with polynomial-in-degree volume
 
@@ -2222,12 +2222,12 @@ The input is an explicit finite crossing diagram of a tame knot. The question as
 [Read in atlas](index.html#TCS-6528) · [The Computational Complexity of Knot and Link Problems](https://arxiv.org/abs/math/9807016) · [A polynomial upper bound on Reidemeister moves](https://annals.math.princeton.edu/2015/182-2/p03) · [The efficient certification of knottedness and Thurston norm](https://arxiv.org/abs/1604.00290v3) · [Unknot recognition in quasi-polynomial time](https://www.maths.ox.ac.uk/node/60914) · [A Practical Algorithm for Knot Factorisation](https://drops.dagstuhl.de/storage/00lipics/lipics-vol332-socg2025/html/LIPIcs.SoCG.2025.55/LIPIcs.SoCG.2025.55.html) · [Incompressible surfaces, hierarchies and unknot recognition](https://arxiv.org/abs/2607.23350v1) · [Locally Minimal Bridge Presentations of Knots](https://arxiv.org/abs/2609.06492v1)
 Existing status: `uncertain` · Summary written: 2026-09-16
 
-### TCS-0318 — Planar k-set extremal function
+### TCS-0318 — Planar k-set growth exponent
 
-A planar k-set is a k-element subset strictly separated from the remaining points by a line. The extremal function maximizes the number of these subsets over n distinct points with no three collinear. The task is to determine one function within universal constant factors for every n and every k between one and half of n. Acceptance requires both a bound for all point sets and matching examples for every parameter pair. The checked general bounds and newer halving-line refinements still leave the asymptotic function unresolved.
+A planar k-set is a k-point subset that a line strictly separates from the remaining points. The point set has no three collinear points and otherwise arbitrary real coordinates. The card asks for the exponent of k after factoring out the linear number-of-points term. The exponent must be located within absolute error 0.01 using bounds uniform in both parameters. Exact counts and growing logarithmic factors are not part of the answer.
 
 [Read in atlas](index.html#TCS-0318) · [The Open Problems Project: Problem 7, k-sets](https://topp.openproblem.net/p7) · [Improved Bounds for Planar k-Sets and Related Problems](https://courses.cs.duke.edu/fall08/cps234/handouts/dey.pdf) · [Point Sets with Many k-Sets](https://link.springer.com/article/10.1007/s004540010022) · [An Improved, Simple Construction of Many Halving Edges](https://rangevoting.org/many_halving_edges.pdf) · [An Improvement of the Upper Bound for the Number of Halving Lines of Planar Sets](https://oa.upm.es/89576/1/10302927.pdf)
-Existing status: `source_open` · Summary written: 2026-09-16
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-6573 — Polynomial Hirsch conjecture
 
@@ -2236,12 +2236,12 @@ The polynomial Hirsch conjecture asks for a universal polynomial bound on the ed
 [Read in atlas](index.html#TCS-6573) · [Geometry: Combinatorics and Algorithms 2025 — Chapter 10, Convex Polytopes](https://ti.inf.ethz.ch/ew/courses/Geo25/lecture/gca25-10.pdf) · [A counterexample to the Hirsch Conjecture](https://annals.math.princeton.edu/2012/176-1/p07) · [An improved Kalai–Kleitman bound for the diameter of a polyhedron](https://arxiv.org/abs/1402.3579v2) · [An Asymptotically Improved Upper Bound on the Diameter of Polyhedra](https://link.springer.com/article/10.1007/s00454-018-0016-y) · [Computing the Polytope Diameter is Even Harder than NP-hard (Already for Perfect Matchings)](https://arxiv.org/abs/2502.16398v3) · [Circuit Diameter of Polyhedra is Strongly Polynomial](https://arxiv.org/abs/2602.06958v2) · [Any Proof of Polynomial Hirsch Must be Completely Incoherent](https://arxiv.org/abs/2607.11628v1)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-6529 — Optimal \(\ell_1\) distortion of planar Earth Mover Distance
+### TCS-6529 — Logarithmic \(\ell_1\) distortion lower bound for planar Earth Mover Distance
 
-Planar Earth Mover Distance measures the minimum cost of transporting unit mass between two distributions on a grid. The historical question asks for the asymptotically optimal distortion of a single embedding of the entire distribution space into ℓ1. Naor and Schechtman left a gap between square-root-logarithmic and logarithmic distortion in the grid side length. Gartland and Ostrovskii closed this gap with a logarithmic lower bound published at STOC 2026. The completed record explains why the result applies to the Euclidean grid and is retained in the archive as a resolved transport-embedding problem.
+Earth Mover Distance is the minimum cost of transporting one probability measure into another. The input measures live on a planar square grid with Euclidean transport costs. The question asks whether every embedding of the whole measure space into ell-one incurs at least logarithmic distortion. Arbitrary nonlinear embeddings and all real probability weights are permitted. The retained 2026 resolution proves this lower-bound target, whose Lean formalization remains a valid benchmark answer.
 
 [Read in atlas](index.html#TCS-6529) · [Planar Earthmover Is Not in \(L_1\)](https://doi.org/10.1137/05064206X) · [Lower Estimates for \(L_1\)-Distortion of Transportation Cost Spaces](https://doi.org/10.1145/3798129.3800785) · [\(L_1\)-distortion of Earth Mover Distances and Transportation Cost Spaces on High Dimensional Grids](https://arxiv.org/abs/2602.19434)
-Existing status: `resolved` · Summary written: 2026-09-13
+Existing status: `resolved` · Summary written: 2026-11-06
 
 ### TCS-6524 — Lang–Plaut problem
 
@@ -2250,12 +2250,12 @@ A doubling metric has uniformly limited local branching: each ball can be covere
 [Read in atlas](index.html#TCS-6524) · [Assouad’s theorem with dimension independent of the snowflaking](https://web.math.princeton.edu/~naor/homepage%20files/assouad-N%28K%29.pdf) · [Bilipschitz embeddings of metric spaces into space forms](https://doi.org/10.1023/A:1012093209450) · [A doubling subset of \(L_p\) for \(p>2\) that is inherently infinite dimensional](https://web.math.princeton.edu/~naor/homepage%20files/Lp-doubling.pdf)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-6526 — Optimal size of weak \(\varepsilon\)-nets for convex ranges
+### TCS-6526 — Weak \(\varepsilon\)-net size exponent
 
-A weak \(\varepsilon\)-net places auxiliary points so that every convex set containing at least an \(\varepsilon\) fraction of a given point set contains an auxiliary point. The auxiliary points may lie anywhere in the ambient Euclidean space. For each fixed dimension, the task is to determine the smallest worst-case net size as \(\varepsilon\) decreases. The challenge comes from hitting all sufficiently populated convex regions simultaneously, regardless of the original configuration. Sharp bounds would quantify how economically a finite set can represent its large convex subsets.
+A weak epsilon-net hits every convex set containing a sufficiently large fraction of the input points. Its chosen points may lie anywhere in Euclidean space. The question asks how the worst-case net size grows as a power of inverse accuracy. The exponent is requested to absolute error 0.01 in every fixed dimension. The target imposes no algorithmic construction requirement and ignores logarithmic factors.
 
-[Read in atlas](index.html#TCS-6526) · [An Improved Bound for Weak Epsilon-Nets in the Plane](https://arxiv.org/abs/1808.02686)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6526) · [An Improved Bound for Weak Epsilon-Nets in the Plane](https://arxiv.org/abs/1808.02686) · [Lower bounds for weak epsilon-nets and stair-convexity](https://arxiv.org/abs/0812.5039) · [Stronger Bounds for Weak Epsilon-Nets in Higher Dimensions](https://arxiv.org/abs/2104.12654v2)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-7242 — Decidability of PL four-sphere recognition
 
@@ -2271,12 +2271,12 @@ Binary edit distance counts unit-cost insertions, deletions and substitutions. O
 [Read in atlas](index.html#TCS-7297) · [Low Distortion Embeddings for Edit Distance](https://web.cs.ucla.edu/~rafail/PUBLIC/68.pdf) · [Improved lower bounds for embeddings into L1](https://www.wisdom.weizmann.ac.il/~robi/papers/KR-EmbedLB-SODA06.pdf)
 Existing status: `source_open` · Summary written: 2026-11-06
 
-### TCS-0403 — Euclidean minimum spanning tree complexity
+### TCS-0403 — Near-linear-time exact Euclidean minimum spanning trees
 
-A Euclidean minimum spanning tree connects the input points with minimum total edge length. The input gives coordinates, while the complete graph of candidate edges is implicit. The card asks for the optimal deterministic arithmetic running time in every fixed dimension at least three. Exact computation must be distinguished from approximation and from algorithms with predictions or random-input promises. A resolution would determine how much low-dimensional geometry can reduce the cost of this basic connectivity problem.
+A Euclidean minimum spanning tree connects the input points with minimum total edge length. The complete graph is implicit in the point coordinates. The question asks for exact computation in time equal to the number of points times a fixed power of its logarithm. The guarantee must hold deterministically in every fixed dimension at least three. Approximate trees and expected-time bounds alone do not meet this target.
 
 [Read in atlas](index.html#TCS-0403) · [The Open Problems Project: Euclidean Minimum Spanning Tree](https://topp.openproblem.net/p5) · [Euclidean minimum spanning trees and bichromatic closest pairs](https://doi.org/10.1007/BF02574698) · [Delaunay Triangulations with Predictions](https://arxiv.org/abs/2601.08106)
-Existing status: `source_open` · Summary written: 2026-09-14
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0406 — Dürer’s conjecture
 
@@ -2285,12 +2285,12 @@ The input is a convex three-dimensional polytope. Its faces may be separated onl
 [Read in atlas](index.html#TCS-0406) · [The Open Problems Project: Edge-Unfolding Convex Polyhedra](https://topp.openproblem.net/p9)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-0408 — Exact planar Euclidean matching
+### TCS-0408 — Near-linear-time exact planar Euclidean matching
 
-Given an even number of planar points, a perfect matching pairs every point with exactly one other point. The Euclidean objective minimizes the sum of the lengths of all chosen segments. The question is the optimal complexity of computing that minimum exactly, with bipartite matching as a related restricted variant. Approximation algorithms can exploit geometry differently and do not by themselves settle the exact problem. Sharper algorithms would improve a central geometric pairing primitive whose implicit complete graph contains quadratically many candidate edges.
+A perfect matching pairs every planar input point with one other point. Its objective is the sum of the ordinary Euclidean lengths of all pairs. The question asks for an exact deterministic algorithm in near-linear worst-case time. No red-blue bipartition or general-position promise is supplied. Squared lengths and approximate matchings define different objectives.
 
 [Read in atlas](index.html#TCS-0408) · [The Open Problems Project: Minimum Euclidean Matching in 2D](https://topp.openproblem.net/p6) · [A divide-and-conquer algorithm for min-cost perfect matching in the plane](https://homepage.divms.uiowa.edu/~kvaradar/paps/main-focs.pdf) · [Fast Approximation Algorithms for Euclidean Minimum Weight Perfect Matching](https://doi.org/10.1007/s00224-025-10254-7)
-Existing status: `source_open` · Summary written: 2026-09-13
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-6199 — Decidability of contractibility for finite two-dimensional complexes
 
@@ -2341,12 +2341,12 @@ An oblivious subspace embedding chooses a random linear map without knowing the 
 [Read in atlas](index.html#TCS-7006) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357v3) · [Optimal Oblivious Subspace Embeddings with Near-Optimal Sparsity](https://doi.org/10.4230/LIPIcs.ICALP.2025.55) · [Optimal Subspace Embeddings: Resolving Nelson-Nguyen Conjecture Up to Sub-Polylogarithmic Factors](https://arxiv.org/abs/2508.14234v2)
 Existing status: `source_open` · Summary written: 2026-09-15
 
-### TCS-7184 — Klee’s measure problem
+### TCS-7184 — Klee’s measure running-time exponent
 
-Klee’s measure problem asks for the volume covered by a union of axis-aligned boxes. Overlapping regions count once, and only the exact total volume is required. For each fixed dimension at least three, the question seeks matching worst-case time bounds in a specified arithmetic real-RAM model. Chan’s general upper bound is \(O(n^{d/2})\), with no matching unconditional classification supplied by the checked later work. Recent approximation and dynamic advances answer different questions.
+Klee’s measure problem computes the volume covered by a union of axis-aligned boxes. Overlaps count once, and the requested volume is exact. The card asks for the optimal deterministic running-time exponent in every fixed dimension at least three. Each exponent must be certified to absolute error 0.01. Logarithmic factors and a fastest algorithm attaining the infimum are not required.
 
-[Read in atlas](index.html#TCS-7184) · [Klee's measure problem made easy](https://doi.org/10.1109/FOCS.2013.51) · [Approximating Klee’s Measure Problem and a Lower Bound for Union Volume Estimation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2025.25) · [Near-Optimal Dynamic Data Structures for Maximum Depth and Klee’s Measure of Boxes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.34)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-7184) · [Klee's measure problem made easy](https://doi.org/10.1109/FOCS.2013.51) · [Wikipedia: Klee's measure problem](https://en.wikipedia.org/wiki/Klee%27s_measure_problem) · [Wikipedia revision used for discovery](https://en.wikipedia.org/w/index.php?oldid=1321323809) · [Approximating Klee’s Measure Problem and a Lower Bound for Union Volume Estimation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2025.25) · [Near-Optimal Dynamic Data Structures for Maximum Depth and Klee’s Measure of Boxes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.34)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0382 — General unfolding of nonconvex polyhedra
 
@@ -2588,12 +2588,12 @@ The question asks whether SAT reduces to agnostic learning of general polynomial
 [Read in atlas](index.html#TCS-1573) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34) · [Non-Levin NP-Hardness of Implicit MCSP and PAC Learning under Few Assumptions](https://eccc.weizmann.ac.il/report/2026/091/)
 Existing status: `source_open` · Summary written: 2026-09-14
 
-### TCS-4592 — Time complexity of Gaussian agnostic halfspace learning
+### TCS-4592 — Quasipolynomial accuracy exponent for Gaussian agnostic halfspace learning
 
-The card asks for optimal dimension and accuracy dependence when matching the best affine halfspace under Gaussian inputs. It preserves the original deterministic Boolean target-function model and permits any finite evaluable predictor. The statement explicitly counts exact real-arithmetic sampling, computation, output and evaluation and distinguishes this from finite-bit complexity. Modern statistical-query, cryptographic and proper-learning results have different assumptions or interfaces whose transfer is not silently presumed. A Lean resolution must characterize the attainable uniform time rates with matching bounds under the same label, resource and parameter conventions.
+The learner receives Gaussian examples labeled by an arbitrary fixed Boolean function. Its predictor must perform almost as well as the best affine halfspace. The question asks whether the dimension exponent can grow only logarithmically with inverse excess error. Training and prediction evaluation are both charged in the specified real-arithmetic model. Statistical-query restrictions or general stochastic labels cannot silently replace this model.
 
 [Read in atlas](index.html#TCS-4592) · [Embedding Hard Learning Problems Into Gaussian Space](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.793) · [The Optimality of Polynomial Regression for Agnostic Learning under Gaussian Marginals in the SQ Model](https://proceedings.mlr.press/v134/diakonikolas21c.html) · [Near-Optimal Cryptographic Hardness of Agnostically Learning Halfspaces and ReLU Regression under Gaussian Marginals](https://proceedings.mlr.press/v202/diakonikolas23b.html) · [Proper Agnostic Learning of Functions of Halfspaces under Gaussian Marginals](https://arxiv.org/abs/2605.27594) · [Near-Optimal Cryptographic Hardness of Learning With Homogeneous Halfspaces Under Gaussian Marginals](https://arxiv.org/abs/2604.26446)
-Existing status: `uncertain` · Summary written: 2026-09-16
+Existing status: `uncertain` · Summary written: 2026-11-06
 
 ### TCS-5088 — Fully polynomial learning of halfspace intersections under Gaussian and uniform inputs
 
@@ -2616,12 +2616,12 @@ One threshold is efficiently learnable from labeled examples, but the target her
 [Read in atlas](index.html#TCS-7293) · [The Intersection of Two Halfspaces Has High Threshold Degree](https://web.cs.ucla.edu/~sherstov/pdf/hshs.pdf) · [Improved Hardness Results for Learning Intersections of Halfspaces](https://theoretics.episciences.org/18105) · [Learning Functions of Halfspaces](https://arxiv.org/abs/2603.08700v2)
 Existing status: `source_open` · Summary written: 2026-09-13
 
-### TCS-2336 — Optimal multiclass regret versus Littlestone dimension
+### TCS-2336 — Square-root multiclass regret from Littlestone dimension
 
-An online learner predicts a label distribution and then sees the correct label on each round. Regret compares its expected cumulative mistakes with the best fixed hypothesis on the same sequence. The card asks for the worst minimax regret among all classes of Littlestone dimension at most d, including infinite label spaces. The general upper and lower bounds differ by a square-root logarithm, while the sharper finite-label theorem needs an extra regularity condition. A complete Lean answer must give matching universal bounds on the two-parameter regret function under the unrestricted model.
+An online learner predicts a label and then observes the correct one. Regret compares its expected mistakes with the best fixed hypothesis in hindsight. Littlestone dimension measures the depth of binary prediction trees realizable by the class. The question asks for a universal square-root dimension-times-horizon regret bound. The constant cannot grow with the number of labels, even for infinite label spaces.
 
 [Read in atlas](index.html#TCS-2336) · [Multiclass Online Learning and Uniform Convergence](https://proceedings.mlr.press/v195/hanneke23b.html) · [Topics in Learning Theory: Prediction, Estimation, and Partial Information](https://www.ambujtewari.com/theses/Vinod_Raman_Thesis_2025.pdf) · [Regret-Oracle Complexity Tradeoffs in Agnostic Online Learning](https://arxiv.org/abs/2605.07155)
-Existing status: `source_open` · Summary written: 2026-09-16
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-5011 — Algorithmic threshold for the symmetric binary perceptron
 
