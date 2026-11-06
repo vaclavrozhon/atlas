@@ -96,3 +96,8 @@ It introduces no database migration, API change or access change. Public
 editing, card revisions and retry behavior remain in place.
 
 Validation and production identifiers are recorded in `verification.json`.
+
+Subsequent owner instruction: TCS-7174 was changed again to a numerical
+logarithmic-overhead exponent in time n (log n)^a, to absolute accuracy 0.01.
+That follow-up is recorded in `../integer-multiplication-exponent-20261106/`;
+the counts and decisions above describe the original published batch.

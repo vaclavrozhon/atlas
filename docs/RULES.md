@@ -114,6 +114,13 @@ This records the user's clarification of 5 November and explicit Excluded Grid
 instruction of 6 November 2026. TCS-0154 subsequently returned to its sourced
 logarithmic-state conjecture under the binary-target instruction.
 
+The owner subsequently selected a logarithmic exponent for integer
+multiplication, TCS-7174: the infimum of a >= 0 for which some single uniform
+deterministic multitape machine has worst-case time O(n (log n)^a), to absolute
+1/100 accuracy. Retain the linear input/output factor n. Do not read this as
+polylogarithmic total running time, require attainment of the infimum, or
+substitute the earlier below-n-log-n binary question for this explicit target.
+
 When no natural binary endpoint is available, retain the numerical optimum
 with absolute 1/100 accuracy instead of inventing an intermediate threshold.
 For polynomial growth, prefer a clearly defined finite exponent to an entire
