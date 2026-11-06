@@ -1,141 +1,72 @@
-/* Public notes use the Atlas notes service; problem proposals remain on GitHub. */
+/* New public comments are isolated from archived feedback and private drafts. */
 (() => {
   'use strict';
   const repository='vaclavrozhon/atlas';
   const github=`https://github.com/${repository}`;
-  const api=`https://api.github.com/repos/${repository}/issues`;
-  const notesAPI='https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/notes';
+  const notesAPI='https://atlas-public-notes.vaclavrozhon.chatgpt.site/api/comments';
   const data=window.TCS_ATLAS;
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
   const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}};
   const draftKey='tcs-atlas-contribution-drafts';
-  const cacheKey='tcs-atlas-community-cache-v1';
-  const notesCacheKey='tcs-atlas-public-notes-cache-v1';
-  const ownershipKey='tcs-atlas-note-ownership-v1';
-  const savedCache=read(cacheKey,{});
-  let anonymousNotes=read(notesCacheKey,[]),ownership=read(ownershipKey,{}),githubContributions=[];
+  const notesCacheKey='tcs-atlas-public-comments-cache-v1';
+  const ownershipKey='tcs-atlas-comment-ownership-v1';
+  let anonymousNotes=read(notesCacheKey,[]),ownership=read(ownershipKey,{});
   if(!Array.isArray(anonymousNotes))anonymousNotes=[];
   anonymousNotes=anonymousNotes.filter(validNote);
   if(!ownership||typeof ownership!=='object'||Array.isArray(ownership))ownership={};
   let drafts=read(draftKey,{});
   if(!drafts||typeof drafts!=='object'||Array.isArray(drafts))drafts={};
   let contributions=[],loadedAt=0,loading=false,lastAttempt=0,current=null,posting=false,notesRevision=0;
-  let displayed=20;
+  let notesStatus='Loading comments…';
+  const commentsEnabled=()=>data.meta.public_comments===true;
   const openThreads=new Set();
   const fields=['title','category','statement','sources'];
   const sectionNames={statement:'Problem statement',definitions:'Definitions and model',answer:'What would settle it?',why:'Why it matters',sources:'Sources'};
 
-  function sections(body){
-    const result={};
-    const parts=body.split(/^### (Problem statement|Definitions and model|What would settle it\?|Why it matters|Sources)\s*$/m);
-    for(let i=1;i<parts.length;i+=2){
-      const key=Object.keys(sectionNames).find(key=>sectionNames[key]===parts[i]);
-      if(key)result[key]=(result[key]?result[key]+'\n\n':'')+parts[i+1].trim();
-    }
-    return result;
-  }
-  function parseIssue(issue){
-    if(!issue||issue.pull_request||issue.state!=='open'||!Number.isSafeInteger(issue.number)||issue.number<=0||typeof issue.body!=='string')return null;
-    const body=issue.body.replace(/\r\n/g,'\n');
-    const marker=body.match(/^<!-- atlas-(note|problem):v1 ([A-Za-z0-9-]+) -->\n/);
-    if(!marker)return null;
-    const base={number:issue.number,url:`${github}/issues/${issue.number}`,author:String(issue.user?.login||'Unknown contributor'),created_at:issue.created_at,updated_at:issue.updated_at,original_body:issue.body};
-    const text=body.slice(marker[0].length).trim();
-    if(marker[1]==='note')return /^(TCS-\d{4,}|GH-\d+)$/.test(marker[2])&&text?{...base,kind:'note',problem_id:marker[2],text}:null;
-    const values=sections(text);
-    const title=String(issue.title||'').replace(/^\[Problem\]\s*/, '').trim();
-    return title&&values.statement?{...base,kind:'problem',id:`GH-${issue.number}`,title,category:marker[2],...values}:null;
-  }
-  function adopt(issues,time){
-    githubContributions=issues.map(parseIssue).filter(Boolean);
-    combine();
-    loadedAt=time;
-  }
   function validNote(note){return note&&typeof note.id==='string'&&/^[0-9a-f-]{36}$/i.test(note.id)&&/^(TCS-\d{4,}|GH-\d+)$/.test(note.problem_id)&&typeof note.text==='string'&&typeof note.author==='string';}
-  function combine(){contributions=[...githubContributions,...anonymousNotes.map(note=>({...note,kind:'note',source:'direct'}))];}
+  function combine(){contributions=anonymousNotes.map(note=>({...note,kind:'note',source:'direct'}));}
   combine();
-  if(Array.isArray(savedCache.issues)&&Number.isFinite(savedCache.loadedAt))adopt(savedCache.issues,savedCache.loadedAt);
-  const categoryLabel=id=>data.areas.find(area=>area.id===id)?.label||'Category awaiting review';
-  const problem=id=>data.cards.find(card=>card.id===id)||contributions.find(item=>item.kind==='problem'&&item.id===id);
+  const problem=id=>data.cards.find(card=>card.id===id);
   const date=value=>{const parsed=new Date(value);return Number.isNaN(parsed.valueOf())?'':parsed.toLocaleDateString('en',{year:'numeric',month:'short',day:'numeric'});};
-  const byAuthor=item=>item.source==='direct'?`${esc(item.author)} · ${esc(date(item.created_at))} <span title="No account is required; names are not verified.">· unverified</span>`:`<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.author)} · ${esc(date(item.created_at))} ↗</a>`;
+  const byAuthor=item=>`${esc(item.author)} · ${esc(date(item.created_at))} <span title="No account is required; names are not verified.">· unverified</span>`;
 
-  function reviewFor(item){
-    const source=item.source==='direct'?'direct':'github',id=source==='direct'?item.id:String(item.number);
-    const original=source==='direct'?item.text:item.original_body;
-    for(const card of data.cards){
-      if(['resolved','excluded'].includes(card.status))continue;
-      const review=card.community_reviews?.find(review=>review.source===source&&review.id===id&&review.original_problem_id===(item.kind==='problem'?item.id:item.problem_id)&&review.original_text===original);
-      if(review)return {card,review};
-    }
-    return null;
-  }
-  function reviewHTML(item){
-    const result=reviewFor(item);if(!result)return '';
-    const {card,review}=result;
-    return `<p class="community-review"><strong>[${esc(review.status)}]</strong> ${esc(review.response)} <span class="small">Editorial review · ${esc(date(review.reviewed_on))} · <a href="#${esc(card.id)}">${esc(card.id)}</a></span></p>`;
-  }
   function notesContent(id){
-    if(data.meta.community_public===false)return '';
-    const notes=contributions.filter(item=>item.kind==='note'&&(item.problem_id===id||reviewFor(item)?.card.id===id));
-    if(!notes.length)return '';
-    return `<details class="community-thread" data-thread="${esc(id)}" ${openThreads.has(id)?'open':''}><summary>Public notes (${notes.length})</summary>${notes.map(item=>`<article class="public-note"><p class="public-note-author">${byAuthor(item)}${item.problem_id!==id?` · Originally on ${esc(item.problem_id)}`:''}</p><p class="public-note-text">${esc(item.text)}</p>${reviewHTML(item)}${item.source==='direct'?(ownership[item.id]?`<button type="button" class="text-button" data-delete-note="${esc(item.id)}">Delete my note</button>`:''):`<a class="small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Reply or edit on GitHub ↗</a>`}</article>`).join('')}</details>`;
+    const notes=contributions.filter(item=>item.problem_id===id);
+    return `<details class="community-thread" data-thread="${esc(id)}" ${openThreads.has(id)?'open':''}><summary>Comments (${notes.length})</summary>${notes.length?notes.map(item=>`<article class="public-note"><p class="public-note-author">${byAuthor(item)}</p><p class="public-note-text">${esc(item.text)}</p>${ownership[item.id]?`<button type="button" class="text-button" data-delete-note="${esc(item.id)}">Delete my comment</button>`:''}</article>`).join(''):'<p class="small muted">No public comments yet.</p>'}</details><div class="comment-actions"><button type="button" data-public-note="${esc(id)}">Add comment</button><button type="button" class="text-button" data-refresh-notes ${loading?'disabled':''}>Refresh comments</button></div>${notesStatus?`<p class="small muted comment-status" role="status">${esc(notesStatus)}</p>`:''}`;
   }
-  function notesHTML(id){if(data.meta.community_public===false)return '';return `<div class="public-notes" data-public-notes="${esc(id)}">${notesContent(id)}</div>`;}
+  function notesHTML(id){return commentsEnabled()?`<section class="public-notes" aria-label="Public comments" data-public-notes="${esc(id)}">${notesContent(id)}</section>`:'';}
   function render(){
-    if(data.meta.community_public===false){$('community').hidden=true;return;}
-    const problems=contributions.filter(item=>item.kind==='problem');
-    $('community-count').textContent=problems.length?`(${problems.length})`:'';
-    $('community-problem-count').textContent=`(${problems.length})`;
-    $('community-problems').innerHTML=problems.length?problems.slice(0,displayed).map(item=>`<article class="community-problem" id="${item.id}"><div class="card-meta"><span>${item.id}</span><span>${reviewFor(item)?'Reviewed community proposal':'Community draft · not reviewed'}</span><span>${esc(categoryLabel(item.category))}</span></div><h2>${esc(item.title)}</h2>${window.ATLAS_VOTES?.html(item.id)||''}<p class="community-author">${byAuthor(item)}</p><p class="community-statement">${esc(item.statement)}</p>${Object.keys(sectionNames).filter(key=>key!=='statement'&&item[key]).map(key=>`<section><h3>${esc(sectionNames[key])}</h3><p class="community-text">${esc(item[key])}</p></section>`).join('')}${reviewHTML(item)}${notesHTML(item.id)}<div class="community-actions"><button type="button" data-public-note="${item.id}">Add public note</button><a href="${item.url}" target="_blank" rel="noopener noreferrer">Discuss or edit on GitHub ↗</a></div></article>`).join('')+(problems.length>displayed?'<button type="button" id="more-community">Load more community problems</button>':''):`<p class="community-empty">${loadedAt?'No community problems have been submitted yet. Use “New problem” to add the first one.':'Shared problems will appear here after contributions load.'}</p>`;
-    for(const slot of document.querySelectorAll('[data-public-notes]'))slot.innerHTML=notesContent(slot.dataset.publicNotes);
-    revealHash();
+    for(const slot of document.querySelectorAll('[data-public-notes]'))slot.innerHTML=commentsEnabled()?notesContent(slot.dataset.publicNotes):'';
   }
-  function status(text){$('community-status').textContent=text;}
   async function refresh(force=false){
-    if(data.meta.community_public===false)return;
-    if(loading)return;
+    if(!commentsEnabled()||loading)return;
     if(!force&&Date.now()-lastAttempt<60000)return;
-    if(!force&&loadedAt&&Date.now()-loadedAt<300000){status(`Shared contributions checked ${new Date(loadedAt).toLocaleString('en')}.`);return;}
-    if(location.protocol==='file:'){status('Offline snapshot. Public contributions saved in this browser are shown; use the online atlas to refresh them.');return;}
-    loading=true;lastAttempt=Date.now();$('refresh-community').disabled=true;status('Loading shared contributions…');
-    const results=await Promise.allSettled([(async()=>{
-      const issues=[];
-      for(let page=1;;page++){
-        const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
-        try{
-          const response=await fetch(`${api}?state=open&sort=created&direction=desc&per_page=100&page=${page}`,{headers:{Accept:'application/vnd.github+json'},signal:controller.signal});
-          if(!response.ok)throw new Error(response.status===403||response.status===429?'GitHub’s request limit was reached.':'GitHub is currently unavailable.');
-          const batch=await response.json();if(!Array.isArray(batch))throw new Error('GitHub returned an unexpected response.');
-          issues.push(...batch);
-          if(!/rel="next"/.test(response.headers.get('link')||''))break;
-        }finally{clearTimeout(timeout);}
-      }
-      const kept=issues.filter(issue=>parseIssue(issue));
-      adopt(kept,Date.now());write(cacheKey,{loadedAt,issues:kept});render();
-    })(),(async()=>{
+    if(!force&&loadedAt&&Date.now()-loadedAt<300000)return;
+    if(location.protocol==='file:'){notesStatus='Offline snapshot. Saved public comments are shown; use the online atlas to refresh them.';render();return;}
+    loading=true;lastAttempt=Date.now();notesStatus='Loading comments…';render();
+    try{
       const notes=[],revision=notesRevision;
       let before=null;
       do{
         const result=await notesRequest(before?`?before=${before}`:'');
-        if(!Array.isArray(result.notes)||!result.notes.every(validNote)||!(result.next===null||Number.isSafeInteger(result.next)&&result.next>0&&(!before||result.next<before)))throw new Error('The notes service returned an unexpected response.');
+        if(!Array.isArray(result.notes)||!result.notes.every(validNote)||!(result.next===null||Number.isSafeInteger(result.next)&&result.next>0&&(!before||result.next<before)))throw new Error('The comments service returned an unexpected response.');
         notes.push(...result.notes);before=result.next;
       }while(before);
-      // A refresh started before a submission must not hide the newly posted note.
-      if(revision===notesRevision){anonymousNotes=notes;write(notesCacheKey,notes);combine();render();}
-    })()]);
-    const failures=results.map((result,index)=>result.status==='rejected'?(index===0?'GitHub contributions':'Public notes')+': '+(result.reason.name==='AbortError'?'The request timed out.':result.reason.message):'').filter(Boolean);
-    status(failures.length?failures.join(' ')+' Previously saved contributions are still shown. Try refreshing later.':`Shared contributions checked ${new Date().toLocaleString('en')}.`);
-    loading=false;$('refresh-community').disabled=false;
+      // A refresh started before a submission must not hide the newly posted comment.
+      if(revision===notesRevision){anonymousNotes=notes;write(notesCacheKey,notes);combine();}
+      loadedAt=Date.now();notesStatus='';
+    }catch(error){
+      notesStatus=(error.name==='AbortError'?'Loading comments timed out.':error.message)+' Saved comments are still shown. Try refreshing again.';
+    }finally{loading=false;render();}
   }
   async function notesRequest(path='',options={}){
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
     try{
       const response=await fetch(notesAPI+path,{...options,credentials:'omit',signal:controller.signal,headers:{'Content-Type':'application/json',...options.headers}});
-      let result;try{result=await response.json();}catch{throw new Error('The notes service is currently unavailable.');}
-      if(!response.ok)throw Object.assign(new Error(result.error||'The notes service is currently unavailable.'),{status:response.status});
+      let result;try{result=await response.json();}catch{throw new Error('The comments service is currently unavailable.');}
+      if(!response.ok)throw Object.assign(new Error(result.error||'The comments service is currently unavailable.'),{status:response.status});
       return result;
     }finally{clearTimeout(timeout);}
   }
@@ -152,10 +83,10 @@
     $('proposal-category').value=selected||'';
   }
   function open(kind,id){
-    if(posting||(kind==='note'&&data.meta.community_public===false))return;
+    if(posting||(kind==='note'&&!commentsEnabled()))return;
     const target=kind==='note'?problem(id):null;
     if(kind==='note'&&!target)return;
-    current={kind,id,key:kind==='note'?`note:${id}`:'problem'};
+    current={kind,id,key:kind==='note'?`comment:${id}`:'problem'};
     const draft={...(drafts[current.key]||{})};
     // Fold previously saved optional fields into the statement so the shorter
     // form does not lose any unfinished contribution. Saving replaces the old shape.
@@ -163,9 +94,9 @@
       const extra=['definitions','answer','why'].filter(key=>draft[key]).map(key=>`${sectionNames[key]}:\n${draft[key]}`);
       draft.statement=[draft.statement,...extra].filter(Boolean).join('\n\n');
     }
-    $('contribution-title').textContent=kind==='note'?'Add a public note':'New problem';
-    $('contribution-help').textContent=kind==='note'?'Post a public note directly — no account needed. Your name is optional. You can delete your note from this browser; moderators can remove unsuitable notes.':'This contribution will be public. Continue to GitHub to sign in and submit it. Your draft is saved in this browser and kept until you discard it.';
-    $('submit-contribution').textContent=kind==='note'?'Post note':'Continue on GitHub ↗';
+    $('contribution-title').textContent=kind==='note'?'Add a public comment':'New problem';
+    $('contribution-help').textContent=kind==='note'?'Post a public comment directly — no account needed. Your name is optional. You can delete your comment from this browser; moderators can remove unsuitable comments.':'This contribution will be public. Continue to GitHub to sign in and submit it. Your draft is saved in this browser and kept until you discard it.';
+    $('submit-contribution').textContent=kind==='note'?'Post comment':'Continue on GitHub ↗';
     $('problem-fields').hidden=kind!=='problem';$('public-note-fields').hidden=kind!=='note';
     $('contribution-target').hidden=!target;$('contribution-target').textContent=target?`${id} · ${target.title}`:'';
     for(const key of fields){const el=$(`proposal-${key}`);el.disabled=kind!=='problem';el.required=kind==='problem'&&['title','category','statement'].includes(key);if(key!=='category')el.value=String(draft[key]||'');}
@@ -174,7 +105,7 @@
     $('public-note-author').disabled=kind!=='note';$('public-note-author').value=String(draft.author||'');
     $('public-note-website').disabled=kind!=='note';$('public-note-website').value='';
     $('contribution-result').textContent='';$('long-contribution').hidden=true;$('refresh-after-submission').hidden=true;
-    $('contribution-draft-status').textContent=drafts[current.key]?'Your saved draft has been restored.':kind==='note'?'Nothing is published until you click “Post note”.':'Nothing is published until you submit on GitHub.';
+    $('contribution-draft-status').textContent=drafts[current.key]?'Your saved draft has been restored.':kind==='note'?'Nothing is published until you click “Post comment”.':'Nothing is published until you submit on GitHub.';
     $('contribution-dialog').showModal();(kind==='note'?$('public-note-text'):$('proposal-title')).focus();
   }
   function submission(){
@@ -196,7 +127,7 @@
     const pending=draft.pending;
     ownership[pending.id]=pending.edit_token;
     if(!write(draftKey,drafts)||!write(ownershipKey,ownership)){
-      $('contribution-result').textContent='Enable browser storage before posting so you can retry safely and delete your note. Your text is still in the form.';return;
+      $('contribution-result').textContent='Enable browser storage before posting so you can retry safely and delete your comment. Your text is still in the form.';return;
     }
     posting=true;
     const controls=[...$('contribution-form').querySelectorAll('button,input,textarea,select')].filter(el=>!el.disabled);
@@ -204,8 +135,8 @@
     $('contribution-result').textContent='';
     try{
       const result=await notesRequest('',{method:'POST',body:JSON.stringify({...pending,website:$('public-note-website').value})});
-      if(!validNote(result.note)||result.note.id!==pending.id)throw new Error('Could not confirm the saved note. Please retry.');
-      anonymousNotes=[result.note,...anonymousNotes.filter(note=>note.id!==result.note.id)];notesRevision++;
+      if(!validNote(result.note)||result.note.id!==pending.id)throw new Error('Could not confirm the saved comment. Please retry.');
+      anonymousNotes=[result.note,...anonymousNotes.filter(note=>note.id!==result.note.id)];notesRevision++;notesStatus='';
       write(notesCacheKey,anonymousNotes);combine();openThreads.add(problemId);render();
       if(draft.text===pending.text&&draft.author===pending.author){
         delete drafts[key];write(draftKey,drafts);$('contribution-dialog').close();
@@ -219,7 +150,7 @@
       if(rejected){delete draft.pending;write(draftKey,drafts);}
       $('contribution-result').textContent=(error.name==='AbortError'?'The request timed out.':error.message)+(rejected?' Your draft is kept.':' Your draft is kept. Retry to check and complete the same submission.');
     }finally{
-      posting=false;controls.forEach(el=>el.disabled=false);$('submit-contribution').textContent='Post note';
+      posting=false;controls.forEach(el=>el.disabled=false);$('submit-contribution').textContent='Post comment';
     }
   }
   $('contribution-form').addEventListener('submit',async event=>{
@@ -230,7 +161,7 @@
     if(!$('contribution-form').reportValidity())return;
     if(current.kind==='note'){await postNote();return;}
     saveDraft();const draft=submission(),url=issueURL(draft.title,draft.body);
-    $('refresh-after-submission').hidden=data.meta.community_public===false;
+    $('refresh-after-submission').hidden=true;
     if(url.length>7500){$('contribution-copy-text').value=draft.body;$('open-long-contribution').href=issueURL(draft.title);$('long-contribution').hidden=false;$('long-contribution').scrollIntoView({block:'nearest'});return;}
     window.open(url,'_blank','noopener,noreferrer');
     $('contribution-result').textContent='Finish by clicking “Submit new issue” on GitHub. Your draft is kept until you discard it.';
@@ -242,10 +173,6 @@
   };
   $('close-contribution').onclick=()=>$('contribution-dialog').close();
   $('contribution-dialog').addEventListener('cancel',event=>{if(posting)event.preventDefault();});
-  $('refresh-after-submission').onclick=async()=>{
-    const kind=current.kind;$('contribution-dialog').close();await refresh(true);
-    if(kind==='problem'){$('community').open=true;$('community').scrollIntoView({block:'start'});}
-  };
   $('discard-contribution').onclick=()=>{
     if(!confirm('Discard this saved draft?'))return;
     const previous=drafts[current.key];delete drafts[current.key];
@@ -253,42 +180,28 @@
     $('contribution-dialog').close();
   };
   $('new-problem').onclick=()=>open('problem');
-  $('refresh-community').onclick=()=>refresh(true);
   document.addEventListener('click',async event=>{
     const note=event.target.closest('[data-public-note]');if(note)open('note',note.dataset.publicNote);
+    if(event.target.closest('[data-refresh-notes]'))await refresh(true);
     const remove=event.target.closest('[data-delete-note]');
-    if(remove&&confirm('Delete this public note?')){
+    if(remove&&confirm('Delete this public comment?')){
       const id=remove.dataset.deleteNote;remove.disabled=true;
       try{
         await notesRequest('/'+id,{method:'DELETE',headers:{Authorization:'Bearer '+ownership[id]}});
         anonymousNotes=anonymousNotes.filter(note=>note.id!==id);notesRevision++;delete ownership[id];
         write(ownershipKey,ownership);write(notesCacheKey,anonymousNotes);combine();render();
-      }catch(error){remove.disabled=false;alert('Could not delete the note. '+error.message);}
+      }catch(error){remove.disabled=false;alert('Could not delete the comment. '+error.message);}
     }
     if(event.target.closest('[data-new-problem]'))open('problem');
-    if(event.target.closest('#more-community')){displayed+=20;render();}
   });
   document.addEventListener('toggle',event=>{
     const id=event.target.dataset?.thread;if(!id)return;
     event.target.open?openThreads.add(id):openThreads.delete(id);
   },true);
-  function revealHash(){
-    if(data.meta.community_public===false)return;
-    const id=decodeURIComponent(location.hash.slice(1));
-    if(id==='community')$('community').open=true;
-    if(/^GH-\d+$/.test(id)){
-      const problems=contributions.filter(item=>item.kind==='problem'),position=problems.findIndex(item=>item.id===id);
-      if(position<0)return;
-      $('community').open=true;
-      if(position>=displayed){displayed=position+1;render();return;}
-      document.getElementById(id)?.scrollIntoView({block:'start'});
-    }
-  }
-  window.addEventListener('hashchange',revealHash);
   document.addEventListener('atlas:publication',render);
   window.addEventListener('focus',()=>refresh());
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
   document.addEventListener('atlas:votes',()=>window.ATLAS_VOTES?.render());
-  window.ATLAS_COMMUNITY={notesHTML,refresh,parseIssue,submission,get contributions(){return contributions;},get loadedAt(){return loadedAt;}};
+  window.ATLAS_COMMUNITY={notesHTML,refresh,submission,get contributions(){return contributions;},get loadedAt(){return loadedAt;}};
   render();refresh();
 })();
