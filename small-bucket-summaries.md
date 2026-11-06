@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-635 five-sentence working summaries, based on saved source material.
+636 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (32)
@@ -2379,7 +2379,7 @@ Treewidth measures the largest bag needed to organize a graph in a tree decompos
 [Read in atlas](index.html#TCS-0587) · [Solving Problems on Graphs: From Structure to Algorithms](https://doi.org/10.4230/DagRep.15.1.105) · [Induced minors and subpolynomial treewidth](https://arxiv.org/abs/2512.18835)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Graph algorithms (21)
+## Graph algorithms (22)
 
 ### TCS-7222 — Graph isomorphism in polynomial time
 
@@ -2401,6 +2401,13 @@ Maximum-cardinality matching selects as many pairwise vertex-disjoint edges as p
 
 [Read in atlas](index.html#TCS-6538) · [A Theory of Alternating Paths and Blossoms from the Perspective of Minimum Length](https://pubsonline.informs.org/doi/abs/10.1287/moor.2020.0388) · [Maximum Matchings via Gaussian Elimination](https://www.mimuw.edu.pl/~mucha/pub/mucha_sankowski_focs04.pdf) · [Scaling algorithms for approximate and exact maximum weight matching](https://arxiv.org/abs/1112.0790) · [Maximum Flow and Minimum-Cost Flow in Almost-Linear Time](https://arxiv.org/abs/2203.00671) · [Gabow’s Cardinality Matching Algorithm in General Graphs: Implementation and Experiments](https://arxiv.org/abs/2409.14849) · [Maximum Matching and Related Problems in Catalytic Logspace](https://eccc.weizmann.ac.il/report/2026/080/) · [Maximum Matchings via Glauber Dynamics](https://arxiv.org/abs/1107.2482)
 Existing status: `source_open` · Summary written: 2026-09-16
+
+### TCS-7525 — Near-linear-time short cycle decomposition
+
+The input is a finite undirected unweighted graph given explicitly. Partition its edges into simple cycles and a small uncovered remainder; cycles may meet at vertices but cannot share an edge. The target is a uniform near-linear-time algorithm with only fixed polylogarithmic factors in its running time, cycle length, and remainder divided by the vertex count. Randomized algorithms are allowed with probability at least two thirds that the entire decomposition is valid, while every execution obeys the time bound. Known almost-linear-time constructions do not automatically meet this stronger running-time requirement.
+
+[Read in atlas](index.html#TCS-7525) · [Graph Sparsification, Spectral Sketches, and Faster Resistance Computation, via Short Cycle Decompositions](https://arxiv.org/abs/1805.12051) · [Optimal Short Cycle Decomposition in Almost Linear Time](https://doi.org/10.4230/LIPIcs.ICALP.2019.89) · [Short Cycle Decomposition — Theory Student Seminar, 14 February 2024](https://www.cs.toronto.edu/tss/talks-list.html) · [Space Complexity of Minimum Cut Problems in Single-Pass Streams](https://doi.org/10.4230/LIPIcs.ITCS.2025.43)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-6511 — Deterministic Exact Matching
 

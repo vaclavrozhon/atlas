@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Inactive cards are archived outside the ranking. Problems first resolved on or after 1 January 2026 can remain eligible, with dated evidence, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-1,148 records have an editorial importance assessment; 0 remain provisional.
+1,149 records have an editorial importance assessment; 0 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -382,20 +382,20 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 32; importance 
 
 ## 13. Graph algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 22; importance assessed: 22; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 23; importance assessed: 23; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Graph isomorphism in polynomial time](index.html#TCS-7222) | 96 |
 | 2 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) | 94 |
 | 3 | [Almost-linear-time exact maximum matching in general graphs](index.html#TCS-6538) | 94 |
-| 4 | [Deterministic Exact Matching](index.html#TCS-6511) | 86 |
-| 5 | [Exact directed maximum flow in \\(O((m+n) \\operatorname{polylog} n)\\) time](index.html#TCS-7228) | 86 |
-| 6 | [Almost-linear triangle detection](index.html#TCS-6539) | 82 |
-| 7 | [Graph canonization versus graph isomorphism](index.html#TCS-7180) | 82 |
-| 8 | [Strongly explicit Ramanujan families for every degree](index.html#TCS-7285) | 82 |
-| 9 | [Strongly polynomial near-linear negative-weight shortest paths](index.html#TCS-7341) | 82 |
-| 10 | [Strongly polynomial maximum flow below the \\(mn\\) barrier](index.html#TCS-7346) | 82 |
+| 4 | [Near-linear-time short cycle decomposition](index.html#TCS-7525) | 88 |
+| 5 | [Deterministic Exact Matching](index.html#TCS-6511) | 86 |
+| 6 | [Exact directed maximum flow in \\(O((m+n) \\operatorname{polylog} n)\\) time](index.html#TCS-7228) | 86 |
+| 7 | [Almost-linear triangle detection](index.html#TCS-6539) | 82 |
+| 8 | [Graph canonization versus graph isomorphism](index.html#TCS-7180) | 82 |
+| 9 | [Strongly explicit Ramanujan families for every degree](index.html#TCS-7285) | 82 |
+| 10 | [Strongly polynomial near-linear negative-weight shortest paths](index.html#TCS-7341) | 82 |
 
 ## 14. Data structures (small)
 
