@@ -160,14 +160,20 @@ export default {
             typeof input.problem_id !== 'string' || !Object.hasOwn(selectionManifest.cards, input.problem_id) ||
             !['green', 'red'].includes(input.color) || !Number.isSafeInteger(input.revision) || input.revision < 1)
           return reply({error: 'Invalid selection change.'}, 400);
-        if (input.version !== selectionManifest.version)
-          return reply({error: 'The catalogue has changed. Reload before editing.', version: selectionManifest.version}, 409);
+        const previous = input.previous;
+        if (previous !== undefined && (!previous || typeof previous !== 'object' || Array.isArray(previous) ||
+            !['green', 'red'].includes(previous.color) || typeof previous.area !== 'string'))
+          return reply({error: 'Invalid previous selection.'}, 400);
         const initial = selectionManifest.cards[input.problem_id];
         if (!initial.area_options.includes(input.area)) return reply({error: 'This card cannot be moved to that category.'}, 400);
         const current = await selectionState(env.DB, input.problem_id);
         const matches = row => row.revision === input.revision && row.color === input.color && row.area === input.area;
         if (matches(current)) return reply({choice: current, version: selectionManifest.version});
-        if (input.revision !== current.revision + 1)
+        // An unrelated publication must not block edits. Check this card's
+        // revision and the state the reader actually displayed instead.
+        // The latter also detects a changed default before any manual edit.
+        if (input.revision !== current.revision + 1 ||
+            (previous && (previous.color !== current.color || previous.area !== current.area)))
           return reply({error: 'Someone else changed this card. Review the current choice and try again.', choice: current, version: selectionManifest.version}, 409);
         await env.DB.prepare(`INSERT INTO selection_choices(problem_id, color, area, revision, updated_at) VALUES (?, ?, ?, ?, ?)
           ON CONFLICT(problem_id) DO UPDATE SET color = excluded.color, area = excluded.area,

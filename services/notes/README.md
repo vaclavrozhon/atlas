@@ -91,13 +91,21 @@ continues to require their existing author or administrator token.
 
 `GET /api/selection` returns the manifest version and durable overrides from
 `selection_choices`. `POST /api/selection` accepts anonymous JSON requests with
-`problem_id`, `color`, `area`, `revision` (previous + 1), and `version`.
+`problem_id`, `color`, `area`, and `revision` (previous + 1). The reader also
+sends `previous: {color, area}` for the state it displayed, and a service
+`version` for compatibility with older deployments.
 `POST /api/selection/auth` remains a compatibility endpoint returning `can_edit: true`;
 the current reader does not call it or send an Authorization header for selection.
 Only the configured categories are allowed, but green counts may exceed or fall
 short of targets. Exact retries are idempotent. A conflicting edit returns HTTP
-409 with the current choice instead of overwriting it. A mismatched manifest also
-returns 409 and requires a reload. The existing origin policy still applies.
+409 with the current choice instead of overwriting it. When `previous` is supplied,
+it must match the current card state; this also protects a changed editorial
+default before the first manual edit. Legacy requests without `previous` retain
+revision checks. Global manifest versions do not lock editing: unrelated catalogue
+changes can deploy independently of the service. Card IDs, allowed categories,
+revisions and previous states are checked on every write. The reader also retries
+one version-only rejection from an older service without changing the requested
+color, category or revision. The existing origin policy still applies.
 Retired card rows remain in storage, but disappear from public reads until restored.
 
 Deployment preserves the existing site, D1 binding, notes, proposals and votes.

@@ -22,7 +22,7 @@ const http=require('node:http');
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base=`http://127.0.0.1:${server.address().port}/`,env={DB:db,NOTES_ALLOWED_ORIGINS:new URL(base).origin};
   const browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
-  let lost=false,offline=false,pauseReads=false,feedbackRequests=0;
+  let lost=false,offline=false,pauseReads=false,legacyMismatch=false,feedbackRequests=0;
   async function routes(context){
     await context.route('https://api.github.com/**',route=>{feedbackRequests++;return route.fulfill({json:[]});});
     await context.route('**/api/notes**',route=>{feedbackRequests++;return route.fulfill({json:{notes:[],next:null}});});
@@ -33,6 +33,10 @@ const http=require('node:http');
       const req=route.request();
       assert.equal(req.headers().authorization,undefined,'Selection requests need no credentials');
       assert(!req.url().endsWith('/auth'),'The reader does not ask to authenticate');
+      if(req.method()==='POST'&&legacyMismatch){
+        legacyMismatch=false;manifest.version='legacy-service-rollout';posts.push(req.postDataJSON());
+        return route.fulfill({status:409,json:{error:'The catalogue has changed.',version:manifest.version}});
+      }
       const response=await worker.fetch(new Request(req.url(),{method:req.method(),headers:req.headers(),...(req.postData()?{body:req.postData()}:{} )}),env);
       if(req.method()==='POST'&&!req.url().endsWith('/auth')){
         posts.push(req.postDataJSON());
@@ -106,16 +110,33 @@ const http=require('node:http');
     assert.equal(await fresh.evaluate(id=>ATLAS_SELECTION.choice(id).area,id),initial.area_options[1]);
     assert((await fresh.locator(`#${id} .selection-card-status`).innerText()).includes('another editor'));
     pauseReads=true;lost=true;await click(fresh,id,'color');await fresh.locator(`#${id} [data-selection-action="retry"]`).waitFor();
+    manifest.version='service-published-after-lost-response';
     await click(fresh,id,'retry');await revision(fresh,id,5);
-    assert.deepEqual(posts.at(-1),posts.at(-2),'Retry is the exact same edit');pauseReads=false;
+    assert.deepEqual(posts.at(-1),posts.at(-2),'Retry across a service publication is the exact same edit');pauseReads=false;
     await page.bringToFront();await page.evaluate(()=>ATLAS_SELECTION.refresh());await revision(page,id,5);
     await page.evaluate(async id=>{
       const copy=JSON.parse(JSON.stringify(TCS_ATLAS));
       copy.cards.find(c=>c.id===id).selection.color='red';
+      copy.meta.final_selection.version='reader-published-before-service';
       await ATLAS_DEBUG.applyPublication({...copy,version:copy.meta.version,snapshot:true});
     },id);
     assert.equal(await page.evaluate(id=>ATLAS_SELECTION.choice(id).color,id),'green','Publication does not overwrite a manual choice');
     assert.equal(await page.evaluate(id=>TCS_ATLAS.cards.find(c=>c.id===id).area,id),initial.area_options[1]);
+    await page.evaluate(()=>ATLAS_SELECTION.refresh());
+    assert(await page.locator(`#${id} [data-selection-action="color"]`).isEnabled(),'Version skew must not disable editing');
+    await click(page,id,'color');await revision(page,id,6);
+    legacyMismatch=true;await click(page,id,'color');await revision(page,id,7);
+    const {version:beforeVersion,...beforeEdit}=posts.at(-2),{version:afterVersion,...afterEdit}=posts.at(-1);
+    assert.notEqual(beforeVersion,afterVersion);assert.deepEqual(beforeEdit,afterEdit,'An older service gets one version-only retry');
+    const during=await browser.newContext();await routes(during);const duringPage=await during.newPage();
+    duringPage.on('pageerror',e=>errors.push(e.message));await duringPage.goto(base+'#'+id);await ready(duringPage);await revision(duringPage,id,7);
+    assert(await duringPage.locator(`#${id} [data-selection-action="color"]`).isEnabled(),'A new visitor can edit while versions differ');
+    const duringMap=await during.newPage();duringMap.on('pageerror',e=>errors.push(e.message));await duringMap.goto(base+'map.html');
+    await duringMap.waitForFunction(()=>window.ATLAS_MAP?.ready);await duringMap.evaluate(()=>ATLAS_MAP.refreshSelection());
+    await duringMap.waitForFunction(({id,area})=>ATLAS_MAP.nodes.find(n=>n.id===id)?.card.area===area,{id,area:initial.area_options[1]});
+    await duringMap.evaluate(id=>ATLAS_MAP.focusProblem(id),id);
+    assert.equal(await duringMap.locator('#map-preview-selection').innerText(),'Green · selected');
+    await during.close();await page.bringToFront();
     await page.evaluate(id=>ATLAS_DEBUG.go(id),id);
     await page.locator('#view').selectOption('full');await page.evaluate(id=>ATLAS_DEBUG.go(id),id);
     assert(await page.locator(`#${id} [data-selection-action="move"]`).count());
@@ -133,7 +154,7 @@ const http=require('node:http');
     assert(await page.locator(`#${id} [data-selection-action="color"]`).isEnabled());
     assert.equal(await page.evaluate(()=>sessionStorage.getItem('tcs-atlas-selection-editor-v1')),null);
     assert.equal(errors.length,0,errors.join('\n'));
-    const report={initialGreens,initialReds,checks:['complete green/red proposal','current green count and 35 category counters','all/green/red filters','upvoted red explanation','immediate anonymous editing without login or editor mode','shared color and two-way category edits','quota deviations','reload persistence','independent visitors','stale edit conflict','lost-response retry','manual choice survives publication','map shows shared colors and category moves','full and compact controls','320–1440px layout','outage preservation','feedback not loaded or rendered'],errors};
+    const report={initialGreens,initialReds,checks:['complete green/red proposal','current green count and 35 category counters','all/green/red filters','upvoted red explanation','immediate anonymous editing without login or editor mode','shared color and two-way category edits','quota deviations','reload persistence','independent visitors','stale edit conflict','lost-response retry across publication','manual choice survives publication','reader/service version skew','older service retries without changing edit intent','new visitor and map during publication','map shows shared colors and category moves','full and compact controls','320–1440px layout','outage preservation','feedback not loaded or rendered'],errors};
     fs.writeFileSync(artifact+'/checks.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
   }finally{await browser.close();await new Promise(resolve=>server.close(resolve));db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

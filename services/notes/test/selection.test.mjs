@@ -72,16 +72,44 @@ test('exact retries are idempotent and concurrent editors cannot silently overwr
   }finally{db.close();}
 });
 
-test('invalid IDs, colors, revisions, a third category and stale manifest versions are rejected',async()=>{
+test('invalid IDs, colors, revisions, previous states and a third category are rejected',async()=>{
   const db=database();
   try{
     const third=Object.keys(manifest.categories).find(a=>!initial.area_options.includes(a));
-    for(const bad of [null,[],change({problem_id:'TCS-99999999'}),change({problem_id:'__proto__'}),change({color:true}),change({color:'blue'}),change({revision:0}),change({revision:1.5}),change({area:third})])
+    for(const bad of [null,[],change({problem_id:'TCS-99999999'}),change({problem_id:'__proto__'}),change({color:true}),change({color:'blue'}),change({revision:0}),change({revision:1.5}),change({area:third}),change({previous:null}),change({previous:[]}),change({previous:{color:'blue',area:initial.area}}),change({previous:{color:'green',area:4}})])
       assert.equal((await call(db,'POST',bad)).status,400);
-    assert.equal((await call(db,'POST',change({version:'old'}))).status,409);
     assert.equal((await call(db,'POST',change({revision:9}))).status,409);
     assert.deepEqual((await (await call(db)).json()).choices,[]);
     const [unpaired,c]=Object.entries(manifest.cards).find(([,c])=>c.area_options.length===1);
     assert.equal((await call(db,'POST',change({problem_id:unpaired,area:third===c.area?initial.area:third}))).status,400);
+  }finally{db.close();}
+});
+
+test('unrelated catalogue versions allow edits and exact retries, but stale card state conflicts',async()=>{
+  const db=database();
+  try{
+    const request=change({version:'previous-catalogue',previous:{color:initial.color,area:initial.area}});
+    assert.equal((await call(db,'POST',request)).status,200);
+    assert.equal((await call(db,'POST',request)).status,200,'A saved retry remains idempotent despite its old previous state');
+    const stale=await call(db,'POST',change({color:'green',revision:2,previous:request.previous}));
+    assert.equal(stale.status,409);
+    assert.equal((await stale.json()).choice.color,'red');
+    assert.equal((await call(db,'POST',change({color:'green',revision:2,version:'another-catalogue',previous:{color:'red',area:initial.area}}))).status,200);
+  }finally{db.close();}
+});
+
+test('a publication changing this card default cannot be overwritten by its first stale edit',async()=>{
+  const db=database();
+  try{
+    for(const [field,value] of [['color','red'],['area',initial.area_options[1]]]){
+      const previous={color:initial.color,area:initial.area},old=initial[field];
+      initial[field]=value;
+      try{
+        const response=await call(db,'POST',change({area:previous.area,previous}));
+        assert.equal(response.status,409);
+        assert.equal((await response.json()).choice[field],value);
+        assert.deepEqual((await (await call(db)).json()).choices,[]);
+      }finally{initial[field]=old;}
+    }
   }finally{db.close();}
 });
