@@ -2264,12 +2264,12 @@ The input is a finite simplicial complex promised to be a closed combinatorial f
 [Read in atlas](index.html#TCS-7242) · [Frontiers of sphere recognition in practice](https://link.springer.com/article/10.1007/s41468-022-00092-8) · [Frontiers of Sphere Recognition in Practice](https://page.math.tu-berlin.de/~joswig/presentations/Joswig-Applied%2BTopology-250715.pdf) · [Is there an algorithm to recognize the combinatorial four-sphere?](https://www.openproblemgarden.org/op/is_there_an_algorithm_to_determine_if_a_triangulated_4_manifold_is_combinatorially_equivalent_to_the_4_sphere) · [Small Triangulations of 4-Manifolds and the 4-Manifold Census](https://link.springer.com/article/10.1007/s00454-026-00818-w)
 Existing status: `source_open` · Summary written: 2026-09-16
 
-### TCS-7297 — Optimal \(\ell_{1}\) distortion of binary edit distance
+### TCS-7297 — \(2^{\Omega(\sqrt{\log n})}\) lower bound for binary edit distance in \(\ell_1\)
 
-Binary edit distance counts unit-cost insertions, deletions and substitutions. One map of all length-n strings into a finite-dimensional l1 space must preserve every distance within a common multiplicative distortion. The dimension, real coordinates and computation needed to obtain the map are unrestricted. Verified bounds range from logarithmic distortion to the Ostrovsky–Rabani subpolynomial upper bound. The retained question asks for matching bounds within universal constant factors; recent distance algorithms and similarity-measure embeddings give different guarantees.
+Binary edit distance counts unit-cost insertions, deletions and substitutions. One map of all length-n strings into a finite-dimensional l1 space must preserve every distance within a common multiplicative distortion. The dimension, real coordinates and computation needed to obtain the map are unrestricted. The question asks whether every such embedding has distortion at least \(2^{c\sqrt{\log_2 n}}\) for some universal \(c>0\) and every sufficiently large \(n\). The cited logarithmic lower bound and \(2^{O(\sqrt{(\log n)(\log\log n)})}\) upper bound do not decide this specific threshold.
 
-[Read in atlas](index.html#TCS-7297) · [Low Distortion Embeddings for Edit Distance](https://web.cs.ucla.edu/~rafail/PUBLIC/68.pdf) · [Improved lower bounds for embeddings into L1](https://www.wisdom.weizmann.ac.il/~robi/papers/KR-EmbedLB-SODA06.pdf) · [Nonembeddability theorems via Fourier analysis](https://web.math.princeton.edu/~naor/homepage%20files/nonembed-final-new.pdf) · [Edit Distance in Near-Linear Time: it's a Constant Factor](https://arxiv.org/abs/2005.07678v2) · [Embeddings into Similarity Measures for Nearest Neighbor Search](https://doi.org/10.1109/FOCS63196.2025.00045)
-Existing status: `source_open` · Summary written: 2026-09-16
+[Read in atlas](index.html#TCS-7297) · [Low Distortion Embeddings for Edit Distance](https://web.cs.ucla.edu/~rafail/PUBLIC/68.pdf) · [Improved lower bounds for embeddings into L1](https://www.wisdom.weizmann.ac.il/~robi/papers/KR-EmbedLB-SODA06.pdf)
+Existing status: `source_open` · Summary written: 2026-11-06
 
 ### TCS-0403 — Euclidean minimum spanning tree complexity
 

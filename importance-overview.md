@@ -123,7 +123,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 46; importance 
 | 7 | [Lang–Plaut problem](index.html#TCS-6524) | 90 |
 | 8 | [Optimal size of weak \\(\\varepsilon\\)-nets for convex ranges](index.html#TCS-6526) | 90 |
 | 9 | [Decidability of PL four-sphere recognition](index.html#TCS-7242) | 90 |
-| 10 | [Optimal \\(\\ell_{1}\\) distortion of binary edit distance](index.html#TCS-7297) | 90 |
+| 10 | [\\(2^{\\Omega(\\sqrt{\\log n})}\\) lower bound for binary edit distance in \\(\\ell_1\\)](index.html#TCS-7297) | 90 |
 
 ## 8. Learning theory (large)
 
