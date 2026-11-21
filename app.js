@@ -41,7 +41,7 @@
     return id&&cardsById.has(id)?`<a href="#${encodeURIComponent(id)}" class="canonical-card-link">${c.scope_exclusion?.duplicate_of?'Retained question':'Read full card'} · ${esc(id)} →</a>`:'';
   }
   function cite(c,id){let i=c.references.findIndex(r=>r.id===id);return i<0?'':` <a class="citation" href="${esc(safeURL(c.references[i].url))}" target="_blank" rel="noopener noreferrer" title="${esc(c.references[i].title)}">[${i+1}]</a>`;}
-  const paragraphs=(text,cls='')=>window.ATLAS_MATH.paragraphs(text,cls);
+  const paragraphs=(text,cls='')=>window.ATLAS_DEFINITIONS.paragraphs(text,cls);
   function statementNotice(c){
     const review=c.statement_review;if(!review)return '';
     return review.status==='needs_specification'
@@ -59,7 +59,7 @@
     const kinds={question:'Question',conjecture:'Conjecture',research_direction:'Research direction'};
     return `<section class="textbook-notes"><h3>Questions recorded in textbooks and surveys</h3><p class="small muted">Dated paraphrases; definitions and assumptions are at the cited locations. A source note does not override a later review of this card.</p><ol>${c.textbook_notes.map(n=>`<li><p><strong>${esc(kinds[n.kind]||n.kind)}.</strong> ${esc(n.summary)}</p><p class="small">${esc(n.reference.authors)} · ${esc(n.reference.year)} · ${link(n.reference)} · ${esc(n.reference.locator)} · ${link({url:n.reference.pdf_url},'Original PDF ↗')}</p><p class="small muted">${esc(n.status_note)}</p>${n.caution?`<p class="small muted">Source caveat: ${esc(n.caution)}</p>`:''}</li>`).join('')}</ol></section>`;
   }
-  const focusPosition=c=>!c.selection||c.area===c.selection.area?(c.benchmark_focus?.position??Infinity):Infinity;
+  const focusPosition=c=>!c.selection||c.area===c.selection.area_options[0]?(c.benchmark_focus?.position??Infinity):Infinity;
   const importanceOrder=(a,b)=>focusPosition(a)-focusPosition(b)||(b.importance?.score??50)-(a.importance?.score??50)||a.id.localeCompare(b.id,'en');
   const votedOrder=(a,b)=>(window.ATLAS_VOTES?.score(b.id)||0)-(window.ATLAS_VOTES?.score(a.id)||0)||importanceOrder(a,b);
   const catalogueOrder=(a,b)=>(areaPositions.get(a.area)??Infinity)-(areaPositions.get(b.area)??Infinity)||votedOrder(a,b);
@@ -75,7 +75,27 @@
   }
   const selectionColor=c=>window.ATLAS_SELECTION?.color(c)||c.selection?.color||'red';
   const target=a=>data.meta.final_selection?.targets?.[a.group]||(a.group==='large'?25:10);
-  const selectedByFilter=c=>!$('selection-filter').value||selectionColor(c)===$('selection-filter').value;
+  function selectedByFilter(c){
+    const color=$('selection-filter').value,solution=$('solution-filter').value;
+    const subset=data.meta.green_subsets?.member_ids[color.replace('top','')];
+    if(subset){
+      if(selectionColor(c)!=='green'||!subset.includes(c.id))return false;
+    }else if(color&&selectionColor(c)!==color)return false;
+    if(!solution)return true;
+    if(!c.solution_assessment)return false;
+    return c.solution_assessment.solved===({solved:true,open:false,uncertain:null})[solution];
+  }
+  function solutionAssessment(c){
+    const a=c.solution_assessment;
+    if(!a)return '';
+    const state=a.solved===true?'Likely solved':a.solved===false?'Likely open':'Uncertain';
+    const date=a.public_date?' · First documented '+esc(a.public_date):'';
+    const proof=a.solution_url?' · '+link({url:a.solution_url},'Solution ↗'):'';
+    const credit=a.attribution;
+    const provenance=credit?`<p><strong>${credit.group==='ai_lab'?'AI lab':'Academic or independent researcher'}</strong> · ${link({url:credit.source_url},credit.credit)}. ${esc(credit.basis)}</p>`:'';
+    const evidence=a.sources.map(r=>link(r)).join(' · ');
+    return `<section class="solution-assessment" aria-label="Solution assessment"><p><strong>${state}</strong>${date}${proof}</p><details><summary>Assessment · ${Math.round(a.probability_solved*100)}% probability solved · ${esc(a.reviewed_on)}</summary>${paragraphs(a.reason)}${provenance}<p class="small">${evidence}</p>${a.date_source?'<p class="small">'+link({url:a.date_source},a.date_basis)+'</p>':''}</details></section>`;
+  }
   function renderCompactCard(c){
     const r=c.references?.[0],draft=c.evidence!=='reviewed';
     const raw=(c.statement_review?c.formal:c.source_formulation?.text)||c.formal||c.title;
@@ -88,7 +108,7 @@
     const progress=(c.progress||[]).map(p=>`<p>${esc(p.date)} · ${esc(p.text)}${cite(c,p.citation)}</p>`).join('');
     const savedQuestion=(c.working_summary||c.statement_review)&&draft?`<h3>Saved question</h3>${paragraphs(raw,c.source_formulation?'source-statement':'compact-question')}`:'';
     const expanded=draft?`${c.answer_criterion?'<h3>Answer criterion</h3>'+paragraphs(c.answer_criterion):''}${c.source_formulation?paragraphs(c.formal):''}${c.context?'<h3>Saved context</h3>'+paragraphs(c.context):''}${c.why?'<h3>Why it matters</h3>'+paragraphs(c.why):''}`:`<h3>Full statement</h3>${paragraphs(c.formal,'formal')}<h3>What would settle it</h3>${paragraphs(c.answer_criterion)}<h3>Context</h3>${paragraphs(c.context)}<h3>Why it matters</h3>${paragraphs(c.why)}`;
-    return `<article class="problem-card compact-card selection-${selectionColor(c)}" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">${esc(c.id)}</a><span class="card-area">${esc(cardAreaLabel(c))}</span>${importanceBadge(c)}</div><div class="card-heading"><h2>${esc(c.title)}</h2></div>${window.ATLAS_SELECTION?.html(c)||''}${window.ATLAS_VOTES?.html(c.id)||''}${window.ATLAS_PROBLEM_AGE?.html(c)||''}${statementNotice(c)}${c.statement_review?paragraphs(text,'formal'):c.working_summary?workingSummary(c):duplicated?'':paragraphs(text,c.source_formulation?'source-statement':'compact-question')}<div class="compact-caption">${source}<p class="compact-status">${esc(note)}</p></div><details class="card-details"><summary>Details</summary><div class="details-body">${savedQuestion}${expanded}${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${progress?'<h3>Saved progress</h3>'+progress:''}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}<p class="small muted">${esc(c.status_note||'')} ${esc(c.review_note||'')}</p></div></details>${relatedProblems(c)}${window.ATLAS_COMMUNITY?.notesHTML(c.id)||''}<div class="card-footer">${canonicalLink(c)}</div></article>`;
+    return `<article class="problem-card compact-card selection-${selectionColor(c)}" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">${esc(c.id)}</a><span class="card-area">${esc(cardAreaLabel(c))}</span>${importanceBadge(c)}</div><div class="card-heading"><h2>${esc(c.title)}</h2></div>${window.ATLAS_SELECTION?.html(c)||''}${window.ATLAS_VOTES?.html(c.id)||''}${window.ATLAS_PROBLEM_AGE?.html(c)||''}${statementNotice(c)}${c.statement_review?paragraphs(text,'formal'):c.working_summary?workingSummary(c):duplicated?'':paragraphs(text,c.source_formulation?'source-statement':'compact-question')}<div class="compact-caption">${source}${c.solution_assessment?solutionAssessment(c):'<p class="compact-status">'+esc(note)+'</p>'}</div><details class="card-details"><summary>Details</summary><div class="details-body">${savedQuestion}${expanded}${window.ATLAS_DEFINITIONS.model(c)}${progress?'<h3>Saved progress</h3>'+progress:''}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}<p class="small muted">${esc(c.status_note||'')} ${esc(c.review_note||'')}</p></div></details>${relatedProblems(c)}${window.ATLAS_COMMUNITY?.notesHTML(c.id)||''}<div class="card-footer">${canonicalLink(c)}</div></article>`;
   }
   function renderCard(c){
     if($('view').value==='compact')return renderCompactCard(c);
@@ -100,9 +120,11 @@
     const literature=(c.related||[]).filter(r=>r&&typeof r==='object');
     const related=literature.length?`<h3>Later related literature</h3><p class="muted">Related papers; these references do not by themselves establish progress or resolution.</p><ol class="references">${literature.map(r=>`<li>${esc(r.year)} · ${link(r)}</li>`).join('')}</ol>`:'';
     const context=c.context_blocks?.length?c.context_blocks.map(b=>`<p>${esc(b.text)}${b.citation?cite(c,b.citation):''}</p>`).join(''):paragraphs(c.context);
-    const questionLabel=({yes_no:'Yes / no',asymptotic_complexity:'Asymptotic complexity',exact_value:'Exact value',numerical_value:'Numerical value',function:'Function / curve'})[c.question_type]||'Answer';
+    const questionLabel=c.answer_parts
+      ? 'Separate yes/no answers for '+c.answer_parts.map(esc).join(' and ')
+      : ({yes_no:'Yes / no',asymptotic_complexity:'Asymptotic complexity',exact_value:'Exact value',numerical_value:'Numerical value',function:'Function / curve'})[c.question_type]||'Answer';
     const resolution=c.answer_criterion?`<section class="card-section resolution"><h3>What would settle it · ${questionLabel}</h3>${paragraphs(c.answer_criterion)}</section>`:'';
-    return `<article class="problem-card selection-${selectionColor(c)}" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><span>${esc(c.id)}</span><span class="card-area">${esc(cardAreaLabel(c))}</span></div>${importanceBadge(c)}<div class="card-heading"><h2>${esc(c.title_cs||c.title)}</h2></div>${window.ATLAS_SELECTION?.html(c)||''}${window.ATLAS_VOTES?.html(c.id)||''}<p class="subtitle">${c.title_cs?esc(c.title)+' · ':''}${esc(c.year||'Undated')}${mainRef?.authors?' · '+esc(mainRef.authors):''}</p>${window.ATLAS_PROBLEM_AGE?.html(c)||''}${statementNotice(c)}${workingSummary(c)}<section class="card-section"><h3>Problem statement</h3>${formal}${source}</section>${resolution}<section class="card-section"><h3>Context</h3>${context}</section><section class="card-section why"><h3>Why it matters</h3>${paragraphs(c.why)}</section><div class="status-line"><strong>${statuses[c.status]||esc(c.status)}</strong> · ${esc(c.status_note||'')}</div><details class="card-details"><summary>Progress, definitions & references</summary><div class="details-body">${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${c.context_excerpt?`<blockquote class="source-statement">${esc(c.context_excerpt.text)}<span class="source-caption">${esc(c.context_excerpt.caption)}${cite(c,c.context_excerpt.citation)}</span></blockquote>`:''}<h3>Documented progress</h3><div class="progress">${progress||'<p>An individual progress review has not yet been completed.</p>'}</div>${related}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}${c.review_note?'<p class="small muted">'+esc(c.review_note)+'</p>':''}</div></details>${relatedProblems(c)}${window.ATLAS_COMMUNITY?.notesHTML(c.id)||''}<div class="card-footer"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">Link to card ↗</a>${canonicalLink(c)}${mainRef?link(mainRef,'Primary source ↗'):''}</div></article>`;
+    return `<article class="problem-card selection-${selectionColor(c)}" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><span>${esc(c.id)}</span><span class="card-area">${esc(cardAreaLabel(c))}</span></div>${importanceBadge(c)}<div class="card-heading"><h2>${esc(c.title_cs||c.title)}</h2></div>${window.ATLAS_SELECTION?.html(c)||''}${window.ATLAS_VOTES?.html(c.id)||''}<p class="subtitle">${c.title_cs?esc(c.title)+' · ':''}${esc(c.year||'Undated')}${mainRef?.authors?' · '+esc(mainRef.authors):''}</p>${window.ATLAS_PROBLEM_AGE?.html(c)||''}${statementNotice(c)}${workingSummary(c)}<section class="card-section"><h3>Problem statement</h3>${formal}${source}</section>${resolution}<section class="card-section"><h3>Context</h3>${context}</section><section class="card-section why"><h3>Why it matters</h3>${paragraphs(c.why)}</section>${c.solution_assessment?solutionAssessment(c):'<div class="status-line"><strong>'+(statuses[c.status]||esc(c.status))+'</strong> · '+esc(c.status_note||'')+'</div>'}<details class="card-details"><summary>Progress, definitions & references</summary><div class="details-body">${c.solution_assessment&&c.status_note?'<p class="small muted"><strong>Earlier review.</strong> '+esc(c.status_note)+'</p>':''}${window.ATLAS_DEFINITIONS.model(c)}${c.context_excerpt?`<blockquote class="source-statement">${esc(c.context_excerpt.text)}<span class="source-caption">${esc(c.context_excerpt.caption)}${cite(c,c.context_excerpt.citation)}</span></blockquote>`:''}<h3>Documented progress</h3><div class="progress">${progress||'<p>An individual progress review has not yet been completed.</p>'}</div>${related}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}${c.review_note?'<p class="small muted">'+esc(c.review_note)+'</p>':''}</div></details>${relatedProblems(c)}${window.ATLAS_COMMUNITY?.notesHTML(c.id)||''}<div class="card-footer"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">Link to card ↗</a>${canonicalLink(c)}${mainRef?link(mainRef,'Primary source ↗'):''}</div></article>`;
   }
   const math=root=>window.ATLAS_MATH.render(root);
   function loadMore(){const batch=state.matches.slice(state.shown,state.shown+state.batch);if(!batch.length)return;const wrap=document.createElement('div');wrap.innerHTML=batch.filter(c=>!document.getElementById(c.id)).map(renderCard).join('');while(wrap.firstChild){const c=wrap.firstChild;$('cards').appendChild(c);math(c);}state.shown+=batch.length;$('more').hidden=state.shown>=state.matches.length;}
@@ -119,15 +141,17 @@
     const url=new URL(location.href);
     if(b)url.searchParams.set('benchmark',benchmark);else url.searchParams.delete('benchmark');
     if($('selection-filter').value)url.searchParams.set('selection',$('selection-filter').value);else url.searchParams.delete('selection');
+    if($('solution-filter').value)url.searchParams.set('solution',$('solution-filter').value);else url.searchParams.delete('solution');
     if($('view').value==='full')url.searchParams.set('view','full');else url.searchParams.delete('view');
     if(url.href!==location.href)history.replaceState(null,'',url);
     const chips=data.areas.filter(a=>state.areas.has(a.area)).map(a=>`<button class="filter-chip" data-area="${esc(a.area)}" aria-label="Remove category filter: ${esc(a.label)}">${esc(a.label)} ×</button>`);
-    if($('selection-filter').value)chips.push(`<button class="filter-chip" data-filter="selection">${$('selection-filter').value==='green'?'Green':'Red'} ×</button>`);
+    if($('selection-filter').value)chips.push(`<button class="filter-chip" data-filter="selection">${esc($('selection-filter').selectedOptions[0].textContent)} ×</button>`);
+    if($('solution-filter').value)chips.push(`<button class="filter-chip" data-filter="solution">${esc($('solution-filter').selectedOptions[0].textContent)} ×</button>`);
     if(b)chips.push(`<button class="filter-chip" data-filter="benchmark">${b.label} ×</button>`);
     $('active-filters').innerHTML=chips.join('');
     loadMore();if(scroll)$('feed').scrollIntoView({behavior:'smooth',block:'start'});
   }
-  function clear(){state.areas.clear();$('benchmark').value='';$('selection-filter').value='';$('search').value='';renderAreas();filter();}
+  function clear(){state.areas.clear();$('benchmark').value='';$('selection-filter').value='';$('solution-filter').value='';$('search').value='';renderAreas();filter();}
   async function go(id){
     const c=cardsById.get(id);if(!isActive(c)){toast('This problem is not in the active catalogue.');return;}
     if(!state.matches.some(x=>x.id===id))clear();
@@ -175,8 +199,9 @@
   }
   updateStats();renderAreas();updateCoverage();
   $('coverage-table').addEventListener('click',e=>{const b=e.target.closest('[data-area]');if(!b)return;clear();state.areas.add(b.dataset.area);renderAreas();filter(true);});
-  $('active-filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.area)state.areas.delete(b.dataset.area);if(b.dataset.filter==='benchmark')$('benchmark').value='';if(b.dataset.filter==='selection')$('selection-filter').value='';renderAreas();filter();});
+  $('active-filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.area)state.areas.delete(b.dataset.area);if(b.dataset.filter==='benchmark')$('benchmark').value='';if(b.dataset.filter==='selection')$('selection-filter').value='';if(b.dataset.filter==='solution')$('solution-filter').value='';renderAreas();filter();});
   $('selection-filter').addEventListener('change',()=>filter());
+  $('solution-filter').addEventListener('change',()=>filter());
   $('benchmark').addEventListener('change',()=>{renderAreas();filter();});
   $('areas').addEventListener('change',event=>{const e=event.target;if(!e.matches('input[type=checkbox]'))return;e.checked?state.areas.add(e.value):state.areas.delete(e.value);filter();});
   let debounce;$('search').addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(()=>filter(),160);});
@@ -210,7 +235,8 @@
   for(const key of ['detail','group','collection','scope','status','sort','reason','year','saved','new'])params.delete(key);
   history.replaceState(null,'',url);
   if(benchmarks[params.get('benchmark')])$('benchmark').value=params.get('benchmark');
-  if(['green','red'].includes(params.get('selection')))$('selection-filter').value=params.get('selection');
+  if(['solved','open','uncertain'].includes(params.get('solution')))$('solution-filter').value=params.get('solution');
+  if([...$('selection-filter').options].some(o=>o.value===params.get('selection')))$('selection-filter').value=params.get('selection');
   $('view').value=params.get('view')==='full'?'full':'compact';
   rebuildVoteRanks();renderAreas();filter();updateCoverage();const hash=decodeURIComponent(location.hash.slice(1));if(cardsById.has(hash))go(hash);else revealSection(hash);
   let voteFrame=0;
@@ -269,12 +295,13 @@
     const anchor=visible?{id:visible.id,top:visible.getBoundingClientRect().top}:null;
     const open=[...document.querySelectorAll('.card-details[open]')].map(el=>el.closest('.problem-card').id);
     const openRelated=[...document.querySelectorAll('.related-more[open]')].map(el=>el.closest('.problem-card').id);
+    const openAssessments=[...document.querySelectorAll('.solution-assessment details[open]')].map(el=>el.closest('.problem-card').id);
     const openOrigins=[...document.querySelectorAll('.problem-age[open]')].map(el=>el.closest('.problem-card').id);
     const openComments=[...document.querySelectorAll('.community-thread[open]')].map(el=>el.closest('.problem-card').id);
     if(removed.size){data.cards=data.cards.filter(c=>!removed.has(c.id));for(const id of removed){cardsById.delete(id);searchIndex.delete(id);}}
     const positions=new Map(data.cards.map((c,i)=>[c.id,i]));
     for(const c of changes){if(positions.has(c.id))data.cards[positions.get(c.id)]=c;else data.cards.push(c);cardsById.set(c.id,c);}
-    data.meta=update.meta;data.areas=update.areas;areasByName=new Map(data.areas.map(a=>[a.area,a]));
+    data.meta=update.meta;if(update.shared_definitions)data.shared_definitions=update.shared_definitions;data.areas=update.areas;areasByName=new Map(data.areas.map(a=>[a.area,a]));
     window.ATLAS_SELECTION?.applyToData();
     // Shared moves and metadata renames both change category search terms.
     for(const c of data.cards)searchIndex.set(c.id,searchable(c));
@@ -287,7 +314,7 @@
     // A direct-linked or newly re-ranked card may lie outside that prefix.
     // Retain only the reading cards, rather than rendering the entire
     // result set up to their new positions.
-    const retained=new Set([anchor?.id,...open,...openRelated,...openOrigins,...openComments].filter(Boolean));
+    const retained=new Set([anchor?.id,...open,...openRelated,...openAssessments,...openOrigins,...openComments].filter(Boolean));
     for(const id of retained){
       if(document.getElementById(id)||!cardsById.has(id))continue;
       if(!state.matches.some(c=>c.id===id))continue;
@@ -296,6 +323,7 @@
     }
     for(const id of open){const el=document.getElementById(id)?.querySelector('.card-details');if(el){el.open=true;math(el);}}
     for(const id of openRelated){const el=document.getElementById(id)?.querySelector('.related-more');if(el){el.open=true;math(el);}}
+    for(const id of openAssessments){const el=document.getElementById(id)?.querySelector('.solution-assessment details');if(el)el.open=true;}
     for(const id of openOrigins){const el=document.getElementById(id)?.querySelector('.problem-age');if(el)el.open=true;}
     // Seed off-screen size estimates with the measured content height. Newly
     // inserted long cards otherwise fall back to 570px after virtualization

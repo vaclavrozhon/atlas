@@ -27,7 +27,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 9 | Average-case analysis | 2 | 10 | 20 | 16 |
 | small 10 | Sampling, Markov chains and mixing times | 2 | 10 | 20 | 17 |
 | small 11 | Counting and enumeration | 2 | 10 | 20 | 24 |
-| small 12 | Structural graph theory | 2 | 10 | 20 | 31 |
+| small 12 | Structural graph theory | 2 | 10 | 20 | 30 |
 | small 13 | Graph algorithms | 2 | 10 | 20 | 23 |
 | small 14 | Data structures | 2 | 10 | 20 | 28 |
 | small 15 | Dynamic algorithms | 2 | 10 | 20 | 29 |
@@ -40,8 +40,8 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 22 | Property testing and distribution learning | 2 | 10 | 20 | 19 |
 | small 23 | Constraint satisfaction | 2 | 10 | 20 | 18 |
 | small 24 | Database theory | 2 | 10 | 20 | 16 |
-| small 25 | Miscellaneous | 2 | 10 | 20 | 12 |
+| small 25 | Miscellaneous | 2 | 10 | 20 | 13 |
 
-Candidate pool: 1156. Inactive records: 6376 (excluded from active work).
+Candidate pool: 1156. Inactive records: 6377 (excluded from active work).
 
 The legacy Top 1000 view has 1000 assigned places; reserved places: 0. Inactive cards and their reasons are retained in data/archive/. Final quota selection and a comprehensive deduplication audit remain pending.

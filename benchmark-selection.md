@@ -12,7 +12,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 500 | 0 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 927 | 73 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 928 | 72 |
 
 ## Unfilled places
 
@@ -27,7 +27,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Property testing and distribution learning has 19/20 places.
 - top1000: Constraint satisfaction has 18/20 places.
 - top1000: Database theory has 16/20 places.
-- top1000: Miscellaneous has 12/20 places.
+- top1000: Miscellaneous has 13/20 places.
 
 ## Review needed after catalogue changes
 
@@ -347,7 +347,7 @@ Previous prefix: TCS-6651.
 | 1 | [Hadwiger’s conjecture](index.html#TCS-6651) (TCS-6651) | Hadwiger’s conjecture | 98 | Hadwiger’s conjecture proposes an exact relation between two basic graph parameters: the number of colors needed and the size of a complete graph obtainable by contraction. It extends the Four-Color Theorem and would turn exclusion of a complete minor into the sharp universal coloring bound. Its significance comes from this structural connection across all finite graphs, rather than from an algorithmic requirement in the question. |
 | 2 | [Erdős–Hajnal conjecture](index.html#TCS-6652) (TCS-6652) | Erdős–Hajnal conjecture | 96 | This central conjecture asks whether every proper hereditary restriction forces a polynomial-size clique or independent set, far beyond the logarithmic scale possible in arbitrary graphs. It would provide a common structural guarantee across all forbidden-induced-subgraph classes and clarify the relation between local exclusions, large nearly uniform vertex sets and neighborhood complexity. These are basic objects in structural and algorithmic graph theory; the assertion itself is an existence theorem, not an efficient clique or independent-set algorithm. |
 
-Candidates considered: TCS-6651, TCS-6652, TCS-7248, TCS-2783, TCS-6653, TCS-6682, TCS-7216, TCS-7218, TCS-7251, TCS-6654, TCS-6683, TCS-7249, TCS-7250, TCS-7253, TCS-7289, TCS-6874, TCS-6875, TCS-0315, TCS-1206, TCS-6655, TCS-7145, TCS-7252, TCS-1639, TCS-7143, TCS-7144, TCS-7217, TCS-7245, TCS-7254, TCS-1246, TCS-7244, TCS-0587.
+Candidates considered: TCS-6651, TCS-6652, TCS-7248, TCS-2783, TCS-6653, TCS-6682, TCS-7216, TCS-7218, TCS-7251, TCS-6654, TCS-6683, TCS-7249, TCS-7250, TCS-7253, TCS-7289, TCS-6875, TCS-0315, TCS-1206, TCS-6655, TCS-7145, TCS-7252, TCS-1639, TCS-7143, TCS-7144, TCS-7217, TCS-7245, TCS-7254, TCS-1246, TCS-7244, TCS-0587.
 
 ## Graph algorithms
 

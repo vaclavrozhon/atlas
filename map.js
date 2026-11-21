@@ -19,7 +19,7 @@
   function applySharedChoices(){
     for(const c of data.cards)if(c.selection){
       const saved=sharedChoices.get(c.id);
-      c.area=saved&&data.areas.some(a=>a.area===saved.area)?saved.area:c.selection.area;
+      c.area=saved&&c.selection.area_options.includes(saved.area)?saved.area:c.selection.area;
     }
   }
   async function refreshSelection(){
@@ -30,7 +30,7 @@
       if(!response.ok)return;
       const result=await response.json();
       if(!Array.isArray(result.choices))return;
-      if(!result.choices.every(c=>typeof c.problem_id==='string'&&['green','red'].includes(c.color)&&typeof c.area==='string'))return;
+      if(!result.choices.every(c=>typeof c.problem_id==='string'&&['green','yellow','red'].includes(c.color)&&typeof c.area==='string'))return;
       const signature=JSON.stringify(result);
       if(signature===sharedVersion)return;
       const changed=sharedChoices.size||result.choices.length;
@@ -97,7 +97,7 @@
       $('map-preview-meta').textContent=c.id+' · '+(a?.label||c.area);
       $('map-preview-title').textContent=c.title;
       const color=sharedChoices.get(c.id)?.color||c.selection?.color||'red';
-      $('map-preview-selection').innerHTML='<span class="selection-badge '+color+'">'+(color==='green'?'Green · selected':'Red · not selected')+'</span>';
+      $('map-preview-selection').innerHTML='<span class="selection-badge '+color+'">'+({green:'Green · selected',yellow:'Yellow · reserve',red:'Red · not selected'})[color]+'</span>';
       $('map-preview-text').innerHTML=(description.label?'<p class="map-text-origin">'+esc(description.label)+'</p>':'')+math.paragraphs(description.text);
       $('map-preview-degree').textContent=number(neighbors.get(c.id)?.size||0)+' related problems';
       $('map-preview-link').href='index.html#'+encodeURIComponent(c.id);
@@ -224,7 +224,12 @@
   function applyCatalogue(next){
     if(!Array.isArray(next?.cards)||!Array.isArray(next?.areas))return false;
     const old=byId,selected=pinned?hovered?.id:null;simulation?.stop();
-    data=next;applySharedChoices();areas=new Map(next.areas.map((a,i)=>[a.area,{...a,color:colorAt(i)}]));
+    data=next;
+    const snapshot=next.selection_snapshot;
+    if(!sharedVersion&&Array.isArray(snapshot?.choices)&&(snapshot.catalog_version||snapshot.version)===next.meta?.final_selection?.version){
+      sharedChoices=new Map(snapshot.choices.map(choice=>[choice.problem_id,choice]));
+    }
+    applySharedChoices();areas=new Map(next.areas.map((a,i)=>[a.area,{...a,color:colorAt(i)}]));
     const cardList=next.cards.filter(active).sort((a,b)=>a.id.localeCompare(b.id));
     const offsets=new Map();
     nodes=cardList.map(c=>{

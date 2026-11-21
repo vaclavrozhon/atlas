@@ -12,7 +12,7 @@
   const draftKey='tcs-atlas-contribution-drafts';
   const notesCacheKey='tcs-atlas-public-comments-cache-v1';
   const ownershipKey='tcs-atlas-comment-ownership-v1';
-  let anonymousNotes=read(notesCacheKey,[]),ownership=read(ownershipKey,{});
+  let anonymousNotes=read(notesCacheKey,data.public_comments_snapshot||[]),ownership=read(ownershipKey,{});
   if(!Array.isArray(anonymousNotes))anonymousNotes=[];
   anonymousNotes=anonymousNotes.filter(validNote);
   if(!ownership||typeof ownership!=='object'||Array.isArray(ownership))ownership={};
@@ -44,7 +44,7 @@
     if(!commentsEnabled()||loading)return;
     if(!force&&Date.now()-lastAttempt<60000)return;
     if(!force&&loadedAt&&Date.now()-loadedAt<300000)return;
-    if(location.protocol==='file:'){notesStatus='Offline snapshot. Saved public comments are shown; use the online atlas to refresh them.';render();return;}
+    if(location.protocol==='file:'){notesStatus='Offline snapshot. Open the TCS500 benchmark online to refresh saved public comments.';render();return;}
     loading=true;lastAttempt=Date.now();notesStatus='Loading comments…';render();
     try{
       const notes=[],revision=notesRevision;

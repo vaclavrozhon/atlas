@@ -365,7 +365,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 24; importance 
 
 ## 12. Structural graph theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 31; importance assessed: 31; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 30; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -586,17 +586,17 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 
 ## 25. Miscellaneous (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 12; importance assessed: 12; provisional: 0.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 13; provisional: 0.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Sunflower conjecture](index.html#TCS-7290) | 94 |
 | 2 | [\\(1/3\\)–\\(2/3\\) conjecture](index.html#TCS-7177) | 88 |
-| 3 | [Frankl's union-closed sets conjecture](index.html#TCS-7514) | 92 |
-| 4 | [Hadamard matrices of every order divisible by four](index.html#TCS-7515) | 89 |
-| 5 | [Rota's basis conjecture for matroids](index.html#TCS-7520) | 89 |
-| 6 | [Shannon capacity of \\(C_{7}\\)](index.html#TCS-6610) | 88 |
-| 7 | [Asymptotic exponent of the largest cap set](index.html#TCS-7516) | 88 |
-| 8 | [Feige's small-deviation conjecture](index.html#TCS-7521) | 88 |
-| 9 | [Nivat's conjecture on rectangular pattern complexity](index.html#TCS-7518) | 87 |
-| 10 | [Lonely runner conjecture](index.html#TCS-7517) | 83 |
+| 3 | [Exponential growth base of the diagonal Ramsey numbers](index.html#TCS-7534) | 98 |
+| 4 | [Frankl's union-closed sets conjecture](index.html#TCS-7514) | 92 |
+| 5 | [Hadamard matrices of every order divisible by four](index.html#TCS-7515) | 89 |
+| 6 | [Rota's basis conjecture for matroids](index.html#TCS-7520) | 89 |
+| 7 | [Shannon capacity of \\(C_{7}\\)](index.html#TCS-6610) | 88 |
+| 8 | [Asymptotic exponent of the largest cap set](index.html#TCS-7516) | 88 |
+| 9 | [Feige's small-deviation conjecture](index.html#TCS-7521) | 88 |
+| 10 | [Nivat's conjecture on rectangular pattern complexity](index.html#TCS-7518) | 87 |
