@@ -177,7 +177,6 @@
     el.scrollIntoView({behavior:'instant',block:'start'});
     el.classList.add('focused');setTimeout(()=>el.classList.remove('focused'),2500);
   }
-  function updateStats(){$('stats').textContent=`${num(data.cards.filter(isActive).length)} problems · ${data.areas.length} categories`;}
   function selectionCounts(){
     const green=new Map(),total=new Map();
     for(const c of data.cards)if(isActive(c)){
@@ -189,6 +188,8 @@
   function renderAreas(){
     $('area-count').textContent=data.areas.length;
     const {green,total}=selectionCounts(),selected=[...green.values()].reduce((a,b)=>a+b,0),goal=data.areas.reduce((n,a)=>n+target(a),0);
+    const catalogueSize=[...total.values()].reduce((sum,count)=>sum+count,0);
+    $('stats').textContent=`${num(selected)} benchmark problems · ${num(catalogueSize)} catalogue cards · ${data.areas.length} categories`;
     $('selection-total').textContent=`${num(selected)} green / target ${num(goal)}`;
     $('areas').innerHTML=data.areas.map(a=>`<label class="area-option"><input type="checkbox" value="${esc(a.area)}" ${state.areas.has(a.area)?'checked':''}><span>${esc(a.label)}</span><span class="count ${(green.get(a.area)||0)===target(a)?'on-target':'off-target'}" title="${green.get(a.area)||0} green / target ${target(a)}; ${total.get(a.area)||0} total cards">${green.get(a.area)||0} / ${target(a)}</span></label>`).join('');
   }
@@ -197,7 +198,7 @@
     $('selection-plan').textContent=`${data.areas.filter(a=>a.group==='large').length} large categories × 25 and ${data.areas.filter(a=>a.group==='small').length} small categories × 10. Category counts always include all green cards, even when search or color filters hide some of them.`;
     $('coverage-table').innerHTML=`<table><thead><tr><th>Category</th><th>Green</th><th>Target</th><th>All cards</th></tr></thead><tbody>${data.areas.map(a=>`<tr><th scope="row"><button class="category-link" data-area="${esc(a.area)}">${esc(a.label)}</button></th><td>${green.get(a.area)||0}</td><td>${target(a)}</td><td>${num(total.get(a.area)||0)}</td></tr>`).join('')}</tbody></table>`;
   }
-  updateStats();renderAreas();updateCoverage();
+  renderAreas();updateCoverage();
   $('coverage-table').addEventListener('click',e=>{const b=e.target.closest('[data-area]');if(!b)return;clear();state.areas.add(b.dataset.area);renderAreas();filter(true);});
   $('active-filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.area)state.areas.delete(b.dataset.area);if(b.dataset.filter==='benchmark')$('benchmark').value='';if(b.dataset.filter==='selection')$('selection-filter').value='';if(b.dataset.filter==='solution')$('solution-filter').value='';renderAreas();filter();});
   $('selection-filter').addEventListener('change',()=>filter());
@@ -306,7 +307,7 @@
     // Shared moves and metadata renames both change category search terms.
     for(const c of data.cards)searchIndex.set(c.id,searchable(c));
     for(const a of state.areas)if(!areasByName.has(a))state.areas.delete(a);
-    rebuildVoteRanks();updateStats();renderAreas();updateCoverage();
+    rebuildVoteRanks();renderAreas();updateCoverage();
     $('cards').classList.add('publishing');
     // Publication size must not determine the number of DOM cards. Inserting
     // thousands of changed cards here used to freeze the page on bulk updates.
