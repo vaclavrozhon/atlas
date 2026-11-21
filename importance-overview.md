@@ -4,7 +4,7 @@ Importance ordering is an editorial assessment of foundational significance, bre
 
 1,156 records have an editorial importance assessment; 0 remain provisional.
 
-The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
+The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity within each category.
 
 ## 1. Computational complexity (large)
 

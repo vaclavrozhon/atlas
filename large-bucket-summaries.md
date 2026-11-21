@@ -161,7 +161,7 @@ Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-6977 — Ruling out quasilinear-time SAT without a space restriction
 
-SAT asks whether an explicitly written Boolean formula has a satisfying assignment. The target excludes every deterministic running time n times a fixed polynomial in log n in a uniform random-access model. There is no independent restriction on working memory. Known small-space lower bounds and either/or resource alternatives do not establish this time-only statement. The user explicitly selected the quasilinear interpretation of the source’s informal near-linear goal.
+SAT asks whether an explicitly written Boolean formula has a satisfying assignment. The target excludes every deterministic running time n times a fixed polynomial in log n in a uniform random-access model. There is no independent restriction on working memory. Known small-space lower bounds and either/or resource alternatives do not establish this time-only statement. The formulation uses the quasilinear interpretation of the source’s informal near-linear goal.
 
 [Read in the TCS500 benchmark](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Time-Space Tradeoffs for Counting NP Solutions Modulo Integers](https://eccc.weizmann.ac.il/report/2007/036/) · [Bounded Relativization](https://eccc.weizmann.ac.il/report/2023/070/)
 Existing status: `source_open` · Summary written: 2026-09-16
@@ -357,7 +357,7 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-2532 — NEXP circuit lower bounds from uniform obfuscation
 
-The card asks whether uniformly secure perfectly correct indistinguishability obfuscation implies NEXP is not contained in P/poly. The obfuscator preserves every circuit’s function exactly and hides equivalent equal-size representations from uniform randomized polynomial-time distinguishers. The security definition follows the source and gives distinguishers no auxiliary input or nonuniform advice. The source proves the desired circuit lower bound under stronger nonuniform security and a different uniform-time separation under uniform security. The user selected this precise implication, and a complete answer must establish or refute it without adding hypotheses.
+The card asks whether uniformly secure perfectly correct indistinguishability obfuscation implies NEXP is not contained in P/poly. The obfuscator preserves every circuit’s function exactly and hides equivalent equal-size representations from uniform randomized polynomial-time distinguishers. The security definition follows the source and gives distinguishers no auxiliary input or nonuniform advice. The source proves the desired circuit lower bound under stronger nonuniform security and a different uniform-time separation under uniform security. The formulation uses this precise implication, and a complete answer must establish or refute it without adding hypotheses.
 
 [Read in the TCS500 benchmark](index.html#TCS-2532) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2023.31) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [Non-Levin NP-Hardness of Implicit MCSP and PAC Learning under Few Assumptions](https://eccc.weizmann.ac.il/report/2026/091/)
 Existing status: `source_open` · Summary written: 2026-09-16
@@ -427,7 +427,7 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-3862 — Complete problem for Search-SZK
 
-The question asks whether the authors’ statistical zero-knowledge search class has one complete promise search problem. Protocols output a legal solution with perfect completeness and retain the source’s two soundness conditions. A universal simulator receives one sample of the honest protocol’s output distribution and must reproduce any efficient verifier’s view up to negligible statistical distance. Reductions must preserve yes and no promises and decode every legal target answer into a valid source answer. Completeness is known for the Prefix-SZK subclass, while this card retains the full Search-SZK question selected by the user.
+The question asks whether the authors’ statistical zero-knowledge search class has one complete promise search problem. Protocols output a legal solution with perfect completeness and retain the source’s two soundness conditions. A universal simulator receives one sample of the honest protocol’s output distribution and must reproduce any efficient verifier’s view up to negligible statistical distance. Reductions must preserve yes and no promises and decode every legal target answer into a valid source answer. Completeness is known for the Prefix-SZK subclass, while this card retains the full Search-SZK question.
 
 [Read in the TCS500 benchmark](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2018.105) · [Zero-Knowledge Protocols for Search Problems](https://eprint.iacr.org/2018/437)
 Existing status: `source_open` · Summary written: 2026-09-16
@@ -1413,7 +1413,7 @@ Existing status: `source_open` · Summary written: 2026-09-13
 
 ### TCS-4302 — Exact multi-objective LTL achievability in stochastic games
 
-A finite stochastic game combines controller choices, adversary choices and rational chance transitions. The selected question asks whether one randomized strategy can meet all supplied rational probability bounds for LTL properties against every adversary. Both players may depend on the whole history, and the existential strategy need not have an effective finite representation. The decision must distinguish actual exact threshold attainment from approximate or limit-sure guarantees. This user-selected decision subproblem makes one part of the broader multi-objective synthesis programme precise.
+A finite stochastic game combines controller choices, adversary choices and rational chance transitions. The selected question asks whether one randomized strategy can meet all supplied rational probability bounds for LTL properties against every adversary. Both players may depend on the whole history, and the existential strategy need not have an effective finite representation. The decision must distinguish actual exact threshold attainment from approximate or limit-sure guarantees. This decision subproblem makes one part of the broader multi-objective synthesis programme precise.
 
 [Read in the TCS500 benchmark](index.html#TCS-4302) · [Model Checking and Strategy Synthesis for Stochastic Games: From Theory to Practice (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICALP.2016.4) · [Solving Qualitative Multi-Objective Stochastic Games](https://arxiv.org/abs/2602.12927v1)
 Existing status: `source_open` · Summary written: 2026-09-16
@@ -1921,7 +1921,7 @@ Existing status: `source_open` · Summary written: 2026-09-15
 
 Points arrive one at a time in Euclidean space, and the goal is to estimate the cost of connecting them by a minimum spanning tree. The algorithm gets one insertion-only pass and may keep only memory polynomial in the dimension and the logarithmic input parameters. It should return a constant-factor estimate with probability at least two thirds for every input order. The cited paper leaves a gap between its sublinear-space constant-factor result and this smaller memory budget. The question asks how compactly one can summarize global geometric connectivity, without requiring the summary to output the tree itself.
 
-[Read in the TCS500 benchmark](index.html#TCS-7376) · [Community proposal: Streaming Euclidean MST to constant factor in space polylogarithmic in the number of points](https://github.com/vaclavrozhon/atlas/issues/2) · [Streaming Euclidean MST to a Constant Factor](https://doi.org/10.1145/3564246.3585168)
+[Read in the TCS500 benchmark](index.html#TCS-7376) · [Streaming Euclidean MST to a Constant Factor](https://doi.org/10.1145/3564246.3585168)
 Existing status: `source_open` · Summary written: 2026-09-14
 
 ### TCS-0469 — Maximum independent set in the congested clique
@@ -3455,7 +3455,7 @@ Existing status: `source_open` · Summary written: 2026-09-16
 
 ### TCS-4927 — A finite quantum gate set with decision power strictly between P and BQP
 
-A finite quantum gate set determines which polynomial-size uniform circuits can be built from its operations. The user-selected question asks for a bounded-error decision class strictly larger than P and strictly smaller than BQP. The gates must also escape every common one-qubit conjugate of the Clifford group. The card fixes algebraic gates, computational-basis inputs and one final measured output bit to make the computational model precise. Known hardness results for sampling restricted circuits do not establish this stronger unconditional decision-class separation.
+A finite quantum gate set determines which polynomial-size uniform circuits can be built from its operations. The question asks for a bounded-error decision class strictly larger than P and strictly smaller than BQP. The gates must also escape every common one-qubit conjugate of the Clifford group. The card fixes algebraic gates, computational-basis inputs and one final measured output bit to make the computational model precise. Known hardness results for sampling restricted circuits do not establish this stronger unconditional decision-class separation.
 
 [Read in the TCS500 benchmark](index.html#TCS-4927) · [The Classification of Reversible Bit Operations](https://doi.org/10.4230/LIPIcs.ITCS.2017.23) · [Complexity Classification of Conjugated Clifford Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.21) · [A Criterion for Post-Selected Quantum Advantage](https://arxiv.org/abs/2411.02369v2)
 Existing status: `source_open` · Summary written: 2026-09-18
