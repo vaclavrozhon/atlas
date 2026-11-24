@@ -185,7 +185,7 @@
   }
   function buildControls(){
     const counts=d3.rollup(nodes,v=>v.length,n=>n.card.area);
-    $('map-category').innerHTML='<option value="">All categories</option>'+Array.from(areas.values()).filter(a=>counts.has(a.area)).sort((a,b)=>a.label.localeCompare(b.label)).map(a=>'<option value="'+esc(a.area)+'">'+esc(a.label)+'</option>').join('');
+    $('map-category').innerHTML='<option value="">All categories</option>'+Array.from(areas.values()).filter(a=>counts.has(a.area)).map(a=>'<option value="'+esc(a.area)+'">'+esc(a.label)+'</option>').join('');
     $('map-category').value=areas.has(category)?category:'';category=$('map-category').value;
     $('map-stats').textContent=number(nodes.length)+' problems · '+number(links.length)+' connections';
     canvas.setAttribute('aria-label',`Interactive network of ${nodes.length} problems and ${links.length} related-problem connections`);

@@ -188,7 +188,7 @@
       ...(c.working_summary?.sentences || []), ...c.references.map(r => [r.title, r.authors].join(' '))].join(' '))]));
     const select = $('area-filter');
     select.replaceChildren(new Option('All categories', ''));
-    [...data.areas].sort((a,b) => a.label.localeCompare(b.label)).forEach(a => select.add(new Option(a.label, a.area)));
+    data.areas.forEach(a => select.add(new Option(a.label, a.area)));
     select.value = labels.has(category) ? category : '';
     if (initial) readURL();
     filter(false, shown);

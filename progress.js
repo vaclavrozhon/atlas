@@ -1,6 +1,59 @@
 /* Observations use the public solution date on each selected problem. */
 (() => {
   'use strict';
+  const tabList = document.querySelector('.progress-tabs');
+  const tabs = [...tabList.querySelectorAll('a')];
+  tabList.setAttribute('role', 'tablist');
+  for (const tab of tabs) {
+    tab.setAttribute('role', 'tab');
+    document.querySelector(tab.hash).setAttribute('role', 'tabpanel');
+  }
+
+  function showView(id) {
+    for (const tab of tabs) {
+      const panel = document.querySelector(tab.hash);
+      const selected = panel.id === id;
+      panel.hidden = !selected;
+      tab.tabIndex = selected ? 0 : -1;
+      tab.setAttribute('aria-selected', String(selected));
+    }
+  }
+
+  function followFragment() {
+    const target = document.getElementById(location.hash.slice(1));
+    const panel = target?.closest('.progress-view');
+    showView(panel ? panel.id : 'timeline');
+    if (panel) {
+      target.scrollIntoView();
+      if (target.classList.contains('publication-day')) target.focus({preventScroll: true});
+    }
+  }
+
+  for (const tab of tabs) {
+    tab.addEventListener('click', event => {
+      if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (location.hash !== tab.hash) history.pushState(null, '', tab.hash);
+      showView(tab.getAttribute('aria-controls'));
+    });
+  }
+  tabList.addEventListener('keydown', event => {
+    const index = tabs.indexOf(event.target);
+    const next = {
+      ArrowLeft: (index + tabs.length - 1) % tabs.length,
+      ArrowRight: (index + 1) % tabs.length,
+      Home: 0,
+      End: tabs.length - 1,
+    }[event.key];
+    if (index < 0 || next === undefined) return;
+    event.preventDefault();
+    tabs[next].focus();
+    tabs[next].click();
+  });
+  window.addEventListener('hashchange', followFragment);
+  window.ATLAS_MATH?.render(document.getElementById('publications'));
+  followFragment();
+
   const data = JSON.parse(document.getElementById('timeline-data').textContent);
   const formatDay = d3.utcFormat('%b %-d, %Y');
   const percent = d3.format('.1~%');
@@ -8,7 +61,9 @@
     day: d3.utcParse('%Y-%m-%d')(day),
     count,
     share: count / data.total,
+    publication: document.getElementById('published-' + day),
   }));
+  const publicationPoints = points.filter(point => point.publication);
   const first = points[0], last = points[points.length - 1];
   const fullEnd = new Date(Math.max(d3.utcYear.offset(first.day, 3), last.day));
   const chart = document.getElementById('progress-chart');
@@ -46,9 +101,11 @@
     plot.append('text').attr('class', 'endpoint-label').attr('text-anchor', anchorLeft ? 'end' : 'start')
       .attr('x', x(last.day) + (anchorLeft ? -7 : 7)).attr('y', Math.max(top + 4, y(last.share) - 9))
       .text(last.count + '/' + data.total);
-    plot.selectAll('circle.observation').data(points).join('circle').attr('class', 'observation')
-      .attr('cx', point => x(point.day)).attr('cy', point => y(point.share)).attr('r', 7).attr('fill', 'transparent')
-      .append('title').text(point => formatDay(point.day) + ' · ' + point.count + ' of ' + data.total + ' (' + percent(point.share) + ')');
+    const observations = plot.selectAll('a.observation').data(publicationPoints).join('a').attr('class', 'observation')
+      .attr('href', point => '#' + point.publication.id)
+      .attr('aria-label', point => 'View solutions published ' + formatDay(point.day));
+    observations.append('title').text(point => formatDay(point.day) + ' · ' + point.count + ' of ' + data.total + ' (' + percent(point.share) + ')');
+    observations.append('circle').attr('cx', point => x(point.day)).attr('cy', point => y(point.share)).attr('r', 7);
   }
 
   chart.removeAttribute('hidden');
