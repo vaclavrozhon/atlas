@@ -3,8 +3,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const math = window.ATLAS_MATH, definitions = window.ATLAS_DEFINITIONS;
-  const batch = 24;
-  const state = {matches: [], shown: 0};
+  const state = {matches: []};
   const statusLabels = {open: 'Likely open', solved: 'Public solution likely', uncertain: 'Uncertain'};
   let data, byId, labels, searchable, subsets, browsingOrder, fetching = false;
   const esc = text => String(text ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -85,17 +84,6 @@
       math.render(body);
     }
   }
-  function appendTo(limit) {
-    const count = Math.min(limit, state.matches.length);
-    if (count > state.shown) {
-      const range = document.createRange();
-      const added = range.createContextualFragment(state.matches.slice(state.shown, count).map(renderCard).join(''));
-      math.render(added);
-      $('cards').appendChild(added);
-      state.shown = count;
-    }
-    $('more').hidden = state.shown >= state.matches.length;
-  }
   function replaceURL(url) {
     try { history.replaceState(null, '', url); }
     catch (error) { if (location.protocol !== 'file:' || error.name !== 'SecurityError') throw error; }
@@ -109,7 +97,7 @@
     url.hash = '';
     replaceURL(url);
   }
-  function filter(sync = true, limit = batch) {
+  function filter(sync = true) {
     const query = normalize($('search').value.trim());
     const area = $('area-filter').value, solution = $('solution-filter').value, subset = subsets.get($('selection-filter').value);
     const terms = query.split(/\s+/).filter(Boolean);
@@ -121,9 +109,9 @@
     $('result-count').parentElement.classList.toggle('unfiltered', !count && !query);
     $('result-count').textContent = state.matches.length.toLocaleString('en') + (state.matches.length === 1 ? ' problem' : ' problems');
     $('empty').hidden = Boolean(state.matches.length);
-    $('cards').replaceChildren();
-    state.shown = 0;
-    appendTo(limit);
+    const list = document.createRange().createContextualFragment(state.matches.map(renderCard).join(''));
+    math.render(list);
+    $('cards').replaceChildren(list);
     if (sync) updateURL();
   }
   function clearFilters() {
@@ -145,8 +133,6 @@
       updateURL();
       if (hash) replaceURL(location.pathname + location.search + hash);
     }
-    const index = state.matches.findIndex(c => c.id === id);
-    appendTo(Math.max(state.shown, index + 1));
     const el = $(id);
     expand(el, true);
     if (scroll) requestAnimationFrame(() => {
@@ -156,8 +142,16 @@
     return true;
   }
   function openHash(scroll = true) {
-    const id = location.hash.slice(1);
-    if (/^TCS-\d+$/.test(id) && !go(id, scroll)) {
+    let id = location.hash.slice(1);
+    if (!/^TCS-\d+$/.test(id)) return;
+    if (!byId.has(id)) {
+      const successor = data.cards.find(card => (card.permalink_aliases || card.merged_from)?.includes(id));
+      if (successor) {
+        id = successor.id;
+        replaceURL(location.pathname + location.search + '#' + id);
+      }
+    }
+    if (!go(id, scroll)) {
       $('result-count').parentElement.classList.remove('unfiltered');
       $('result-count').textContent = 'This problem is outside the benchmark. Showing ' + state.matches.length + ' problems.';
     }
@@ -172,7 +166,6 @@
         opened.set(card.id, [...card.querySelectorAll('.subdetail[open]')].map(el => el.dataset.section));
       }
     }
-    const shown = Math.max(batch, state.shown);
     const category = $('area-filter').value;
     data = next; window.TCS_ATLAS = next;
     byId = new Map(data.cards.map(c => [c.id, c]));
@@ -183,15 +176,25 @@
     for (let i = 0; groups.some(group => group.length > i); i++) {
       for (const group of groups) if (group[i]) browsingOrder.push(group[i]);
     }
-    subsets = new Map(Object.entries(data.meta.green_subsets.member_ids).map(([size, ids]) => ['top' + size, new Set(ids)]));
-    searchable = new Map(data.cards.map(c => [c.id, normalize([c.id, c.title, labels.get(c.area), c.formal,
+    $('benchmark-title').textContent = data.cards.length + ' problems in theoretical computer science';
+    const problemSets = $('selection-filter');
+    problemSets.options[0].textContent = 'All ' + data.cards.length;
+    subsets = new Map();
+    for (const [size, ids] of Object.entries(data.meta.green_subsets.member_ids)) {
+      const current = new Set(ids.filter(id => byId.has(id)));
+      const key = 'top' + size;
+      subsets.set(key, current);
+      const available = current.size === ids.length ? '' : ' (' + current.size + ' available)';
+      problemSets.querySelector('option[value="' + key + '"]').textContent = 'Top ' + size + available;
+    }
+    searchable = new Map(data.cards.map(c => [c.id, normalize([c.id, ...(c.permalink_aliases || c.merged_from || []), c.title, labels.get(c.area), c.formal,
       ...(c.working_summary?.sentences || []), ...c.references.map(r => [r.title, r.authors].join(' '))].join(' '))]));
     const select = $('area-filter');
     select.replaceChildren(new Option('All categories', ''));
     data.areas.forEach(a => select.add(new Option(a.label, a.area)));
     select.value = labels.has(category) ? category : '';
     if (initial) readURL();
-    filter(false, shown);
+    filter(false);
     for (const [id, sections] of opened) {
       const el = $(id);
       if (!byId.has(id) || !el) continue;
@@ -226,7 +229,6 @@
       if (!opening && location.hash === '#' + card.id) replaceURL(location.pathname + location.search);
     }
   });
-  $('more').onclick = () => appendTo(state.shown + batch);
   $('search').addEventListener('input', () => filter());
   for (const id of ['area-filter', 'solution-filter', 'selection-filter']) $(id).addEventListener('change', () => filter());
   $('clear').onclick = $('empty-reset').onclick = () => { clearFilters(); filter(); $('search').focus(); };

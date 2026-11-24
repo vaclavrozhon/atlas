@@ -155,7 +155,7 @@
     selection.call(zoom.transform,d3.zoomIdentity.translate(width/2-k*(minX+maxX)/2,height/2+10-k*(minY+maxY)/2).scale(k));
   }
   function focusProblem(id){
-    const n=byId.get(id);if(!n)return false;
+    const n=byId.get(id)||nodes.find(node=>(node.card.permalink_aliases||node.card.merged_from)?.includes(id));if(!n)return false;
     const k=Math.max(transform.k,1.35);
     const x=width>760?width*.35:width*.5,y=height*.4;
     selection.call(zoom.transform,d3.zoomIdentity.translate(x-k*n.x,y-k*n.y).scale(k));
@@ -203,7 +203,7 @@
       const j=offsets.get(c.area)||0;offsets.set(c.area,j+1);
       const angle=i*2.39996323,ring=210*Math.sqrt(i+1),local=j*2.39996323,spread=13*Math.sqrt(j+1);
       return {id:c.id,card:c,r:4.4,x:before?.x??Math.cos(angle)*ring+Math.cos(local)*spread,y:before?.y??Math.sin(angle)*ring+Math.sin(local)*spread,
-        search:norm([c.id,c.title,a?.label||c.area,...(c.working_summary?.sentences||[]),c.formal].join(' '))};
+        search:norm([c.id,...(c.permalink_aliases||c.merged_from||[]),c.title,a?.label||c.area,...(c.working_summary?.sentences||[]),c.formal].join(' '))};
     });
     byId=new Map(nodes.map(n=>[n.id,n]));neighbors=new Map(nodes.map(n=>[n.id,new Set()]));
     const seen=new Set();links=[];
